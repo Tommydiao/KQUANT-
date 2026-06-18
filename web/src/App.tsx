@@ -27,9 +27,9 @@ type Lang = "en" | "zh";
 type Theme = "light" | "dark";
 type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
-type RangeValue = "1d" | "5d" | "1mo" | "3mo" | "1y";
-type IntervalValue = "5m" | "1h" | "1d";
-type ChartPresetKey = "1d-5m" | "5d-1h" | "1mo-1d" | "3mo-1d" | "1y-1d";
+type RangeValue = "5d" | "1y" | "5y" | "10y";
+type IntervalValue = "1h" | "1d" | "1wk" | "1mo";
+type ChartPresetKey = "1h" | "1d" | "1w" | "1m";
 
 type Candle = {
   time: Time;
@@ -154,8 +154,8 @@ const copy = {
     dataQuality: "Data Quality",
     today: "Today’s Stock Setups",
     selected: "Selected Stock Review",
-    daily: "Daily K-Line",
-    hourly: "1H K-Line",
+    daily: "Stock K-Line",
+    hourly: "Confirmation K-Line",
     reasons: "Signal Reasons",
     risks: "Risk Warnings",
     checklist: "Manual Checklist",
@@ -205,8 +205,8 @@ const copy = {
     dataQuality: "数据质量",
     today: "今日正股信号",
     selected: "当前股票复核",
-    daily: "日线 K 线",
-    hourly: "1H K 线",
+    daily: "股票 K 线",
+    hourly: "确认 K 线",
     reasons: "信号理由",
     risks: "风险提醒",
     checklist: "手工复核清单",
@@ -236,11 +236,10 @@ const copy = {
 } as const;
 
 const CHART_PRESETS: ChartPreset[] = [
-  { key: "1d-5m", label: "1D / 5m", range: "1d", interval: "5m" },
-  { key: "5d-1h", label: "5D / 1H", range: "5d", interval: "1h" },
-  { key: "1mo-1d", label: "1M / 1D", range: "1mo", interval: "1d" },
-  { key: "3mo-1d", label: "3M / 1D", range: "3mo", interval: "1d" },
-  { key: "1y-1d", label: "1Y / 1D", range: "1y", interval: "1d" },
+  { key: "1h", label: "1H", range: "5d", interval: "1h" },
+  { key: "1d", label: "1D", range: "1y", interval: "1d" },
+  { key: "1w", label: "1W", range: "5y", interval: "1wk" },
+  { key: "1m", label: "1M", range: "10y", interval: "1mo" },
 ];
 
 const STOCKS: UniverseStock[] = [
@@ -318,8 +317,8 @@ function App() {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", "en");
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
   const [source, setSource] = useStoredState<Source>("kquant-stock:source:v2", "live");
-  const [primaryPresetKey, setPrimaryPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:primary-preset", "1y-1d");
-  const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset", "5d-1h");
+  const [primaryPresetKey, setPrimaryPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:primary-preset:v2", "1d");
+  const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset:v2", "1h");
   const [run, setRun] = useState<SignalRun>(() => (source === "fixture" ? makeLocalSignalRun(source) : makeUnavailableSignalRun()));
   const [universe, setUniverse] = useState<UniverseStock[]>(STOCKS);
   const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", "NVDA");
@@ -327,8 +326,8 @@ function App() {
   const confirmationPreset = chartPresetByKey(confirmationPresetKey);
   const [dailyCandles, setDailyCandles] = useState<Candle[]>(() => makeCandles("NVDA", "1y", "1d"));
   const [hourlyCandles, setHourlyCandles] = useState<Candle[]>(() => makeCandles("NVDA", "5d", "1h"));
-  const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("1y-1d"), dailyCandles));
-  const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("5d-1h"), hourlyCandles));
+  const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("1d"), dailyCandles));
+  const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("1h"), hourlyCandles));
   const [apiState, setApiState] = useState<"api" | "fallback">("fallback");
   const text = copy[lang];
 
@@ -348,6 +347,12 @@ function App() {
     const requested = urlSourceOverride();
     if (requested && requested !== source) {
       setSource(requested);
+    }
+    if (!CHART_PRESETS.some((preset) => preset.key === primaryPresetKey)) {
+      setPrimaryPresetKey("1d");
+    }
+    if (!CHART_PRESETS.some((preset) => preset.key === confirmationPresetKey)) {
+      setConfirmationPresetKey("1h");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -663,7 +668,10 @@ function ChartPanel({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState<OhlcState | null>(null);
-  const indicators = useMemo(() => ({ ema20: ema(candles, 20), ema50: ema(candles, 50), vwap: vwap(candles) }), [candles]);
+  const indicators = useMemo(
+    () => ({ ema20: ema(candles, 20), ema50: ema(candles, 50), sma200: sma(candles, 200), vwap: vwap(candles) }),
+    [candles],
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -715,6 +723,7 @@ function ChartPanel({
 
     addLine(chart, indicators.ema20, "#2563eb");
     addLine(chart, indicators.ema50, "#f59e0b");
+    if (indicators.sma200.length) addLine(chart, indicators.sma200, "#0f766e");
     addLine(chart, indicators.vwap, "#7c3aed");
     chart.timeScale().fitContent();
     chart.subscribeCrosshairMove((param) => {
@@ -732,7 +741,7 @@ function ChartPanel({
       });
     });
     return () => chart.remove();
-  }, [candles, indicators.ema20, indicators.ema50, indicators.vwap, theme]);
+  }, [candles, indicators.ema20, indicators.ema50, indicators.sma200, indicators.vwap, theme]);
 
   return (
     <section className="panel chart-panel">
@@ -746,7 +755,9 @@ function ChartPanel({
           <div className="indicator-tags">
             <span>EMA20</span>
             <span>EMA50</span>
+            <span>SMA200</span>
             <span>VWAP</span>
+            <span>Volume</span>
           </div>
         </div>
       </div>
@@ -856,7 +867,7 @@ function Narrative({ title, items }: { title: string; items: string[] }) {
 }
 
 function chartPresetByKey(key: ChartPresetKey): ChartPreset {
-  return CHART_PRESETS.find((preset) => preset.key === key) ?? CHART_PRESETS[CHART_PRESETS.length - 1];
+  return CHART_PRESETS.find((preset) => preset.key === key) ?? CHART_PRESETS[1];
 }
 
 function urlSourceOverride(): Source | null {
@@ -1117,13 +1128,7 @@ function makeCandles(symbol: string, range: RangeValue, interval: IntervalValue)
 function fixtureTimestamps(range: RangeValue, interval: IntervalValue): number[] {
   const end = new Date(Date.UTC(2026, 5, 17, 20, 0));
   if (interval === "1d") {
-    const count = range === "1y" ? 252 : range === "3mo" ? 66 : 22;
-    return previousTradingDays(end, count).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
-  }
-  if (range === "1d" && interval === "5m") {
-    const day = previousTradingDays(end, 1)[0];
-    const start = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000;
-    return Array.from({ length: 78 }, (_, index) => start + index * 5 * 60);
+    return previousTradingDays(end, 252).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
   }
   if (range === "5d" && interval === "1h") {
     return previousTradingDays(end, 5).flatMap((day) => {
@@ -1131,7 +1136,13 @@ function fixtureTimestamps(range: RangeValue, interval: IntervalValue): number[]
       return Array.from({ length: 7 }, (_, index) => start + index * 60 * 60);
     });
   }
-  return previousTradingDays(end, 22).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
+  if (range === "5y" && interval === "1wk") {
+    return previousWeeklyTradingDays(end, 260).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
+  }
+  if (range === "10y" && interval === "1mo") {
+    return previousMonthlyTradingDays(end, 120).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
+  }
+  return previousTradingDays(end, 252).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
 }
 
 function previousTradingDays(end: Date, count: number): Date[] {
@@ -1143,6 +1154,38 @@ function previousTradingDays(end: Date, count: number): Date[] {
       days.push(new Date(cursor));
     }
     cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+  return days.reverse();
+}
+
+function previousWeeklyTradingDays(end: Date, count: number): Date[] {
+  const anchor = previousTradingDays(end, 1)[0];
+  const days: Date[] = [];
+  const cursor = new Date(anchor);
+  while (days.length < count) {
+    days.push(new Date(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() - 7);
+  }
+  return days.reverse();
+}
+
+function previousMonthlyTradingDays(end: Date, count: number): Date[] {
+  const days: Date[] = [];
+  let year = end.getUTCFullYear();
+  let month = end.getUTCMonth();
+  while (days.length < count) {
+    const cursor = new Date(Date.UTC(year, month, 1));
+    while (cursor.getUTCDay() === 0 || cursor.getUTCDay() === 6) {
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    if (cursor <= end) {
+      days.push(new Date(cursor));
+    }
+    month -= 1;
+    if (month < 0) {
+      month = 11;
+      year -= 1;
+    }
   }
   return days.reverse();
 }
@@ -1195,6 +1238,20 @@ function ema(candles: Candle[], period: number): LineData<Time>[] {
     current = index === 0 ? bar.close : (bar.close - current) * multiplier + current;
     return { time: bar.time, value: round(current) };
   });
+}
+
+function sma(candles: Candle[], period: number): LineData<Time>[] {
+  if (candles.length < period) return [];
+  const result: LineData<Time>[] = [];
+  let rolling = 0;
+  candles.forEach((bar, index) => {
+    rolling += bar.close;
+    if (index >= period) rolling -= candles[index - period].close;
+    if (index >= period - 1) {
+      result.push({ time: bar.time, value: round(rolling / period) });
+    }
+  });
+  return result;
 }
 
 function vwap(candles: Candle[]): LineData<Time>[] {

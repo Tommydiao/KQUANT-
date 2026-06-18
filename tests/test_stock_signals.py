@@ -44,6 +44,27 @@ def test_fixture_intraday_candles_match_declared_timeframe(tmp_path: Path) -> No
     assert len(one_day["candles"]) == 78
 
 
+def test_fixture_higher_timeframe_candles_match_declared_timeframe(tmp_path: Path) -> None:
+    db_path = tmp_path / "kquant_us.sqlite3"
+    weekly = api_stock_candles("SPY", "5y", "1wk", "fixture", db_path)
+    assert weekly["range"] == "5y"
+    assert weekly["interval"] == "1wk"
+    assert len(weekly["candles"]) == 260
+    weekly_first = datetime.fromisoformat(weekly["candles"][0]["open_time"])
+    weekly_last = datetime.fromisoformat(weekly["candles"][-1]["open_time"])
+    assert 1750 <= (weekly_last - weekly_first).days <= 1850
+
+    monthly = api_stock_candles("SPY", "10y", "1mo", "fixture", db_path)
+    assert monthly["range"] == "10y"
+    assert monthly["interval"] == "1mo"
+    assert len(monthly["candles"]) == 120
+    monthly_dates = {candle["open_time"][:7] for candle in monthly["candles"]}
+    assert len(monthly_dates) == 120
+
+    coerced = api_stock_candles("SPY", "5y", "1d", "fixture", db_path)
+    assert coerced["interval"] == "1wk"
+
+
 def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
     db_path = tmp_path / "kquant_us.sqlite3"
     outputs_dir = tmp_path / "outputs"

@@ -20,6 +20,8 @@ RANGES = {
     "1mo": {"bars": 22, "step": timedelta(days=1), "interval": "1d"},
     "3mo": {"bars": 66, "step": timedelta(days=1), "interval": "1d"},
     "1y": {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
+    "5y": {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
+    "10y": {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
 MARKET_OPEN_UTC_HOUR = 13
 MARKET_OPEN_UTC_MINUTE = 30
@@ -547,6 +549,16 @@ def fixture_market_timestamps(range_value: str, interval: str, end: datetime) ->
             datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
             for day in previous_trading_days(end, bars)
         ]
+    if interval == "1wk":
+        return [
+            datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+            for day in previous_weekly_trading_days(end, bars)
+        ]
+    if interval == "1mo":
+        return [
+            datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+            for day in previous_monthly_trading_days(end, bars)
+        ]
     if range_value == "1d" and interval == "5m":
         day = previous_trading_days(end, 1)[-1]
         start = datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
@@ -570,6 +582,35 @@ def previous_trading_days(end: datetime, count: int) -> list[datetime]:
             days.append(day)
         day -= timedelta(days=1)
     return list(reversed(days))
+
+
+def previous_weekly_trading_days(end: datetime, count: int) -> list[datetime]:
+    anchor = previous_trading_days(end, 1)[-1]
+    days: list[datetime] = []
+    cursor = anchor
+    while len(days) < count:
+        if cursor.weekday() < 5:
+            days.append(cursor)
+        cursor -= timedelta(days=7)
+    return list(reversed(days))
+
+
+def previous_monthly_trading_days(end: datetime, count: int) -> list[datetime]:
+    months: list[datetime] = []
+    year = end.year
+    month = end.month
+    while len(months) < count:
+        first = datetime(year, month, 1, tzinfo=UTC)
+        cursor = first
+        while cursor.weekday() >= 5:
+            cursor += timedelta(days=1)
+        if cursor <= end:
+            months.append(cursor)
+        month -= 1
+        if month == 0:
+            month = 12
+            year -= 1
+    return list(reversed(months))
 
 
 def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
