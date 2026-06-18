@@ -27,6 +27,7 @@ type Lang = "en" | "zh";
 type Theme = "light" | "dark";
 type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
+type UniverseName = "default" | "ai_five_layer" | "all";
 type RangeValue = "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "1h" | "1d" | "1w" | "1m";
@@ -81,6 +82,25 @@ type StockSignal = {
     live_does_not_fallback_to_fixture?: boolean;
   };
   features: Record<string, number>;
+  score_breakdown?: {
+    trend_score: number;
+    trigger_score: number;
+    volume_score: number;
+    risk_score: number;
+    total_score: number;
+    buy_setup_threshold: number;
+    watch_threshold: number;
+    formula: string;
+  };
+  exit_risk?: {
+    status: string;
+    level: string;
+    reasons: string[];
+    checklist: string[];
+  };
+  primary_layer?: string;
+  tags?: string[];
+  liquidity_tier?: string;
   historical_edge: {
     sample_count: number;
     win_rate_5d: number;
@@ -118,8 +138,10 @@ type UniverseStock = {
   name: string;
   sector: string;
   layer: string;
+  primary_layer?: string;
   tags: string[];
   rank: number;
+  liquidity_tier?: string;
 };
 
 type OhlcState = {
@@ -308,19 +330,87 @@ const STOCKS: UniverseStock[] = [
   "NET:Cloudflare:Technology:AI Infra",
   "AI:C3.ai:Technology:AI Software / Data",
   "PATH:UiPath:Technology:AI Software / Data",
-].map((row, index) => {
-  const [symbol, name, sector, layer] = row.split(":");
-  return { symbol, name, sector, layer, tags: [], rank: index + 1 };
-});
+].map(parseStockRow);
+
+const AI_FIVE_LAYER_STOCKS: UniverseStock[] = [
+  "CEG:Constellation Energy:Utilities:Energy",
+  "VST:Vistra:Utilities:Energy",
+  "NRG:NRG Energy:Utilities:Energy",
+  "NEE:NextEra Energy:Utilities:Energy",
+  "SO:Southern Company:Utilities:Energy",
+  "DUK:Duke Energy:Utilities:Energy",
+  "GEV:GE Vernova:Industrials:Energy",
+  "ETN:Eaton:Industrials:Energy",
+  "PWR:Quanta Services:Industrials:Energy",
+  "VRT:Vertiv:Industrials:Energy",
+  "CARR:Carrier Global:Industrials:Energy",
+  "CCJ:Cameco:Energy:Energy",
+  "NVDA:NVIDIA:Technology:Chips",
+  "AMD:Advanced Micro Devices:Technology:Chips",
+  "AVGO:Broadcom:Technology:Chips",
+  "QCOM:Qualcomm:Technology:Chips",
+  "MRVL:Marvell:Technology:Chips",
+  "ARM:Arm Holdings:Technology:Chips",
+  "INTC:Intel:Technology:Chips",
+  "MU:Micron:Technology:Chips",
+  "TSM:Taiwan Semiconductor:Technology:Chips",
+  "ASML:ASML:Technology:Chips",
+  "AMAT:Applied Materials:Technology:Chips",
+  "LRCX:Lam Research:Technology:Chips",
+  "KLAC:KLA:Technology:Chips",
+  "TXN:Texas Instruments:Technology:Chips",
+  "ADI:Analog Devices:Technology:Chips",
+  "MCHP:Microchip Technology:Technology:Chips",
+  "MPWR:Monolithic Power Systems:Technology:Chips",
+  "ON:ON Semiconductor:Technology:Chips",
+  "SMH:VanEck Semiconductor ETF:ETF:Chips",
+  "SOXX:iShares Semiconductor ETF:ETF:Chips",
+  "MSFT:Microsoft:Technology:Infrastructure",
+  "AMZN:Amazon:Consumer Discretionary:Infrastructure",
+  "GOOGL:Alphabet:Communication Services:Infrastructure",
+  "META:Meta Platforms:Communication Services:Infrastructure",
+  "ORCL:Oracle:Technology:Infrastructure",
+  "IBM:IBM:Technology:Infrastructure",
+  "ANET:Arista Networks:Technology:Infrastructure",
+  "CSCO:Cisco:Technology:Infrastructure",
+  "DELL:Dell Technologies:Technology:Infrastructure",
+  "HPE:Hewlett Packard Enterprise:Technology:Infrastructure",
+  "SMCI:Super Micro Computer:Technology:Infrastructure",
+  "EQIX:Equinix:Real Estate:Infrastructure",
+  "DLR:Digital Realty:Real Estate:Infrastructure",
+  "NET:Cloudflare:Technology:Infrastructure",
+  "DDOG:Datadog:Technology:Infrastructure",
+  "PLTR:Palantir:Technology:Models",
+  "SNOW:Snowflake:Technology:Models",
+  "MDB:MongoDB:Technology:Models",
+  "AI:C3.ai:Technology:Models",
+  "CRM:Salesforce:Technology:Applications",
+  "NOW:ServiceNow:Technology:Applications",
+  "ADBE:Adobe:Technology:Applications",
+  "CRWD:CrowdStrike:Technology:Applications",
+  "PANW:Palo Alto Networks:Technology:Applications",
+  "PATH:UiPath:Technology:Applications",
+  "UBER:Uber:Industrials:Applications",
+  "TSLA:Tesla:Consumer Discretionary:Applications",
+  "ISRG:Intuitive Surgical:Healthcare:Applications",
+  "APP:AppLovin:Technology:Applications",
+  "DUOL:Duolingo:Communication Services:Applications",
+  "SHOP:Shopify:Technology:Applications",
+].map(parseStockRow);
+
+const ALL_STOCKS = uniqueStocks([...STOCKS, ...AI_FIVE_LAYER_STOCKS]);
 
 function App() {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", "en");
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
   const [source, setSource] = useStoredState<Source>("kquant-stock:source:v2", "live");
+  const [selectedUniverse, setSelectedUniverse] = useStoredState<UniverseName>("kquant-stock:universe:v2", "default");
   const [primaryPresetKey, setPrimaryPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:primary-preset:v2", "1d");
   const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset:v2", "1h");
-  const [run, setRun] = useState<SignalRun>(() => (source === "fixture" ? makeLocalSignalRun(source) : makeUnavailableSignalRun()));
-  const [universe, setUniverse] = useState<UniverseStock[]>(STOCKS);
+  const [run, setRun] = useState<SignalRun>(() =>
+    source === "fixture" ? makeLocalSignalRun(source, selectedUniverse) : makeUnavailableSignalRun(selectedUniverse),
+  );
+  const [universe, setUniverse] = useState<UniverseStock[]>(() => stocksForUniverse(selectedUniverse));
   const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", "NVDA");
   const primaryPreset = chartPresetByKey(primaryPresetKey);
   const confirmationPreset = chartPresetByKey(confirmationPresetKey);
@@ -354,13 +444,16 @@ function App() {
     if (!CHART_PRESETS.some((preset) => preset.key === confirmationPresetKey)) {
       setConfirmationPresetKey("1h");
     }
+    if (!["default", "ai_five_layer", "all"].includes(selectedUniverse)) {
+      setSelectedUniverse("default");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     void loadSignals(source, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
+  }, [source, selectedUniverse]);
 
   useEffect(() => {
     void loadCandles(selected.symbol, source);
@@ -368,15 +461,16 @@ function App() {
   }, [selected.symbol, source, primaryPresetKey, confirmationPresetKey]);
 
   async function loadSignals(nextSource: Source, forceScan: boolean) {
+    const nextUniverse = selectedUniverse;
     try {
       const endpoint = forceScan ? "/api/stocks/signals" : "/api/stocks/signals/latest";
-      const response = await fetch(`${endpoint}?source=${nextSource}&universe=default&profile=swing_long_v1&limit=100`);
+      const response = await fetch(`${endpoint}?source=${nextSource}&universe=${nextUniverse}&profile=swing_long_v1&limit=100`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = (await response.json()) as SignalRun;
-      const universeResponse = await fetch("/api/stocks/universe?universe=default");
+      const universeResponse = await fetch(`/api/stocks/universe?universe=${nextUniverse}`);
       if (universeResponse.ok) {
         const universePayload = await universeResponse.json();
-        setUniverse(universePayload.stocks ?? STOCKS);
+        setUniverse(universePayload.stocks ?? stocksForUniverse(nextUniverse));
       }
       setRun(payload);
       setApiState("api");
@@ -384,9 +478,9 @@ function App() {
         setSelectedSymbol(payload.signals[0]?.symbol ?? "NVDA");
       }
     } catch {
-      const fallback = nextSource === "fixture" ? makeLocalSignalRun(nextSource) : makeUnavailableSignalRun();
+      const fallback = nextSource === "fixture" ? makeLocalSignalRun(nextSource, nextUniverse) : makeUnavailableSignalRun(nextUniverse);
       setRun(fallback);
-      setUniverse(STOCKS);
+      setUniverse(stocksForUniverse(nextUniverse));
       setApiState("fallback");
     }
   }
@@ -452,6 +546,15 @@ function App() {
             ]}
             onChange={(value) => setSource(value as Source)}
           />
+          <Segmented
+            value={selectedUniverse}
+            options={[
+              ["default", universeOptionLabel("default", lang)],
+              ["ai_five_layer", universeOptionLabel("ai_five_layer", lang)],
+              ["all", universeOptionLabel("all", lang)],
+            ]}
+            onChange={(value) => setSelectedUniverse(value as UniverseName)}
+          />
           <button className="primary-action" type="button" onClick={() => void loadSignals(source, true)}>
             <RefreshCw size={15} />
             {text.refresh}
@@ -472,7 +575,7 @@ function App() {
         <Metric label={text.watch} value={String(run.counts.watch)} tone="watch" />
         <Metric label={text.pass} value={String(run.counts.pass)} />
         <Metric label={text.provider} value={`${run.provider_status} / ${run.provider_error_count}`} tone={run.provider_error_count ? "warn" : "good"} />
-        <Metric label={text.universe} value={`${run.counts.total || universe.length} stocks`} />
+        <Metric label={text.universe} value={`${universeOptionLabel(selectedUniverse, lang)} / ${run.counts.total || universe.length}`} />
         <Metric
           label={text.historicalValidation}
           value={`${run.historical_validation?.sample_count ?? 0} / ${formatNumber(run.historical_validation?.win_rate_5d)}%`}
@@ -496,8 +599,12 @@ function App() {
                   <span className={`level ${levelClass(signal.level)}`}>{levelLabel(signal.level, lang)}</span>
                 </div>
                 <div className="score-line">
-                  <span>{selectedMetaBySymbol(universe, signal.symbol)?.layer ?? "US Stock"}</span>
+                  <span>{signal.primary_layer ?? selectedMetaBySymbol(universe, signal.symbol)?.layer ?? "US Stock"}</span>
                   <b>{signal.score}/100</b>
+                </div>
+                <div className="score-break-mini">
+                  T {formatNumber(signal.score_breakdown?.trend_score)} / C {formatNumber(signal.score_breakdown?.trigger_score)} / V{" "}
+                  {formatNumber(signal.score_breakdown?.volume_score)} / R {formatNumber(signal.score_breakdown?.risk_score)}
                 </div>
                 <div className="edge-line">
                   <span>
@@ -515,7 +622,7 @@ function App() {
 
         <section className="review-stack">
           <section className="panel selected-panel">
-            <PanelTitle title={text.selected} detail={selectedMeta.layer} />
+            <PanelTitle title={text.selected} detail={`${signalLayer(selected, selectedMeta)} / ${selected.liquidity_tier ?? selectedMeta.liquidity_tier ?? "core"}`} />
             <div className="selected-row">
               <div>
                 <span>{selectedMeta.name}</span>
@@ -533,6 +640,13 @@ function App() {
               <Fact label={text.winRate} value={`${formatNumber(selected.historical_edge?.win_rate_5d)}%`} />
               <Fact label={text.avgReturn} value={`${formatNumber(selected.historical_edge?.avg_forward_return_5d)}%`} />
               <Fact label={text.samples} value={String(selected.historical_edge?.sample_count ?? 0)} />
+            </div>
+            <div className="score-breakdown-row">
+              <Fact label="Trend" value={formatNumber(selected.score_breakdown?.trend_score)} />
+              <Fact label="1H Confirm" value={formatNumber(selected.score_breakdown?.trigger_score)} />
+              <Fact label="Volume" value={formatNumber(selected.score_breakdown?.volume_score)} />
+              <Fact label="Risk Window" value={formatNumber(selected.score_breakdown?.risk_score)} />
+              <Fact label={lang === "zh" ? "退出风险" : "Exit Risk"} value={selected.exit_risk?.status ?? "-"} />
             </div>
             <p className="secondary-note">{text.optionsLater}</p>
           </section>
@@ -581,6 +695,13 @@ function App() {
           <section className="panel detail-grid">
             <Narrative title={text.reasons} items={[selected.trend_summary, selected.trigger_summary]} />
             <Narrative
+              title={lang === "zh" ? "买入逻辑" : "Buy Logic"}
+              items={[
+                `BUY SETUP >= ${selected.score_breakdown?.buy_setup_threshold ?? 88}; WATCH >= ${selected.score_breakdown?.watch_threshold ?? 65}.`,
+                selected.score_breakdown?.formula ?? "trend + 1h trigger + volume confirmation + risk window",
+              ]}
+            />
+            <Narrative
               title={text.historicalEdge}
               items={[
                 `${text.samples}: ${selected.historical_edge?.sample_count ?? 0}`,
@@ -588,6 +709,7 @@ function App() {
                 `Verdict: ${selected.historical_edge?.verdict ?? "missing"}`,
               ]}
             />
+            <Narrative title={lang === "zh" ? "退出风险" : "Exit Risk"} items={selected.exit_risk?.reasons ?? ["No exit-risk data."]} />
             <Narrative title={text.risks} items={selected.risk_warnings} />
             <Narrative title={text.checklist} items={selected.manual_checklist} />
             <div className="data-box">
@@ -603,13 +725,18 @@ function App() {
       </section>
 
       <section className="panel layers-panel">
-        <PanelTitle title={text.layers} detail={`${universe.length} selected stocks / options secondary`} />
+        <PanelTitle title={lang === "zh" ? "AI 五层蛋糕" : "AI Five-Layer Cake"} detail={`${universe.length} selected stocks / ${universeOptionLabel(selectedUniverse, lang)}`} />
         <div className="layer-grid">
           {layerGroups.map((layer) => (
             <div className="layer-card" key={layer.name}>
               <div className="layer-head">
                 <strong>{layer.name}</strong>
                 <span>{layer.stocks.length}</span>
+              </div>
+              <div className="layer-stats">
+                <span>{lang === "zh" ? "均分" : "Avg"} {formatNumber(layer.avgScore)}</span>
+                <span>BUY {layer.buySetup} / WATCH {layer.watch}</span>
+                <span>{layer.providerCaution ? (lang === "zh" ? "数据谨慎" : "Data caution") : (lang === "zh" ? "数据正常" : "Data clean")}</span>
               </div>
               <div className="symbol-wrap">
                 {layer.stocks.slice(0, 16).map((stock) => {
@@ -926,13 +1053,57 @@ function failedMeta(symbol: string, preset: ChartPreset): CandleMeta {
   };
 }
 
-function makeLocalSignalRun(source: Source): SignalRun {
-  const signals = STOCKS.slice(0, 100).map((stock) => buildLocalSignal(stock.symbol));
+function parseStockRow(row: string, index: number): UniverseStock {
+  const [symbol, name, sector, layer] = row.split(":");
+  return {
+    symbol,
+    name,
+    sector,
+    layer,
+    primary_layer: layer,
+    tags: layer === "Energy" || layer === "Chips" || layer === "Infrastructure" || layer === "Models" || layer === "Applications" ? [`ai_${layer.toLowerCase()}`] : [],
+    rank: index + 1,
+    liquidity_tier: ["AI", "APP", "DUOL", "PATH", "TSLA"].includes(symbol) ? "high_beta" : "core",
+  };
+}
+
+function uniqueStocks(stocks: UniverseStock[]): UniverseStock[] {
+  const seen = new Map<string, UniverseStock>();
+  for (const stock of stocks) {
+    if (!seen.has(stock.symbol)) seen.set(stock.symbol, stock);
+  }
+  return [...seen.values()].map((stock, index) => ({ ...stock, rank: index + 1 }));
+}
+
+function stocksForUniverse(universeName: UniverseName): UniverseStock[] {
+  if (universeName === "ai_five_layer") return AI_FIVE_LAYER_STOCKS;
+  if (universeName === "all") return ALL_STOCKS;
+  return STOCKS;
+}
+
+function universeOptionLabel(universeName: UniverseName, lang: Lang): string {
+  if (lang === "zh") {
+    if (universeName === "ai_five_layer") return "AI 五层";
+    if (universeName === "all") return "全部";
+    return "默认";
+  }
+  if (universeName === "ai_five_layer") return "AI Five-Layer";
+  if (universeName === "all") return "All";
+  return "Default";
+}
+
+function signalLayer(signal: StockSignal, stock: UniverseStock): string {
+  return signal.primary_layer ?? stock.primary_layer ?? stock.layer;
+}
+
+function makeLocalSignalRun(source: Source, universeName: UniverseName = "default"): SignalRun {
+  const stocks = stocksForUniverse(universeName).slice(0, 100);
+  const signals = stocks.map((stock) => buildLocalSignal(stock));
   signals.sort((a, b) => b.score - a.score);
   return {
     run_id: "local-fixture-stock-run",
     source,
-    universe: "default",
+    universe: universeName,
     profile: { name: "swing_long_v1", buy_setup_threshold: 82, watch_threshold: 65, direction: "long_only" },
     provider_status: source === "fixture" ? "fixture_read_only" : "api_unavailable",
     provider_error_count: source === "fixture" ? 0 : 1,
@@ -955,12 +1126,14 @@ function makeLocalSignalRun(source: Source): SignalRun {
   };
 }
 
-function makeUnavailableSignalRun(): SignalRun {
-  const signals = STOCKS.slice(0, 100).map((stock) => makeUnavailableSignal(stock.symbol));
+function makeUnavailableSignalRun(universeName: UniverseName = "default"): SignalRun {
+  const signals = stocksForUniverse(universeName)
+    .slice(0, 100)
+    .map((stock) => makeUnavailableSignal(stock.symbol, stock));
   return {
     run_id: "live-provider-unavailable",
     source: "live",
-    universe: "default",
+    universe: universeName,
     profile: { name: "swing_long_v1", buy_setup_threshold: 82, watch_threshold: 65, direction: "long_only" },
     provider_status: "provider_failed",
     provider_error_count: 1,
@@ -983,14 +1156,33 @@ function makeUnavailableSignalRun(): SignalRun {
   };
 }
 
-function makeUnavailableSignal(symbol: string): StockSignal {
+function makeUnavailableSignal(symbol: string, stock?: UniverseStock): StockSignal {
   return {
     symbol,
     score: 0,
     level: "PASS",
     direction: "LONG",
+    primary_layer: stock?.layer ?? "US Stock",
+    tags: stock?.tags ?? [],
+    liquidity_tier: stock?.liquidity_tier ?? "core",
     trend_summary: "Live public candles are unavailable.",
     trigger_summary: "No signal is generated without live candles.",
+    score_breakdown: {
+      trend_score: 0,
+      trigger_score: 0,
+      volume_score: 0,
+      risk_score: 0,
+      total_score: 0,
+      buy_setup_threshold: 88,
+      watch_threshold: 65,
+      formula: "trend + 1h trigger + volume confirmation + risk window",
+    },
+    exit_risk: {
+      status: "DATA CAUTION",
+      level: "CAUTION",
+      reasons: ["Provider failed or local API is unavailable; do not treat this as a setup."],
+      checklist: ["Refresh live data later. Do not use fixture data as a live trading input."],
+    },
     risk_warnings: ["Provider failed or local API is unavailable; do not treat this as a setup."],
     manual_checklist: ["Refresh live data later. Do not use fixture data as a live trading input."],
     data_status: {
@@ -1017,7 +1209,8 @@ function makeUnavailableSignal(symbol: string): StockSignal {
   };
 }
 
-function buildLocalSignal(symbol: string): StockSignal {
+function buildLocalSignal(stock: UniverseStock): StockSignal {
+  const symbol = stock.symbol;
   const daily = makeCandles(symbol, "1y", "1d");
   const hourly = makeCandles(symbol, "5d", "1h");
   const closes = daily.map((bar) => bar.close);
@@ -1046,14 +1239,34 @@ function buildLocalSignal(symbol: string): StockSignal {
     0,
     100,
   );
+  const scoreBreakdown = {
+    trend_score: round(
+      (close > ema20 ? 14 : 0) +
+        (ema20 > ema50 ? 14 : 0) +
+        (ema50 > ema200 ? 14 : 0) +
+        clamp(((close / Math.max(previousClose, 0.01)) - 1) * 100 * 2.2, -8, 18),
+    ),
+    trigger_score: round((hLast > hEma20 ? 13 : 0) + clamp(hMomentum * 3, -8, 11)),
+    volume_score: round(clamp((volumeRatio - 0.75) * 18, 0, 18)),
+    risk_score: round(clamp(18 - Math.max(0, atr - 5) * 1.4, 0, 18)),
+    total_score: Math.round(score * 10) / 10,
+    buy_setup_threshold: 88,
+    watch_threshold: 65,
+    formula: "trend + 1h trigger + volume confirmation + risk window",
+  };
   const level: Level = score >= 82 ? "BUY SETUP" : score >= 65 ? "WATCH" : "PASS";
   return {
     symbol,
     score: Math.round(score * 10) / 10,
     level,
     direction: "LONG",
+    primary_layer: stock.layer,
+    tags: stock.tags,
+    liquidity_tier: stock.liquidity_tier ?? "core",
     trend_summary: `Daily close ${close.toFixed(2)} vs EMA20 ${ema20.toFixed(2)}, EMA50 ${ema50.toFixed(2)}, EMA200 ${ema200.toFixed(2)}.`,
     trigger_summary: `1h momentum ${hMomentum.toFixed(2)}%; volume ${volumeRatio.toFixed(2)}x recent average.`,
+    score_breakdown: scoreBreakdown,
+    exit_risk: localExitRisk(close, ema20, ema50, hMomentum, volumeRatio, atr),
     risk_warnings:
       atr > 5
         ? ["ATR risk is elevated; wait for a cleaner pullback before acting."]
@@ -1100,6 +1313,47 @@ function localHistoricalEdge(symbol: string): StockSignal["historical_edge"] {
     avg_forward_return_10d: round(avgReturn * 1.35),
     avg_max_drawdown_5d: round(-1.2 - (seed % 20) / 10),
     verdict: winRate >= 52 && avgReturn > 0.2 ? "positive" : "unproven",
+  };
+}
+
+function localExitRisk(close: number, ema20: number, ema50: number, hMomentum: number, volumeRatio: number, atr: number): NonNullable<StockSignal["exit_risk"]> {
+  const reasons: string[] = [];
+  let status = "CLEAR";
+  let level = "HOLD";
+  if (close < ema50) {
+    status = "SETUP INVALIDATED";
+    level = "EXIT RISK";
+    reasons.push("Daily close is below EMA50; long setup structure is invalidated.");
+  } else if (close < ema20) {
+    status = "EXIT RISK";
+    level = "CAUTION";
+    reasons.push("Daily close is below EMA20; trend support needs manual review.");
+  }
+  if (hMomentum < -0.7) {
+    status = status === "CLEAR" ? "EXIT RISK" : status;
+    level = level === "HOLD" ? "CAUTION" : level;
+    reasons.push("1h momentum is negative enough to review risk.");
+  }
+  if (volumeRatio >= 1.6 && hMomentum < 0) {
+    status = "EXIT RISK";
+    level = "EXIT RISK";
+    reasons.push("Downside momentum is appearing with elevated volume.");
+  }
+  if (atr > 6) {
+    status = status === "CLEAR" ? "EXIT RISK" : status;
+    level = level === "HOLD" ? "CAUTION" : level;
+    reasons.push("ATR is elevated; position risk is expanding.");
+  }
+  if (!reasons.length) reasons.push("No exit-risk trigger from trend, 1h momentum, ATR, or volume checks.");
+  return {
+    status,
+    level,
+    reasons,
+    checklist: [
+      "Review daily EMA20/EMA50 support first.",
+      "Confirm whether 1h momentum is improving or deteriorating.",
+      "Use this as a manual risk reminder, not an automated sell instruction.",
+    ],
   };
 }
 
@@ -1209,17 +1463,31 @@ function normalizeCandles(input: unknown, fallback: Candle[]): Candle[] {
 }
 
 function groupByLayer(stocks: UniverseStock[], signals: StockSignal[]) {
-  const scoreBySymbol = new Map(signals.map((signal) => [signal.symbol, signal.score]));
+  const signalBySymbol = new Map(signals.map((signal) => [signal.symbol, signal]));
   const groups = new Map<string, UniverseStock[]>();
   for (const stock of stocks) {
     groups.set(stock.layer, [...(groups.get(stock.layer) ?? []), stock]);
   }
   return [...groups.entries()]
-    .map(([name, layerStocks]) => ({
-      name,
-      stocks: layerStocks.sort((a, b) => (scoreBySymbol.get(b.symbol) ?? 0) - (scoreBySymbol.get(a.symbol) ?? 0)),
-    }))
-    .sort((a, b) => b.stocks.length - a.stocks.length);
+    .map(([name, layerStocks]) => {
+      const layerSignals = layerStocks.map((stock) => signalBySymbol.get(stock.symbol)).filter(Boolean) as StockSignal[];
+      const avgScore = avg(layerSignals.map((signal) => signal.score));
+      return {
+        name,
+        avgScore,
+        buySetup: layerSignals.filter((signal) => signal.level === "BUY SETUP").length,
+        watch: layerSignals.filter((signal) => signal.level === "WATCH").length,
+        providerCaution: layerSignals.some((signal) => signal.data_status?.data_quality === "caution"),
+        stocks: layerStocks.sort((a, b) => (signalBySymbol.get(b.symbol)?.score ?? 0) - (signalBySymbol.get(a.symbol)?.score ?? 0)),
+      };
+    })
+    .sort((a, b) => layerSortRank(a.name) - layerSortRank(b.name) || b.stocks.length - a.stocks.length);
+}
+
+function layerSortRank(layer: string): number {
+  const order = ["Energy", "Chips", "Infrastructure", "Models", "Applications"];
+  const index = order.indexOf(layer);
+  return index >= 0 ? index : 20;
 }
 
 function selectedMetaBySymbol(stocks: UniverseStock[], symbol: string) {

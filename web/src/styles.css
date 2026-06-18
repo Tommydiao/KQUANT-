@@ -409,6 +409,17 @@ p {
   font-weight: 760;
 }
 
+.score-break-mini {
+  margin-top: 7px;
+  padding: 6px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 780;
+}
+
 .score-line b {
   color: var(--strong);
 }
@@ -457,6 +468,13 @@ p {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
   padding: 0 16px;
+}
+
+.score-breakdown-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 16px 0;
 }
 
 .fact {
@@ -654,6 +672,24 @@ p {
   font-weight: 800;
 }
 
+.layer-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.layer-stats span {
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
+}
+
 .symbol-wrap {
   gap: 6px;
   flex-wrap: wrap;
@@ -712,7 +748,8 @@ p {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .fact-grid {
+  .fact-grid,
+  .score-breakdown-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -747,8 +784,10 @@ p {
   .metrics-grid,
   .signal-list,
   .fact-grid,
+  .score-breakdown-row,
   .detail-grid,
-  .layer-grid {
+  .layer-grid,
+  .layer-stats {
     grid-template-columns: 1fr;
   }
 

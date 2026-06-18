@@ -13,7 +13,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     scan = sub.add_parser("stock-scan", help="Run the US stock signal scan.")
     scan.add_argument("--source", choices=["fixture", "live"], default="fixture")
-    scan.add_argument("--universe", choices=["default", "ai", "all"], default="default")
+    scan.add_argument("--universe", choices=["default", "ai", "ai_five_layer", "all"], default="default")
     scan.add_argument("--profile", default="swing_long_v1")
     scan.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     scan.add_argument("--outputs-dir", default="outputs")

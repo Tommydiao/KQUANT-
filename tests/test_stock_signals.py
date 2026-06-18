@@ -14,6 +14,16 @@ def test_default_stock_universe_has_100_symbols() -> None:
     assert "NVDA" in {stock.symbol for stock in stocks}
 
 
+def test_ai_five_layer_universe_is_complete_and_deduped() -> None:
+    stocks = stock_universe("ai_five_layer")
+    symbols = [stock.symbol for stock in stocks]
+    layers = {stock.layer for stock in stocks}
+    assert len(symbols) == len(set(symbols))
+    assert {"Energy", "Chips", "Infrastructure", "Models", "Applications"}.issubset(layers)
+    assert {"NVDA", "CEG", "MSFT", "PLTR", "CRM"}.issubset(set(symbols))
+    assert next(stock for stock in stocks if stock.symbol == "NVDA").layer == "Chips"
+
+
 def test_fixture_stock_candles_are_deterministic(tmp_path: Path) -> None:
     db_path = tmp_path / "kquant_us.sqlite3"
     first = api_stock_candles("NVDA", "1y", "1d", "fixture", db_path)
@@ -82,6 +92,9 @@ def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
     assert "historical_validation" in payload
     assert payload["llm_signal_core_enabled"] is False
     assert payload["broker_order_wiring_enabled"] is False
+    assert "score_breakdown" in payload["signals"][0]
+    assert "exit_risk" in payload["signals"][0]
+    assert "primary_layer" in payload["signals"][0]
     assert (outputs_dir / "stock-signals-report.json").exists()
     with connect(db_path) as conn:
         tables = {
@@ -93,6 +106,24 @@ def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
         assert tables == {"stock_features", "stock_labels", "stock_backtest_runs"}
         assert conn.execute("SELECT COUNT(*) AS count FROM stock_features").fetchone()["count"] == 12
         assert conn.execute("SELECT COUNT(*) AS count FROM stock_backtest_runs").fetchone()["count"] == 1
+
+
+def test_fixture_ai_five_layer_signal_run_has_transparent_fields(tmp_path: Path) -> None:
+    payload = api_stock_signals(
+        source="fixture",
+        universe="ai_five_layer",
+        profile="swing_long_v1",
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+        limit=10,
+    )
+    assert payload["universe"] == "ai_five_layer"
+    assert payload["counts"]["total"] == 10
+    first = payload["signals"][0]
+    assert first["primary_layer"] in {"Energy", "Chips", "Infrastructure", "Models", "Applications"}
+    assert first["liquidity_tier"] in {"core", "high_beta"}
+    assert first["score_breakdown"]["total_score"] == first["score"]
+    assert first["exit_risk"]["status"] in {"CLEAR", "DATA CAUTION", "EXIT RISK", "SETUP INVALIDATED", "TAKE PROFIT WATCH"}
 
 
 def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: Path, monkeypatch) -> None:

@@ -132,9 +132,12 @@ def api_stock_signals(
 ) -> dict[str, Any]:
     db = db_path or default_db_path()
     outputs = outputs_dir or Path("outputs")
-    symbols = [stock.symbol for stock in stock_universe(universe)]
+    stocks = stock_universe(universe)
+    symbols = [stock.symbol for stock in stocks]
     if limit:
         symbols = symbols[: max(1, min(limit, len(symbols)))]
+        stocks = stocks[: len(symbols)]
+    stock_by_symbol = {stock.symbol: stock for stock in stocks}
     started = iso_now()
     signals: list[dict[str, Any]] = []
     provider_errors: list[str] = []
@@ -147,6 +150,11 @@ def api_stock_signals(
         if hourly["provider_status"] not in ("available", "fixture_read_only"):
             provider_errors.append(f"{symbol}: 1h {hourly['provider_status']}")
         signal = build_signal(symbol, daily, hourly)
+        stock_meta = stock_by_symbol.get(symbol)
+        if stock_meta:
+            signal["primary_layer"] = stock_meta.layer
+            signal["tags"] = list(stock_meta.tags)
+            signal["liquidity_tier"] = stock_meta.liquidity_tier
         label_samples_by_symbol[symbol] = signal.pop("_label_samples", [])
         signals.append(signal)
     signals.sort(key=lambda item: item["score"], reverse=True)
@@ -268,6 +276,16 @@ def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
         "volume_score": round(volume_score, 1),
         "risk_score": round(risk_score, 1),
     }
+    score_breakdown = {
+        "trend_score": round(trend_score, 1),
+        "trigger_score": round(trigger_score, 1),
+        "volume_score": round(volume_score, 1),
+        "risk_score": round(risk_score, 1),
+        "total_score": score,
+        "buy_setup_threshold": PROFILE["strict_buy_gate_score"],
+        "watch_threshold": PROFILE["watch_threshold"],
+        "formula": "trend + 1h trigger + volume confirmation + risk window",
+    }
     label_samples = build_historical_label_samples(symbol, daily)
     historical_edge = estimate_historical_edge(label_samples)
     trend_aligned = close > ema20 > ema50 > ema200
@@ -305,13 +323,28 @@ def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
         risks.append("1h confirmation candles have provider caution.")
     if not risks:
         risks.append("No hard data blocker, but confirm price action manually before acting.")
+    exit_risk = build_exit_risk(
+        close=close,
+        ema20=ema20,
+        ema50=ema50,
+        one_hour_momentum=one_hour_momentum,
+        volume_ratio=volume_ratio,
+        atr_pct=atr_pct,
+        extension_pct=extension_pct,
+        data_clean=data_clean,
+    )
     return {
         "symbol": symbol,
         "score": score,
         "level": level,
         "direction": "LONG",
+        "primary_layer": "US Stock",
+        "tags": [],
+        "liquidity_tier": "core",
         "trend_summary": f"Daily close {close:.2f}; EMA20 {ema20:.2f}, EMA50 {ema50:.2f}, EMA200 {ema200:.2f}.",
         "trigger_summary": f"1h momentum {one_hour_momentum:.2f}% with close {'above' if hourly_close[-1] >= h_ema20 else 'below'} EMA20.",
+        "score_breakdown": score_breakdown,
+        "exit_risk": exit_risk,
         "risk_warnings": risks,
         "manual_checklist": [
             "Check the daily trend and EMA20/50/200 alignment.",
@@ -341,8 +374,27 @@ def empty_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
         "score": 0,
         "level": "PASS",
         "direction": "LONG",
+        "primary_layer": "US Stock",
+        "tags": [],
+        "liquidity_tier": "core",
         "trend_summary": "Not enough candles to judge daily trend.",
         "trigger_summary": "Not enough 1h candles to confirm entry.",
+        "score_breakdown": {
+            "trend_score": 0,
+            "trigger_score": 0,
+            "volume_score": 0,
+            "risk_score": 0,
+            "total_score": 0,
+            "buy_setup_threshold": PROFILE["strict_buy_gate_score"],
+            "watch_threshold": PROFILE["watch_threshold"],
+            "formula": "trend + 1h trigger + volume confirmation + risk window",
+        },
+        "exit_risk": {
+            "status": "DATA CAUTION",
+            "level": "CAUTION",
+            "reasons": ["Missing candles prevent exit-risk evaluation."],
+            "checklist": ["Refresh data later and do not act on incomplete candles."],
+        },
         "risk_warnings": ["Missing market data; skip until provider health improves."],
         "manual_checklist": ["Refresh data later and do not act on incomplete candles."],
         "data_status": {
@@ -814,8 +866,11 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
             [
                 f"### {signal['symbol']} - {signal['level']} - {signal['score']}/100",
                 "",
+                f"- Layer: {signal.get('primary_layer', 'US Stock')} / {signal.get('liquidity_tier', 'core')}",
                 f"- Trend: {signal['trend_summary']}",
                 f"- Trigger: {signal['trigger_summary']}",
+                f"- Score Breakdown: {signal.get('score_breakdown', {})}",
+                f"- Exit Risk: {signal.get('exit_risk', {})}",
                 f"- Historical Edge: {signal.get('historical_edge', empty_historical_edge())}",
                 f"- Data: {signal['data_status']}",
                 f"- Risks: {'; '.join(signal['risk_warnings'])}",
@@ -838,6 +893,62 @@ def normalize_range_interval(range_value: str, interval: str) -> tuple[str, str]
     if normalized_interval != expected_interval:
         normalized_interval = expected_interval
     return normalized_range, normalized_interval
+
+
+def build_exit_risk(
+    *,
+    close: float,
+    ema20: float,
+    ema50: float,
+    one_hour_momentum: float,
+    volume_ratio: float,
+    atr_pct: float,
+    extension_pct: float,
+    data_clean: bool,
+) -> dict[str, Any]:
+    reasons: list[str] = []
+    status = "CLEAR"
+    level = "HOLD"
+    if not data_clean:
+        status = "DATA CAUTION"
+        level = "CAUTION"
+        reasons.append("Provider or freshness caution; do not rely on the setup until candles are clean.")
+    if close < ema50:
+        status = "SETUP INVALIDATED"
+        level = "EXIT RISK"
+        reasons.append("Daily close is below EMA50; long setup structure is invalidated.")
+    elif close < ema20:
+        status = "EXIT RISK"
+        level = "CAUTION"
+        reasons.append("Daily close is below EMA20; momentum is losing the preferred trend support.")
+    if one_hour_momentum < -0.7:
+        status = "EXIT RISK" if status == "CLEAR" else status
+        level = "CAUTION" if level == "HOLD" else level
+        reasons.append("1h momentum is negative enough to require manual risk review.")
+    if volume_ratio >= 1.6 and one_hour_momentum < 0:
+        status = "EXIT RISK"
+        level = "EXIT RISK"
+        reasons.append("Downside 1h momentum is appearing with elevated volume.")
+    if atr_pct > 6:
+        status = "EXIT RISK" if status == "CLEAR" else status
+        level = "CAUTION" if level == "HOLD" else level
+        reasons.append("ATR is elevated; position risk is expanding.")
+    if extension_pct > 8:
+        status = "TAKE PROFIT WATCH" if status == "CLEAR" else status
+        level = "CAUTION" if level == "HOLD" else level
+        reasons.append("Price is extended above EMA20; avoid adding and consider profit protection.")
+    if not reasons:
+        reasons.append("No exit-risk trigger from trend, 1h momentum, ATR, or extension checks.")
+    return {
+        "status": status,
+        "level": level,
+        "reasons": reasons,
+        "checklist": [
+            "If already watching or holding, review daily EMA20/EMA50 support first.",
+            "Confirm whether 1h momentum is improving or deteriorating.",
+            "Use this as a manual risk reminder, not an automated sell instruction.",
+        ],
+    }
 
 
 def score_trend(close: float, ema20: float, ema50: float, ema200: float, trend_return: float) -> float:

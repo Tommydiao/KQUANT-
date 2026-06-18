@@ -77,15 +77,16 @@ Open `http://127.0.0.1:8001/`.
 
 The local Python dashboard exposes:
 
-- `GET /api/stocks/universe?universe=default|ai|all`
+- `GET /api/stocks/universe?universe=default|ai|ai_five_layer|all`
 - `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=fixture|live`
-- `GET /api/stocks/signals?source=fixture|live&universe=default&profile=swing_long_v1`
+- `GET /api/stocks/signals?source=fixture|live&universe=ai_five_layer&profile=swing_long_v1`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
 
 Each stock candle payload includes source, provider status, freshness, and
-provider errors. Live failures are surfaced as degraded or unavailable status;
-the live path does not silently mix fixture candles.
+provider errors. Stock signal payloads include score breakdown, AI layer, and
+manual exit-risk reminders. Live failures are surfaced as degraded or
+unavailable status; the live path does not silently mix fixture candles.
 
 ## Frontend
 
