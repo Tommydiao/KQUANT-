@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+from datetime import datetime
 
 from kquant.stock_signals import api_stock_candles, api_stock_signals, api_stock_signals_latest
 from kquant.stock_store import connect
@@ -20,6 +21,27 @@ def test_fixture_stock_candles_are_deterministic(tmp_path: Path) -> None:
     assert first["provider_status"] == "fixture_read_only"
     assert len(first["candles"]) == 252
     assert first["candles"] == second["candles"]
+    first_time = datetime.fromisoformat(first["candles"][0]["open_time"])
+    last_time = datetime.fromisoformat(first["candles"][-1]["open_time"])
+    assert 340 <= (last_time - first_time).days <= 370
+
+
+def test_fixture_intraday_candles_match_declared_timeframe(tmp_path: Path) -> None:
+    db_path = tmp_path / "kquant_us.sqlite3"
+    five_day = api_stock_candles("SPY", "5d", "1h", "fixture", db_path)
+    assert five_day["interval"] == "1h"
+    assert len(five_day["candles"]) == 35
+    trading_dates = {candle["open_time"][:10] for candle in five_day["candles"]}
+    assert len(trading_dates) == 5
+    assert five_day["candles"][0]["open_time"].endswith("13:30:00+00:00")
+
+    coerced = api_stock_candles("SPY", "5d", "15m", "fixture", db_path)
+    assert coerced["interval"] == "1h"
+    assert len(coerced["candles"]) == 35
+
+    one_day = api_stock_candles("SPY", "1d", "5m", "fixture", db_path)
+    assert one_day["interval"] == "5m"
+    assert len(one_day["candles"]) == 78
 
 
 def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
@@ -129,3 +151,17 @@ def test_latest_stock_signals_do_not_cross_mix_source(tmp_path: Path) -> None:
     )
     assert fixture_latest["source"] == "fixture"
     assert fixture_latest["counts"]["total"] == 100
+
+
+def test_live_latest_without_report_is_cache_only(tmp_path: Path) -> None:
+    payload = api_stock_signals_latest(
+        source="live",
+        universe="default",
+        profile="swing_long_v1",
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+    )
+    assert payload["source"] == "live"
+    assert payload["provider_status"] == "not_scanned"
+    assert payload["counts"]["total"] == 0
+    assert payload["signals"] == []

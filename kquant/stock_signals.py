@@ -16,11 +16,14 @@ from .stock_universe import stock_universe, stock_universe_payload
 UTC = timezone.utc
 RANGES = {
     "1d": {"bars": 78, "step": timedelta(minutes=5), "interval": "5m"},
-    "5d": {"bars": 130, "step": timedelta(minutes=15), "interval": "15m"},
+    "5d": {"bars": 35, "step": timedelta(hours=1), "interval": "1h"},
     "1mo": {"bars": 22, "step": timedelta(days=1), "interval": "1d"},
     "3mo": {"bars": 66, "step": timedelta(days=1), "interval": "1d"},
     "1y": {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
 }
+MARKET_OPEN_UTC_HOUR = 13
+MARKET_OPEN_UTC_MINUTE = 30
+MARKET_CLOSE_UTC_HOUR = 20
 PROFILE = {
     "name": "swing_long_v1",
     "buy_setup_threshold": 82,
@@ -195,7 +198,32 @@ def api_stock_signals_latest(
                 return payload
         except json.JSONDecodeError:
             pass
+    if source == "live":
+        return empty_signal_run(source=source, universe=universe, profile=profile, reason="No matching live stock signal report yet. Run a manual live scan.")
     return api_stock_signals(source=source, universe=universe, profile=profile, db_path=db_path, outputs_dir=outputs)
+
+
+def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> dict[str, Any]:
+    now = iso_now()
+    return {
+        "run_id": "stock-live-not-scanned",
+        "product": "KQUANT US Stock Signal Terminal",
+        "source": source,
+        "universe": universe,
+        "profile": PROFILE | {"name": profile},
+        "started_at": now,
+        "completed_at": now,
+        "provider_status": "not_scanned",
+        "provider_error_count": 0,
+        "provider_errors": [reason],
+        "historical_validation": summarize_label_samples({}),
+        "counts": {"buy_setup": 0, "watch": 0, "pass": 0, "total": 0},
+        "signals": [],
+        "btc_eth_removed_from_main_path": True,
+        "options_are_secondary": True,
+        "llm_signal_core_enabled": False,
+        "broker_order_wiring_enabled": False,
+    }
 
 
 def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dict[str, Any]) -> dict[str, Any]:
@@ -474,7 +502,6 @@ def cached_candles_payload(
 def make_fixture_candles(symbol: str, range_value: str, interval: str) -> list[dict[str, Any]]:
     spec = RANGES.get(range_value, RANGES["1y"])
     bars = int(spec["bars"])
-    step = spec["step"]
     seed = sum((index + 1) * ord(char) for index, char in enumerate(symbol))
     base = 42 + (seed % 520)
     if symbol in {"SPY", "QQQ", "DIA", "IWM"}:
@@ -483,10 +510,10 @@ def make_fixture_candles(symbol: str, range_value: str, interval: str) -> list[d
     if any(tag in symbol for tag in ("NVDA", "MSFT", "AMZN", "AVGO", "PLTR", "AMD")):
         trend_bias += 0.0018
     now = datetime(2026, 6, 17, 20, 0, tzinfo=UTC)
-    start = now - step * bars
+    timestamps = fixture_market_timestamps(range_value, interval, now)
     price = float(base)
     candles: list[dict[str, Any]] = []
-    for index in range(bars):
+    for index, open_time in enumerate(timestamps[-bars:]):
         wave = math.sin((index + seed) * 0.17) * 0.018 + math.cos((index + seed) * 0.047) * 0.009
         impulse = math.sin((index + seed) * 0.61) * 0.004
         drift = trend_bias + wave * 0.18 + impulse
@@ -496,7 +523,6 @@ def make_fixture_candles(symbol: str, range_value: str, interval: str) -> list[d
         high = max(open_, close) + spread
         low = max(0.5, min(open_, close) - spread * 0.84)
         volume = int(900_000 + (seed % 800_000) + abs(wave) * 35_000_000 + (index % 17) * 41_000)
-        open_time = start + step * index
         candles.append(
             {
                 "open_time": open_time.isoformat(),
@@ -511,6 +537,39 @@ def make_fixture_candles(symbol: str, range_value: str, interval: str) -> list[d
         )
         price = close
     return candles
+
+
+def fixture_market_timestamps(range_value: str, interval: str, end: datetime) -> list[datetime]:
+    spec = RANGES.get(range_value, RANGES["1y"])
+    bars = int(spec["bars"])
+    if interval == "1d":
+        return [
+            datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+            for day in previous_trading_days(end, bars)
+        ]
+    if range_value == "1d" and interval == "5m":
+        day = previous_trading_days(end, 1)[-1]
+        start = datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+        return [start + timedelta(minutes=5 * index) for index in range(78)]
+    if range_value == "5d" and interval == "1h":
+        timestamps: list[datetime] = []
+        for day in previous_trading_days(end, 5):
+            start = datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+            timestamps.extend(start + timedelta(hours=index) for index in range(7))
+        return timestamps
+    step = spec["step"]
+    start = end - step * bars
+    return [start + step * index for index in range(bars)]
+
+
+def previous_trading_days(end: datetime, count: int) -> list[datetime]:
+    day = datetime(end.year, end.month, end.day, tzinfo=UTC)
+    days: list[datetime] = []
+    while len(days) < count:
+        if day.weekday() < 5:
+            days.append(day)
+        day -= timedelta(days=1)
+    return list(reversed(days))
 
 
 def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
@@ -733,10 +792,10 @@ def normalize_range_interval(range_value: str, interval: str) -> tuple[str, str]
     normalized_range = (range_value or "1y").lower()
     if normalized_range not in RANGES:
         normalized_range = "1y"
-    normalized_interval = (interval or RANGES[normalized_range]["interval"]).lower()
-    allowed = {"5m", "15m", "1h", "1d"}
-    if normalized_interval not in allowed:
-        normalized_interval = str(RANGES[normalized_range]["interval"])
+    expected_interval = str(RANGES[normalized_range]["interval"])
+    normalized_interval = (interval or expected_interval).lower()
+    if normalized_interval != expected_interval:
+        normalized_interval = expected_interval
     return normalized_range, normalized_interval
 
 

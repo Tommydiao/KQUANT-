@@ -27,6 +27,9 @@ type Lang = "en" | "zh";
 type Theme = "light" | "dark";
 type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
+type RangeValue = "1d" | "5d" | "1mo" | "3mo" | "1y";
+type IntervalValue = "5m" | "1h" | "1d";
+type ChartPresetKey = "1d-5m" | "5d-1h" | "1mo-1d" | "3mo-1d" | "1y-1d";
 
 type Candle = {
   time: Time;
@@ -36,6 +39,26 @@ type Candle = {
   low: number;
   close: number;
   volume: number;
+};
+
+type ChartPreset = {
+  key: ChartPresetKey;
+  label: string;
+  range: RangeValue;
+  interval: IntervalValue;
+};
+
+type CandleMeta = {
+  symbol: string;
+  range: string;
+  interval: string;
+  sourceType: string;
+  providerStatus: string;
+  freshness: string;
+  count: number;
+  first: string;
+  last: string;
+  errors: string[];
 };
 
 type StockSignal = {
@@ -144,8 +167,13 @@ const copy = {
     hourlyHint: "1h confirmation: momentum and entry timing",
     ohlc: "Move crosshair over chart for OHLC",
     noCandles: "No candles from the selected source.",
+    chartSource: "Source",
+    chartStatus: "Status",
+    chartRange: "Range",
+    candles: "Candles",
+    firstLast: "First / Last",
     report: "Report",
-    fallback: "Using local fixture fallback because API is unavailable.",
+    fallback: "API unavailable. Fixture is only used in demo mode.",
     apiReady: "Connected to local KQUANT API.",
     clean: "Clean",
     caution: "Caution",
@@ -190,8 +218,13 @@ const copy = {
     hourlyHint: "1h 确认：动量和入场节奏",
     ohlc: "移动十字光标查看 OHLC",
     noCandles: "当前数据源没有返回 K 线。",
+    chartSource: "来源",
+    chartStatus: "状态",
+    chartRange: "周期",
+    candles: "K线数量",
+    firstLast: "首根 / 最新",
     report: "报告",
-    fallback: "本地 API 不可用，正在使用内置演示数据。",
+    fallback: "本地 API 不可用；fixture 只用于演示模式。",
     apiReady: "已连接本地 KQUANT API。",
     clean: "干净",
     caution: "谨慎",
@@ -201,6 +234,14 @@ const copy = {
     dark: "深色",
   },
 } as const;
+
+const CHART_PRESETS: ChartPreset[] = [
+  { key: "1d-5m", label: "1D / 5m", range: "1d", interval: "5m" },
+  { key: "5d-1h", label: "5D / 1H", range: "5d", interval: "1h" },
+  { key: "1mo-1d", label: "1M / 1D", range: "1mo", interval: "1d" },
+  { key: "3mo-1d", label: "3M / 1D", range: "3mo", interval: "1d" },
+  { key: "1y-1d", label: "1Y / 1D", range: "1y", interval: "1d" },
+];
 
 const STOCKS: UniverseStock[] = [
   "SPY:SPDR S&P 500 ETF:ETF:Index ETFs",
@@ -276,19 +317,25 @@ const STOCKS: UniverseStock[] = [
 function App() {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", "en");
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
-  const [source, setSource] = useStoredState<Source>("kquant-stock:source", "fixture");
-  const [run, setRun] = useState<SignalRun>(() => makeLocalSignalRun(source));
+  const [source, setSource] = useStoredState<Source>("kquant-stock:source:v2", "live");
+  const [primaryPresetKey, setPrimaryPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:primary-preset", "1y-1d");
+  const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset", "5d-1h");
+  const [run, setRun] = useState<SignalRun>(() => (source === "fixture" ? makeLocalSignalRun(source) : makeUnavailableSignalRun()));
   const [universe, setUniverse] = useState<UniverseStock[]>(STOCKS);
   const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", "NVDA");
+  const primaryPreset = chartPresetByKey(primaryPresetKey);
+  const confirmationPreset = chartPresetByKey(confirmationPresetKey);
   const [dailyCandles, setDailyCandles] = useState<Candle[]>(() => makeCandles("NVDA", "1y", "1d"));
   const [hourlyCandles, setHourlyCandles] = useState<Candle[]>(() => makeCandles("NVDA", "5d", "1h"));
+  const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("1y-1d"), dailyCandles));
+  const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("5d-1h"), hourlyCandles));
   const [apiState, setApiState] = useState<"api" | "fallback">("fallback");
   const text = copy[lang];
 
   const selected =
     run.signals.find((signal) => signal.symbol === selectedSymbol) ??
     run.signals[0] ??
-    makeLocalSignalRun(source).signals[0];
+    makeUnavailableSignal(selectedSymbol);
   const selectedMeta = universe.find((stock) => stock.symbol === selected.symbol) ?? STOCKS[0];
   const layerGroups = useMemo(() => groupByLayer(universe, run.signals), [run.signals, universe]);
 
@@ -298,6 +345,14 @@ function App() {
   }, [lang, theme]);
 
   useEffect(() => {
+    const requested = urlSourceOverride();
+    if (requested && requested !== source) {
+      setSource(requested);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     void loadSignals(source, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
@@ -305,7 +360,7 @@ function App() {
   useEffect(() => {
     void loadCandles(selected.symbol, source);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected.symbol, source]);
+  }, [selected.symbol, source, primaryPresetKey, confirmationPresetKey]);
 
   async function loadSignals(nextSource: Source, forceScan: boolean) {
     try {
@@ -324,7 +379,7 @@ function App() {
         setSelectedSymbol(payload.signals[0]?.symbol ?? "NVDA");
       }
     } catch {
-      const fallback = makeLocalSignalRun(nextSource);
+      const fallback = nextSource === "fixture" ? makeLocalSignalRun(nextSource) : makeUnavailableSignalRun();
       setRun(fallback);
       setUniverse(STOCKS);
       setApiState("fallback");
@@ -332,20 +387,26 @@ function App() {
   }
 
   async function loadCandles(symbol: string, nextSource: Source) {
-    const fallbackDaily = makeCandles(symbol, "1y", "1d");
-    const fallbackHourly = makeCandles(symbol, "5d", "1h");
+    const fallbackDaily = makeCandles(symbol, primaryPreset.range, primaryPreset.interval);
+    const fallbackHourly = makeCandles(symbol, confirmationPreset.range, confirmationPreset.interval);
     try {
       const [dailyResponse, hourlyResponse] = await Promise.all([
-        fetch(`/api/stocks/candles?symbol=${symbol}&range=1y&interval=1d&source=${nextSource}`),
-        fetch(`/api/stocks/candles?symbol=${symbol}&range=5d&interval=1h&source=${nextSource}`),
+        fetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=${nextSource}`),
+        fetch(`/api/stocks/candles?symbol=${symbol}&range=${confirmationPreset.range}&interval=${confirmationPreset.interval}&source=${nextSource}`),
       ]);
       if (!dailyResponse.ok || !hourlyResponse.ok) throw new Error("candles unavailable");
       const [dailyPayload, hourlyPayload] = await Promise.all([dailyResponse.json(), hourlyResponse.json()]);
-      setDailyCandles(normalizeCandles(dailyPayload.candles, nextSource === "fixture" ? fallbackDaily : []));
-      setHourlyCandles(normalizeCandles(hourlyPayload.candles, nextSource === "fixture" ? fallbackHourly : []));
+      const normalizedDaily = normalizeCandles(dailyPayload.candles, nextSource === "fixture" ? fallbackDaily : []);
+      const normalizedHourly = normalizeCandles(hourlyPayload.candles, nextSource === "fixture" ? fallbackHourly : []);
+      setDailyCandles(normalizedDaily);
+      setHourlyCandles(normalizedHourly);
+      setDailyMeta(metaFromPayload(dailyPayload, primaryPreset, normalizedDaily));
+      setHourlyMeta(metaFromPayload(hourlyPayload, confirmationPreset, normalizedHourly));
     } catch {
-      setDailyCandles(fallbackDaily);
-      setHourlyCandles(fallbackHourly);
+      setDailyCandles(nextSource === "fixture" ? fallbackDaily : []);
+      setHourlyCandles(nextSource === "fixture" ? fallbackHourly : []);
+      setDailyMeta(nextSource === "fixture" ? fixtureMeta(symbol, primaryPreset, fallbackDaily) : failedMeta(symbol, primaryPreset));
+      setHourlyMeta(nextSource === "fixture" ? fixtureMeta(symbol, confirmationPreset, fallbackHourly) : failedMeta(symbol, confirmationPreset));
     }
   }
 
@@ -474,19 +535,41 @@ function App() {
           <div className="chart-grid">
             <ChartPanel
               title={text.daily}
-              subtitle={`${selected.symbol} · 1Y / 1D · ${text.dailyHint}`}
+              subtitle={`${selected.symbol} · ${primaryPreset.label} · ${text.dailyHint}`}
               candles={dailyCandles}
               theme={theme}
               ohlcHint={text.ohlc}
               emptyText={text.noCandles}
+              meta={dailyMeta}
+              presets={CHART_PRESETS}
+              presetKey={primaryPresetKey}
+              onPresetChange={(value) => setPrimaryPresetKey(value as ChartPresetKey)}
+              labels={{
+                source: text.chartSource,
+                status: text.chartStatus,
+                range: text.chartRange,
+                candles: text.candles,
+                firstLast: text.firstLast,
+              }}
             />
             <ChartPanel
               title={text.hourly}
-              subtitle={`${selected.symbol} · 5D / 1H · ${text.hourlyHint}`}
+              subtitle={`${selected.symbol} · ${confirmationPreset.label} · ${text.hourlyHint}`}
               candles={hourlyCandles}
               theme={theme}
               ohlcHint={text.ohlc}
               emptyText={text.noCandles}
+              meta={hourlyMeta}
+              presets={CHART_PRESETS}
+              presetKey={confirmationPresetKey}
+              onPresetChange={(value) => setConfirmationPresetKey(value as ChartPresetKey)}
+              labels={{
+                source: text.chartSource,
+                status: text.chartStatus,
+                range: text.chartRange,
+                candles: text.candles,
+                firstLast: text.firstLast,
+              }}
             />
           </div>
 
@@ -554,6 +637,11 @@ function ChartPanel({
   theme,
   ohlcHint,
   emptyText,
+  meta,
+  presets,
+  presetKey,
+  onPresetChange,
+  labels,
 }: {
   title: string;
   subtitle: string;
@@ -561,6 +649,17 @@ function ChartPanel({
   theme: Theme;
   ohlcHint: string;
   emptyText: string;
+  meta: CandleMeta;
+  presets: ChartPreset[];
+  presetKey: ChartPresetKey;
+  onPresetChange: (value: string) => void;
+  labels: {
+    source: string;
+    status: string;
+    range: string;
+    candles: string;
+    firstLast: string;
+  };
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState<OhlcState | null>(null);
@@ -642,11 +741,31 @@ function ChartPanel({
           <h3>{title}</h3>
           <p>{subtitle}</p>
         </div>
-        <div className="indicator-tags">
-          <span>EMA20</span>
-          <span>EMA50</span>
-          <span>VWAP</span>
+        <div className="chart-tools">
+          <Segmented value={presetKey} options={presets.map((preset) => [preset.key, preset.label])} onChange={onPresetChange} />
+          <div className="indicator-tags">
+            <span>EMA20</span>
+            <span>EMA50</span>
+            <span>VWAP</span>
+          </div>
         </div>
+      </div>
+      <div className="chart-meta">
+        <span>
+          {labels.source}: <b>{meta.sourceType}</b>
+        </span>
+        <span>
+          {labels.status}: <b>{meta.providerStatus}</b>
+        </span>
+        <span>
+          {labels.range}: <b>{meta.range} / {meta.interval}</b>
+        </span>
+        <span>
+          {labels.candles}: <b>{meta.count}</b>
+        </span>
+        <span>
+          {labels.firstLast}: <b>{meta.first || "-"} / {meta.last || "-"}</b>
+        </span>
       </div>
       <div className="ohlc-row">
         {hover ? (
@@ -736,6 +855,66 @@ function Narrative({ title, items }: { title: string; items: string[] }) {
   );
 }
 
+function chartPresetByKey(key: ChartPresetKey): ChartPreset {
+  return CHART_PRESETS.find((preset) => preset.key === key) ?? CHART_PRESETS[CHART_PRESETS.length - 1];
+}
+
+function urlSourceOverride(): Source | null {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get("source") ?? params.get("optionsSource");
+    if (value === "fixture" || value === "live") return value;
+  } catch {
+    // URL parsing can fail in unusual embedded contexts.
+  }
+  return null;
+}
+
+function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, candles: Candle[]): CandleMeta {
+  return {
+    symbol: String(payload.symbol ?? ""),
+    range: String(payload.range ?? preset.range),
+    interval: String(payload.interval ?? preset.interval),
+    sourceType: String(payload.source_type ?? "unknown"),
+    providerStatus: String(payload.provider_status ?? "unknown"),
+    freshness: String(payload.freshness ?? "unknown"),
+    count: candles.length,
+    first: formatCandleTime(candles[0]),
+    last: formatCandleTime(candles[candles.length - 1]),
+    errors: Array.isArray(payload.provider_errors) ? payload.provider_errors.map(String) : [],
+  };
+}
+
+function fixtureMeta(symbol: string, preset: ChartPreset, candles: Candle[]): CandleMeta {
+  return {
+    symbol,
+    range: preset.range,
+    interval: preset.interval,
+    sourceType: "fixture_read_only",
+    providerStatus: "fixture_read_only",
+    freshness: "fixture",
+    count: candles.length,
+    first: formatCandleTime(candles[0]),
+    last: formatCandleTime(candles[candles.length - 1]),
+    errors: [],
+  };
+}
+
+function failedMeta(symbol: string, preset: ChartPreset): CandleMeta {
+  return {
+    symbol,
+    range: preset.range,
+    interval: preset.interval,
+    sourceType: "live_yahoo_chart",
+    providerStatus: "provider_failed",
+    freshness: "missing",
+    count: 0,
+    first: "",
+    last: "",
+    errors: ["Local API or public provider did not return candles."],
+  };
+}
+
 function makeLocalSignalRun(source: Source): SignalRun {
   const signals = STOCKS.slice(0, 100).map((stock) => buildLocalSignal(stock.symbol));
   signals.sort((a, b) => b.score - a.score);
@@ -762,6 +941,68 @@ function makeLocalSignalRun(source: Source): SignalRun {
     signals,
     llm_signal_core_enabled: false,
     broker_order_wiring_enabled: false,
+  };
+}
+
+function makeUnavailableSignalRun(): SignalRun {
+  const signals = STOCKS.slice(0, 100).map((stock) => makeUnavailableSignal(stock.symbol));
+  return {
+    run_id: "live-provider-unavailable",
+    source: "live",
+    universe: "default",
+    profile: { name: "swing_long_v1", buy_setup_threshold: 82, watch_threshold: 65, direction: "long_only" },
+    provider_status: "provider_failed",
+    provider_error_count: 1,
+    historical_validation: {
+      sample_count: 0,
+      win_rate_5d: 0,
+      target_hit_rate_5d: 0,
+      avg_forward_return_5d: 0,
+      avg_max_drawdown_5d: 0,
+    },
+    counts: {
+      buy_setup: 0,
+      watch: 0,
+      pass: signals.length,
+      total: signals.length,
+    },
+    signals,
+    llm_signal_core_enabled: false,
+    broker_order_wiring_enabled: false,
+  };
+}
+
+function makeUnavailableSignal(symbol: string): StockSignal {
+  return {
+    symbol,
+    score: 0,
+    level: "PASS",
+    direction: "LONG",
+    trend_summary: "Live public candles are unavailable.",
+    trigger_summary: "No signal is generated without live candles.",
+    risk_warnings: ["Provider failed or local API is unavailable; do not treat this as a setup."],
+    manual_checklist: ["Refresh live data later. Do not use fixture data as a live trading input."],
+    data_status: {
+      daily_provider_status: "provider_failed",
+      hourly_provider_status: "provider_failed",
+      daily_candles: 0,
+      hourly_candles: 0,
+      source: "live_yahoo_chart",
+      freshness: "missing",
+      data_quality: "caution",
+      live_does_not_fallback_to_fixture: true,
+    },
+    features: {},
+    historical_edge: {
+      sample_count: 0,
+      win_rate_5d: 0,
+      target_hit_rate_5d: 0,
+      avg_forward_return_3d: 0,
+      avg_forward_return_5d: 0,
+      avg_forward_return_10d: 0,
+      avg_max_drawdown_5d: 0,
+      verdict: "missing",
+    },
   };
 }
 
@@ -851,13 +1092,11 @@ function localHistoricalEdge(symbol: string): StockSignal["historical_edge"] {
   };
 }
 
-function makeCandles(symbol: string, range: "1y" | "5d", interval: "1d" | "1h"): Candle[] {
-  const count = range === "1y" ? 252 : 130;
-  const step = range === "1y" ? 86400 : 3600;
+function makeCandles(symbol: string, range: RangeValue, interval: IntervalValue): Candle[] {
+  const timestamps = fixtureTimestamps(range, interval);
   const seed = [...symbol].reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
   let price = 45 + (seed % 420) + (["SPY", "QQQ", "DIA"].includes(symbol) ? 160 : 0);
-  const start = Date.UTC(2025, 5, 18, 13, 30) / 1000;
-  return Array.from({ length: count }, (_, index) => {
+  return timestamps.map((time, index) => {
     const wave = Math.sin((index + seed) * 0.17) * 0.015 + Math.cos((index + seed) * 0.043) * 0.01;
     const bias = (["NVDA", "MSFT", "AVGO", "AMZN", "AMD", "PLTR"].includes(symbol) ? 0.0014 : 0.0004) + ((seed % 17) - 7) / 12000;
     const open = price;
@@ -865,7 +1104,7 @@ function makeCandles(symbol: string, range: "1y" | "5d", interval: "1d" | "1h"):
     const spread = Math.max(close * (0.006 + Math.abs(wave) * 0.7), 0.05);
     price = close;
     return {
-      time: (start + index * step) as Time,
+      time: time as Time,
       open: round(open),
       high: round(Math.max(open, close) + spread),
       low: round(Math.max(0.5, Math.min(open, close) - spread)),
@@ -873,6 +1112,39 @@ function makeCandles(symbol: string, range: "1y" | "5d", interval: "1d" | "1h"):
       volume: Math.round(950_000 + (seed % 900_000) + Math.abs(wave) * 30_000_000 + (index % 13) * 32_000),
     };
   });
+}
+
+function fixtureTimestamps(range: RangeValue, interval: IntervalValue): number[] {
+  const end = new Date(Date.UTC(2026, 5, 17, 20, 0));
+  if (interval === "1d") {
+    const count = range === "1y" ? 252 : range === "3mo" ? 66 : 22;
+    return previousTradingDays(end, count).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
+  }
+  if (range === "1d" && interval === "5m") {
+    const day = previousTradingDays(end, 1)[0];
+    const start = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000;
+    return Array.from({ length: 78 }, (_, index) => start + index * 5 * 60);
+  }
+  if (range === "5d" && interval === "1h") {
+    return previousTradingDays(end, 5).flatMap((day) => {
+      const start = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000;
+      return Array.from({ length: 7 }, (_, index) => start + index * 60 * 60);
+    });
+  }
+  return previousTradingDays(end, 22).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
+}
+
+function previousTradingDays(end: Date, count: number): Date[] {
+  const days: Date[] = [];
+  const cursor = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+  while (days.length < count) {
+    const weekday = cursor.getUTCDay();
+    if (weekday >= 1 && weekday <= 5) {
+      days.push(new Date(cursor));
+    }
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+  return days.reverse();
 }
 
 function normalizeCandles(input: unknown, fallback: Candle[]): Candle[] {
@@ -988,6 +1260,14 @@ function clamp(value: number, min: number, max: number) {
 function formatNumber(value: number | undefined) {
   if (value === undefined || Number.isNaN(value)) return "-";
   return value.toFixed(value > 50 ? 2 : 1);
+}
+
+function formatCandleTime(candle: Candle | undefined) {
+  if (!candle) return "";
+  if (candle.open_time) return candle.open_time.replace("T", " ").slice(0, 16);
+  const seconds = Number(candle.time);
+  if (!Number.isFinite(seconds)) return "";
+  return new Date(seconds * 1000).toISOString().replace("T", " ").slice(0, 16);
 }
 
 export default App;
