@@ -24,6 +24,7 @@ RANGES = {
 PROFILE = {
     "name": "swing_long_v1",
     "buy_setup_threshold": 82,
+    "strict_buy_gate_score": 88,
     "watch_threshold": 65,
     "direction": "long_only",
     "primary_timeframe": "1d",
@@ -75,6 +76,18 @@ def api_stock_candles(
     range_value, interval = normalize_range_interval(range_value, interval)
     if source == "live":
         payload = yahoo_candles(symbol, range_value, interval)
+        if payload["provider_status"] != "available" and db_path:
+            record_provider_event(
+                db_path,
+                provider="yahoo_chart",
+                instrument="stock",
+                symbol=symbol,
+                status=payload["provider_status"],
+                message="; ".join(payload.get("provider_errors", [])) or "public provider unavailable",
+            )
+            cached = cached_candles_payload(db_path, symbol, range_value, interval, payload)
+            if cached:
+                return cached
     else:
         payload = fixture_candles_payload(symbol, range_value, interval)
     if db_path:
@@ -94,9 +107,11 @@ def api_stock_provider_health(db_path: Path | None = None) -> dict[str, Any]:
             """
         ).fetchall()
     error_count = sum(1 for row in rows if row["status"] not in ("available", "fixture_read_only"))
+    stale_count = sum(1 for row in rows if row["status"] == "stale_cache")
     return {
         "provider_status": "degraded" if error_count else "available",
         "provider_error_count": error_count,
+        "stale_cache_count": stale_count,
         "events": [dict(row) for row in rows],
         "source_policy": "live does not silently mix fixture data",
     }
@@ -118,6 +133,7 @@ def api_stock_signals(
     started = iso_now()
     signals: list[dict[str, Any]] = []
     provider_errors: list[str] = []
+    label_samples_by_symbol: dict[str, list[dict[str, Any]]] = {}
     for symbol in symbols:
         daily = api_stock_candles(symbol, "1y", "1d", source, db)
         hourly = api_stock_candles(symbol, "5d", "1h", source, db)
@@ -126,11 +142,13 @@ def api_stock_signals(
         if hourly["provider_status"] not in ("available", "fixture_read_only"):
             provider_errors.append(f"{symbol}: 1h {hourly['provider_status']}")
         signal = build_signal(symbol, daily, hourly)
+        label_samples_by_symbol[symbol] = signal.pop("_label_samples", [])
         signals.append(signal)
     signals.sort(key=lambda item: item["score"], reverse=True)
     completed = iso_now()
     run_id = f"stock-{int(time.time())}"
     provider_status = "degraded" if provider_errors else ("fixture_read_only" if source == "fixture" else "available")
+    historical_validation = summarize_label_samples(label_samples_by_symbol)
     payload = {
         "run_id": run_id,
         "product": "KQUANT US Stock Signal Terminal",
@@ -142,6 +160,7 @@ def api_stock_signals(
         "provider_status": provider_status,
         "provider_error_count": len(provider_errors),
         "provider_errors": provider_errors[:30],
+        "historical_validation": historical_validation,
         "counts": {
             "buy_setup": sum(1 for signal in signals if signal["level"] == "BUY SETUP"),
             "watch": sum(1 for signal in signals if signal["level"] == "WATCH"),
@@ -153,6 +172,7 @@ def api_stock_signals(
         "options_are_secondary": True,
         "llm_signal_core_enabled": False,
         "broker_order_wiring_enabled": False,
+        "_label_samples_by_symbol": label_samples_by_symbol,
     }
     persist_signal_run(db, payload)
     write_reports(outputs, payload)
@@ -170,7 +190,9 @@ def api_stock_signals_latest(
     report = outputs / "stock-signals-report.json"
     if report.exists():
         try:
-            return json.loads(report.read_text(encoding="utf-8"))
+            payload = json.loads(report.read_text(encoding="utf-8"))
+            if payload.get("source") == source and payload.get("universe") == universe and payload.get("profile", {}).get("name") == profile:
+                return payload
         except json.JSONDecodeError:
             pass
     return api_stock_signals(source=source, universe=universe, profile=profile, db_path=db_path, outputs_dir=outputs)
@@ -201,14 +223,52 @@ def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
     volume_score = clamp((volume_ratio - 0.75) * 18, 0, 18)
     risk_score = score_risk(atr_pct, extension_pct)
     score = round(clamp(trend_score + trigger_score + volume_score + risk_score, 0, 100), 1)
-    level = "BUY SETUP" if score >= 82 else "WATCH" if score >= 65 else "PASS"
+    features = {
+        "close": round(close, 2),
+        "ema20": round(ema20, 2),
+        "ema50": round(ema50, 2),
+        "ema200": round(ema200, 2),
+        "trend_return_5d_pct": round(trend_return, 2),
+        "one_hour_momentum_pct": round(one_hour_momentum, 2),
+        "volume_ratio": round(volume_ratio, 2),
+        "atr_pct": round(atr_pct, 2),
+        "extension_pct": round(extension_pct, 2),
+        "trend_score": round(trend_score, 1),
+        "trigger_score": round(trigger_score, 1),
+        "volume_score": round(volume_score, 1),
+        "risk_score": round(risk_score, 1),
+    }
+    label_samples = build_historical_label_samples(symbol, daily)
+    historical_edge = estimate_historical_edge(label_samples)
+    trend_aligned = close > ema20 > ema50 > ema200
+    trigger_confirmed = hourly_close[-1] > h_ema20 > h_ema50 and one_hour_momentum >= 0.6
+    volume_confirmed = volume_ratio >= 1.2
+    risk_window_ok = -1.0 <= extension_pct <= 5.5 and atr_pct <= 5.0
+    data_clean = daily_payload["provider_status"] in ("available", "fixture_read_only") and hourly_payload["provider_status"] in (
+        "available",
+        "fixture_read_only",
+    )
+    edge_ok = historical_edge["sample_count"] >= 10 and historical_edge["win_rate_5d"] >= 55 and historical_edge["avg_forward_return_5d"] > 0.4
+    buy_gates = trend_aligned and trigger_confirmed and volume_confirmed and risk_window_ok and data_clean and edge_ok
+    watch_gates = score >= 65 and close > ema50 and one_hour_momentum > -0.4 and data_clean
+    level = "BUY SETUP" if score >= PROFILE["strict_buy_gate_score"] and buy_gates else "WATCH" if watch_gates else "PASS"
     risks = []
     if atr_pct > 5:
         risks.append("ATR risk is elevated; size manually and wait for cleaner structure.")
     if extension_pct > 7:
         risks.append("Price is extended above EMA20; avoid chasing a late move.")
+    if extension_pct < -2:
+        risks.append("Price is below the preferred EMA20 pullback window; wait for recovery confirmation.")
     if volume_ratio < 1:
         risks.append("Volume is not yet confirming the setup.")
+    if not trend_aligned:
+        risks.append("Daily EMA alignment is not fully bullish yet.")
+    if not trigger_confirmed:
+        risks.append("1h confirmation is not strong enough for a strict BUY SETUP.")
+    if historical_edge["sample_count"] < 8:
+        risks.append("Historical edge sample is still too small; treat this as unproven.")
+    elif historical_edge["win_rate_5d"] < 52:
+        risks.append("Similar historical setups do not yet show enough 5-day win rate.")
     if daily_payload["provider_status"] not in ("available", "fixture_read_only"):
         risks.append("Daily candles have provider caution.")
     if hourly_payload["provider_status"] not in ("available", "fixture_read_only"):
@@ -236,22 +296,12 @@ def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
             "hourly_candles": len(hourly),
             "source": daily_payload["source_type"],
             "freshness": daily_payload["freshness"],
+            "data_quality": "clean" if data_clean else "caution",
+            "live_does_not_fallback_to_fixture": bool(daily_payload.get("live_does_not_fallback_to_fixture")),
         },
-        "features": {
-            "close": round(close, 2),
-            "ema20": round(ema20, 2),
-            "ema50": round(ema50, 2),
-            "ema200": round(ema200, 2),
-            "trend_return_5d_pct": round(trend_return, 2),
-            "one_hour_momentum_pct": round(one_hour_momentum, 2),
-            "volume_ratio": round(volume_ratio, 2),
-            "atr_pct": round(atr_pct, 2),
-            "extension_pct": round(extension_pct, 2),
-            "trend_score": round(trend_score, 1),
-            "trigger_score": round(trigger_score, 1),
-            "volume_score": round(volume_score, 1),
-            "risk_score": round(risk_score, 1),
-        },
+        "features": features,
+        "historical_edge": historical_edge,
+        "_label_samples": label_samples,
     }
 
 
@@ -272,8 +322,12 @@ def empty_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
             "hourly_candles": len(hourly_payload.get("candles", [])),
             "source": daily_payload.get("source_type", "unknown"),
             "freshness": daily_payload.get("freshness", "missing"),
+            "data_quality": "caution",
+            "live_does_not_fallback_to_fixture": bool(daily_payload.get("live_does_not_fallback_to_fixture")),
         },
         "features": {},
+        "historical_edge": empty_historical_edge(),
+        "_label_samples": [],
     }
 
 
@@ -364,6 +418,59 @@ def unavailable_candles(symbol: str, range_value: str, interval: str, error: str
     }
 
 
+def cached_candles_payload(
+    db_path: Path,
+    symbol: str,
+    range_value: str,
+    interval: str,
+    failed_payload: dict[str, Any],
+) -> dict[str, Any] | None:
+    spec = RANGES.get(range_value, RANGES["1y"])
+    limit = int(spec["bars"])
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT open_time, open, high, low, close, volume, source, provider_status, created_at
+            FROM stock_candles
+            WHERE symbol = ? AND interval = ? AND source = 'live_yahoo_chart'
+            ORDER BY open_time DESC
+            LIMIT ?
+            """,
+            (symbol, interval, limit),
+        ).fetchall()
+    if not rows:
+        return None
+    ordered = list(reversed(rows))
+    newest_created = ordered[-1]["created_at"]
+    candles = [
+        {
+            "open_time": row["open_time"],
+            "time": int(datetime.fromisoformat(row["open_time"].replace("Z", "+00:00")).timestamp()),
+            "open": row["open"],
+            "high": row["high"],
+            "low": row["low"],
+            "close": row["close"],
+            "volume": row["volume"],
+            "source": "stale_yahoo_chart_cache",
+        }
+        for row in ordered
+    ]
+    age_seconds = max(0, int((datetime.now(UTC) - datetime.fromisoformat(newest_created)).total_seconds()))
+    return {
+        "instrument_type": "stock",
+        "symbol": symbol,
+        "range": range_value,
+        "interval": interval,
+        "source_type": "stale_yahoo_chart_cache",
+        "provider_status": "stale_cache",
+        "provider_errors": failed_payload.get("provider_errors", []),
+        "freshness": f"stale {age_seconds}s",
+        "freshness_seconds": age_seconds,
+        "candles": candles,
+        "live_does_not_fallback_to_fixture": True,
+    }
+
+
 def make_fixture_candles(symbol: str, range_value: str, interval: str) -> list[dict[str, Any]]:
     spec = RANGES.get(range_value, RANGES["1y"])
     bars = int(spec["bars"])
@@ -431,19 +538,41 @@ def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
                     now,
                 ),
             )
-        for message in payload.get("provider_errors", []):
+        provider_name = "fixture" if payload["source_type"] == "fixture_read_only" else "yahoo_chart"
+        messages = payload.get("provider_errors", []) or [f"{len(payload.get('candles', []))} candles from {payload['source_type']}"]
+        for message in messages:
             conn.execute(
                 """
                 INSERT INTO provider_events(provider, instrument, symbol, status, message, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                ("yahoo_chart", "stock", payload["symbol"], payload["provider_status"], str(message), now),
+                (provider_name, "stock", payload["symbol"], payload["provider_status"], str(message), now),
             )
+        conn.commit()
+
+
+def record_provider_event(
+    db_path: Path,
+    provider: str,
+    instrument: str,
+    symbol: str,
+    status: str,
+    message: str,
+) -> None:
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO provider_events(provider, instrument, symbol, status, message, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (provider, instrument, symbol, status, message, iso_now()),
+        )
         conn.commit()
 
 
 def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
     now = iso_now()
+    label_samples_by_symbol = payload.get("_label_samples_by_symbol", {})
     with connect(db_path) as conn:
         conn.execute(
             """
@@ -488,6 +617,65 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                     now,
                 ),
             )
+            feature_time = signal.get("data_status", {}).get("freshness", now)
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO stock_features
+                (run_id, symbol, feature_time, profile, features_json, data_status_json, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    payload["run_id"],
+                    signal["symbol"],
+                    str(feature_time),
+                    payload["profile"]["name"],
+                    json.dumps(signal["features"]),
+                    json.dumps(signal["data_status"]),
+                    now,
+                ),
+            )
+            for sample in label_samples_by_symbol.get(signal["symbol"], []):
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO stock_labels
+                    (run_id, symbol, signal_time, forward_return_3d, forward_return_5d, forward_return_10d,
+                     max_drawdown_5d, hit_target_before_stop, close_above_entry_after_5d, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        payload["run_id"],
+                        signal["symbol"],
+                        sample["signal_time"],
+                        sample["forward_return_3d"],
+                        sample["forward_return_5d"],
+                        sample["forward_return_10d"],
+                        sample["max_drawdown_5d"],
+                        sample["hit_target_before_stop"],
+                        sample["close_above_entry_after_5d"],
+                        now,
+                    ),
+                )
+        validation = payload.get("historical_validation", {})
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO stock_backtest_runs
+            (run_id, profile, sample_count, win_rate_5d, avg_forward_return_5d, avg_max_drawdown_5d,
+             buy_setup_count, watch_count, pass_count, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                payload["run_id"],
+                payload["profile"]["name"],
+                int(validation.get("sample_count", 0)),
+                float(validation.get("win_rate_5d", 0.0)),
+                float(validation.get("avg_forward_return_5d", 0.0)),
+                float(validation.get("avg_max_drawdown_5d", 0.0)),
+                payload["counts"]["buy_setup"],
+                payload["counts"]["watch"],
+                payload["counts"]["pass"],
+                now,
+            ),
+        )
         conn.execute(
             "INSERT INTO audit_events(event_type, payload_json, created_at) VALUES (?, ?, ?)",
             ("stock_signal_run", json.dumps({"run_id": payload["run_id"], "counts": payload["counts"]}), now),
@@ -497,7 +685,9 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
 
 def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
-    (outputs_dir / "stock-signals-report.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    public_payload = {key: value for key, value in payload.items() if not key.startswith("_")}
+    (outputs_dir / "stock-signals-report.json").write_text(json.dumps(public_payload, indent=2), encoding="utf-8")
+    validation = payload.get("historical_validation", {})
     lines = [
         "# KQUANT US Stock Signals",
         "",
@@ -507,6 +697,14 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
         f"- Profile: `{payload['profile']['name']}`",
         f"- Provider: `{payload['provider_status']}` / errors `{payload['provider_error_count']}`",
         f"- Counts: BUY SETUP `{payload['counts']['buy_setup']}`, WATCH `{payload['counts']['watch']}`, PASS `{payload['counts']['pass']}`",
+        "",
+        "## Historical Validation",
+        "",
+        f"- Samples: `{validation.get('sample_count', 0)}`",
+        f"- 5D win rate: `{validation.get('win_rate_5d', 0)}%`",
+        f"- Avg 5D return: `{validation.get('avg_forward_return_5d', 0)}%`",
+        f"- Avg 5D drawdown: `{validation.get('avg_max_drawdown_5d', 0)}%`",
+        "- Note: historical labels are research validation, not an execution signal.",
         "",
         "## Top Setups",
         "",
@@ -518,6 +716,7 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
                 "",
                 f"- Trend: {signal['trend_summary']}",
                 f"- Trigger: {signal['trigger_summary']}",
+                f"- Historical Edge: {signal.get('historical_edge', empty_historical_edge())}",
                 f"- Data: {signal['data_status']}",
                 f"- Risks: {'; '.join(signal['risk_warnings'])}",
                 "",
@@ -598,6 +797,100 @@ def average_true_range_pct(candles: list[dict[str, Any]]) -> float:
         )
         ranges.append(true_range / max(current["close"], 0.01) * 100)
     return sum(ranges) / max(len(ranges), 1)
+
+
+def build_historical_label_samples(symbol: str, candles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    samples: list[dict[str, Any]] = []
+    if len(candles) < 90:
+        return samples
+    for index in range(70, len(candles) - 10):
+        window = candles[: index + 1]
+        closes = [bar["close"] for bar in window]
+        volumes = [bar["volume"] for bar in window]
+        close = closes[-1]
+        ema20 = ema_last(closes, 20)
+        ema50 = ema_last(closes, 50)
+        ema200 = ema_last(closes, 200)
+        trend_return = pct(close, closes[-6] if len(closes) > 6 else closes[0])
+        volume_ratio = volumes[-1] / max(sum(volumes[-21:-1]) / max(len(volumes[-21:-1]), 1), 1)
+        atr_pct = average_true_range_pct(window[-20:])
+        extension_pct = pct(close, ema20)
+        daily_score = (
+            score_trend(close, ema20, ema50, ema200, trend_return)
+            + clamp((volume_ratio - 0.75) * 12, 0, 12)
+            + score_risk(atr_pct, extension_pct)
+        )
+        if daily_score < 54 or close < ema50:
+            continue
+        future = candles[index + 1 : index + 11]
+        if len(future) < 10:
+            continue
+        entry = close
+        forward_3d = pct(future[2]["close"], entry)
+        forward_5d = pct(future[4]["close"], entry)
+        forward_10d = pct(future[9]["close"], entry)
+        max_drawdown_5d = min(pct(bar["low"], entry) for bar in future[:5])
+        max_runup_5d = max(pct(bar["high"], entry) for bar in future[:5])
+        samples.append(
+            {
+                "symbol": symbol,
+                "signal_time": candles[index]["open_time"],
+                "setup_score": round(daily_score, 1),
+                "forward_return_3d": round(forward_3d, 4),
+                "forward_return_5d": round(forward_5d, 4),
+                "forward_return_10d": round(forward_10d, 4),
+                "max_drawdown_5d": round(max_drawdown_5d, 4),
+                "hit_target_before_stop": int(max_runup_5d >= 2.5 and max_drawdown_5d > -3.5),
+                "close_above_entry_after_5d": int(forward_5d > 0),
+            }
+        )
+    return samples[-80:]
+
+
+def estimate_historical_edge(samples: list[dict[str, Any]]) -> dict[str, Any]:
+    if not samples:
+        return empty_historical_edge()
+    returns_5d = [float(sample["forward_return_5d"]) for sample in samples]
+    drawdowns_5d = [float(sample["max_drawdown_5d"]) for sample in samples]
+    hit_count = sum(int(sample["hit_target_before_stop"]) for sample in samples)
+    win_count = sum(1 for value in returns_5d if value > 0)
+    return {
+        "sample_count": len(samples),
+        "win_rate_5d": round(win_count / len(samples) * 100, 1),
+        "target_hit_rate_5d": round(hit_count / len(samples) * 100, 1),
+        "avg_forward_return_3d": round(sum(float(sample["forward_return_3d"]) for sample in samples) / len(samples), 2),
+        "avg_forward_return_5d": round(sum(returns_5d) / len(samples), 2),
+        "avg_forward_return_10d": round(sum(float(sample["forward_return_10d"]) for sample in samples) / len(samples), 2),
+        "avg_max_drawdown_5d": round(sum(drawdowns_5d) / len(samples), 2),
+        "verdict": "positive" if win_count / len(samples) >= 0.52 and sum(returns_5d) / len(samples) > 0.2 else "unproven",
+    }
+
+
+def empty_historical_edge() -> dict[str, Any]:
+    return {
+        "sample_count": 0,
+        "win_rate_5d": 0.0,
+        "target_hit_rate_5d": 0.0,
+        "avg_forward_return_3d": 0.0,
+        "avg_forward_return_5d": 0.0,
+        "avg_forward_return_10d": 0.0,
+        "avg_max_drawdown_5d": 0.0,
+        "verdict": "missing",
+    }
+
+
+def summarize_label_samples(label_samples_by_symbol: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    samples = [sample for symbol_samples in label_samples_by_symbol.values() for sample in symbol_samples]
+    edge = estimate_historical_edge(samples)
+    return {
+        "method": "rule-candidate forward return labels",
+        "sample_count": edge["sample_count"],
+        "win_rate_5d": edge["win_rate_5d"],
+        "target_hit_rate_5d": edge["target_hit_rate_5d"],
+        "avg_forward_return_5d": edge["avg_forward_return_5d"],
+        "avg_max_drawdown_5d": edge["avg_max_drawdown_5d"],
+        "note": "Historical labels are for research validation, not an execution signal.",
+    }
 
 
 def pct(value: float, reference: float) -> float:

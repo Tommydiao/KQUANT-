@@ -58,6 +58,41 @@ CREATE TABLE IF NOT EXISTS stock_signals (
   created_at TEXT NOT NULL,
   PRIMARY KEY (run_id, symbol)
 );
+CREATE TABLE IF NOT EXISTS stock_features (
+  run_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  feature_time TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  features_json TEXT NOT NULL,
+  data_status_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (run_id, symbol)
+);
+CREATE TABLE IF NOT EXISTS stock_labels (
+  run_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  signal_time TEXT NOT NULL,
+  forward_return_3d REAL NOT NULL,
+  forward_return_5d REAL NOT NULL,
+  forward_return_10d REAL NOT NULL,
+  max_drawdown_5d REAL NOT NULL,
+  hit_target_before_stop INTEGER NOT NULL,
+  close_above_entry_after_5d INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (run_id, symbol, signal_time)
+);
+CREATE TABLE IF NOT EXISTS stock_backtest_runs (
+  run_id TEXT PRIMARY KEY,
+  profile TEXT NOT NULL,
+  sample_count INTEGER NOT NULL,
+  win_rate_5d REAL NOT NULL,
+  avg_forward_return_5d REAL NOT NULL,
+  avg_max_drawdown_5d REAL NOT NULL,
+  buy_setup_count INTEGER NOT NULL,
+  watch_count INTEGER NOT NULL,
+  pass_count INTEGER NOT NULL,
+  created_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS provider_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   provider TEXT NOT NULL,

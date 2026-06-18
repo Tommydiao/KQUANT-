@@ -54,8 +54,20 @@ type StockSignal = {
     hourly_candles: number;
     source: string;
     freshness: string;
+    data_quality?: string;
+    live_does_not_fallback_to_fixture?: boolean;
   };
   features: Record<string, number>;
+  historical_edge: {
+    sample_count: number;
+    win_rate_5d: number;
+    target_hit_rate_5d: number;
+    avg_forward_return_3d: number;
+    avg_forward_return_5d: number;
+    avg_forward_return_10d: number;
+    avg_max_drawdown_5d: number;
+    verdict: string;
+  };
 };
 
 type SignalRun = {
@@ -65,6 +77,13 @@ type SignalRun = {
   profile: { name: string; buy_setup_threshold: number; watch_threshold: number; direction: string };
   provider_status: string;
   provider_error_count: number;
+  historical_validation?: {
+    sample_count: number;
+    win_rate_5d: number;
+    target_hit_rate_5d: number;
+    avg_forward_return_5d: number;
+    avg_max_drawdown_5d: number;
+  };
   counts: { buy_setup: number; watch: number; pass: number; total: number };
   signals: StockSignal[];
   llm_signal_core_enabled: boolean;
@@ -104,6 +123,12 @@ const copy = {
     pass: "PASS",
     provider: "Provider",
     universe: "Universe",
+    historicalValidation: "Historical Validation",
+    historicalEdge: "Historical Edge",
+    winRate: "5D Win Rate",
+    samples: "Samples",
+    avgReturn: "Avg 5D Return",
+    dataQuality: "Data Quality",
     today: "Today’s Stock Setups",
     selected: "Selected Stock Review",
     daily: "Daily K-Line",
@@ -118,9 +143,12 @@ const copy = {
     dailyHint: "Daily trend: EMA20 / EMA50 / EMA200",
     hourlyHint: "1h confirmation: momentum and entry timing",
     ohlc: "Move crosshair over chart for OHLC",
+    noCandles: "No candles from the selected source.",
     report: "Report",
     fallback: "Using local fixture fallback because API is unavailable.",
     apiReady: "Connected to local KQUANT API.",
+    clean: "Clean",
+    caution: "Caution",
     chinese: "中文",
     english: "EN",
     light: "Light",
@@ -141,6 +169,12 @@ const copy = {
     pass: "跳过",
     provider: "数据源",
     universe: "股票池",
+    historicalValidation: "历史验证",
+    historicalEdge: "历史优势",
+    winRate: "5日胜率",
+    samples: "样本数",
+    avgReturn: "平均5日收益",
+    dataQuality: "数据质量",
     today: "今日正股信号",
     selected: "当前股票复核",
     daily: "日线 K 线",
@@ -155,9 +189,12 @@ const copy = {
     dailyHint: "日线趋势：EMA20 / EMA50 / EMA200",
     hourlyHint: "1h 确认：动量和入场节奏",
     ohlc: "移动十字光标查看 OHLC",
+    noCandles: "当前数据源没有返回 K 线。",
     report: "报告",
     fallback: "本地 API 不可用，正在使用内置演示数据。",
     apiReady: "已连接本地 KQUANT API。",
+    clean: "干净",
+    caution: "谨慎",
     chinese: "中文",
     english: "EN",
     light: "浅色",
@@ -304,8 +341,8 @@ function App() {
       ]);
       if (!dailyResponse.ok || !hourlyResponse.ok) throw new Error("candles unavailable");
       const [dailyPayload, hourlyPayload] = await Promise.all([dailyResponse.json(), hourlyResponse.json()]);
-      setDailyCandles(normalizeCandles(dailyPayload.candles, fallbackDaily));
-      setHourlyCandles(normalizeCandles(hourlyPayload.candles, fallbackHourly));
+      setDailyCandles(normalizeCandles(dailyPayload.candles, nextSource === "fixture" ? fallbackDaily : []));
+      setHourlyCandles(normalizeCandles(hourlyPayload.candles, nextSource === "fixture" ? fallbackHourly : []));
     } catch {
       setDailyCandles(fallbackDaily);
       setHourlyCandles(fallbackHourly);
@@ -370,6 +407,11 @@ function App() {
         <Metric label={text.pass} value={String(run.counts.pass)} />
         <Metric label={text.provider} value={`${run.provider_status} / ${run.provider_error_count}`} tone={run.provider_error_count ? "warn" : "good"} />
         <Metric label={text.universe} value={`${run.counts.total || universe.length} stocks`} />
+        <Metric
+          label={text.historicalValidation}
+          value={`${run.historical_validation?.sample_count ?? 0} / ${formatNumber(run.historical_validation?.win_rate_5d)}%`}
+          tone={(run.historical_validation?.win_rate_5d ?? 0) >= 52 ? "good" : "watch"}
+        />
       </section>
 
       <section className="main-grid">
@@ -390,6 +432,14 @@ function App() {
                 <div className="score-line">
                   <span>{selectedMetaBySymbol(universe, signal.symbol)?.layer ?? "US Stock"}</span>
                   <b>{signal.score}/100</b>
+                </div>
+                <div className="edge-line">
+                  <span>
+                    {text.winRate} {formatNumber(signal.historical_edge?.win_rate_5d)}%
+                  </span>
+                  <span>
+                    {text.samples} {signal.historical_edge?.sample_count ?? 0}
+                  </span>
                 </div>
                 <p>{signal.trigger_summary}</p>
               </button>
@@ -414,6 +464,9 @@ function App() {
               <Fact label="EMA200" value={formatNumber(selected.features.ema200)} />
               <Fact label="ATR" value={`${formatNumber(selected.features.atr_pct)}%`} />
               <Fact label="Volume" value={`${formatNumber(selected.features.volume_ratio)}x`} />
+              <Fact label={text.winRate} value={`${formatNumber(selected.historical_edge?.win_rate_5d)}%`} />
+              <Fact label={text.avgReturn} value={`${formatNumber(selected.historical_edge?.avg_forward_return_5d)}%`} />
+              <Fact label={text.samples} value={String(selected.historical_edge?.sample_count ?? 0)} />
             </div>
             <p className="secondary-note">{text.optionsLater}</p>
           </section>
@@ -425,6 +478,7 @@ function App() {
               candles={dailyCandles}
               theme={theme}
               ohlcHint={text.ohlc}
+              emptyText={text.noCandles}
             />
             <ChartPanel
               title={text.hourly}
@@ -432,17 +486,28 @@ function App() {
               candles={hourlyCandles}
               theme={theme}
               ohlcHint={text.ohlc}
+              emptyText={text.noCandles}
             />
           </div>
 
           <section className="panel detail-grid">
             <Narrative title={text.reasons} items={[selected.trend_summary, selected.trigger_summary]} />
+            <Narrative
+              title={text.historicalEdge}
+              items={[
+                `${text.samples}: ${selected.historical_edge?.sample_count ?? 0}`,
+                `${text.winRate}: ${formatNumber(selected.historical_edge?.win_rate_5d)}% / ${text.avgReturn}: ${formatNumber(selected.historical_edge?.avg_forward_return_5d)}%`,
+                `Verdict: ${selected.historical_edge?.verdict ?? "missing"}`,
+              ]}
+            />
             <Narrative title={text.risks} items={selected.risk_warnings} />
             <Narrative title={text.checklist} items={selected.manual_checklist} />
             <div className="data-box">
               <h3>{text.data}</h3>
               <Fact label="Daily" value={`${selected.data_status.daily_provider_status} / ${selected.data_status.daily_candles}`} />
               <Fact label="1H" value={`${selected.data_status.hourly_provider_status} / ${selected.data_status.hourly_candles}`} />
+              <Fact label={text.dataQuality} value={selected.data_status.data_quality === "clean" ? text.clean : text.caution} />
+              <Fact label={text.source} value={`${selected.data_status.source} / ${selected.data_status.freshness}`} />
               <Fact label={text.report} value={run.run_id} />
             </div>
           </section>
@@ -488,12 +553,14 @@ function ChartPanel({
   candles,
   theme,
   ohlcHint,
+  emptyText,
 }: {
   title: string;
   subtitle: string;
   candles: Candle[];
   theme: Theme;
   ohlcHint: string;
+  emptyText: string;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState<OhlcState | null>(null);
@@ -594,7 +661,7 @@ function ChartPanel({
           <span>{ohlcHint}</span>
         )}
       </div>
-      <div className="chart-canvas" ref={containerRef} />
+      {candles.length ? <div className="chart-canvas" ref={containerRef} /> : <div className="chart-empty">{emptyText}</div>}
     </section>
   );
 }
@@ -679,6 +746,13 @@ function makeLocalSignalRun(source: Source): SignalRun {
     profile: { name: "swing_long_v1", buy_setup_threshold: 82, watch_threshold: 65, direction: "long_only" },
     provider_status: source === "fixture" ? "fixture_read_only" : "api_unavailable",
     provider_error_count: source === "fixture" ? 0 : 1,
+    historical_validation: {
+      sample_count: signals.reduce((total, signal) => total + signal.historical_edge.sample_count, 0),
+      win_rate_5d: round(avg(signals.map((signal) => signal.historical_edge.win_rate_5d))),
+      target_hit_rate_5d: round(avg(signals.map((signal) => signal.historical_edge.target_hit_rate_5d))),
+      avg_forward_return_5d: round(avg(signals.map((signal) => signal.historical_edge.avg_forward_return_5d))),
+      avg_max_drawdown_5d: round(avg(signals.map((signal) => signal.historical_edge.avg_max_drawdown_5d))),
+    },
     counts: {
       buy_setup: signals.filter((signal) => signal.level === "BUY SETUP").length,
       watch: signals.filter((signal) => signal.level === "WATCH").length,
@@ -707,6 +781,7 @@ function buildLocalSignal(symbol: string): StockSignal {
   const volumeRatio = (daily[daily.length - 1]?.volume ?? 0) / Math.max(avg(daily.slice(-21, -1).map((bar) => bar.volume)), 1);
   const atr = avg(daily.slice(-15).map((bar) => ((bar.high - bar.low) / Math.max(bar.close, 0.01)) * 100));
   const hEma20 = lastEma(hCloses, 20);
+  const edge = localHistoricalEdge(symbol);
   const score = clamp(
     (close > ema20 ? 14 : 0) +
       (ema20 > ema50 ? 14 : 0) +
@@ -744,6 +819,8 @@ function buildLocalSignal(symbol: string): StockSignal {
       hourly_candles: hourly.length,
       source: "fixture_read_only",
       freshness: "fixture",
+      data_quality: "clean",
+      live_does_not_fallback_to_fixture: false,
     },
     features: {
       close,
@@ -753,6 +830,24 @@ function buildLocalSignal(symbol: string): StockSignal {
       atr_pct: atr,
       volume_ratio: volumeRatio,
     },
+    historical_edge: edge,
+  };
+}
+
+function localHistoricalEdge(symbol: string): StockSignal["historical_edge"] {
+  const seed = [...symbol].reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
+  const sampleCount = 18 + (seed % 38);
+  const winRate = 42 + (seed % 28);
+  const avgReturn = -0.4 + (seed % 24) / 10;
+  return {
+    sample_count: sampleCount,
+    win_rate_5d: round(winRate),
+    target_hit_rate_5d: round(Math.max(20, winRate - 12)),
+    avg_forward_return_3d: round(avgReturn * 0.62),
+    avg_forward_return_5d: round(avgReturn),
+    avg_forward_return_10d: round(avgReturn * 1.35),
+    avg_max_drawdown_5d: round(-1.2 - (seed % 20) / 10),
+    verdict: winRate >= 52 && avgReturn > 0.2 ? "positive" : "unproven",
   };
 }
 
