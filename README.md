@@ -44,13 +44,8 @@ npm install
 
 ## Run a Stock Signal Scan
 
-Fixture mode is deterministic and safe for development:
-
-```powershell
-python -m kquant stock-scan --source fixture --universe default
-```
-
-Live mode uses public Yahoo chart data and must be treated as provider-limited:
+The user-facing stock terminal is live-only. It uses public Yahoo chart data
+and must be treated as provider-limited:
 
 ```powershell
 python -m kquant stock-scan --source live --universe default --limit 20
@@ -78,15 +73,16 @@ Open `http://127.0.0.1:8001/`.
 The local Python dashboard exposes:
 
 - `GET /api/stocks/universe?universe=default|ai|ai_five_layer|all`
-- `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=fixture|live`
-- `GET /api/stocks/signals?source=fixture|live&universe=ai_five_layer&profile=swing_long_v1`
+- `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=live`
+- `GET /api/stocks/signals?source=live&universe=ai_five_layer&profile=swing_long_v1`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
 
 Each stock candle payload includes source, provider status, freshness, and
 provider errors. Stock signal payloads include score breakdown, AI layer, and
-manual exit-risk reminders. Live failures are surfaced as degraded or
-unavailable status; the live path does not silently mix fixture candles.
+manual exit-risk reminders. Live failures are surfaced as stale real cache,
+provider failed, or unavailable status; the live path never silently mixes
+fixture candles. Internal fixture helpers are reserved for deterministic tests.
 
 ## Frontend
 
@@ -101,7 +97,7 @@ The frontend supports:
 
 - English / Chinese;
 - Light / Dark theme;
-- fixture/live source toggle;
+- live-only real data guard with stale cache and provider failure states;
 - TradingView-style daily and 1h charts via `lightweight-charts`;
 - selected stock review, signal reasons, risk warnings, and manual checklist;
 - responsive mobile layout.

@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   CheckCircle2,
   Database,
@@ -195,7 +196,7 @@ const copy = {
     candles: "Candles",
     firstLast: "First / Last",
     report: "Report",
-    fallback: "API unavailable. Fixture is only used in demo mode.",
+    fallback: "API unavailable. No synthetic stock data is displayed.",
     apiReady: "Connected to local KQUANT API.",
     clean: "Clean",
     caution: "Caution",
@@ -246,7 +247,7 @@ const copy = {
     candles: "K线数量",
     firstLast: "首根 / 最新",
     report: "报告",
-    fallback: "本地 API 不可用；fixture 只用于演示模式。",
+    fallback: "本地 API 不可用；不会显示合成股票数据。",
     apiReady: "已连接本地 KQUANT API。",
     clean: "干净",
     caution: "谨慎",
@@ -403,22 +404,21 @@ const ALL_STOCKS = uniqueStocks([...STOCKS, ...AI_FIVE_LAYER_STOCKS]);
 function App() {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", "en");
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
-  const [source, setSource] = useStoredState<Source>("kquant-stock:source:v2", "live");
+  const source: Source = "live";
   const [selectedUniverse, setSelectedUniverse] = useStoredState<UniverseName>("kquant-stock:universe:v2", "default");
   const [primaryPresetKey, setPrimaryPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:primary-preset:v2", "1d");
   const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset:v2", "1h");
-  const [run, setRun] = useState<SignalRun>(() =>
-    source === "fixture" ? makeLocalSignalRun(source, selectedUniverse) : makeUnavailableSignalRun(selectedUniverse),
-  );
+  const [run, setRun] = useState<SignalRun>(() => makeUnavailableSignalRun(selectedUniverse));
   const [universe, setUniverse] = useState<UniverseStock[]>(() => stocksForUniverse(selectedUniverse));
   const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", "NVDA");
   const primaryPreset = chartPresetByKey(primaryPresetKey);
   const confirmationPreset = chartPresetByKey(confirmationPresetKey);
-  const [dailyCandles, setDailyCandles] = useState<Candle[]>(() => makeCandles("NVDA", "1y", "1d"));
-  const [hourlyCandles, setHourlyCandles] = useState<Candle[]>(() => makeCandles("NVDA", "5d", "1h"));
-  const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("1d"), dailyCandles));
-  const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => fixtureMeta("NVDA", chartPresetByKey("1h"), hourlyCandles));
+  const [dailyCandles, setDailyCandles] = useState<Candle[]>([]);
+  const [hourlyCandles, setHourlyCandles] = useState<Candle[]>([]);
+  const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => failedMeta("NVDA", chartPresetByKey("1d")));
+  const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => failedMeta("NVDA", chartPresetByKey("1h")));
   const [apiState, setApiState] = useState<"api" | "fallback">("fallback");
+  const [fixtureBlocked, setFixtureBlocked] = useState(() => urlRequestedFixture());
   const text = copy[lang];
 
   const selected =
@@ -434,9 +434,13 @@ function App() {
   }, [lang, theme]);
 
   useEffect(() => {
-    const requested = urlSourceOverride();
-    if (requested && requested !== source) {
-      setSource(requested);
+    try {
+      if (urlRequestedFixture() || window.localStorage.getItem("kquant-stock:source:v2") === "fixture") {
+        setFixtureBlocked(true);
+      }
+      window.localStorage.setItem("kquant-stock:source:v2", "live");
+    } catch {
+      // localStorage can be unavailable in strict embedded contexts.
     }
     if (!CHART_PRESETS.some((preset) => preset.key === primaryPresetKey)) {
       setPrimaryPresetKey("1d");
@@ -451,20 +455,20 @@ function App() {
   }, []);
 
   useEffect(() => {
-    void loadSignals(source, false);
+    void loadSignals(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source, selectedUniverse]);
+  }, [selectedUniverse]);
 
   useEffect(() => {
-    void loadCandles(selected.symbol, source);
+    void loadCandles(selected.symbol);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected.symbol, source, primaryPresetKey, confirmationPresetKey]);
+  }, [selected.symbol, primaryPresetKey, confirmationPresetKey]);
 
-  async function loadSignals(nextSource: Source, forceScan: boolean) {
+  async function loadSignals(forceScan: boolean) {
     const nextUniverse = selectedUniverse;
     try {
       const endpoint = forceScan ? "/api/stocks/signals" : "/api/stocks/signals/latest";
-      const response = await fetch(`${endpoint}?source=${nextSource}&universe=${nextUniverse}&profile=swing_long_v1&limit=100`);
+      const response = await fetch(`${endpoint}?source=live&universe=${nextUniverse}&profile=swing_long_v1&limit=100`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = (await response.json()) as SignalRun;
       const universeResponse = await fetch(`/api/stocks/universe?universe=${nextUniverse}`);
@@ -478,34 +482,31 @@ function App() {
         setSelectedSymbol(payload.signals[0]?.symbol ?? "NVDA");
       }
     } catch {
-      const fallback = nextSource === "fixture" ? makeLocalSignalRun(nextSource, nextUniverse) : makeUnavailableSignalRun(nextUniverse);
-      setRun(fallback);
+      setRun(makeUnavailableSignalRun(nextUniverse));
       setUniverse(stocksForUniverse(nextUniverse));
       setApiState("fallback");
     }
   }
 
-  async function loadCandles(symbol: string, nextSource: Source) {
-    const fallbackDaily = makeCandles(symbol, primaryPreset.range, primaryPreset.interval);
-    const fallbackHourly = makeCandles(symbol, confirmationPreset.range, confirmationPreset.interval);
+  async function loadCandles(symbol: string) {
     try {
       const [dailyResponse, hourlyResponse] = await Promise.all([
-        fetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=${nextSource}`),
-        fetch(`/api/stocks/candles?symbol=${symbol}&range=${confirmationPreset.range}&interval=${confirmationPreset.interval}&source=${nextSource}`),
+        fetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=live`),
+        fetch(`/api/stocks/candles?symbol=${symbol}&range=${confirmationPreset.range}&interval=${confirmationPreset.interval}&source=live`),
       ]);
       if (!dailyResponse.ok || !hourlyResponse.ok) throw new Error("candles unavailable");
       const [dailyPayload, hourlyPayload] = await Promise.all([dailyResponse.json(), hourlyResponse.json()]);
-      const normalizedDaily = normalizeCandles(dailyPayload.candles, nextSource === "fixture" ? fallbackDaily : []);
-      const normalizedHourly = normalizeCandles(hourlyPayload.candles, nextSource === "fixture" ? fallbackHourly : []);
+      const normalizedDaily = normalizeCandles(dailyPayload.candles, []);
+      const normalizedHourly = normalizeCandles(hourlyPayload.candles, []);
       setDailyCandles(normalizedDaily);
       setHourlyCandles(normalizedHourly);
       setDailyMeta(metaFromPayload(dailyPayload, primaryPreset, normalizedDaily));
       setHourlyMeta(metaFromPayload(hourlyPayload, confirmationPreset, normalizedHourly));
     } catch {
-      setDailyCandles(nextSource === "fixture" ? fallbackDaily : []);
-      setHourlyCandles(nextSource === "fixture" ? fallbackHourly : []);
-      setDailyMeta(nextSource === "fixture" ? fixtureMeta(symbol, primaryPreset, fallbackDaily) : failedMeta(symbol, primaryPreset));
-      setHourlyMeta(nextSource === "fixture" ? fixtureMeta(symbol, confirmationPreset, fallbackHourly) : failedMeta(symbol, confirmationPreset));
+      setDailyCandles([]);
+      setHourlyCandles([]);
+      setDailyMeta(failedMeta(symbol, primaryPreset));
+      setHourlyMeta(failedMeta(symbol, confirmationPreset));
     }
   }
 
@@ -539,14 +540,6 @@ function App() {
             icon={theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
           />
           <Segmented
-            value={source}
-            options={[
-              ["fixture", text.fixture],
-              ["live", text.live],
-            ]}
-            onChange={(value) => setSource(value as Source)}
-          />
-          <Segmented
             value={selectedUniverse}
             options={[
               ["default", universeOptionLabel("default", lang)],
@@ -555,7 +548,7 @@ function App() {
             ]}
             onChange={(value) => setSelectedUniverse(value as UniverseName)}
           />
-          <button className="primary-action" type="button" onClick={() => void loadSignals(source, true)}>
+          <button className="primary-action" type="button" onClick={() => void loadSignals(true)}>
             <RefreshCw size={15} />
             {text.refresh}
           </button>
@@ -567,6 +560,18 @@ function App() {
         <Pill tone="neutral" icon={<Lock size={14} />} label={text.llmLocked} />
         <Pill tone="neutral" icon={<Database size={14} />} label={`${text.db}: work/kquant_us.sqlite3`} />
         <Pill tone={apiState === "api" ? "good" : "warn"} icon={<Activity size={14} />} label={apiState === "api" ? text.apiReady : text.fallback} />
+        <Pill
+          tone="good"
+          icon={<CheckCircle2 size={14} />}
+          label={lang === "zh" ? "真实数据守卫：无 Fixture" : "Real Data Guard: No Fixture"}
+        />
+        {fixtureBlocked ? (
+          <Pill
+            tone="warn"
+            icon={<AlertTriangle size={14} />}
+            label={lang === "zh" ? "Fixture URL 已忽略：股票终端只使用真实数据" : "Fixture URL ignored: stock terminal is live-only"}
+          />
+        ) : null}
         <Pill tone="neutral" icon={<BarChart3 size={14} />} label={text.noBroker} />
       </section>
 
@@ -997,15 +1002,15 @@ function chartPresetByKey(key: ChartPresetKey): ChartPreset {
   return CHART_PRESETS.find((preset) => preset.key === key) ?? CHART_PRESETS[1];
 }
 
-function urlSourceOverride(): Source | null {
+function urlRequestedFixture(): boolean {
   try {
     const params = new URLSearchParams(window.location.search);
     const value = params.get("source") ?? params.get("optionsSource");
-    if (value === "fixture" || value === "live") return value;
+    return value === "fixture";
   } catch {
     // URL parsing can fail in unusual embedded contexts.
   }
-  return null;
+  return false;
 }
 
 function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, candles: Candle[]): CandleMeta {

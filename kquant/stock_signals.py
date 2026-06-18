@@ -74,7 +74,7 @@ def api_stock_candles(
     symbol: str,
     range_value: str = "1y",
     interval: str = "1d",
-    source: str = "fixture",
+    source: str = "live",
     db_path: Path | None = None,
 ) -> dict[str, Any]:
     symbol = normalize_symbol(symbol)
@@ -123,7 +123,7 @@ def api_stock_provider_health(db_path: Path | None = None) -> dict[str, Any]:
 
 
 def api_stock_signals(
-    source: str = "fixture",
+    source: str = "live",
     universe: str = "default",
     profile: str = "swing_long_v1",
     db_path: Path | None = None,
@@ -162,6 +162,13 @@ def api_stock_signals(
     run_id = f"stock-{int(time.time())}"
     provider_status = "degraded" if provider_errors else ("fixture_read_only" if source == "fixture" else "available")
     historical_validation = summarize_label_samples(label_samples_by_symbol)
+    stale_signals = [
+        signal
+        for signal in signals
+        if signal.get("data_status", {}).get("daily_provider_status") == "stale_cache"
+        or signal.get("data_status", {}).get("hourly_provider_status") == "stale_cache"
+    ]
+    stale_age_seconds = max((extract_stale_seconds(signal.get("data_status", {}).get("freshness")) for signal in stale_signals), default=0)
     payload = {
         "run_id": run_id,
         "product": "KQUANT US Stock Signal Terminal",
@@ -173,6 +180,12 @@ def api_stock_signals(
         "provider_status": provider_status,
         "provider_error_count": len(provider_errors),
         "provider_errors": provider_errors[:30],
+        "live_only_policy": "user-facing stock terminal uses live Yahoo public chart or stale real cache only",
+        "fixture_user_visible": False,
+        "cache_source": "stale_yahoo_chart_cache" if stale_signals else "live_yahoo_chart" if source == "live" and not provider_errors else "none",
+        "stale_signal_count": len(stale_signals),
+        "stale_age": f"{stale_age_seconds}s" if stale_age_seconds else "none",
+        "stale_age_seconds": stale_age_seconds,
         "historical_validation": historical_validation,
         "counts": {
             "buy_setup": sum(1 for signal in signals if signal["level"] == "BUY SETUP"),
@@ -195,7 +208,7 @@ def api_stock_signals(
 def api_stock_signals_latest(
     db_path: Path | None = None,
     outputs_dir: Path | None = None,
-    source: str = "fixture",
+    source: str = "live",
     universe: str = "default",
     profile: str = "swing_long_v1",
 ) -> dict[str, Any]:
@@ -226,6 +239,12 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "provider_status": "not_scanned",
         "provider_error_count": 0,
         "provider_errors": [reason],
+        "live_only_policy": "user-facing stock terminal uses live Yahoo public chart or stale real cache only",
+        "fixture_user_visible": False,
+        "cache_source": "none",
+        "stale_signal_count": 0,
+        "stale_age": "none",
+        "stale_age_seconds": 0,
         "historical_validation": summarize_label_samples({}),
         "counts": {"buy_setup": 0, "watch": 0, "pass": 0, "total": 0},
         "signals": [],
@@ -234,6 +253,17 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "llm_signal_core_enabled": False,
         "broker_order_wiring_enabled": False,
     }
+
+
+def extract_stale_seconds(freshness: Any) -> int:
+    text = str(freshness or "")
+    if not text.startswith("stale "):
+        return 0
+    value = text.removeprefix("stale ").removesuffix("s")
+    try:
+        return max(0, int(value))
+    except ValueError:
+        return 0
 
 
 def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dict[str, Any]) -> dict[str, Any]:
@@ -292,13 +322,17 @@ def build_signal(symbol: str, daily_payload: dict[str, Any], hourly_payload: dic
     trigger_confirmed = hourly_close[-1] > h_ema20 > h_ema50 and one_hour_momentum >= 0.6
     volume_confirmed = volume_ratio >= 1.2
     risk_window_ok = -1.0 <= extension_pct <= 5.5 and atr_pct <= 5.0
-    data_clean = daily_payload["provider_status"] in ("available", "fixture_read_only") and hourly_payload["provider_status"] in (
+    daily_status = daily_payload["provider_status"]
+    hourly_status = hourly_payload["provider_status"]
+    data_clean = daily_status == "available" and hourly_status == "available"
+    has_real_or_internal_data = daily_status in ("available", "stale_cache", "fixture_read_only") and hourly_status in (
         "available",
+        "stale_cache",
         "fixture_read_only",
     )
     edge_ok = historical_edge["sample_count"] >= 10 and historical_edge["win_rate_5d"] >= 55 and historical_edge["avg_forward_return_5d"] > 0.4
     buy_gates = trend_aligned and trigger_confirmed and volume_confirmed and risk_window_ok and data_clean and edge_ok
-    watch_gates = score >= 65 and close > ema50 and one_hour_momentum > -0.4 and data_clean
+    watch_gates = score >= 65 and close > ema50 and one_hour_momentum > -0.4 and has_real_or_internal_data
     level = "BUY SETUP" if score >= PROFILE["strict_buy_gate_score"] and buy_gates else "WATCH" if watch_gates else "PASS"
     risks = []
     if atr_pct > 5:
@@ -848,6 +882,9 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
         f"- Universe: `{payload['universe']}`",
         f"- Profile: `{payload['profile']['name']}`",
         f"- Provider: `{payload['provider_status']}` / errors `{payload['provider_error_count']}`",
+        f"- Live-only policy: `{payload.get('live_only_policy')}`",
+        f"- Cache source: `{payload.get('cache_source')}` / stale age `{payload.get('stale_age')}`",
+        f"- Fixture user visible: `{payload.get('fixture_user_visible')}`",
         f"- Counts: BUY SETUP `{payload['counts']['buy_setup']}`, WATCH `{payload['counts']['watch']}`, PASS `{payload['counts']['pass']}`",
         "",
         "## Historical Validation",

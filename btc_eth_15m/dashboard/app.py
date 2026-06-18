@@ -554,8 +554,9 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
         symbol: str = Query(default="SPY"),
         range: str = Query(default="1y"),
         interval: str = Query(default="1d"),
-        source: str = Query(default="fixture"),
+        source: str = Query(default="live"),
     ) -> dict:
+        source = _stock_live_only_source(source)
         return api_stock_candles(
             symbol=symbol,
             range_value=range,
@@ -566,11 +567,12 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
 
     @app.get("/api/stocks/signals")
     def stock_signals_endpoint(
-        source: str = Query(default="fixture"),
+        source: str = Query(default="live"),
         universe: str = Query(default="default"),
         profile: str = Query(default="swing_long_v1"),
         limit: int = Query(default=100, ge=1, le=100),
     ) -> dict:
+        source = _stock_live_only_source(source)
         return api_stock_signals(
             source=source,
             universe=universe,
@@ -582,10 +584,11 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
 
     @app.get("/api/stocks/signals/latest")
     def stock_signals_latest_endpoint(
-        source: str = Query(default="fixture"),
+        source: str = Query(default="live"),
         universe: str = Query(default="default"),
         profile: str = Query(default="swing_long_v1"),
     ) -> dict:
+        source = _stock_live_only_source(source)
         return api_stock_signals_latest(
             source=source,
             universe=universe,
@@ -808,6 +811,21 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     install_agent_routes(app, db_path=config.db_path, outputs_dir=config.outputs_dir)
     mount_frontend(app)
     return app
+
+
+def _stock_live_only_source(source: str) -> str:
+    normalized = str(source or "live").lower()
+    if normalized == "fixture":
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Stock terminal is live-only; fixture stock data is internal "
+                "test data and is not available through user-facing APIs."
+            ),
+        )
+    if normalized != "live":
+        raise HTTPException(status_code=400, detail="Invalid stock data source. Use source=live.")
+    return "live"
 
 
 def live_readiness(config: AppConfig) -> dict[str, Any]:

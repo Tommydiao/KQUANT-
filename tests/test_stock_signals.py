@@ -2,6 +2,9 @@ from pathlib import Path
 import json
 from datetime import datetime
 
+import pytest
+
+from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
 from kquant.stock_signals import api_stock_candles, api_stock_signals, api_stock_signals_latest
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
@@ -22,6 +25,13 @@ def test_ai_five_layer_universe_is_complete_and_deduped() -> None:
     assert {"Energy", "Chips", "Infrastructure", "Models", "Applications"}.issubset(layers)
     assert {"NVDA", "CEG", "MSFT", "PLTR", "CRM"}.issubset(set(symbols))
     assert next(stock for stock in stocks if stock.symbol == "NVDA").layer == "Chips"
+
+
+def test_user_facing_stock_source_is_live_only() -> None:
+    assert stock_live_only_source({}) == "live"
+    assert stock_live_only_source({"source": ["live"]}) == "live"
+    with pytest.raises(ValueError, match="live-only"):
+        stock_live_only_source({"source": ["fixture"]})
 
 
 def test_fixture_stock_candles_are_deterministic(tmp_path: Path) -> None:
@@ -174,6 +184,32 @@ def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: P
     assert stale["source_type"] == "stale_yahoo_chart_cache"
     assert stale["live_does_not_fallback_to_fixture"] is True
     assert all(candle["source"] != "fixture" for candle in stale["candles"])
+
+
+def test_live_stock_signals_provider_failure_has_no_buy_setup(tmp_path: Path, monkeypatch) -> None:
+    class Response:
+        status_code = 429
+
+        def raise_for_status(self) -> None:
+            raise RuntimeError("HTTP 429")
+
+        def json(self) -> dict:
+            return {}
+
+    monkeypatch.setattr("kquant.stock_signals.requests.get", lambda *args, **kwargs: Response())
+    payload = api_stock_signals(
+        source="live",
+        universe="ai_five_layer",
+        profile="swing_long_v1",
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+        limit=3,
+    )
+    assert payload["fixture_user_visible"] is False
+    assert payload["cache_source"] == "none"
+    assert payload["counts"]["buy_setup"] == 0
+    assert payload["provider_status"] == "degraded"
+    assert all(signal["level"] == "PASS" for signal in payload["signals"])
 
 
 def test_latest_stock_signals_do_not_cross_mix_source(tmp_path: Path) -> None:

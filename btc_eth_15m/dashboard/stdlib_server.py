@@ -875,16 +875,18 @@ class Handler(BaseHTTPRequestHandler):
                 db_path=self.dashboard.stock_db_path,
             )
         if path == "/api/stocks/candles":
+            source = stock_live_only_source(query)
             return api_stock_candles(
                 symbol=query_value(query, "symbol", "SPY"),
                 range_value=query_value(query, "range", "1y"),
                 interval=query_value(query, "interval", "1d"),
-                source=query_value(query, "source", "fixture"),
+                source=source,
                 db_path=self.dashboard.stock_db_path,
             )
         if path == "/api/stocks/signals":
+            source = stock_live_only_source(query)
             return api_stock_signals(
-                source=query_value(query, "source", "fixture"),
+                source=source,
                 universe=query_value(query, "universe", "default"),
                 profile=query_value(query, "profile", "swing_long_v1"),
                 db_path=self.dashboard.stock_db_path,
@@ -892,8 +894,9 @@ class Handler(BaseHTTPRequestHandler):
                 limit=query_int(query, "limit", 100, 1, 100),
             )
         if path == "/api/stocks/signals/latest":
+            source = stock_live_only_source(query)
             return api_stock_signals_latest(
-                source=query_value(query, "source", "fixture"),
+                source=source,
                 universe=query_value(query, "universe", "default"),
                 profile=query_value(query, "profile", "swing_long_v1"),
                 db_path=self.dashboard.stock_db_path,
@@ -1326,6 +1329,15 @@ def query_value(query: Dict[str, List[str]], key: str, default: Optional[str]) -
     if not values:
         return default
     return values[0]
+
+
+def stock_live_only_source(query: Dict[str, List[str]]) -> str:
+    source = str(query_value(query, "source", "live") or "live").lower()
+    if source == "fixture":
+        raise ValueError("Stock terminal is live-only; fixture stock data is internal test data and not available through user-facing APIs.")
+    if source != "live":
+        raise ValueError("Invalid stock data source. Use source=live.")
+    return "live"
 
 
 def query_int(query: Dict[str, List[str]], key: str, default: int, minimum: int, maximum: int) -> int:
