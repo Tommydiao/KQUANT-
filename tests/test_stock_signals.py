@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 
 from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
-from kquant.stock_signals import api_stock_candles, api_stock_signals, api_stock_signals_latest
+from kquant.stock_signals import api_stock_candles, api_stock_live_data_health, api_stock_signals, api_stock_signals_latest
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
 
@@ -100,6 +100,8 @@ def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
     assert payload["profile"]["buy_setup_threshold"] == 82
     assert payload["profile"]["watch_threshold"] == 65
     assert "historical_validation" in payload
+    assert "validation_by_level" in payload
+    assert set(payload["validation_by_level"]) == {"BUY SETUP", "WATCH", "PASS"}
     assert payload["llm_signal_core_enabled"] is False
     assert payload["broker_order_wiring_enabled"] is False
     assert "score_breakdown" in payload["signals"][0]
@@ -210,6 +212,52 @@ def test_live_stock_signals_provider_failure_has_no_buy_setup(tmp_path: Path, mo
     assert payload["counts"]["buy_setup"] == 0
     assert payload["provider_status"] == "degraded"
     assert all(signal["level"] == "PASS" for signal in payload["signals"])
+
+
+def test_live_data_health_report_writes_database_summary(tmp_path: Path, monkeypatch) -> None:
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "chart": {
+                    "result": [
+                        {
+                            "timestamp": [1_718_000_000, 1_718_086_400, 1_718_172_800, 1_718_259_200],
+                            "indicators": {
+                                "quote": [
+                                    {
+                                        "open": [100, 101, 102, 103],
+                                        "high": [102, 103, 104, 105],
+                                        "low": [99, 100, 101, 102],
+                                        "close": [101, 102, 103, 104],
+                                        "volume": [1000, 1100, 1200, 1300],
+                                    }
+                                ]
+                            },
+                        }
+                    ],
+                    "error": None,
+                }
+            }
+
+    monkeypatch.setattr("kquant.stock_signals.requests.get", lambda *args, **kwargs: Response())
+    payload = api_stock_live_data_health(
+        universes=["default", "ai_five_layer"],
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+        limit=2,
+    )
+    assert payload["fixture_user_visible"] is False
+    assert payload["summary"]["symbol_count"] == 4
+    assert payload["summary"]["timeframe_checks"] == 16
+    assert payload["summary"]["available_checks"] == 16
+    assert payload["database"]["tables_ready"] is True
+    assert (tmp_path / "outputs" / "stock-live-data-health.json").exists()
+    assert "KQUANT Stock Live Data Health" in (tmp_path / "outputs" / "stock-live-data-health.md").read_text(encoding="utf-8")
 
 
 def test_latest_stock_signals_do_not_cross_mix_source(tmp_path: Path) -> None:

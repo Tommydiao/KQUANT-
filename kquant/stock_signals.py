@@ -23,6 +23,12 @@ RANGES = {
     "5y": {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
     "10y": {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
+HEALTH_TIMEFRAMES = [
+    {"key": "1H", "range": "5d", "interval": "1h"},
+    {"key": "1D", "range": "1y", "interval": "1d"},
+    {"key": "1W", "range": "5y", "interval": "1wk"},
+    {"key": "1M", "range": "10y", "interval": "1mo"},
+]
 MARKET_OPEN_UTC_HOUR = 13
 MARKET_OPEN_UTC_MINUTE = 30
 MARKET_CLOSE_UTC_HOUR = 20
@@ -122,6 +128,113 @@ def api_stock_provider_health(db_path: Path | None = None) -> dict[str, Any]:
     }
 
 
+def api_stock_live_data_health(
+    universes: list[str] | tuple[str, ...] | None = None,
+    db_path: Path | None = None,
+    outputs_dir: Path | None = None,
+    limit: int | None = None,
+    scan_pause_seconds: float = 0.0,
+) -> dict[str, Any]:
+    db = db_path or default_db_path()
+    outputs = outputs_dir or Path("outputs")
+    requested_universes = list(universes or ["default", "ai_five_layer"])
+    started = iso_now()
+    universe_reports: list[dict[str, Any]] = []
+    total_symbols = 0
+    total_checks = 0
+    provider_error_count = 0
+    stale_cache_count = 0
+    available_count = 0
+
+    for universe in requested_universes:
+        stocks = stock_universe(universe)
+        if limit:
+            stocks = stocks[: max(1, min(limit, len(stocks)))]
+        symbol_reports: list[dict[str, Any]] = []
+        for stock in stocks:
+            timeframe_reports: list[dict[str, Any]] = []
+            for timeframe in HEALTH_TIMEFRAMES:
+                payload = api_stock_candles(
+                    stock.symbol,
+                    str(timeframe["range"]),
+                    str(timeframe["interval"]),
+                    "live",
+                    db,
+                )
+                candles = payload.get("candles", [])
+                status = str(payload.get("provider_status", "unknown"))
+                if status == "available":
+                    available_count += 1
+                elif status == "stale_cache":
+                    stale_cache_count += 1
+                else:
+                    provider_error_count += 1
+                total_checks += 1
+                expected = int(RANGES[str(payload.get("range", timeframe["range"]))]["bars"])
+                timeframe_reports.append(
+                    {
+                        "timeframe": timeframe["key"],
+                        "range": payload.get("range"),
+                        "interval": payload.get("interval"),
+                        "source_type": payload.get("source_type"),
+                        "provider_status": status,
+                        "freshness": payload.get("freshness"),
+                        "stale_age_seconds": int(payload.get("freshness_seconds") or extract_stale_seconds(payload.get("freshness"))),
+                        "candle_count": len(candles),
+                        "expected_bars": expected,
+                        "count_ok": len(candles) >= max(1, int(expected * 0.75)),
+                        "first_time": candles[0]["open_time"] if candles else "",
+                        "last_time": candles[-1]["open_time"] if candles else "",
+                        "provider_errors": payload.get("provider_errors", [])[:3],
+                    }
+                )
+                if scan_pause_seconds > 0:
+                    time.sleep(scan_pause_seconds)
+            symbol_reports.append(
+                {
+                    "symbol": stock.symbol,
+                    "name": stock.name,
+                    "layer": stock.layer,
+                    "timeframes": timeframe_reports,
+                    "provider_status": rollup_timeframe_status(timeframe_reports),
+                }
+            )
+        total_symbols += len(stocks)
+        universe_reports.append(
+            {
+                "universe": universe,
+                "symbol_count": len(stocks),
+                "symbols": symbol_reports,
+                "provider_status": rollup_symbol_status(symbol_reports),
+            }
+        )
+
+    completed = iso_now()
+    payload = {
+        "run_id": f"stock-health-{int(time.time())}",
+        "product": "KQUANT US Stock Signal Terminal",
+        "source": "live",
+        "started_at": started,
+        "completed_at": completed,
+        "universes": requested_universes,
+        "timeframes": HEALTH_TIMEFRAMES,
+        "summary": {
+            "symbol_count": total_symbols,
+            "timeframe_checks": total_checks,
+            "available_checks": available_count,
+            "stale_cache_checks": stale_cache_count,
+            "provider_error_checks": provider_error_count,
+            "provider_status": "degraded" if provider_error_count else "available",
+        },
+        "database": database_health_summary(db),
+        "live_only_policy": "live Yahoo public chart or stale real cache only; fixture is not user-visible",
+        "fixture_user_visible": False,
+        "universes_detail": universe_reports,
+    }
+    write_stock_live_data_health_report(outputs, payload)
+    return payload
+
+
 def api_stock_signals(
     source: str = "live",
     universe: str = "default",
@@ -187,6 +300,7 @@ def api_stock_signals(
         "stale_age": f"{stale_age_seconds}s" if stale_age_seconds else "none",
         "stale_age_seconds": stale_age_seconds,
         "historical_validation": historical_validation,
+        "validation_by_level": summarize_validation_by_level(signals),
         "counts": {
             "buy_setup": sum(1 for signal in signals if signal["level"] == "BUY SETUP"),
             "watch": sum(1 for signal in signals if signal["level"] == "WATCH"),
@@ -246,6 +360,7 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "stale_age": "none",
         "stale_age_seconds": 0,
         "historical_validation": summarize_label_samples({}),
+        "validation_by_level": summarize_validation_by_level([]),
         "counts": {"buy_setup": 0, "watch": 0, "pass": 0, "total": 0},
         "signals": [],
         "btc_eth_removed_from_main_path": True,
@@ -895,9 +1010,24 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
         f"- Avg 5D drawdown: `{validation.get('avg_max_drawdown_5d', 0)}%`",
         "- Note: historical labels are research validation, not an execution signal.",
         "",
+        "## Validation by Level",
+        "",
+        "| Level | Signals | Samples | 5D Win | Avg 5D Return | Avg 5D Drawdown | Noise Rate |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for level, stats in payload.get("validation_by_level", {}).items():
+        lines.append(
+            f"| {level} | {stats.get('signal_count', 0)} | {stats.get('sample_count', 0)} | "
+            f"{stats.get('win_rate_5d', 0)}% | {stats.get('avg_forward_return_5d', 0)}% | "
+            f"{stats.get('avg_max_drawdown_5d', 0)}% | {stats.get('noise_rate', 0)}% |"
+        )
+    lines.extend(
+        [
+            "",
         "## Top Setups",
         "",
-    ]
+        ]
+    )
     for signal in payload["signals"][:20]:
         lines.extend(
             [
@@ -915,6 +1045,129 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
             ]
         )
     (outputs_dir / "stock-signals-report.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def write_stock_live_data_health_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    (outputs_dir / "stock-live-data-health.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    summary = payload["summary"]
+    database = payload["database"]
+    lines = [
+        "# KQUANT Stock Live Data Health",
+        "",
+        f"- Run: `{payload['run_id']}`",
+        f"- Source: `{payload['source']}`",
+        f"- Universes: `{', '.join(payload['universes'])}`",
+        f"- Symbols: `{summary['symbol_count']}`",
+        f"- Timeframe checks: `{summary['timeframe_checks']}`",
+        f"- Available / stale / failed: `{summary['available_checks']}` / `{summary['stale_cache_checks']}` / `{summary['provider_error_checks']}`",
+        f"- Provider status: `{summary['provider_status']}`",
+        f"- Live-only policy: `{payload['live_only_policy']}`",
+        "",
+        "## Database",
+        "",
+        f"- Path: `{database['path']}`",
+        f"- Tables ready: `{database['tables_ready']}`",
+        f"- Live candles: `{database['live_candle_count']}`",
+        f"- Stale-cache rows: `{database['stale_cache_row_count']}`",
+        f"- Provider events: `{database['provider_event_count']}`",
+        f"- Latest candle write: `{database['latest_candle_write']}`",
+        "",
+        "## Universe Summary",
+        "",
+    ]
+    for universe in payload["universes_detail"]:
+        lines.extend(
+            [
+                f"### {universe['universe']} - {universe['provider_status']}",
+                "",
+                "| Symbol | Layer | 1H | 1D | 1W | 1M |",
+                "| --- | --- | --- | --- | --- | --- |",
+            ]
+        )
+        for symbol in universe["symbols"][:120]:
+            by_key = {item["timeframe"]: item for item in symbol["timeframes"]}
+            lines.append(
+                "| {symbol} | {layer} | {h1} | {d1} | {w1} | {m1} |".format(
+                    symbol=symbol["symbol"],
+                    layer=symbol["layer"],
+                    h1=format_health_cell(by_key.get("1H")),
+                    d1=format_health_cell(by_key.get("1D")),
+                    w1=format_health_cell(by_key.get("1W")),
+                    m1=format_health_cell(by_key.get("1M")),
+                )
+            )
+        lines.append("")
+    (outputs_dir / "stock-live-data-health.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def format_health_cell(item: dict[str, Any] | None) -> str:
+    if not item:
+        return "-"
+    status = item["provider_status"]
+    count = item["candle_count"]
+    if status == "available":
+        return f"OK {count}"
+    if status == "stale_cache":
+        return f"STALE {count} / {item['stale_age_seconds']}s"
+    return f"FAIL {count}"
+
+
+def rollup_timeframe_status(timeframes: list[dict[str, Any]]) -> str:
+    statuses = {item["provider_status"] for item in timeframes}
+    if statuses == {"available"}:
+        return "available"
+    if statuses <= {"available", "stale_cache"}:
+        return "stale_cache"
+    return "degraded"
+
+
+def rollup_symbol_status(symbols: list[dict[str, Any]]) -> str:
+    statuses = {item["provider_status"] for item in symbols}
+    if statuses == {"available"}:
+        return "available"
+    if statuses <= {"available", "stale_cache"}:
+        return "stale_cache"
+    return "degraded"
+
+
+def database_health_summary(db_path: Path) -> dict[str, Any]:
+    required_tables = [
+        "stock_universe",
+        "stock_candles",
+        "provider_events",
+        "audit_events",
+        "stock_features",
+        "stock_labels",
+        "stock_backtest_runs",
+    ]
+    with connect(db_path) as conn:
+        table_rows = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name IN ({})".format(
+                ",".join("?" for _ in required_tables)
+            ),
+            required_tables,
+        ).fetchall()
+        present = {row["name"] for row in table_rows}
+        latest = conn.execute("SELECT MAX(created_at) AS value FROM stock_candles").fetchone()["value"]
+        live_count = conn.execute("SELECT COUNT(*) AS count FROM stock_candles WHERE source='live_yahoo_chart'").fetchone()["count"]
+        stale_count = conn.execute("SELECT COUNT(*) AS count FROM stock_candles WHERE provider_status='stale_cache'").fetchone()["count"]
+        provider_events = conn.execute("SELECT COUNT(*) AS count FROM provider_events").fetchone()["count"]
+        feature_count = conn.execute("SELECT COUNT(*) AS count FROM stock_features").fetchone()["count"]
+        label_count = conn.execute("SELECT COUNT(*) AS count FROM stock_labels").fetchone()["count"]
+        backtest_count = conn.execute("SELECT COUNT(*) AS count FROM stock_backtest_runs").fetchone()["count"]
+    return {
+        "path": str(db_path),
+        "tables_ready": all(table in present for table in required_tables),
+        "missing_tables": [table for table in required_tables if table not in present],
+        "live_candle_count": int(live_count),
+        "stale_cache_row_count": int(stale_count),
+        "provider_event_count": int(provider_events),
+        "feature_count": int(feature_count),
+        "label_count": int(label_count),
+        "backtest_run_count": int(backtest_count),
+        "latest_candle_write": latest or "none",
+    }
 
 
 def normalize_symbol(symbol: str) -> str:
@@ -1139,6 +1392,34 @@ def summarize_label_samples(label_samples_by_symbol: dict[str, list[dict[str, An
         "avg_max_drawdown_5d": edge["avg_max_drawdown_5d"],
         "note": "Historical labels are for research validation, not an execution signal.",
     }
+
+
+def summarize_validation_by_level(signals: list[dict[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for level in ("BUY SETUP", "WATCH", "PASS"):
+        level_signals = [signal for signal in signals if signal.get("level") == level]
+        total_samples = sum(int((signal.get("historical_edge") or {}).get("sample_count", 0)) for signal in level_signals)
+        result[level] = {
+            "signal_count": len(level_signals),
+            "sample_count": total_samples,
+            "win_rate_5d": weighted_historical_metric(level_signals, "win_rate_5d", total_samples),
+            "target_hit_rate_5d": weighted_historical_metric(level_signals, "target_hit_rate_5d", total_samples),
+            "avg_forward_return_5d": weighted_historical_metric(level_signals, "avg_forward_return_5d", total_samples),
+            "avg_max_drawdown_5d": weighted_historical_metric(level_signals, "avg_max_drawdown_5d", total_samples),
+            "noise_rate": round(100 - weighted_historical_metric(level_signals, "target_hit_rate_5d", total_samples), 1) if total_samples else 0.0,
+        }
+    return result
+
+
+def weighted_historical_metric(signals: list[dict[str, Any]], metric: str, total_samples: int) -> float:
+    if total_samples <= 0:
+        return 0.0
+    value = 0.0
+    for signal in signals:
+        edge = signal.get("historical_edge") or {}
+        sample_count = int(edge.get("sample_count", 0))
+        value += float(edge.get(metric, 0.0)) * sample_count
+    return round(value / total_samples, 2)
 
 
 def pct(value: float, reference: float) -> float:

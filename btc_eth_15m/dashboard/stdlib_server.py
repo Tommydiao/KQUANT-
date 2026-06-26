@@ -50,6 +50,7 @@ from btc_eth_15m.options_snapshots import (
 )
 from kquant.stock_signals import (
     api_stock_candles,
+    api_stock_live_data_health,
     api_stock_provider_health,
     api_stock_signals,
     api_stock_signals_latest,
@@ -904,6 +905,18 @@ class Handler(BaseHTTPRequestHandler):
             )
         if path == "/api/stocks/provider-health":
             return api_stock_provider_health(db_path=self.dashboard.stock_db_path)
+        if path == "/api/stocks/live-data-health":
+            universes = [
+                item.strip()
+                for item in query_value(query, "universes", "default,ai_five_layer").split(",")
+                if item.strip()
+            ]
+            return api_stock_live_data_health(
+                universes=universes,
+                db_path=self.dashboard.stock_db_path,
+                outputs_dir=self.dashboard.outputs_dir,
+                limit=query_int(query, "limit", 20, 1, 100),
+            )
         if path == "/api/options/underlyings":
             symbols = query.get("symbol") or query.get("symbols") or []
             return annotate_options_payload(

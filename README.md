@@ -56,6 +56,17 @@ Reports are written to:
 - `outputs/stock-signals-report.json`
 - `outputs/stock-signals-report.md`
 
+Run a live data health scan when checking whether public candles are usable:
+
+```powershell
+python -m kquant stock-health --universes default,ai_five_layer --limit 20
+```
+
+Health reports are written to:
+
+- `outputs/stock-live-data-health.json`
+- `outputs/stock-live-data-health.md`
+
 Runtime data is stored in:
 
 - `work/kquant_us.sqlite3`
@@ -77,6 +88,7 @@ The local Python dashboard exposes:
 - `GET /api/stocks/signals?source=live&universe=ai_five_layer&profile=swing_long_v1`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
+- `GET /api/stocks/live-data-health?universes=default,ai_five_layer&limit=20`
 
 Each stock candle payload includes source, provider status, freshness, and
 provider errors. Stock signal payloads include score breakdown, AI layer, and

@@ -70,6 +70,7 @@ from btc_eth_15m.options_snapshots import (
 )
 from kquant.stock_signals import (
     api_stock_candles,
+    api_stock_live_data_health,
     api_stock_provider_health,
     api_stock_signals,
     api_stock_signals_latest,
@@ -600,6 +601,18 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/stocks/provider-health")
     def stock_provider_health_endpoint() -> dict:
         return api_stock_provider_health(db_path=stock_db_path)
+
+    @app.get("/api/stocks/live-data-health")
+    def stock_live_data_health_endpoint(
+        universes: str = Query(default="default,ai_five_layer"),
+        limit: int | None = Query(default=None, ge=1, le=100),
+    ) -> dict:
+        return api_stock_live_data_health(
+            universes=[item.strip() for item in universes.split(",") if item.strip()],
+            db_path=stock_db_path,
+            outputs_dir=config.outputs_dir,
+            limit=limit,
+        )
 
     @app.get("/api/options/underlyings")
     def options_underlyings_endpoint(

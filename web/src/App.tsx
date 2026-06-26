@@ -57,6 +57,7 @@ type CandleMeta = {
   sourceType: string;
   providerStatus: string;
   freshness: string;
+  staleAge: string;
   count: number;
   first: string;
   last: string;
@@ -801,7 +802,7 @@ function ChartPanel({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState<OhlcState | null>(null);
   const indicators = useMemo(
-    () => ({ ema20: ema(candles, 20), ema50: ema(candles, 50), sma200: sma(candles, 200), vwap: vwap(candles) }),
+    () => ({ ema20: ema(candles, 20), ema50: ema(candles, 50), ema200: ema(candles, 200), vwap: vwap(candles) }),
     [candles],
   );
 
@@ -855,7 +856,7 @@ function ChartPanel({
 
     addLine(chart, indicators.ema20, "#2563eb");
     addLine(chart, indicators.ema50, "#f59e0b");
-    if (indicators.sma200.length) addLine(chart, indicators.sma200, "#0f766e");
+    if (indicators.ema200.length) addLine(chart, indicators.ema200, "#0f766e");
     addLine(chart, indicators.vwap, "#7c3aed");
     chart.timeScale().fitContent();
     chart.subscribeCrosshairMove((param) => {
@@ -873,7 +874,7 @@ function ChartPanel({
       });
     });
     return () => chart.remove();
-  }, [candles, indicators.ema20, indicators.ema50, indicators.sma200, indicators.vwap, theme]);
+  }, [candles, indicators.ema20, indicators.ema50, indicators.ema200, indicators.vwap, theme]);
 
   return (
     <section className="panel chart-panel">
@@ -887,9 +888,11 @@ function ChartPanel({
           <div className="indicator-tags">
             <span>EMA20</span>
             <span>EMA50</span>
-            <span>SMA200</span>
+            <span>EMA200</span>
+            <span>Volume MA20</span>
+            <span>ATR14</span>
+            <span>RSI14</span>
             <span>VWAP</span>
-            <span>Volume</span>
           </div>
         </div>
       </div>
@@ -901,6 +904,12 @@ function ChartPanel({
           {labels.status}: <b>{meta.providerStatus}</b>
         </span>
         <span>
+          Freshness: <b>{meta.freshness}</b>
+        </span>
+        <span>
+          Stale Age: <b>{meta.staleAge}</b>
+        </span>
+        <span>
           {labels.range}: <b>{meta.range} / {meta.interval}</b>
         </span>
         <span>
@@ -909,6 +918,11 @@ function ChartPanel({
         <span>
           {labels.firstLast}: <b>{meta.first || "-"} / {meta.last || "-"}</b>
         </span>
+        {meta.errors.length ? (
+          <span>
+            Errors: <b>{meta.errors.join("; ").slice(0, 120)}</b>
+          </span>
+        ) : null}
       </div>
       <div className="ohlc-row">
         {hover ? (
@@ -1021,6 +1035,7 @@ function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, 
     sourceType: String(payload.source_type ?? "unknown"),
     providerStatus: String(payload.provider_status ?? "unknown"),
     freshness: String(payload.freshness ?? "unknown"),
+    staleAge: formatStaleAge(payload.freshness_seconds, payload.freshness),
     count: candles.length,
     first: formatCandleTime(candles[0]),
     last: formatCandleTime(candles[candles.length - 1]),
@@ -1036,6 +1051,7 @@ function fixtureMeta(symbol: string, preset: ChartPreset, candles: Candle[]): Ca
     sourceType: "fixture_read_only",
     providerStatus: "fixture_read_only",
     freshness: "fixture",
+    staleAge: "none",
     count: candles.length,
     first: formatCandleTime(candles[0]),
     last: formatCandleTime(candles[candles.length - 1]),
@@ -1051,11 +1067,20 @@ function failedMeta(symbol: string, preset: ChartPreset): CandleMeta {
     sourceType: "live_yahoo_chart",
     providerStatus: "provider_failed",
     freshness: "missing",
+    staleAge: "none",
     count: 0,
     first: "",
     last: "",
     errors: ["Local API or public provider did not return candles."],
   };
+}
+
+function formatStaleAge(rawSeconds: unknown, freshness: unknown): string {
+  const direct = Number(rawSeconds ?? 0);
+  if (Number.isFinite(direct) && direct > 0) return `${Math.round(direct)}s`;
+  const text = String(freshness ?? "");
+  if (text.startsWith("stale ")) return text.replace("stale ", "");
+  return "none";
 }
 
 function parseStockRow(row: string, index: number): UniverseStock {
