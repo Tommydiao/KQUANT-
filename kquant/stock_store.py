@@ -93,6 +93,24 @@ CREATE TABLE IF NOT EXISTS stock_backtest_runs (
   pass_count INTEGER NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS stock_signal_journal (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  strategy_profile TEXT NOT NULL DEFAULT '',
+  rule_conclusion TEXT NOT NULL DEFAULT '',
+  ai_review_verdict TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL,
+  notes TEXT NOT NULL DEFAULT '',
+  planned_entry REAL,
+  planned_stop REAL,
+  planned_target REAL,
+  outcome TEXT NOT NULL DEFAULT '',
+  reviewed_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_stock_signal_journal_symbol_time
+ON stock_signal_journal(symbol, reviewed_at DESC);
 CREATE TABLE IF NOT EXISTS provider_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   provider TEXT NOT NULL,
@@ -121,4 +139,21 @@ def connect(db_path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _ensure_columns(
+        conn,
+        "stock_signal_journal",
+        {
+            "strategy_profile": "TEXT NOT NULL DEFAULT ''",
+            "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
+            "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
     return conn
+
+
+def _ensure_columns(conn: sqlite3.Connection, table: str, columns: dict[str, str]) -> None:
+    existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    for name, definition in columns.items():
+        if name not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
+    conn.commit()

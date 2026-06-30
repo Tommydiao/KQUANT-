@@ -49,13 +49,20 @@ from btc_eth_15m.options_snapshots import (
     latest_price_history_payload,
 )
 from kquant.stock_signals import (
+    api_stock_ai_review,
+    api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_live_data_health_latest,
+    api_stock_market_regime,
     api_stock_provider_health,
+    api_stock_signal_journal,
+    api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
     api_stock_universe,
 )
+from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
 
 
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
@@ -805,6 +812,15 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/options/pilot-journal/entry":
                 self.send_json(record_pilot_journal_entry(self.dashboard.outputs_dir, self.read_json_body(), db_path=self.dashboard.db_path))
                 return
+            if path == "/api/mstr/cycle-journal/entry":
+                self.send_json(api_mstr_cycle_journal_entry(self.read_json_body(), db_path=self.dashboard.stock_db_path))
+                return
+            if path == "/api/stocks/signal-journal/entry":
+                self.send_json(api_stock_signal_journal_entry(self.read_json_body(), db_path=self.dashboard.stock_db_path))
+                return
+            if path == "/api/stocks/ai-review":
+                self.send_json(api_stock_ai_review(self.read_json_body(), db_path=self.dashboard.stock_db_path))
+                return
             if path == "/api/options/order-intents":
                 self.send_json(
                     create_option_order_intent(
@@ -892,7 +908,8 @@ class Handler(BaseHTTPRequestHandler):
                 profile=query_value(query, "profile", "swing_long_v1"),
                 db_path=self.dashboard.stock_db_path,
                 outputs_dir=self.dashboard.outputs_dir,
-                limit=query_int(query, "limit", 100, 1, 100),
+                limit=query_int(query, "limit", 100, 1, 200),
+                layer=query_value(query, "layer", "") or None,
             )
         if path == "/api/stocks/signals/latest":
             source = stock_live_only_source(query)
@@ -905,6 +922,23 @@ class Handler(BaseHTTPRequestHandler):
             )
         if path == "/api/stocks/provider-health":
             return api_stock_provider_health(db_path=self.dashboard.stock_db_path)
+        if path == "/api/stocks/analyze":
+            source = stock_live_only_source(query)
+            return api_stock_analyze(
+                symbol=query_value(query, "symbol", "NVDA"),
+                source=source,
+                profile=query_value(query, "profile", "swing_long_v1"),
+                db_path=self.dashboard.stock_db_path,
+            )
+        if path == "/api/stocks/market-regime":
+            source = stock_live_only_source(query)
+            return api_stock_market_regime(source=source, db_path=self.dashboard.stock_db_path)
+        if path == "/api/stocks/signal-journal":
+            return api_stock_signal_journal(
+                db_path=self.dashboard.stock_db_path,
+                symbol=query_value(query, "symbol", "") or None,
+                limit=query_int(query, "limit", 50, 1, 200),
+            )
         if path == "/api/stocks/live-data-health":
             universes = [
                 item.strip()
@@ -915,7 +949,26 @@ class Handler(BaseHTTPRequestHandler):
                 universes=universes,
                 db_path=self.dashboard.stock_db_path,
                 outputs_dir=self.dashboard.outputs_dir,
-                limit=query_int(query, "limit", 20, 1, 100),
+                limit=query_int(query, "limit", 20, 1, 200),
+            )
+        if path == "/api/stocks/live-data-health/latest":
+            return api_stock_live_data_health_latest(outputs_dir=self.dashboard.outputs_dir)
+        if path == "/api/mstr/cycle-radar":
+            source = stock_live_only_source(query)
+            return api_mstr_cycle_radar(
+                source=source,
+                db_path=self.dashboard.stock_db_path,
+                outputs_dir=self.dashboard.outputs_dir,
+            )
+        if path == "/api/mstr/cycle-radar/history":
+            return api_mstr_cycle_history(
+                limit=query_int(query, "limit", 30, 1, 200),
+                db_path=self.dashboard.stock_db_path,
+            )
+        if path == "/api/mstr/cycle-journal":
+            return api_mstr_cycle_journal(
+                db_path=self.dashboard.stock_db_path,
+                limit=query_int(query, "limit", 50, 1, 200),
             )
         if path == "/api/options/underlyings":
             symbols = query.get("symbol") or query.get("symbols") or []

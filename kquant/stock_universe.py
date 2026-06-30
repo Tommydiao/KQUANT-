@@ -129,7 +129,111 @@ _RAW_STOCKS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
 ]
 
 
-_ACTIVE_STOCK_ROWS = _RAW_STOCKS[:100]
+_CORE_200_ADDITIONAL_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
+    ("CEG", "Constellation Energy", "Utilities", "Energy", ("ai_energy", "nuclear", "power")),
+    ("VST", "Vistra", "Utilities", "Energy", ("ai_energy", "power", "merchant_power")),
+    ("NRG", "NRG Energy", "Utilities", "Energy", ("ai_energy", "power")),
+    ("NEE", "NextEra Energy", "Utilities", "Energy", ("ai_energy", "renewables", "utility")),
+    ("SO", "Southern Company", "Utilities", "Energy", ("ai_energy", "utility")),
+    ("DUK", "Duke Energy", "Utilities", "Energy", ("ai_energy", "utility")),
+    ("GEV", "GE Vernova", "Industrials", "Energy", ("ai_energy", "grid", "power_equipment")),
+    ("ETN", "Eaton", "Industrials", "Energy", ("ai_energy", "electrical", "power_management")),
+    ("PWR", "Quanta Services", "Industrials", "Energy", ("ai_energy", "grid", "infrastructure")),
+    ("VRT", "Vertiv", "Industrials", "Energy", ("ai_energy", "data_center_power", "cooling")),
+    ("CARR", "Carrier Global", "Industrials", "Energy", ("ai_energy", "cooling", "data_center")),
+    ("CCJ", "Cameco", "Energy", "Energy", ("ai_energy", "uranium", "nuclear")),
+    ("CSCO", "Cisco", "Technology", "Infrastructure", ("networking", "security")),
+    ("HPE", "Hewlett Packard Enterprise", "Technology", "Infrastructure", ("servers", "networking")),
+    ("EQIX", "Equinix", "Real Estate", "Infrastructure", ("data_center", "colo")),
+    ("DLR", "Digital Realty", "Real Estate", "Infrastructure", ("data_center", "colo")),
+    ("MCHP", "Microchip Technology", "Technology", "Chips", ("microcontrollers", "edge_ai")),
+    ("MPWR", "Monolithic Power Systems", "Technology", "Chips", ("power_semis", "data_center")),
+    ("ON", "ON Semiconductor", "Technology", "Chips", ("power_semis", "edge_ai")),
+    ("APP", "AppLovin", "Technology", "Applications", ("ai_ads", "high_beta")),
+    ("DUOL", "Duolingo", "Communication Services", "Applications", ("consumer_ai", "education")),
+    ("KKR", "KKR", "Financials", "Financials", ("asset_manager", "private_markets")),
+    ("BX", "Blackstone", "Financials", "Financials", ("asset_manager", "private_markets")),
+    ("APO", "Apollo Global Management", "Financials", "Financials", ("asset_manager", "private_credit")),
+    ("ICE", "Intercontinental Exchange", "Financials", "Financials", ("exchange", "market_data")),
+    ("CME", "CME Group", "Financials", "Financials", ("exchange", "derivatives")),
+    ("MSCI", "MSCI", "Financials", "Financials", ("index_provider", "market_data")),
+    ("SPGI", "S&P Global", "Financials", "Financials", ("ratings", "market_data")),
+    ("MCO", "Moody's", "Financials", "Financials", ("ratings", "analytics")),
+    ("CB", "Chubb", "Financials", "Financials", ("insurance", "quality")),
+    ("PGR", "Progressive", "Financials", "Financials", ("insurance", "quality")),
+    ("TRV", "Travelers", "Financials", "Financials", ("insurance", "defensive")),
+    ("AFL", "Aflac", "Financials", "Financials", ("insurance", "quality")),
+    ("AMGN", "Amgen", "Healthcare", "Healthcare", ("biotech", "large_cap")),
+    ("GILD", "Gilead Sciences", "Healthcare", "Healthcare", ("biotech", "value")),
+    ("REGN", "Regeneron", "Healthcare", "Healthcare", ("biotech", "quality")),
+    ("VRTX", "Vertex Pharmaceuticals", "Healthcare", "Healthcare", ("biotech", "quality")),
+    ("DHR", "Danaher", "Healthcare", "Healthcare", ("life_science", "quality")),
+    ("SYK", "Stryker", "Healthcare", "Healthcare", ("medtech", "quality")),
+    ("BSX", "Boston Scientific", "Healthcare", "Healthcare", ("medtech", "growth")),
+    ("MDT", "Medtronic", "Healthcare", "Healthcare", ("medtech", "value")),
+    ("ELV", "Elevance Health", "Healthcare", "Healthcare", ("managed_care", "defensive")),
+    ("CI", "Cigna", "Healthcare", "Healthcare", ("managed_care", "value")),
+    ("CVS", "CVS Health", "Healthcare", "Healthcare", ("managed_care", "retail_health")),
+    ("MELI", "MercadoLibre", "Consumer Discretionary", "Consumer Internet", ("commerce", "latin_america", "growth")),
+    ("ABNB", "Airbnb", "Consumer Discretionary", "Consumer Internet", ("travel", "platform")),
+    ("MAR", "Marriott International", "Consumer Discretionary", "Industrials / Consumer", ("travel", "quality")),
+    ("BKNG", "Booking Holdings", "Consumer Discretionary", "Consumer Internet", ("travel", "platform")),
+    ("DASH", "DoorDash", "Consumer Discretionary", "Consumer Internet", ("delivery", "platform")),
+    ("CMG", "Chipotle Mexican Grill", "Consumer Discretionary", "Industrials / Consumer", ("restaurant", "growth")),
+    ("ORLY", "O'Reilly Automotive", "Consumer Discretionary", "Industrials / Consumer", ("auto_parts", "quality")),
+    ("AZO", "AutoZone", "Consumer Discretionary", "Industrials / Consumer", ("auto_parts", "quality")),
+    ("ROST", "Ross Stores", "Consumer Discretionary", "Industrials / Consumer", ("retail", "value")),
+    ("TJX", "TJX Companies", "Consumer Discretionary", "Industrials / Consumer", ("retail", "value")),
+    ("RTX", "RTX", "Industrials", "Industrials / Consumer", ("defense", "aerospace")),
+    ("LMT", "Lockheed Martin", "Industrials", "Industrials / Consumer", ("defense", "quality")),
+    ("NOC", "Northrop Grumman", "Industrials", "Industrials / Consumer", ("defense", "quality")),
+    ("GD", "General Dynamics", "Industrials", "Industrials / Consumer", ("defense", "quality")),
+    ("HON", "Honeywell", "Industrials", "Industrials / Consumer", ("industrial_tech", "quality")),
+    ("MMM", "3M", "Industrials", "Industrials / Consumer", ("industrial", "turnaround")),
+    ("DE", "Deere", "Industrials", "Industrials / Consumer", ("machinery", "cyclical")),
+    ("UPS", "UPS", "Industrials", "Industrials / Consumer", ("logistics", "cyclical")),
+    ("FDX", "FedEx", "Industrials", "Industrials / Consumer", ("logistics", "cyclical")),
+    ("WM", "Waste Management", "Industrials", "Industrials / Consumer", ("waste", "defensive")),
+    ("LIN", "Linde", "Materials", "Industrials / Consumer", ("industrial_gases", "quality")),
+    ("TEAM", "Atlassian", "Technology", "AI Software / Data", ("developer_tools", "ai_software")),
+    ("WDAY", "Workday", "Technology", "AI Software / Data", ("enterprise_apps", "hr_software")),
+    ("ZS", "Zscaler", "Technology", "AI Security", ("cybersecurity", "cloud_security")),
+    ("OKTA", "Okta", "Technology", "AI Security", ("identity", "cybersecurity")),
+    ("FTNT", "Fortinet", "Technology", "AI Security", ("cybersecurity", "network_security")),
+    ("AKAM", "Akamai", "Technology", "AI Infra", ("edge", "security")),
+    ("CDNS", "Cadence Design Systems", "Technology", "Semis / Foundry / Tools", ("eda", "semi_software")),
+    ("SNPS", "Synopsys", "Technology", "Semis / Foundry / Tools", ("eda", "semi_software")),
+    ("ADSK", "Autodesk", "Technology", "AI Software / Data", ("design_software", "enterprise")),
+    ("INTU", "Intuit", "Technology", "AI Software / Data", ("software", "fintech")),
+    ("XLF", "Financial Select Sector SPDR", "ETF", "Financials", ("sector_etf", "financials")),
+    ("XLI", "Industrial Select Sector SPDR", "ETF", "Industrials / Consumer", ("sector_etf", "industrials")),
+    ("XLY", "Consumer Discretionary Select Sector SPDR", "ETF", "Industrials / Consumer", ("sector_etf", "consumer")),
+    ("XLV", "Health Care Select Sector SPDR", "ETF", "Healthcare", ("sector_etf", "healthcare")),
+    ("XLU", "Utilities Select Sector SPDR", "ETF", "Energy", ("sector_etf", "utilities")),
+    ("XLP", "Consumer Staples Select Sector SPDR", "ETF", "Defensive Growth", ("sector_etf", "staples")),
+    ("XLRE", "Real Estate Select Sector SPDR", "ETF", "Macro ETFs", ("sector_etf", "real_estate")),
+    ("XLC", "Communication Services Select Sector SPDR", "ETF", "Consumer Internet", ("sector_etf", "communication")),
+    ("XBI", "SPDR S&P Biotech ETF", "ETF", "Healthcare", ("sector_etf", "biotech")),
+    ("IBB", "iShares Biotechnology ETF", "ETF", "Healthcare", ("sector_etf", "biotech")),
+    ("KRE", "SPDR S&P Regional Banking ETF", "ETF", "Financials", ("sector_etf", "regional_banks")),
+    ("XRT", "SPDR S&P Retail ETF", "ETF", "Industrials / Consumer", ("sector_etf", "retail")),
+    ("FCX", "Freeport-McMoRan", "Materials", "Energy", ("copper", "materials")),
+    ("NUE", "Nucor", "Materials", "Industrials / Consumer", ("steel", "cyclical")),
+    ("STLD", "Steel Dynamics", "Materials", "Industrials / Consumer", ("steel", "cyclical")),
+    ("CLF", "Cleveland-Cliffs", "Materials", "High Beta Growth", ("steel", "high_beta")),
+    ("ALB", "Albemarle", "Materials", "High Beta Growth", ("lithium", "cyclical")),
+    ("FSLR", "First Solar", "Technology", "Energy", ("solar", "energy_transition")),
+    ("ENPH", "Enphase Energy", "Technology", "High Beta Growth", ("solar", "high_beta")),
+    ("ROK", "Rockwell Automation", "Industrials", "Industrials / Consumer", ("automation", "industrial_tech")),
+    ("TTD", "The Trade Desk", "Technology", "AI Software / Data", ("ai_ads", "software")),
+    ("RDDT", "Reddit", "Communication Services", "Consumer Internet", ("social", "high_beta")),
+    ("PINS", "Pinterest", "Communication Services", "Consumer Internet", ("social", "ads")),
+    ("SE", "Sea Limited", "Communication Services", "Consumer Internet", ("gaming", "commerce", "international")),
+    ("TGT", "Target", "Consumer Staples", "Defensive Growth", ("retail", "value")),
+]
+
+
+_ACTIVE_STOCK_ROWS = _RAW_STOCKS[:100] + _CORE_200_ADDITIONAL_ROWS
 DEFAULT_SYMBOLS = tuple(row[0] for row in _ACTIVE_STOCK_ROWS)
 AI_SYMBOLS = (
     "NVDA",
@@ -277,16 +381,26 @@ def stock_universe(universe: str = "default") -> list[StockMeta]:
 
 def stock_universe_payload(universe: str = "default") -> dict[str, object]:
     stocks = stock_universe(universe)
+    normalized = (universe or "default").lower()
     layers: dict[str, int] = {}
     for stock in stocks:
         layers[stock.layer] = layers.get(stock.layer, 0) + 1
+    if normalized == "default":
+        display_name = "Core 200"
+    elif normalized in {"ai_five_layer", "ai5", "ai-five-layer"}:
+        display_name = "AI Five-Layer"
+    elif normalized == "ai":
+        display_name = "AI Watchlist"
+    else:
+        display_name = "All"
     return {
         "product": "KQUANT US Stock Signal Terminal",
         "universe": universe or "default",
+        "display_name": display_name,
         "count": len(stocks),
         "stocks": [stock.to_dict() for stock in stocks],
         "layers": [{"name": name, "count": count} for name, count in sorted(layers.items())],
-        "layer_model": "ai_five_layer_cake" if (universe or "").lower() in {"ai_five_layer", "ai5", "ai-five-layer"} else "market_layers",
+        "layer_model": "ai_five_layer_cake" if normalized in {"ai_five_layer", "ai5", "ai-five-layer"} else "market_layers",
         "layer_order": ["Energy", "Chips", "Infrastructure", "Models", "Applications"],
         "btc_eth_removed_from_main_path": True,
         "options_are_secondary": True,

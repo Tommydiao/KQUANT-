@@ -5,16 +5,19 @@ from datetime import datetime
 import pytest
 
 from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
-from kquant.stock_signals import api_stock_candles, api_stock_live_data_health, api_stock_signals, api_stock_signals_latest
+from kquant.stock_signals import api_stock_ai_review, api_stock_analyze, api_stock_candles, api_stock_live_data_health, api_stock_signals, api_stock_signals_latest
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
 
 
-def test_default_stock_universe_has_100_symbols() -> None:
+def test_default_stock_universe_has_200_symbols() -> None:
     stocks = stock_universe("default")
-    assert len(stocks) == 100
+    assert len(stocks) == 200
     assert stocks[0].symbol == "SPY"
-    assert "NVDA" in {stock.symbol for stock in stocks}
+    symbols = {stock.symbol for stock in stocks}
+    assert "NVDA" in symbols
+    assert {"CEG", "KKR", "VRTX", "XLF", "TTD", "TGT"}.issubset(symbols)
+    assert len(symbols) == 200
 
 
 def test_ai_five_layer_universe_is_complete_and_deduped() -> None:
@@ -25,6 +28,15 @@ def test_ai_five_layer_universe_is_complete_and_deduped() -> None:
     assert {"Energy", "Chips", "Infrastructure", "Models", "Applications"}.issubset(layers)
     assert {"NVDA", "CEG", "MSFT", "PLTR", "CRM"}.issubset(set(symbols))
     assert next(stock for stock in stocks if stock.symbol == "NVDA").layer == "Chips"
+
+
+def test_all_universe_is_core_200_plus_ai_deduped() -> None:
+    default_symbols = {stock.symbol for stock in stock_universe("default")}
+    ai_symbols = {stock.symbol for stock in stock_universe("ai_five_layer")}
+    all_symbols = [stock.symbol for stock in stock_universe("all")]
+    assert len(all_symbols) == len(set(all_symbols))
+    assert set(all_symbols) == default_symbols | ai_symbols
+    assert len(all_symbols) == 200
 
 
 def test_user_facing_stock_source_is_live_only() -> None:
@@ -120,6 +132,22 @@ def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
         assert conn.execute("SELECT COUNT(*) AS count FROM stock_backtest_runs").fetchone()["count"] == 1
 
 
+def test_fixture_stock_signal_layer_scan_limits_to_selected_layer(tmp_path: Path) -> None:
+    payload = api_stock_signals(
+        source="fixture",
+        universe="default",
+        profile="swing_long_v1",
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+        limit=200,
+        layer="Healthcare",
+    )
+    assert payload["scan_layer"] == "Healthcare"
+    assert payload["universe_total"] == len([stock for stock in stock_universe("default") if stock.layer == "Healthcare"])
+    assert payload["counts"]["total"] == payload["universe_total"]
+    assert {signal["primary_layer"] for signal in payload["signals"]} == {"Healthcare"}
+
+
 def test_fixture_ai_five_layer_signal_run_has_transparent_fields(tmp_path: Path) -> None:
     payload = api_stock_signals(
         source="fixture",
@@ -136,6 +164,122 @@ def test_fixture_ai_five_layer_signal_run_has_transparent_fields(tmp_path: Path)
     assert first["liquidity_tier"] in {"core", "high_beta"}
     assert first["score_breakdown"]["total_score"] == first["score"]
     assert first["exit_risk"]["status"] in {"CLEAR", "DATA CAUTION", "EXIT RISK", "SETUP INVALIDATED", "TAKE PROFIT WATCH"}
+
+
+def test_all_strategy_profiles_return_profile_specific_fields(tmp_path: Path) -> None:
+    profiles = {
+        "tactical_1w_v1": "3-7 trading days",
+        "swing_1_2m_v1": "20-40 trading days",
+        "position_6m_v1": "3-6 months",
+        "cycle_1_3y_v1": "1-3 years",
+    }
+    for profile, holding_period in profiles.items():
+        payload = api_stock_signals(
+            source="fixture",
+            universe="default",
+            profile=profile,
+            db_path=tmp_path / f"{profile}.sqlite3",
+            outputs_dir=tmp_path / profile,
+            limit=3,
+        )
+        assert payload["profile"]["name"] == profile
+        assert payload["profile"]["holding_period"] == holding_period
+        assert "validation_by_strategy_profile" in payload
+        assert payload["validation_by_strategy_profile"]["focus_window"] == payload["profile"]["focus_window"]
+        first = payload["signals"][0]
+        assert first["profile_name"] == profile
+        assert first["holding_period"] == holding_period
+        assert first["primary_timeframe"] == payload["profile"]["primary_timeframe"]
+        assert first["confirmation_timeframe"] == payload["profile"]["confirmation_timeframe"]
+        assert "exit_plan" in first
+        assert "trade_conclusion" in first
+        assert first["trade_conclusion"]["action"] in {"BUY", "WAIT", "DO_NOT_BUY", "HOLD_TRAIL", "EXIT_REVIEW"}
+        assert first["trade_conclusion"]["llm_signal_core_enabled"] is False
+        assert "focus_window" in first["historical_edge"]
+        assert first["historical_edge"]["profile_note"].startswith("Profile edge")
+
+
+def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> None:
+    payload = api_stock_analyze(
+        "NVDA",
+        source="fixture",
+        profile="position_6m_v1",
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["symbol"] == "NVDA"
+    assert payload["profile"]["name"] == "position_6m_v1"
+    assert payload["universe_match"] is True
+    assert payload["signal"]["profile_name"] == "position_6m_v1"
+    assert payload["signal"]["exit_plan"]["read_only_research"] is True
+    assert payload["signal"]["trade_conclusion"]["read_only_research"] is True
+    assert payload["primary_candles"]["candle_count"] > 0
+    assert payload["confirmation_candles"]["candle_count"] > 0
+    assert payload["broker_order_wiring_enabled"] is False
+    assert payload["llm_signal_core_enabled"] is False
+
+
+def test_ai_review_without_api_key_returns_safe_unavailable(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+    payload = api_stock_ai_review(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "journal_context_limit": 5,
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["status"] == "ai_review_unavailable"
+    assert payload["ai_review"]["ai_review_verdict"] == "caution"
+    assert payload["rule_conclusion"]["action"] == signal["trade_conclusion"]["action"]
+    assert payload["safety_policy"]["llm_signal_core_enabled"] is False
+    assert payload["safety_policy"]["broker_order_wiring_enabled"] is False
+    assert payload["safety_policy"]["does_not_override_rule_conclusion"] is True
+
+
+def test_ai_review_parses_openai_response_without_overriding_rule(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "ai_review_verdict": "caution",
+                        "quality_filter": "mixed",
+                        "rr_improvement_notes": ["Wait for a cleaner pullback.", "Do not chase extension."],
+                        "risk_questions": ["Is data clean?", "Does the 1H trigger still hold?"],
+                        "journal_prompt": ["Record invalidation.", "Record planned stop."],
+                        "downgrade_suggestion": "consider_wait",
+                        "summary": "AI review is commentary only.",
+                    }
+                )
+            }
+
+    def fake_post(*args, **kwargs):
+        assert kwargs["json"]["model"] == "gpt-5.4"
+        return Response()
+
+    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
+    payload = api_stock_ai_review(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "model_tier": "review",
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["status"] == "available"
+    assert payload["ai_review"]["ai_review_verdict"] == "caution"
+    assert payload["ai_review"]["does_not_override_rule_conclusion"] is True
+    assert payload["rule_conclusion"] == signal["trade_conclusion"]
+    assert payload["safety_policy"]["llm_signal_core_enabled"] is False
 
 
 def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: Path, monkeypatch) -> None:
@@ -286,7 +430,7 @@ def test_latest_stock_signals_do_not_cross_mix_source(tmp_path: Path) -> None:
         outputs_dir=outputs_dir,
     )
     assert fixture_latest["source"] == "fixture"
-    assert fixture_latest["counts"]["total"] == 100
+    assert fixture_latest["counts"]["total"] == 200
 
 
 def test_live_latest_without_report_is_cache_only(tmp_path: Path) -> None:
@@ -299,5 +443,6 @@ def test_live_latest_without_report_is_cache_only(tmp_path: Path) -> None:
     )
     assert payload["source"] == "live"
     assert payload["provider_status"] == "not_scanned"
+    assert payload["universe_total"] == 200
     assert payload["counts"]["total"] == 0
     assert payload["signals"] == []

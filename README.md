@@ -4,14 +4,15 @@ KQUANT is being reset into a US stock-first research terminal.
 
 The active product path is:
 
-1. scan a curated 100-stock US universe;
-2. judge long-only stock setups with daily trend plus 1h confirmation;
-3. output `BUY SETUP`, `WATCH`, or `PASS`;
-4. review daily and 1h K-Lines before any manual decision;
+1. scan a curated Core 200 US stock/ETF universe;
+2. judge long-only stock setups with four holding-period profiles;
+3. output `BUY SETUP`, `WATCH`, or `PASS`, plus a manual trading conclusion;
+4. review 1H / 1D / 1W / 1M K-Lines before any manual decision;
 5. add options later only as an expression layer for high-quality stock setups.
 
 The system remains read-only. There is no broker account read, no paper order,
-no live order, no testnet execution, and no LLM in the signal core.
+no live order, no testnet execution, and no LLM in the signal core. The optional
+AI Review Assistant is manual-trigger commentary only.
 
 ## Current Phase
 
@@ -19,10 +20,13 @@ The current implementation starts Phase 0-2 of the roadmap:
 
 - new package namespace: `kquant`;
 - new database: `work/kquant_us.sqlite3`;
-- selected 100-stock universe;
-- `swing_long_v1` long-only stock signal profile;
+- Core 200 default universe plus AI Five-Layer universe;
+- four long-only strategy profiles for 1W, 1-2M, 6M, and 1-3Y holding periods;
+- rule-based Action Conclusion Layer: `BUY`, `WAIT`, `DO_NOT_BUY`,
+  `HOLD_TRAIL`, `EXIT_REVIEW`;
+- manual-trigger AI Review Assistant that cannot change score, level, or action;
 - API routes for stock universe, candles, provider health, and signal reports;
-- React frontend refocused on `Today's Stock Setups`, daily K-Line, 1h K-Line,
+- React frontend refocused on `Today's Stock Setups`, stock K-Lines,
   signal reasons, risk warnings, and manual checklist.
 
 Options are intentionally secondary until the stock signal workflow is stable.
@@ -67,6 +71,17 @@ Health reports are written to:
 - `outputs/stock-live-data-health.json`
 - `outputs/stock-live-data-health.md`
 
+Run the MSTR cross-cycle bottom radar:
+
+```powershell
+python -m kquant mstr-cycle
+```
+
+MSTR radar reports are written to:
+
+- `outputs/mstr-cycle-radar-report.json`
+- `outputs/mstr-cycle-radar-report.md`
+
 Runtime data is stored in:
 
 - `work/kquant_us.sqlite3`
@@ -86,15 +101,34 @@ The local Python dashboard exposes:
 - `GET /api/stocks/universe?universe=default|ai|ai_five_layer|all`
 - `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=live`
 - `GET /api/stocks/signals?source=live&universe=ai_five_layer&profile=swing_long_v1`
+- `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=tactical_1w_v1`
+- `POST /api/stocks/ai-review`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
 - `GET /api/stocks/live-data-health?universes=default,ai_five_layer&limit=20`
+- `GET /api/stocks/live-data-health/latest`
+- `GET /api/mstr/cycle-radar?source=live`
 
 Each stock candle payload includes source, provider status, freshness, and
 provider errors. Stock signal payloads include score breakdown, AI layer, and
 manual exit-risk reminders. Live failures are surfaced as stale real cache,
 provider failed, or unavailable status; the live path never silently mixes
 fixture candles. Internal fixture helpers are reserved for deterministic tests.
+
+The MSTR Cycle Radar uses MSTR and BTC-USD as live/reference market data, but
+does not restore BTC/ETH trading as a product path. It is read-only and reports
+`CYCLE ACCUMULATION`, `BOTTOM WATCH`, `WAIT`, or `DISTRIBUTION RISK`.
+MSTR premium and financing proxies use the public Strategy tracker when
+available, with a local stale-real-cache fallback in `work/mstr_reference_cache.json`.
+The radar also exposes SaylorTracker/StrategyTracker-style monitoring metrics:
+BTC holdings, NAV premium, mNAV, BTC NAV, market cap, enterprise value, cost
+basis, unrealized P/L, sats/share, BTC Yield/Gain, debt/BTC NAV, ATM raise
+proxy, liquidity, and benchmark performance. Metrics are calculated locally
+where possible and explicitly marked when tracker fields are unavailable.
+Its Monte Carlo layer estimates 6m/12m/24m return and drawdown scenarios, and
+its Bayesian layer estimates bottom probability from interpretable evidence.
+Both are read-only research aids; they do not override the cycle level or issue
+buy/sell/order instructions.
 
 ## Frontend
 
@@ -110,8 +144,13 @@ The frontend supports:
 - English / Chinese;
 - Light / Dark theme;
 - live-only real data guard with stale cache and provider failure states;
-- TradingView-style daily and 1h charts via `lightweight-charts`;
+- TradingView-style 1H / 1D / 1W / 1M charts via `lightweight-charts`;
+- Core 200, AI Five-Layer, and All universe views;
+- search-driven single-stock analysis and four-system comparison;
+- manual trading conclusion and manual-trigger AI Review panel;
 - selected stock review, signal reasons, risk warnings, and manual checklist;
+- MSTR Cycle Radar with MSTR, BTC, MSTR/BTC relative charts, Monte Carlo
+  scenarios, Bayesian bottom probability, and StrategyTracker Metrics;
 - responsive mobile layout.
 
 Build:

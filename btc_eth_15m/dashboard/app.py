@@ -69,13 +69,20 @@ from btc_eth_15m.options_snapshots import (
     latest_price_history_payload,
 )
 from kquant.stock_signals import (
+    api_stock_ai_review,
+    api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_live_data_health_latest,
+    api_stock_market_regime,
     api_stock_provider_health,
+    api_stock_signal_journal,
+    api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
     api_stock_universe,
 )
+from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
 
 
 class ConfirmOrderRequest(BaseModel):
@@ -114,6 +121,35 @@ class PilotJournalEntryRequest(BaseModel):
     option_kline_checked: bool = False
     lens_checked: bool = False
     review_step_complete: bool = False
+
+
+class MstrCycleJournalEntryRequest(BaseModel):
+    run_id: str = ""
+    status: str = Field(default="reviewed", pattern="^(reviewed|wait|staged-watch|invalidated)$")
+    notes: str = ""
+    outcome: str = ""
+
+
+class StockSignalJournalEntryRequest(BaseModel):
+    run_id: str = ""
+    symbol: str
+    strategy_profile: str = ""
+    status: str = Field(default="reviewed", pattern="^(reviewed|watch|skipped|paper-observed|manual-traded|invalidated)$")
+    notes: str = ""
+    planned_entry: float | None = None
+    planned_stop: float | None = None
+    planned_target: float | None = None
+    outcome: str = ""
+
+
+class StockAiReviewRequest(BaseModel):
+    symbol: str = "NVDA"
+    profile: str = "tactical_1w_v1"
+    model: str = ""
+    model_tier: str = "review"
+    signal_payload: dict[str, Any] | None = None
+    profile_comparison: list[dict[str, Any]] | None = None
+    journal_context_limit: int = 5
 
 
 class OptionOrderIntentRequest(BaseModel):
@@ -571,7 +607,8 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
         source: str = Query(default="live"),
         universe: str = Query(default="default"),
         profile: str = Query(default="swing_long_v1"),
-        limit: int = Query(default=100, ge=1, le=100),
+        limit: int = Query(default=100, ge=1, le=200),
+        layer: str = Query(default=""),
     ) -> dict:
         source = _stock_live_only_source(source)
         return api_stock_signals(
@@ -581,6 +618,7 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
             db_path=stock_db_path,
             outputs_dir=config.outputs_dir,
             limit=limit,
+            layer=layer or None,
         )
 
     @app.get("/api/stocks/signals/latest")
@@ -602,10 +640,41 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     def stock_provider_health_endpoint() -> dict:
         return api_stock_provider_health(db_path=stock_db_path)
 
+    @app.get("/api/stocks/analyze")
+    def stock_analyze_endpoint(
+        symbol: str = Query(default="NVDA"),
+        source: str = Query(default="live"),
+        profile: str = Query(default="swing_long_v1"),
+    ) -> dict:
+        source = _stock_live_only_source(source)
+        return api_stock_analyze(symbol=symbol, source=source, profile=profile, db_path=stock_db_path)
+
+    @app.get("/api/stocks/market-regime")
+    def stock_market_regime_endpoint(source: str = Query(default="live")) -> dict:
+        source = _stock_live_only_source(source)
+        return api_stock_market_regime(source=source, db_path=stock_db_path)
+
+    @app.get("/api/stocks/signal-journal")
+    def stock_signal_journal_endpoint(
+        symbol: str = Query(default=""),
+        limit: int = Query(default=50, ge=1, le=200),
+    ) -> dict:
+        return api_stock_signal_journal(db_path=stock_db_path, symbol=symbol or None, limit=limit)
+
+    @app.post("/api/stocks/signal-journal/entry")
+    def stock_signal_journal_entry_endpoint(payload: StockSignalJournalEntryRequest) -> dict:
+        data = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+        return api_stock_signal_journal_entry(data, db_path=stock_db_path)
+
+    @app.post("/api/stocks/ai-review")
+    def stock_ai_review_endpoint(payload: StockAiReviewRequest) -> dict:
+        data = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+        return api_stock_ai_review(data, db_path=stock_db_path)
+
     @app.get("/api/stocks/live-data-health")
     def stock_live_data_health_endpoint(
         universes: str = Query(default="default,ai_five_layer"),
-        limit: int | None = Query(default=None, ge=1, le=100),
+        limit: int | None = Query(default=None, ge=1, le=200),
     ) -> dict:
         return api_stock_live_data_health(
             universes=[item.strip() for item in universes.split(",") if item.strip()],
@@ -613,6 +682,28 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
             outputs_dir=config.outputs_dir,
             limit=limit,
         )
+
+    @app.get("/api/stocks/live-data-health/latest")
+    def stock_live_data_health_latest_endpoint() -> dict:
+        return api_stock_live_data_health_latest(outputs_dir=config.outputs_dir)
+
+    @app.get("/api/mstr/cycle-radar")
+    def mstr_cycle_radar_endpoint(source: str = Query(default="live")) -> dict:
+        source = _stock_live_only_source(source)
+        return api_mstr_cycle_radar(source=source, db_path=stock_db_path, outputs_dir=config.outputs_dir)
+
+    @app.get("/api/mstr/cycle-radar/history")
+    def mstr_cycle_radar_history_endpoint(limit: int = Query(default=30, ge=1, le=200)) -> dict:
+        return api_mstr_cycle_history(limit=limit, db_path=stock_db_path)
+
+    @app.get("/api/mstr/cycle-journal")
+    def mstr_cycle_journal_endpoint(limit: int = Query(default=50, ge=1, le=200)) -> dict:
+        return api_mstr_cycle_journal(db_path=stock_db_path, limit=limit)
+
+    @app.post("/api/mstr/cycle-journal/entry")
+    def mstr_cycle_journal_entry_endpoint(payload: MstrCycleJournalEntryRequest) -> dict:
+        data = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+        return api_mstr_cycle_journal_entry(data, db_path=stock_db_path)
 
     @app.get("/api/options/underlyings")
     def options_underlyings_endpoint(
