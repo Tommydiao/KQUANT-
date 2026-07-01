@@ -1348,13 +1348,13 @@ function App() {
         preferredSignal.data_status?.daily_provider_status === "provider_failed" ||
         preferredSignal.data_status?.hourly_provider_status === "provider_failed";
       if (needsDirectRepair) {
-        void analyzeSymbol(preferredSymbol, { keepSearch: true });
+        await analyzeSymbol(preferredSymbol, { keepSearch: true });
       }
     } catch {
       setRun(makeUnavailableSignalRun(nextUniverse));
       setUniverse(stocksForUniverse(nextUniverse));
-      void analyzeSymbol(selectedSymbol || "NVDA", { keepSearch: true });
       setApiState("fallback");
+      await analyzeSymbol(selectedSymbol || "NVDA", { keepSearch: true });
     }
   }
 
@@ -1687,8 +1687,7 @@ function App() {
           className="symbol-command symbol-command-large"
           onSubmit={(event) => {
             event.preventDefault();
-            const first = activeSearchResults[0];
-            void analyzeSymbol(searchText.trim() || first?.symbol || selected.symbol);
+            void analyzeSymbol(resolveSearchSymbol(searchText, activeSearchResults, selected.symbol));
           }}
         >
           <Search size={17} />
@@ -1702,15 +1701,15 @@ function App() {
             onKeyDown={(event) => {
               if (event.key === "Escape") setSearchOpen(false);
               if (event.key === "ArrowDown") setSearchOpen(true);
-              if (event.key === "Enter" && !searchText.trim() && activeSearchResults[0]) {
+              if (event.key === "Enter" && activeSearchResults[0]) {
                 event.preventDefault();
-                void analyzeSymbol(activeSearchResults[0].symbol);
+                void analyzeSymbol(resolveSearchSymbol(searchText, activeSearchResults, selected.symbol));
               }
             }}
             placeholder="Search NVDA, 英伟达, robot, 机器人, space, 太空, semiconductor..."
             aria-label="Search ticker, company, Chinese alias, theme, or layer"
           />
-          <button type="submit" disabled={analysisState === "loading"}>
+          <button type="submit">
             {analysisState === "loading" ? "Loading..." : "Analyze"}
           </button>
         </form>
@@ -3321,6 +3320,15 @@ function searchStocks(query: string, stocks: UniverseStock[], limit = 10): Unive
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || (a.stock.rank ?? 9999) - (b.stock.rank ?? 9999));
   return scored.slice(0, limit).map((item) => item.stock);
+}
+
+function resolveSearchSymbol(query: string, results: UniverseStock[], fallbackSymbol: string): string {
+  const raw = query.trim();
+  const cleaned = raw.toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
+  const exact = results.find((stock) => stock.symbol === cleaned);
+  if (exact) return exact.symbol;
+  if (results[0]) return results[0].symbol;
+  return cleaned || fallbackSymbol;
 }
 
 function expandedSearchTerms(query: string): string[] {
