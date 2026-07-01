@@ -1,9 +1,10 @@
 # Local Development
 
-This repo is currently optimized for a local single-user US options workbench:
-research is default, Alpaca Paper options is the only broker adapter, and Live
-orders remain locked. BTC/ETH commands remain available only for legacy
-research reference.
+This repo is currently optimized for a local single-user US Stock Signal
+Terminal. The daily path is live-only stock research with Core 200, AI
+Five-Layer, Space/Robotics, strategy profiles, K-line review, and manual
+journaling. Options and BTC/ETH are not the main product path. Broker/account
+access and paper/live/testnet orders remain disabled for the stock terminal.
 
 ## Python Environment
 
@@ -74,6 +75,32 @@ Stdlib fallback dashboard:
 ```bash
 python -m btc_eth_15m.dashboard.stdlib_server --host 127.0.0.1 --port 8001
 ```
+
+Windows stock-terminal launcher:
+
+```powershell
+.\start_kquant_stock_terminal.ps1
+```
+
+## AI Review Assistant
+
+AI Review is a manual-trigger, read-only review layer. It can summarize risk,
+ask review questions, and suggest R/R improvements, but it does not change the
+rule score, does not trigger scans, and has no broker/order path.
+
+Configure keys only in the local backend environment before starting the
+dashboard:
+
+```powershell
+$env:OPENAI_API_KEY="..."
+$env:KQUANT_AI_REVIEW_MODEL="gpt-5.4"
+$env:KQUANT_AI_BATCH_MODEL="gpt-5.4-mini"
+$env:KQUANT_AI_DEEP_MODEL="gpt-5.5"
+.\start_kquant_stock_terminal.ps1
+```
+
+Do not put `OPENAI_API_KEY` in `web/`, GitHub, Vercel frontend variables,
+screenshots, reports, or committed config files.
 
 Both expose the Agent Harness API routes under `/api/agent/...`. The fallback server still rejects non-Harness state-changing dashboard actions, but allows local Harness task and approval operations because they only write SQLite audit/task state and do not call exchange APIs.
 

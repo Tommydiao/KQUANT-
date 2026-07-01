@@ -1176,13 +1176,14 @@ function App() {
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [searchOpen, setSearchOpen] = useState(false);
+  const analyzeRequestRef = useRef(0);
+  const candleRequestRef = useRef(0);
   const text = copy[lang];
 
   const selected =
     run.signals.find((signal) => signal.symbol === selectedSymbol) ??
-    run.signals[0] ??
     makeUnavailableSignal(selectedSymbol);
-  const selectedMeta = universe.find((stock) => stock.symbol === selected.symbol) ?? STOCKS[0];
+  const selectedMeta = universe.find((stock) => stock.symbol === selected.symbol) ?? ALL_STOCKS.find((stock) => stock.symbol === selected.symbol) ?? STOCKS[0];
   const layerGroups = useMemo(() => groupByLayer(universe, run.signals), [run.signals, universe]);
   const activeMarketRegime = marketRegime ?? run.market_regime ?? null;
   const recentSymbols = useMemo(
@@ -1209,13 +1210,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (view === "stocks") {
-      void analyzeSymbol(selectedSymbol, { keepSearch: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProfile]);
-
-  useEffect(() => {
     try {
       if (urlRequestedFixture() || window.localStorage.getItem("kquant-stock:source:v2") === "fixture") {
         setFixtureBlocked(true);
@@ -1240,10 +1234,13 @@ function App() {
   }, []);
 
   useEffect(() => {
-    void loadSignals(false);
-    void loadMarketRegime();
+    if (view === "stocks") {
+      void analyzeSymbol(selectedSymbol || "SPY", { keepSearch: true });
+      void loadSignals(false);
+      void loadMarketRegime();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUniverse, selectedProfile]);
+  }, [selectedUniverse, selectedProfile, view]);
 
   useEffect(() => {
     const query = searchText.trim();
@@ -1260,7 +1257,7 @@ function App() {
   }, [searchText, selectedUniverse]);
 
   useEffect(() => {
-    void loadCandles(selected.symbol);
+    if (analysisState !== "loading") void loadCandles(selected.symbol);
     void loadStockJournal(selected.symbol);
     setProfileCompare([]);
     setCompareState("idle");
@@ -1331,30 +1328,30 @@ function App() {
         const universePayload = await universeResponse.json();
         setUniverse(universePayload.stocks ?? stocksForUniverse(nextUniverse));
       }
-      setRun(payload);
+      setRun((current) => {
+        const currentSelected = current.signals.find((signal) => signal.symbol === selectedSymbol);
+        if (!currentSelected) return payload;
+        const mergedSignals = [
+          currentSelected,
+          ...payload.signals.filter((signal) => signal.symbol !== currentSelected.symbol),
+        ];
+        return {
+          ...payload,
+          signals: mergedSignals,
+          counts: {
+            buy_setup: mergedSignals.filter((item) => item.level === "BUY SETUP").length,
+            watch: mergedSignals.filter((item) => item.level === "WATCH").length,
+            pass: mergedSignals.filter((item) => item.level === "PASS").length,
+            total: mergedSignals.length,
+          },
+        };
+      });
       setMarketRegime(payload.market_regime ?? null);
       setApiState("api");
-      const preferredSymbol = payload.signals.some((signal) => signal.symbol === selectedSymbol)
-        ? selectedSymbol
-        : payload.signals[0]?.symbol ?? "NVDA";
-      if (preferredSymbol !== selectedSymbol) {
-        setSelectedSymbol(preferredSymbol);
-      }
-      const preferredSignal = payload.signals.find((signal) => signal.symbol === preferredSymbol);
-      const needsDirectRepair =
-        !preferredSignal ||
-        preferredSignal.data_status?.daily_candles === 0 ||
-        preferredSignal.data_status?.hourly_candles === 0 ||
-        preferredSignal.data_status?.daily_provider_status === "provider_failed" ||
-        preferredSignal.data_status?.hourly_provider_status === "provider_failed";
-      if (needsDirectRepair) {
-        await analyzeSymbol(preferredSymbol, { keepSearch: true });
-      }
     } catch {
-      setRun(makeUnavailableSignalRun(nextUniverse));
+      setRun((current) => (current.signals.length ? current : makeUnavailableSignalRun(nextUniverse)));
       setUniverse(stocksForUniverse(nextUniverse));
       setApiState("fallback");
-      await analyzeSymbol(selectedSymbol || "NVDA", { keepSearch: true });
     }
   }
 
@@ -1411,6 +1408,7 @@ function App() {
   async function analyzeSymbol(rawSymbol: string, options: { keepSearch?: boolean } = {}) {
     const symbol = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
     if (!symbol) return;
+    const requestId = ++analyzeRequestRef.current;
     setSelectedSymbol(symbol);
     setAnalysisState("loading");
     const candlePromise = loadCandles(symbol);
@@ -1421,6 +1419,7 @@ function App() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = await response.json();
       const signal = payload.signal as StockSignal;
+      if (requestId !== analyzeRequestRef.current) return;
       setRun((current) => {
         const remaining = current.signals.filter((item) => item.symbol !== signal.symbol);
         const nextSignals = [signal, ...remaining];
@@ -1458,6 +1457,7 @@ function App() {
       setApiState("api");
     } catch {
       await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
+      if (requestId !== analyzeRequestRef.current) return;
       setSelectedSymbol(symbol);
       if (!options.keepSearch) {
         setSearchText("");
@@ -1518,6 +1518,11 @@ function App() {
   }
 
   async function loadCandles(symbol: string) {
+    const requestId = ++candleRequestRef.current;
+    setDailyCandles([]);
+    setHourlyCandles([]);
+    setDailyMeta(refreshingMeta(symbol, primaryPreset));
+    setHourlyMeta(refreshingMeta(symbol, confirmationPreset));
     try {
       const [dailyResponse, hourlyResponse] = await Promise.all([
         apiFetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=live`),
@@ -1527,6 +1532,7 @@ function App() {
       const [dailyPayload, hourlyPayload] = await Promise.all([dailyResponse.json(), hourlyResponse.json()]);
       const normalizedDaily = normalizeCandles(dailyPayload.candles, []);
       const normalizedHourly = normalizeCandles(hourlyPayload.candles, []);
+      if (requestId !== candleRequestRef.current) return;
       setDailyCandles(normalizedDaily);
       setHourlyCandles(normalizedHourly);
       setDailyMeta(metaFromPayload(dailyPayload, primaryPreset, normalizedDaily));
@@ -1534,6 +1540,7 @@ function App() {
       setApiConnection("connected");
       setApiState("api");
     } catch {
+      if (requestId !== candleRequestRef.current) return;
       setDailyCandles([]);
       setHourlyCandles([]);
       setDailyMeta(failedMeta(symbol, primaryPreset));
@@ -1732,6 +1739,9 @@ function App() {
             </button>
           ))}
         </div>
+        {analysisState === "loading" ? (
+          <p className="command-feedback">Analyzing {selectedSymbol} with live candles and rule engine...</p>
+        ) : null}
         {searchOpen || searchText.trim() ? (
           <div className="command-results command-results-inline" role="listbox">
             <div className="command-results-head">
@@ -2883,6 +2893,7 @@ function ChartPanel({
     () => ({ ema20: ema(candles, 20), ema50: ema(candles, 50), ema200: ema(candles, 200), vwap: vwap(candles) }),
     [candles],
   );
+  const effectiveEmptyText = meta.providerStatus === "refreshing" ? "Refreshing real data..." : emptyText;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -3022,7 +3033,7 @@ function ChartPanel({
         <div className="chart-canvas" ref={containerRef} />
       ) : (
         <div className="chart-empty">
-          <span>{emptyText}</span>
+          <span>{effectiveEmptyText}</span>
           {onReload ? (
             <button type="button" onClick={onReload}>
               Repair Chart With Real Data
@@ -3240,6 +3251,22 @@ function failedMeta(symbol: string, preset: ChartPreset): CandleMeta {
     first: "",
     last: "",
     errors: ["Local API or public provider did not return candles."],
+  };
+}
+
+function refreshingMeta(symbol: string, preset: ChartPreset): CandleMeta {
+  return {
+    symbol,
+    range: preset.range,
+    interval: preset.interval,
+    sourceType: "live_yahoo_chart",
+    providerStatus: "refreshing",
+    freshness: "loading",
+    staleAge: "none",
+    count: 0,
+    first: "",
+    last: "",
+    errors: ["Refreshing real data..."],
   };
 }
 

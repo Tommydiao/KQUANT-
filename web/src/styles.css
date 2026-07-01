@@ -349,6 +349,13 @@ p {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
+.command-feedback {
+  margin: 0;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .command-results-inline {
   position: static;
   width: 100%;
