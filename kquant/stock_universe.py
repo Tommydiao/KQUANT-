@@ -232,6 +232,33 @@ _CORE_200_ADDITIONAL_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("TGT", "Target", "Consumer Staples", "Defensive Growth", ("retail", "value")),
 ]
 
+_SPACE_ROBOTICS_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
+    ("RKLB", "Rocket Lab", "Industrials", "Space / Robotics", ("space", "launch", "high_beta")),
+    ("ASTS", "AST SpaceMobile", "Communication Services", "Space / Robotics", ("space", "satellite", "high_beta")),
+    ("LUNR", "Intuitive Machines", "Industrials", "Space / Robotics", ("space", "lunar", "high_beta")),
+    ("PL", "Planet Labs", "Industrials", "Space / Robotics", ("space", "satellite_imagery", "high_beta")),
+    ("IRDM", "Iridium Communications", "Communication Services", "Space / Robotics", ("space", "satellite_network")),
+    ("KTOS", "Kratos Defense & Security", "Industrials", "Space / Robotics", ("space", "defense_tech", "drones")),
+    ("LHX", "L3Harris Technologies", "Industrials", "Space / Robotics", ("space", "defense", "communications")),
+    ("LDOS", "Leidos", "Industrials", "Space / Robotics", ("defense_tech", "space_services")),
+    ("TDY", "Teledyne Technologies", "Industrials", "Space / Robotics", ("sensors", "aerospace", "robotics")),
+    ("HEI", "HEICO", "Industrials", "Space / Robotics", ("aerospace", "components", "quality")),
+    ("ACHR", "Archer Aviation", "Industrials", "Space / Robotics", ("evtol", "aviation", "high_beta")),
+    ("JOBY", "Joby Aviation", "Industrials", "Space / Robotics", ("evtol", "aviation", "high_beta")),
+    ("SYM", "Symbotic", "Industrials", "Space / Robotics", ("warehouse_robotics", "automation", "high_beta")),
+    ("TER", "Teradyne", "Technology", "Space / Robotics", ("robotics", "test_equipment", "automation")),
+    ("ZBRA", "Zebra Technologies", "Technology", "Space / Robotics", ("automation", "robotics", "supply_chain")),
+    ("CGNX", "Cognex", "Technology", "Space / Robotics", ("machine_vision", "automation", "robotics")),
+    ("OUST", "Ouster", "Technology", "Space / Robotics", ("lidar", "robotics", "high_beta")),
+    ("MBLY", "Mobileye", "Technology", "Space / Robotics", ("autonomy", "robotics", "high_beta")),
+    ("BOTZ", "Global X Robotics & AI ETF", "ETF", "Space / Robotics", ("robotics_etf", "automation")),
+    ("ROBO", "ROBO Global Robotics ETF", "ETF", "Space / Robotics", ("robotics_etf", "automation")),
+    ("ARKQ", "ARK Autonomous Technology ETF", "ETF", "Space / Robotics", ("autonomy_etf", "robotics")),
+    ("ITA", "iShares U.S. Aerospace & Defense ETF", "ETF", "Space / Robotics", ("aerospace_etf", "defense")),
+    ("XAR", "SPDR S&P Aerospace & Defense ETF", "ETF", "Space / Robotics", ("aerospace_etf", "defense")),
+    ("UFO", "Procure Space ETF", "ETF", "Space / Robotics", ("space_etf", "satellite")),
+]
+
 
 _ACTIVE_STOCK_ROWS = _RAW_STOCKS[:100] + _CORE_200_ADDITIONAL_ROWS
 DEFAULT_SYMBOLS = tuple(row[0] for row in _ACTIVE_STOCK_ROWS)
@@ -358,8 +385,10 @@ def make_stock_meta(index: int, row: tuple[str, str, str, str, tuple[str, ...]])
 
 _DEFAULT_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_ACTIVE_STOCK_ROWS)}
 _AI_FIVE_LAYER_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_AI_FIVE_LAYER_ROWS)}
-_META_BY_SYMBOL = {**_DEFAULT_META_BY_SYMBOL, **_AI_FIVE_LAYER_META_BY_SYMBOL}
+_SPACE_ROBOTICS_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_SPACE_ROBOTICS_ROWS)}
+_META_BY_SYMBOL = {**_DEFAULT_META_BY_SYMBOL, **_AI_FIVE_LAYER_META_BY_SYMBOL, **_SPACE_ROBOTICS_META_BY_SYMBOL}
 AI_FIVE_LAYER_SYMBOLS = tuple(dict.fromkeys(row[0] for row in _AI_FIVE_LAYER_ROWS))
+SPACE_ROBOTICS_SYMBOLS = tuple(dict.fromkeys(row[0] for row in _SPACE_ROBOTICS_ROWS))
 
 
 def stock_universe(universe: str = "default") -> list[StockMeta]:
@@ -367,6 +396,9 @@ def stock_universe(universe: str = "default") -> list[StockMeta]:
     if normalized in {"ai_five_layer", "ai5", "ai-five-layer"}:
         symbols: Iterable[str] = AI_FIVE_LAYER_SYMBOLS
         meta_by_symbol = _AI_FIVE_LAYER_META_BY_SYMBOL
+    elif normalized in {"space_robotics", "space-robotics", "space"}:
+        symbols = SPACE_ROBOTICS_SYMBOLS
+        meta_by_symbol = _SPACE_ROBOTICS_META_BY_SYMBOL
     elif normalized == "ai":
         symbols = AI_SYMBOLS
         meta_by_symbol = _META_BY_SYMBOL
@@ -389,6 +421,8 @@ def stock_universe_payload(universe: str = "default") -> dict[str, object]:
         display_name = "Core 200"
     elif normalized in {"ai_five_layer", "ai5", "ai-five-layer"}:
         display_name = "AI Five-Layer"
+    elif normalized in {"space_robotics", "space-robotics", "space"}:
+        display_name = "Space / Robotics"
     elif normalized == "ai":
         display_name = "AI Watchlist"
     else:
@@ -401,7 +435,7 @@ def stock_universe_payload(universe: str = "default") -> dict[str, object]:
         "stocks": [stock.to_dict() for stock in stocks],
         "layers": [{"name": name, "count": count} for name, count in sorted(layers.items())],
         "layer_model": "ai_five_layer_cake" if normalized in {"ai_five_layer", "ai5", "ai-five-layer"} else "market_layers",
-        "layer_order": ["Energy", "Chips", "Infrastructure", "Models", "Applications"],
+        "layer_order": ["Energy", "Chips", "Infrastructure", "Models", "Applications", "Space / Robotics"],
         "btc_eth_removed_from_main_path": True,
         "options_are_secondary": True,
     }

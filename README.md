@@ -21,6 +21,7 @@ The current implementation starts Phase 0-2 of the roadmap:
 - new package namespace: `kquant`;
 - new database: `work/kquant_us.sqlite3`;
 - Core 200 default universe plus AI Five-Layer universe;
+- Space / Robotics research layer available in `All` and search;
 - four long-only strategy profiles for 1W, 1-2M, 6M, and 1-3Y holding periods;
 - rule-based Action Conclusion Layer: `BUY`, `WAIT`, `DO_NOT_BUY`,
   `HOLD_TRAIL`, `EXIT_REVIEW`;
@@ -94,15 +95,51 @@ Runtime data is stored in:
 
 Open `http://127.0.0.1:8001/`.
 
+## Protected Vercel Frontend + Cloudflare Access Backend
+
+The Vercel deployment is a static React frontend. Real K-Lines require a
+reachable Python backend. For a private deployed workflow, keep the backend on
+this PC and expose it through Cloudflare Tunnel protected by Cloudflare Access:
+
+1. Create a named Cloudflare Tunnel and publish a hostname such as
+   `kquant-api.example.com`.
+2. Protect that hostname with a Cloudflare Access self-hosted application that
+   only allows your email.
+3. Set local environment variables:
+
+```powershell
+$env:KQUANT_CLOUDFLARE_HOSTNAME="kquant-api.example.com"
+$env:KQUANT_CLOUDFLARE_TUNNEL_NAME="your-tunnel-name"
+$env:OPENAI_API_KEY="sk-..."
+```
+
+4. Start the backend and tunnel:
+
+```powershell
+.\start_kquant_cloudflare_access.ps1
+```
+
+5. In Vercel, set the frontend build variable:
+
+```text
+VITE_KQUANT_API_BASE_URL=https://kquant-api.example.com
+```
+
+The OpenAI key stays on the backend only. Do not put `OPENAI_API_KEY` in Vercel
+frontend variables, screenshots, or committed files.
+
 ## API Routes
 
 The local Python dashboard exposes:
 
 - `GET /api/stocks/universe?universe=default|ai|ai_five_layer|all`
+- `GET /api/health`
+- `GET /api/stocks/search?q=robot&universe=all`
 - `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=live`
 - `GET /api/stocks/signals?source=live&universe=ai_five_layer&profile=swing_long_v1`
 - `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=tactical_1w_v1`
 - `POST /api/stocks/ai-review`
+- `GET /api/stocks/ai-review/status`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
 - `GET /api/stocks/live-data-health?universes=default,ai_five_layer&limit=20`
@@ -146,7 +183,9 @@ The frontend supports:
 - live-only real data guard with stale cache and provider failure states;
 - TradingView-style 1H / 1D / 1W / 1M charts via `lightweight-charts`;
 - Core 200, AI Five-Layer, and All universe views;
+- Space / Robotics layer and command search for ticker, company, theme, or tag;
 - search-driven single-stock analysis and four-system comparison;
+- Live API status and AI Review status for protected deployment;
 - manual trading conclusion and manual-trigger AI Review panel;
 - selected stock review, signal reasons, risk warnings, and manual checklist;
 - MSTR Cycle Radar with MSTR, BTC, MSTR/BTC relative charts, Monte Carlo

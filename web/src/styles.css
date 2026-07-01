@@ -117,7 +117,7 @@ p {
 .ohlc-row,
 .layer-head,
 .symbol-wrap,
-.symbol-search,
+.symbol-command,
 .segmented,
 .pill,
 .primary-action {
@@ -167,36 +167,127 @@ p {
   flex-wrap: wrap;
 }
 
-.symbol-search {
-  gap: 6px;
-  min-width: 230px;
-}
-
-.symbol-search input {
-  min-width: 126px;
-  width: 148px;
-  min-height: 34px;
+.symbol-command {
+  position: relative;
+  gap: 8px;
+  min-width: min(380px, 100%);
+  min-height: 36px;
+  padding: 0 6px 0 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
+  color: var(--muted);
+}
+
+.symbol-command input {
+  min-width: 170px;
+  width: 240px;
+  min-height: 34px;
+  border: 0;
+  background: transparent;
   color: var(--text);
-  padding: 0 10px;
+  padding: 0 4px;
   font: inherit;
   font-size: 12px;
   font-weight: 720;
 }
 
-.symbol-search button {
+.symbol-command input:focus {
+  outline: 0;
+}
+
+.symbol-command > button {
   min-height: 34px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--panel);
+  background: var(--surface-soft);
   color: var(--strong);
   padding: 0 10px;
   font: inherit;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.command-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: min(430px, calc(100vw - 28px));
+  max-height: 430px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.command-results-head,
+.command-result {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.command-results-head {
+  padding: 4px 6px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.command-results-head button {
+  grid-column: 3;
+  min-height: 24px;
+  padding: 0 7px;
+}
+
+.command-result {
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.command-result:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
+.command-result strong {
+  color: var(--strong);
+  font-size: 13px;
+}
+
+.command-result span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-result small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.command-results p {
+  padding: 8px 6px 4px;
+  color: var(--watch);
+  font-size: 12px;
+  font-weight: 760;
 }
 
 .quick-search-row {
@@ -1730,13 +1821,27 @@ p {
     width: 100%;
   }
 
-  .symbol-search {
+  .symbol-command {
     width: 100%;
   }
 
-  .symbol-search input {
+  .symbol-command input {
     flex: 1 1 auto;
     width: auto;
+  }
+
+  .command-results {
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+
+  .command-result {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .command-result small {
+    grid-column: 1 / -1;
   }
 
   .quick-search-note {

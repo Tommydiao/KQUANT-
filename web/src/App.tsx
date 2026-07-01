@@ -8,6 +8,7 @@ import {
   Lock,
   Moon,
   RefreshCw,
+  Search,
   ShieldCheck,
   Sun,
 } from "lucide-react";
@@ -35,6 +36,7 @@ type StrategyProfileName = "tactical_1w_v1" | "swing_1_2m_v1" | "position_6m_v1"
 type RangeValue = "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "1h" | "1d" | "1w" | "1m";
+type ApiConnectionState = "checking" | "connected" | "offline";
 
 type Candle = {
   time: Time;
@@ -65,6 +67,27 @@ type CandleMeta = {
   first: string;
   last: string;
   errors: string[];
+};
+
+type ApiHealthPayload = {
+  status: string;
+  backend?: string;
+  live_data_enabled?: boolean;
+  ai_review_status?: string;
+  read_only_research?: boolean;
+};
+
+type AiReviewStatusPayload = {
+  status: "available" | "missing_key" | string;
+  reason: string;
+  models: {
+    review?: string;
+    batch?: string;
+    deep?: string;
+  };
+  read_only_research: boolean;
+  llm_signal_core_enabled: boolean;
+  broker_order_wiring_enabled: boolean;
 };
 
 type StockSignal = {
@@ -772,6 +795,7 @@ const STRATEGY_PROFILES: { key: StrategyProfileName; label: string; period: stri
   { key: "position_6m_v1", label: "6M Position", period: "3-6M" },
   { key: "cycle_1_3y_v1", label: "1-3Y Cycle", period: "1-3Y" },
 ];
+const API_BASE_URL = normalizeApiBase(String(import.meta.env.VITE_KQUANT_API_BASE_URL ?? ""));
 
 const STOCKS: UniverseStock[] = [
   "SPY:SPDR S&P 500 ETF:ETF:Index ETFs",
@@ -974,6 +998,30 @@ const STOCKS: UniverseStock[] = [
   "PINS:Pinterest:Communication Services:Consumer Internet",
   "SE:Sea Limited:Communication Services:Consumer Internet",
   "TGT:Target:Consumer Staples:Defensive Growth",
+  "RKLB:Rocket Lab:Industrials:Space / Robotics",
+  "ASTS:AST SpaceMobile:Communication Services:Space / Robotics",
+  "LUNR:Intuitive Machines:Industrials:Space / Robotics",
+  "PL:Planet Labs:Industrials:Space / Robotics",
+  "IRDM:Iridium Communications:Communication Services:Space / Robotics",
+  "KTOS:Kratos Defense & Security:Industrials:Space / Robotics",
+  "LHX:L3Harris Technologies:Industrials:Space / Robotics",
+  "LDOS:Leidos:Industrials:Space / Robotics",
+  "TDY:Teledyne Technologies:Industrials:Space / Robotics",
+  "HEI:HEICO:Industrials:Space / Robotics",
+  "ACHR:Archer Aviation:Industrials:Space / Robotics",
+  "JOBY:Joby Aviation:Industrials:Space / Robotics",
+  "SYM:Symbotic:Industrials:Space / Robotics",
+  "TER:Teradyne:Technology:Space / Robotics",
+  "ZBRA:Zebra Technologies:Technology:Space / Robotics",
+  "CGNX:Cognex:Technology:Space / Robotics",
+  "OUST:Ouster:Technology:Space / Robotics",
+  "MBLY:Mobileye:Technology:Space / Robotics",
+  "BOTZ:Global X Robotics & AI ETF:ETF:Space / Robotics",
+  "ROBO:ROBO Global Robotics ETF:ETF:Space / Robotics",
+  "ARKQ:ARK Autonomous Technology ETF:ETF:Space / Robotics",
+  "ITA:iShares U.S. Aerospace & Defense ETF:ETF:Space / Robotics",
+  "XAR:SPDR S&P Aerospace & Defense ETF:ETF:Space / Robotics",
+  "UFO:Procure Space ETF:ETF:Space / Robotics",
 ].map(parseStockRow);
 
 const AI_FIVE_LAYER_STOCKS: UniverseStock[] = [
@@ -1065,6 +1113,9 @@ function App() {
   const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => failedMeta("NVDA", chartPresetByKey("1d")));
   const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => failedMeta("NVDA", chartPresetByKey("1h")));
   const [apiState, setApiState] = useState<"api" | "fallback">("fallback");
+  const [apiConnection, setApiConnection] = useState<ApiConnectionState>("checking");
+  const [apiHealth, setApiHealth] = useState<ApiHealthPayload | null>(null);
+  const [aiStatus, setAiStatus] = useState<AiReviewStatusPayload | null>(null);
   const [marketRegime, setMarketRegime] = useState<MarketRegimePayload | null>(null);
   const [stockJournal, setStockJournal] = useState<StockJournalPayload | null>(null);
   const [mstrRadar, setMstrRadar] = useState<MstrCyclePayload | null>(null);
@@ -1075,6 +1126,9 @@ function App() {
   const [compareState, setCompareState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiReview, setAiReview] = useState<AiReviewPayload | null>(null);
   const [aiReviewState, setAiReviewState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
+  const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [searchOpen, setSearchOpen] = useState(false);
   const text = copy[lang];
 
   const selected =
@@ -1093,11 +1147,19 @@ function App() {
         .slice(0, 8),
     [recentSearches],
   );
+  const localSearchResults = useMemo(() => searchStocks(searchText, ALL_STOCKS, 10), [searchText]);
+  const activeSearchResults = searchResults.length ? searchResults : localSearchResults;
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
   }, [lang, theme]);
+
+  useEffect(() => {
+    void loadApiHealth();
+    void loadAiStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {
@@ -1130,6 +1192,20 @@ function App() {
   }, [selectedUniverse, selectedProfile]);
 
   useEffect(() => {
+    const query = searchText.trim();
+    if (!query) {
+      setSearchResults([]);
+      setSearchState("idle");
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void loadSearchResults(query);
+    }, 180);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchText, selectedUniverse]);
+
+  useEffect(() => {
     void loadCandles(selected.symbol);
     void loadStockJournal(selected.symbol);
     setProfileCompare([]);
@@ -1146,16 +1222,57 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
+  async function loadApiHealth() {
+    try {
+      setApiConnection("checking");
+      const response = await apiFetch("/api/health");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as ApiHealthPayload;
+      setApiHealth(payload);
+      setApiConnection("connected");
+      setApiState("api");
+    } catch {
+      setApiHealth(null);
+      setApiConnection("offline");
+      setApiState("fallback");
+    }
+  }
+
+  async function loadAiStatus() {
+    try {
+      const response = await apiFetch("/api/stocks/ai-review/status");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setAiStatus((await response.json()) as AiReviewStatusPayload);
+    } catch {
+      setAiStatus(null);
+    }
+  }
+
+  async function loadSearchResults(query: string) {
+    try {
+      setSearchState("loading");
+      setSearchResults([]);
+      const response = await apiFetch(`/api/stocks/search?q=${encodeURIComponent(query)}&universe=all&limit=12`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      setSearchResults((payload.results ?? []) as UniverseStock[]);
+      setSearchState("ready");
+    } catch {
+      setSearchResults([]);
+      setSearchState("error");
+    }
+  }
+
   async function loadSignals(forceScan: boolean, layer?: string) {
     const nextUniverse = selectedUniverse;
-    const scanLimit = nextUniverse === "ai_five_layer" ? 100 : 200;
+    const scanLimit = nextUniverse === "all" ? 300 : nextUniverse === "ai_five_layer" ? 100 : 200;
     try {
       const endpoint = forceScan || layer ? "/api/stocks/signals" : "/api/stocks/signals/latest";
       const layerQuery = layer ? `&layer=${encodeURIComponent(layer)}` : "";
-      const response = await fetch(`${endpoint}?source=live&universe=${nextUniverse}&profile=${selectedProfile}&limit=${scanLimit}${layerQuery}`);
+      const response = await apiFetch(`${endpoint}?source=live&universe=${nextUniverse}&profile=${selectedProfile}&limit=${scanLimit}${layerQuery}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = (await response.json()) as SignalRun;
-      const universeResponse = await fetch(`/api/stocks/universe?universe=${nextUniverse}`);
+      const universeResponse = await apiFetch(`/api/stocks/universe?universe=${nextUniverse}`);
       if (universeResponse.ok) {
         const universePayload = await universeResponse.json();
         setUniverse(universePayload.stocks ?? stocksForUniverse(nextUniverse));
@@ -1175,7 +1292,7 @@ function App() {
 
   async function loadMarketRegime() {
     try {
-      const response = await fetch("/api/stocks/market-regime?source=live");
+      const response = await apiFetch("/api/stocks/market-regime?source=live");
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setMarketRegime((await response.json()) as MarketRegimePayload);
     } catch {
@@ -1185,7 +1302,7 @@ function App() {
 
   async function loadStockJournal(symbol: string) {
     try {
-      const response = await fetch(`/api/stocks/signal-journal?symbol=${encodeURIComponent(symbol)}&limit=10`);
+      const response = await apiFetch(`/api/stocks/signal-journal?symbol=${encodeURIComponent(symbol)}&limit=10`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setStockJournal((await response.json()) as StockJournalPayload);
     } catch {
@@ -1201,7 +1318,7 @@ function App() {
     planned_target?: string;
     outcome: string;
   }) {
-    const response = await fetch("/api/stocks/signal-journal/entry", {
+    const response = await apiFetch("/api/stocks/signal-journal/entry", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1227,7 +1344,7 @@ function App() {
     const symbol = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
     if (!symbol) return;
     try {
-      const response = await fetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
+      const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = await response.json();
       const signal = payload.signal as StockSignal;
@@ -1250,12 +1367,14 @@ function App() {
       setMarketRegime(payload.market_regime ?? null);
       setSelectedSymbol(signal.symbol);
       setSearchText("");
+      setSearchOpen(false);
       const nextRecent = [signal.symbol, ...recentSymbols.filter((item) => item !== signal.symbol)].slice(0, 8);
       setRecentSearches(nextRecent.join(","));
       setApiState("api");
     } catch {
       setSelectedSymbol(symbol);
       setSearchText("");
+      setSearchOpen(false);
       setApiState("fallback");
     }
   }
@@ -1267,7 +1386,7 @@ function App() {
       setCompareState("loading");
       const results: StockSignal[] = [];
       for (const profile of STRATEGY_PROFILES) {
-        const response = await fetch(`/api/stocks/analyze?symbol=${encodeURIComponent(cleanSymbol)}&source=live&profile=${profile.key}`);
+        const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(cleanSymbol)}&source=live&profile=${profile.key}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const payload = await response.json();
         results.push(payload.signal as StockSignal);
@@ -1285,7 +1404,7 @@ function App() {
   async function requestAiReview() {
     try {
       setAiReviewState("loading");
-      const response = await fetch("/api/stocks/ai-review", {
+      const response = await apiFetch("/api/stocks/ai-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1312,8 +1431,8 @@ function App() {
   async function loadCandles(symbol: string) {
     try {
       const [dailyResponse, hourlyResponse] = await Promise.all([
-        fetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=live`),
-        fetch(`/api/stocks/candles?symbol=${symbol}&range=${confirmationPreset.range}&interval=${confirmationPreset.interval}&source=live`),
+        apiFetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=live`),
+        apiFetch(`/api/stocks/candles?symbol=${symbol}&range=${confirmationPreset.range}&interval=${confirmationPreset.interval}&source=live`),
       ]);
       if (!dailyResponse.ok || !hourlyResponse.ok) throw new Error("candles unavailable");
       const [dailyPayload, hourlyPayload] = await Promise.all([dailyResponse.json(), hourlyResponse.json()]);
@@ -1323,18 +1442,21 @@ function App() {
       setHourlyCandles(normalizedHourly);
       setDailyMeta(metaFromPayload(dailyPayload, primaryPreset, normalizedDaily));
       setHourlyMeta(metaFromPayload(hourlyPayload, confirmationPreset, normalizedHourly));
+      setApiConnection("connected");
+      setApiState("api");
     } catch {
       setDailyCandles([]);
       setHourlyCandles([]);
       setDailyMeta(failedMeta(symbol, primaryPreset));
       setHourlyMeta(failedMeta(symbol, confirmationPreset));
+      setApiConnection((current) => (current === "connected" ? current : "offline"));
     }
   }
 
   async function loadMstrRadar() {
     try {
       setMstrState("loading");
-      const response = await fetch("/api/mstr/cycle-radar?source=live");
+      const response = await apiFetch("/api/mstr/cycle-radar?source=live");
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = (await response.json()) as MstrCyclePayload;
       setMstrRadar(payload);
@@ -1351,7 +1473,7 @@ function App() {
 
   async function loadMstrJournal() {
     try {
-      const response = await fetch("/api/mstr/cycle-journal?limit=20");
+      const response = await apiFetch("/api/mstr/cycle-journal?limit=20");
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setMstrJournal((await response.json()) as MstrJournalPayload);
     } catch {
@@ -1361,7 +1483,7 @@ function App() {
 
   async function saveMstrJournal(entry: { status: string; notes: string; outcome: string }) {
     if (!mstrRadar?.run_id) return;
-    const response = await fetch("/api/mstr/cycle-journal/entry", {
+    const response = await apiFetch("/api/mstr/cycle-journal/entry", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...entry, run_id: mstrRadar.run_id }),
@@ -1409,27 +1531,52 @@ function App() {
             onChange={(value) => setView(value as AppView)}
           />
           <form
-            className="symbol-search"
+            className="symbol-command"
             onSubmit={(event) => {
               event.preventDefault();
               void analyzeSymbol(searchText);
             }}
           >
+            <Search size={15} />
             <input
               value={searchText}
-              onChange={(event) => setSearchText(event.target.value)}
-              placeholder="Search symbol"
-              list="kquant-symbols"
-              aria-label="Search symbol"
+              onFocus={() => setSearchOpen(true)}
+              onChange={(event) => {
+                setSearchText(event.target.value);
+                setSearchOpen(true);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setSearchOpen(false);
+                if (event.key === "Enter" && !searchText.trim() && activeSearchResults[0]) {
+                  event.preventDefault();
+                  void analyzeSymbol(activeSearchResults[0].symbol);
+                }
+              }}
+              placeholder="Search ticker, company, robot, space..."
+              aria-label="Search ticker, company, theme, or layer"
             />
-            <datalist id="kquant-symbols">
-              {ALL_STOCKS.map((stock) => (
-                <option key={stock.symbol} value={stock.symbol}>
-                  {stock.name}
-                </option>
-              ))}
-            </datalist>
             <button type="submit">Analyze</button>
+            {searchOpen ? (
+              <div className="command-results" role="listbox">
+                <div className="command-results-head">
+                  <span>{searchState === "loading" ? "Searching..." : "Command Search"}</span>
+                  <button type="button" onClick={() => setSearchOpen(false)}>Close</button>
+                </div>
+                {(searchText.trim() ? activeSearchResults : quickSearchStocks(ALL_STOCKS)).slice(0, 10).map((stock) => (
+                  <button
+                    type="button"
+                    className="command-result"
+                    key={stock.symbol}
+                    onClick={() => void analyzeSymbol(stock.symbol)}
+                  >
+                    <strong>{stock.symbol}</strong>
+                    <span>{stock.name}</span>
+                    <small>{stock.layer} / {stock.liquidity_tier ?? "core"}</small>
+                  </button>
+                ))}
+                {searchState === "error" ? <p>Search API offline. Local symbol index is still available.</p> : null}
+              </div>
+            ) : null}
           </form>
           <Segmented
             value={selectedProfile}
@@ -1456,6 +1603,16 @@ function App() {
         <Pill tone="good" icon={<ShieldCheck size={14} />} label={text.readOnly} />
         <Pill tone="neutral" icon={<Lock size={14} />} label={text.llmLocked} />
         <Pill tone="neutral" icon={<Database size={14} />} label={`${text.db}: work/kquant_us.sqlite3`} />
+        <Pill
+          tone={apiConnection === "connected" ? "good" : "warn"}
+          icon={<Activity size={14} />}
+          label={apiConnection === "connected" ? `Live API Connected: ${apiHealth?.backend ?? "backend"}` : "Live API Offline"}
+        />
+        <Pill
+          tone={aiStatus?.status === "available" ? "good" : "warn"}
+          icon={<Lock size={14} />}
+          label={aiStatus?.status === "available" ? `AI Connected: ${aiStatus.models.review ?? "review"}` : "AI Missing Key"}
+        />
         <Pill tone={apiState === "api" ? "good" : "warn"} icon={<Activity size={14} />} label={apiState === "api" ? text.apiReady : text.fallback} />
         <Pill
           tone={regimeTone(activeMarketRegime?.regime)}
@@ -1467,6 +1624,13 @@ function App() {
           icon={<CheckCircle2 size={14} />}
           label="Real Data Guard: No Fixture"
         />
+        {API_BASE_URL ? (
+          <Pill
+            tone="neutral"
+            icon={<Database size={14} />}
+            label={`Remote API: ${API_BASE_URL.replace(/^https?:\/\//, "")}`}
+          />
+        ) : null}
         {fixtureBlocked ? (
           <Pill
             tone="warn"
@@ -1532,7 +1696,7 @@ function App() {
                 type="button"
                 className={`signal-card ${signal.symbol === selected.symbol ? "active" : ""}`}
                 key={signal.symbol}
-                onClick={() => setSelectedSymbol(signal.symbol)}
+                onClick={() => void analyzeSymbol(signal.symbol)}
               >
                 <div className="signal-card-top">
                   <strong>{signal.symbol}</strong>
@@ -1752,7 +1916,7 @@ function App() {
                       className={stock.symbol === selected.symbol ? "symbol-chip active" : "symbol-chip"}
                       type="button"
                       key={stock.symbol}
-                      onClick={() => setSelectedSymbol(stock.symbol)}
+                      onClick={() => void analyzeSymbol(stock.symbol)}
                     >
                       {stock.symbol}
                       {signal ? <span>{Math.round(signal.score)}</span> : null}
@@ -2935,6 +3099,24 @@ function failedMeta(symbol: string, preset: ChartPreset): CandleMeta {
   };
 }
 
+function normalizeApiBase(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/\/+$/, "");
+}
+
+function apiUrl(path: string): string {
+  if (!API_BASE_URL) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  return fetch(apiUrl(path), {
+    ...init,
+    credentials: API_BASE_URL ? "include" : init?.credentials ?? "same-origin",
+  });
+}
+
 function formatStaleAge(rawSeconds: unknown, freshness: unknown): string {
   const direct = Number(rawSeconds ?? 0);
   if (Number.isFinite(direct) && direct > 0) return `${Math.round(direct)}s`;
@@ -2945,15 +3127,19 @@ function formatStaleAge(rawSeconds: unknown, freshness: unknown): string {
 
 function parseStockRow(row: string, index: number): UniverseStock {
   const [symbol, name, sector, layer] = row.split(":");
+  const isAiLayer = layer === "Energy" || layer === "Chips" || layer === "Infrastructure" || layer === "Models" || layer === "Applications";
+  const isSpaceRobotics = layer === "Space / Robotics";
   return {
     symbol,
     name,
     sector,
     layer,
     primary_layer: layer,
-    tags: layer === "Energy" || layer === "Chips" || layer === "Infrastructure" || layer === "Models" || layer === "Applications" ? [`ai_${layer.toLowerCase()}`] : [],
+    tags: isAiLayer ? [`ai_${layer.toLowerCase()}`] : isSpaceRobotics ? ["space", "robotics", "automation"] : [],
     rank: index + 1,
-    liquidity_tier: ["AI", "APP", "DUOL", "PATH", "TSLA"].includes(symbol) ? "high_beta" : "core",
+    liquidity_tier: ["AI", "APP", "DUOL", "PATH", "TSLA", "RKLB", "ASTS", "LUNR", "ACHR", "JOBY", "OUST", "MBLY", "SYM"].includes(symbol)
+      ? "high_beta"
+      : "core",
   };
 }
 
@@ -2963,6 +3149,32 @@ function uniqueStocks(stocks: UniverseStock[]): UniverseStock[] {
     if (!seen.has(stock.symbol)) seen.set(stock.symbol, stock);
   }
   return [...seen.values()].map((stock, index) => ({ ...stock, rank: index + 1 }));
+}
+
+function searchStocks(query: string, stocks: UniverseStock[], limit = 10): UniverseStock[] {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return quickSearchStocks(stocks).slice(0, limit);
+  const scored = stocks
+    .map((stock) => {
+      const haystack = `${stock.symbol} ${stock.name} ${stock.sector} ${stock.layer} ${(stock.tags ?? []).join(" ")}`.toLowerCase();
+      let score = 0;
+      if (stock.symbol.toLowerCase() === normalized) score += 100;
+      if (stock.symbol.toLowerCase().startsWith(normalized)) score += 75;
+      if (stock.name.toLowerCase().includes(normalized)) score += 45;
+      if (stock.layer.toLowerCase().includes(normalized)) score += 36;
+      if ((stock.tags ?? []).join(" ").toLowerCase().includes(normalized)) score += 30;
+      if (haystack.includes(normalized)) score += 10;
+      return { stock, score };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || (a.stock.rank ?? 9999) - (b.stock.rank ?? 9999));
+  return scored.slice(0, limit).map((item) => item.stock);
+}
+
+function quickSearchStocks(stocks: UniverseStock[]): UniverseStock[] {
+  const preferred = ["NVDA", "MSTR", "SPY", "QQQ", "RKLB", "ASTS", "TSLA", "ISRG", "BOTZ", "PLTR"];
+  const bySymbol = new Map(stocks.map((stock) => [stock.symbol, stock]));
+  return preferred.map((symbol) => bySymbol.get(symbol)).filter((stock): stock is UniverseStock => Boolean(stock));
 }
 
 function stocksForUniverse(universeName: UniverseName): UniverseStock[] {

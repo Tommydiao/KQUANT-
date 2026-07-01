@@ -5,7 +5,16 @@ from datetime import datetime
 import pytest
 
 from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
-from kquant.stock_signals import api_stock_ai_review, api_stock_analyze, api_stock_candles, api_stock_live_data_health, api_stock_signals, api_stock_signals_latest
+from kquant.stock_signals import (
+    api_stock_ai_review,
+    api_stock_ai_review_status,
+    api_stock_analyze,
+    api_stock_candles,
+    api_stock_live_data_health,
+    api_stock_search,
+    api_stock_signals,
+    api_stock_signals_latest,
+)
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
 
@@ -33,10 +42,34 @@ def test_ai_five_layer_universe_is_complete_and_deduped() -> None:
 def test_all_universe_is_core_200_plus_ai_deduped() -> None:
     default_symbols = {stock.symbol for stock in stock_universe("default")}
     ai_symbols = {stock.symbol for stock in stock_universe("ai_five_layer")}
+    space_symbols = {stock.symbol for stock in stock_universe("space_robotics")}
     all_symbols = [stock.symbol for stock in stock_universe("all")]
     assert len(all_symbols) == len(set(all_symbols))
-    assert set(all_symbols) == default_symbols | ai_symbols
-    assert len(all_symbols) == 200
+    assert set(all_symbols) == default_symbols | ai_symbols | space_symbols
+    assert {"RKLB", "ASTS", "BOTZ", "ROBO"}.issubset(set(all_symbols))
+    assert len(all_symbols) > 200
+
+
+def test_space_robotics_universe_and_search_are_available() -> None:
+    stocks = stock_universe("space_robotics")
+    symbols = {stock.symbol for stock in stocks}
+    assert {"RKLB", "ASTS", "LUNR", "ISRG", "BOTZ"}.intersection(symbols)
+    assert all(stock.layer == "Space / Robotics" for stock in stocks)
+
+    robot_results = api_stock_search(q="robot", universe="all")["results"]
+    space_results = api_stock_search(q="space", universe="all")["results"]
+    rklb_results = api_stock_search(q="RKLB", universe="all")["results"]
+    assert any(item["symbol"] in {"BOTZ", "ROBO", "SYM", "ISRG"} for item in robot_results)
+    assert any(item["symbol"] in {"RKLB", "ASTS", "LUNR", "PL"} for item in space_results)
+    assert rklb_results[0]["symbol"] == "RKLB"
+
+
+def test_ai_review_status_without_key_is_safe(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    payload = api_stock_ai_review_status()
+    assert payload["status"] == "missing_key"
+    assert payload["llm_signal_core_enabled"] is False
+    assert payload["broker_order_wiring_enabled"] is False
 
 
 def test_user_facing_stock_source_is_live_only() -> None:

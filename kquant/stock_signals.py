@@ -208,6 +208,61 @@ def api_stock_universe(universe: str = "default", db_path: Path | None = None) -
     return payload
 
 
+def api_stock_search(q: str = "", universe: str = "all", limit: int = 24) -> dict[str, Any]:
+    query = str(q or "").strip().lower()
+    limit = max(1, min(int(limit or 24), 50))
+    stocks = stock_universe(universe or "all")
+    matches: list[dict[str, Any]] = []
+
+    def score_stock(stock: Any) -> int:
+        if not query:
+            return 10 if stock.symbol in {"NVDA", "MSTR", "SPY", "QQQ", "RKLB", "TSLA"} else 1
+        symbol = stock.symbol.lower()
+        name = stock.name.lower()
+        layer = stock.layer.lower()
+        tags = " ".join(stock.tags).lower()
+        haystack = f"{symbol} {name} {stock.sector.lower()} {layer} {tags}"
+        score = 0
+        if symbol == query:
+            score += 120
+        if symbol.startswith(query):
+            score += 90
+        if query in symbol:
+            score += 65
+        if name.startswith(query):
+            score += 60
+        if query in name:
+            score += 45
+        if query in layer:
+            score += 35
+        if query in tags:
+            score += 30
+        if query in haystack:
+            score += 10
+        return score
+
+    for stock in stocks:
+        score = score_stock(stock)
+        if query and score <= 0:
+            continue
+        item = stock.to_dict()
+        item["match_score"] = score
+        item["search_text"] = f"{stock.symbol} {stock.name} {stock.layer} {' '.join(stock.tags)}"
+        matches.append(item)
+
+    matches.sort(key=lambda item: (-int(item.get("match_score", 0)), int(item.get("rank", 9999)), str(item.get("symbol", ""))))
+    return {
+        "product": "KQUANT US Stock Signal Terminal",
+        "query": q,
+        "universe": universe or "all",
+        "count": len(matches[:limit]),
+        "results": matches[:limit],
+        "source": "stock_universe_live_only_metadata",
+        "live_data_required_for_analysis": True,
+        "fixture_user_visible": False,
+    }
+
+
 def api_stock_candles(
     symbol: str,
     range_value: str = "1y",
@@ -794,6 +849,31 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
         "rule_conclusion": signal_payload.get("trade_conclusion", {}),
         "ai_review": review,
         "safety_policy": safety,
+    }
+
+
+def api_stock_ai_review_status() -> dict[str, Any]:
+    review_model = os.environ.get("KQUANT_AI_REVIEW_MODEL", "gpt-5.4").strip() or "gpt-5.4"
+    batch_model = os.environ.get("KQUANT_AI_BATCH_MODEL", "gpt-5.4-mini").strip() or "gpt-5.4-mini"
+    deep_model = os.environ.get("KQUANT_AI_DEEP_MODEL", "gpt-5.5").strip() or "gpt-5.5"
+    has_key = bool(os.environ.get("OPENAI_API_KEY", "").strip())
+    return {
+        "product": "KQUANT AI Review Assistant",
+        "status": "available" if has_key else "missing_key",
+        "reason": "OPENAI_API_KEY is configured." if has_key else "OPENAI_API_KEY is not configured on the backend.",
+        "models": {
+            "review": review_model,
+            "batch": batch_model,
+            "deep": deep_model,
+        },
+        "manual_trigger_only": True,
+        "read_only_research": True,
+        "llm_signal_core_enabled": False,
+        "ai_review_only": True,
+        "broker_order_wiring_enabled": False,
+        "account_access_enabled": False,
+        "order_submission_enabled": False,
+        "key_location": "backend_environment_only",
     }
 
 

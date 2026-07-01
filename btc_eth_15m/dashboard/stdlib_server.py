@@ -50,12 +50,14 @@ from btc_eth_15m.options_snapshots import (
 )
 from kquant.stock_signals import (
     api_stock_ai_review,
+    api_stock_ai_review_status,
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
     api_stock_market_regime,
     api_stock_provider_health,
+    api_stock_search,
     api_stock_signal_journal,
     api_stock_signal_journal_entry,
     api_stock_signals,
@@ -866,10 +868,18 @@ class Handler(BaseHTTPRequestHandler):
             HTTPStatus.METHOD_NOT_ALLOWED,
         )
 
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.send_cors_headers()
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+
     def route_api(self, path: str, query: Dict[str, List[str]]) -> Dict[str, Any]:
         mode = query_value(query, "mode", "paper")
         if mode not in ("paper", "testnet", "live"):
             raise ValueError("Invalid mode.")
+        if path == "/api/health":
+            return self.api_health()
         if path == "/api/status":
             return self.dashboard.status(mode)
         if path == "/api/signals/latest":
@@ -891,6 +901,12 @@ class Handler(BaseHTTPRequestHandler):
                 universe=query_value(query, "universe", "default"),
                 db_path=self.dashboard.stock_db_path,
             )
+        if path == "/api/stocks/search":
+            return api_stock_search(
+                q=query_value(query, "q", ""),
+                universe=query_value(query, "universe", "all"),
+                limit=query_int(query, "limit", 24, 1, 50),
+            )
         if path == "/api/stocks/candles":
             source = stock_live_only_source(query)
             return api_stock_candles(
@@ -908,7 +924,7 @@ class Handler(BaseHTTPRequestHandler):
                 profile=query_value(query, "profile", "swing_long_v1"),
                 db_path=self.dashboard.stock_db_path,
                 outputs_dir=self.dashboard.outputs_dir,
-                limit=query_int(query, "limit", 100, 1, 200),
+                limit=query_int(query, "limit", 100, 1, 300),
                 layer=query_value(query, "layer", "") or None,
             )
         if path == "/api/stocks/signals/latest":
@@ -922,6 +938,8 @@ class Handler(BaseHTTPRequestHandler):
             )
         if path == "/api/stocks/provider-health":
             return api_stock_provider_health(db_path=self.dashboard.stock_db_path)
+        if path == "/api/stocks/ai-review/status":
+            return api_stock_ai_review_status()
         if path == "/api/stocks/analyze":
             source = stock_live_only_source(query)
             return api_stock_analyze(
@@ -949,7 +967,7 @@ class Handler(BaseHTTPRequestHandler):
                 universes=universes,
                 db_path=self.dashboard.stock_db_path,
                 outputs_dir=self.dashboard.outputs_dir,
-                limit=query_int(query, "limit", 20, 1, 200),
+                limit=query_int(query, "limit", 20, 1, 300),
             )
         if path == "/api/stocks/live-data-health/latest":
             return api_stock_live_data_health_latest(outputs_dir=self.dashboard.outputs_dir)
@@ -1149,6 +1167,24 @@ class Handler(BaseHTTPRequestHandler):
             return {"task_id": segments[3], "events": runtime.store.list_audit_events(segments[3])}
         raise FileNotFoundError("Unknown API path: {}".format(path))
 
+    def api_health(self) -> Dict[str, Any]:
+        ai_status = api_stock_ai_review_status()
+        return {
+            "product": "KQUANT US Stock Signal Terminal",
+            "status": "online",
+            "backend": "stdlib_server",
+            "live_data_enabled": True,
+            "stock_database": str(self.dashboard.stock_db_path),
+            "frontend": str(self.dashboard.index_path),
+            "ai_review_status": ai_status["status"],
+            "ai_models": ai_status["models"],
+            "read_only_research": True,
+            "fixture_user_visible": False,
+            "broker_order_wiring_enabled": False,
+            "account_access_enabled": False,
+            "order_submission_enabled": False,
+        }
+
     def route_agent_post(self, path: str, body: Dict[str, Any]) -> Dict[str, Any]:
         runtime = self.dashboard.agent_runtime
         segments = path.strip("/").split("/")
@@ -1217,6 +1253,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type or mimetypes.guess_type(str(path))[0] or "application/octet-stream")
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        self.send_cors_headers()
         self.end_headers()
         self.wfile.write(data)
 
@@ -1227,15 +1264,28 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
+            self.send_cors_headers()
             self.end_headers()
             self.wfile.write(data)
         except (BrokenPipeError, ConnectionResetError):
             return
 
+    def send_cors_headers(self) -> None:
+        origin = self.headers.get("Origin")
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Credentials", "true")
+        else:
+            self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, CF-Access-Client-Id, CF-Access-Client-Secret")
+
     def send_stream(self) -> None:
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "text/event-stream; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
+        self.send_cors_headers()
         self.end_headers()
         while True:
             payload = {

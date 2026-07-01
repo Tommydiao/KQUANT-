@@ -70,12 +70,14 @@ from btc_eth_15m.options_snapshots import (
 )
 from kquant.stock_signals import (
     api_stock_ai_review,
+    api_stock_ai_review_status,
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
     api_stock_market_regime,
     api_stock_provider_health,
+    api_stock_search,
     api_stock_signal_journal,
     api_stock_signal_journal_entry,
     api_stock_signals,
@@ -184,11 +186,32 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
             "http://127.0.0.1:5173",
             "http://localhost:8000",
             "http://127.0.0.1:8000",
+            "http://localhost:8001",
+            "http://127.0.0.1:8001",
         ],
-        allow_credentials=False,
+        allow_origin_regex=r"https://.*",
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.get("/api/health")
+    def api_health() -> dict:
+        ai_status = api_stock_ai_review_status()
+        return {
+            "product": "KQUANT US Stock Signal Terminal",
+            "status": "online",
+            "backend": "fastapi",
+            "live_data_enabled": True,
+            "stock_database": str(stock_db_path),
+            "ai_review_status": ai_status["status"],
+            "ai_models": ai_status["models"],
+            "read_only_research": True,
+            "fixture_user_visible": False,
+            "broker_order_wiring_enabled": False,
+            "account_access_enabled": False,
+            "order_submission_enabled": False,
+        }
 
     @app.get("/api/status")
     def status(mode: str = Query(default="paper", pattern="^(paper|testnet|live)$")) -> dict:
@@ -586,6 +609,14 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     def stock_universe_endpoint(universe: str = Query(default="default")) -> dict:
         return api_stock_universe(universe=universe, db_path=stock_db_path)
 
+    @app.get("/api/stocks/search")
+    def stock_search_endpoint(
+        q: str = Query(default=""),
+        universe: str = Query(default="all"),
+        limit: int = Query(default=24, ge=1, le=50),
+    ) -> dict:
+        return api_stock_search(q=q, universe=universe, limit=limit)
+
     @app.get("/api/stocks/candles")
     def stock_candles_endpoint(
         symbol: str = Query(default="SPY"),
@@ -607,7 +638,7 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
         source: str = Query(default="live"),
         universe: str = Query(default="default"),
         profile: str = Query(default="swing_long_v1"),
-        limit: int = Query(default=100, ge=1, le=200),
+        limit: int = Query(default=100, ge=1, le=300),
         layer: str = Query(default=""),
     ) -> dict:
         source = _stock_live_only_source(source)
@@ -639,6 +670,10 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/stocks/provider-health")
     def stock_provider_health_endpoint() -> dict:
         return api_stock_provider_health(db_path=stock_db_path)
+
+    @app.get("/api/stocks/ai-review/status")
+    def stock_ai_review_status_endpoint() -> dict:
+        return api_stock_ai_review_status()
 
     @app.get("/api/stocks/analyze")
     def stock_analyze_endpoint(
@@ -674,7 +709,7 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/stocks/live-data-health")
     def stock_live_data_health_endpoint(
         universes: str = Query(default="default,ai_five_layer"),
-        limit: int | None = Query(default=None, ge=1, le=200),
+        limit: int | None = Query(default=None, ge=1, le=300),
     ) -> dict:
         return api_stock_live_data_health(
             universes=[item.strip() for item in universes.split(",") if item.strip()],
