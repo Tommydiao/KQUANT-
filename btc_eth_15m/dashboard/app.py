@@ -69,6 +69,9 @@ from btc_eth_15m.options_snapshots import (
     latest_price_history_payload,
 )
 from kquant.stock_signals import (
+    api_stock_ai_daily_agent,
+    api_stock_ai_daily_report_latest,
+    api_stock_ai_decision,
     api_stock_ai_review,
     api_stock_ai_review_status,
     api_stock_analyze,
@@ -152,6 +155,15 @@ class StockAiReviewRequest(BaseModel):
     signal_payload: dict[str, Any] | None = None
     profile_comparison: list[dict[str, Any]] | None = None
     journal_context_limit: int = 5
+
+
+class StockAiDailyAgentRequest(BaseModel):
+    universe: str = "all"
+    limit: int = Field(default=40, ge=5, le=80)
+    top_n: int = Field(default=8, ge=3, le=12)
+    profiles: list[str] | None = None
+    model: str = ""
+    model_tier: str = "batch"
 
 
 class OptionOrderIntentRequest(BaseModel):
@@ -705,6 +717,20 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     def stock_ai_review_endpoint(payload: StockAiReviewRequest) -> dict:
         data = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
         return api_stock_ai_review(data, db_path=stock_db_path)
+
+    @app.post("/api/stocks/ai-decision")
+    def stock_ai_decision_endpoint(payload: StockAiReviewRequest) -> dict:
+        data = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+        return api_stock_ai_decision(data, db_path=stock_db_path)
+
+    @app.post("/api/stocks/ai-daily-agent")
+    def stock_ai_daily_agent_endpoint(payload: StockAiDailyAgentRequest) -> dict:
+        data = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+        return api_stock_ai_daily_agent(data, db_path=stock_db_path, outputs_dir=config.outputs_dir)
+
+    @app.get("/api/stocks/ai-daily-report/latest")
+    def stock_ai_daily_report_latest_endpoint() -> dict:
+        return api_stock_ai_daily_report_latest(outputs_dir=config.outputs_dir)
 
     @app.get("/api/stocks/live-data-health")
     def stock_live_data_health_endpoint(

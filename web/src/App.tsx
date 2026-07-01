@@ -30,9 +30,16 @@ type Theme = "light" | "dark";
 type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
 type TradeAction = "BUY" | "WAIT" | "DO_NOT_BUY" | "HOLD_TRAIL" | "EXIT_REVIEW";
+type AiAction = "AI_BUY_CANDIDATE" | "AI_WAIT" | "AI_AVOID" | "AI_HOLD_TRAIL" | "AI_EXIT_REVIEW";
 type UniverseName = "default" | "ai_five_layer" | "all";
 type AppView = "stocks" | "mstr";
-type StrategyProfileName = "tactical_1w_v1" | "swing_1_2m_v1" | "position_6m_v1" | "cycle_1_3y_v1";
+type WorkspaceName = "ai" | "search" | "watchlist" | "selected" | "kline" | "compare" | "mstr" | "journal";
+type StrategyProfileName =
+  | "tactical_1w_v1"
+  | "swing_1_2m_v1"
+  | "position_6m_v1"
+  | "cycle_1_3y_v1"
+  | "high_beta_growth_v1";
 type RangeValue = "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "1h" | "1d" | "1w" | "1m";
@@ -88,6 +95,11 @@ type AiReviewStatusPayload = {
   };
   read_only_research: boolean;
   llm_signal_core_enabled: boolean;
+  ai_decision_engine_enabled?: boolean;
+  daily_opportunity_agent_enabled?: boolean;
+  hard_rule_veto_enabled?: boolean;
+  ai_can_lead_decisions?: boolean;
+  ai_can_place_orders?: boolean;
   broker_order_wiring_enabled: boolean;
 };
 
@@ -210,6 +222,98 @@ type AiReviewPayload = {
     order_submission_enabled: boolean;
     does_not_override_rule_conclusion: boolean;
   };
+};
+
+type AiDecisionPayload = {
+  status: "available" | "ai_unavailable" | string;
+  reason: string;
+  model_name: string;
+  generated_at: string;
+  input_summary: Record<string, unknown>;
+  rule_conclusion: StockSignal["trade_conclusion"] | Record<string, unknown>;
+  hard_veto: {
+    active: boolean;
+    reasons: string[];
+    can_ai_buy: boolean;
+    policy: string;
+  };
+  ai_decision: {
+    action: AiAction | string;
+    confidence: "HIGH" | "MEDIUM" | "LOW" | string;
+    risk_bucket: "standard_risk" | "light_risk" | "high_beta_risk" | "avoid" | string;
+    entry_zone: string;
+    stop_zone: string;
+    target_zone: string;
+    risk_reward: string;
+    position_size_hint: string;
+    why_now: string[];
+    what_invalidates_this_setup: string[];
+    best_profile: string;
+    human_checklist: string[];
+    summary: string;
+    rule_action: string;
+    hard_veto_applied: boolean;
+    hard_veto_reasons: string[];
+    read_only_research: boolean;
+    broker_order_wiring_enabled: boolean;
+    order_submission_enabled: boolean;
+  };
+  safety_policy: {
+    read_only_research: boolean;
+    ai_leads_decision_layer: boolean;
+    hard_rule_veto_enabled: boolean;
+    hard_veto_active: boolean;
+    llm_signal_core_enabled: boolean;
+    broker_order_wiring_enabled: boolean;
+    account_access_enabled: boolean;
+    order_submission_enabled: boolean;
+    manual_human_execution_only: boolean;
+  };
+};
+
+type AiDailyItem = {
+  symbol: string;
+  action: AiAction | string;
+  confidence: string;
+  best_profile: string;
+  entry_zone: string;
+  stop_zone: string;
+  target_zone: string;
+  risk_reward: string;
+  position_size_hint: string;
+  why_now: string[];
+  risk_flags: string[];
+  hard_veto_applied?: boolean;
+};
+
+type AiDailyAgentPayload = {
+  status: "available" | "ai_unavailable" | "not_scanned" | string;
+  reason: string;
+  run_id?: string;
+  model_name?: string;
+  generated_at?: string;
+  market_date?: string;
+  is_stale?: boolean;
+  age_seconds?: number | null;
+  auto_run_recommended?: boolean;
+  auto_run_skipped?: boolean;
+  auto_run_skip_reason?: string;
+  trigger?: "auto" | "manual" | string;
+  cooldown_seconds?: number;
+  last_error?: string | null;
+  universe?: string;
+  scanned_candidate_count?: number;
+  ai_context_candidate_count?: number;
+  ai_report?: {
+    top_buy_candidates: AiDailyItem[];
+    watch_for_pullback: AiDailyItem[];
+    avoid_or_risk_elevated: AiDailyItem[];
+    mstr_cycle_update: string;
+    data_quality_warnings: string[];
+    daily_summary: string;
+  };
+  read_only_research: boolean;
+  broker_order_wiring_enabled: boolean;
 };
 
 type TradeReadinessGate = {
@@ -651,7 +755,7 @@ const copy = {
     refresh: "Run Stock Scan",
     refreshMstr: "Refresh MSTR Radar",
     readOnly: "Read-only research",
-    llmLocked: "LLM core locked",
+    llmLocked: "AI-led / hard veto",
     db: "New DB",
     buySetups: "BUY SETUP",
     watch: "WATCH",
@@ -724,7 +828,7 @@ const copy = {
     refresh: "Run Stock Scan",
     refreshMstr: "Refresh MSTR Radar",
     readOnly: "Read-only research",
-    llmLocked: "LLM core locked",
+    llmLocked: "AI-led / hard veto",
     db: "New DB",
     buySetups: "BUY SETUP",
     watch: "WATCH",
@@ -798,6 +902,7 @@ const STRATEGY_PROFILES: { key: StrategyProfileName; label: string; period: stri
   { key: "swing_1_2m_v1", label: "1-2M Swing", period: "20-40D" },
   { key: "position_6m_v1", label: "6M Position", period: "3-6M" },
   { key: "cycle_1_3y_v1", label: "1-3Y Cycle", period: "1-3Y" },
+  { key: "high_beta_growth_v1", label: "High-Beta Growth", period: "3-15D" },
 ];
 const API_BASE_URL = normalizeApiBase(String(import.meta.env.VITE_KQUANT_API_BASE_URL ?? ""));
 
@@ -1173,11 +1278,18 @@ function App() {
   const [compareState, setCompareState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiReview, setAiReview] = useState<AiReviewPayload | null>(null);
   const [aiReviewState, setAiReviewState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [aiDecision, setAiDecision] = useState<AiDecisionPayload | null>(null);
+  const [aiDecisionState, setAiDecisionState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [aiDailyReport, setAiDailyReport] = useState<AiDailyAgentPayload | null>(null);
+  const [aiDailyState, setAiDailyState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("ai");
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [searchOpen, setSearchOpen] = useState(false);
   const analyzeRequestRef = useRef(0);
   const candleRequestRef = useRef(0);
+  const autoAgentAttemptRef = useRef("");
   const text = copy[lang];
 
   const selected =
@@ -1206,8 +1318,37 @@ function App() {
   useEffect(() => {
     void loadApiHealth();
     void loadAiStatus();
+    void loadAiDailyReportLatest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (view !== "stocks") return;
+    if (!aiStatus) {
+      setAiAgentAutoRunState("checking");
+      return;
+    }
+    if (aiStatus.status !== "available") {
+      setAiAgentAutoRunState("unavailable");
+      return;
+    }
+    if (!aiDailyReport) return;
+    if (!aiDailyReport.auto_run_recommended) {
+      setAiAgentAutoRunState(aiDailyReport.auto_run_skipped ? "skipped" : "ready");
+      return;
+    }
+    const key = `${aiDailyReport.market_date ?? "unknown"}:${selectedUniverse}`;
+    if (autoAgentAttemptRef.current === key || aiAgentAutoRunState === "generating") return;
+    const lastAutoRun = Number(window.localStorage.getItem("kquant-stock:ai-daily-last-auto") || 0);
+    if (Number.isFinite(lastAutoRun) && Date.now() - lastAutoRun < 30 * 60 * 1000) {
+      setAiAgentAutoRunState("skipped");
+      return;
+    }
+    autoAgentAttemptRef.current = key;
+    window.localStorage.setItem("kquant-stock:ai-daily-last-auto", String(Date.now()));
+    void runAiDailyAgent("auto");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiStatus?.status, aiDailyReport?.auto_run_recommended, aiDailyReport?.market_date, selectedUniverse, view]);
 
   useEffect(() => {
     try {
@@ -1296,6 +1437,48 @@ function App() {
       setAiStatus((await response.json()) as AiReviewStatusPayload);
     } catch {
       setAiStatus(null);
+    }
+  }
+
+  async function loadAiDailyReportLatest() {
+    try {
+      const response = await apiFetch("/api/stocks/ai-daily-report/latest");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setAiDailyReport((await response.json()) as AiDailyAgentPayload);
+      setAiDailyState("ready");
+    } catch {
+      setAiDailyReport(null);
+      setAiDailyState("error");
+    }
+  }
+
+  async function runAiDailyAgent(trigger: "auto" | "manual" = "manual") {
+    try {
+      setAiDailyState("loading");
+      setAiAgentAutoRunState(trigger === "auto" ? "generating" : "checking");
+      const response = await apiFetch("/api/stocks/ai-daily-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trigger,
+          cooldown_seconds: 1800,
+          universe: selectedUniverse,
+          limit: selectedUniverse === "all" ? 50 : 40,
+          top_n: 8,
+          profiles: STRATEGY_PROFILES.map((profile) => profile.key),
+          model_tier: "batch",
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as AiDailyAgentPayload;
+      setAiDailyReport(payload);
+      setAiDailyState("ready");
+      setAiAgentAutoRunState(payload.auto_run_skipped ? "skipped" : "ready");
+      setApiState("api");
+    } catch {
+      setAiDailyState("error");
+      setAiAgentAutoRunState("error");
+      setApiState("fallback");
     }
   }
 
@@ -1411,6 +1594,8 @@ function App() {
     const requestId = ++analyzeRequestRef.current;
     setSelectedSymbol(symbol);
     setAnalysisState("loading");
+    setAiDecision(null);
+    setAiDecisionState("idle");
     const candlePromise = loadCandles(symbol);
     const journalPromise = loadStockJournal(symbol);
     const aiStatusPromise = loadAiStatus();
@@ -1517,6 +1702,33 @@ function App() {
     }
   }
 
+  async function requestAiDecision() {
+    try {
+      setAiDecisionState("loading");
+      const response = await apiFetch("/api/stocks/ai-decision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol: selected.symbol,
+          profile: selectedProfile,
+          model_tier: selected.profile_name === "cycle_1_3y_v1" || selected.symbol === "MSTR" ? "deep" : "review",
+          signal_payload: selected,
+          profile_comparison: profileCompare,
+          journal_context_limit: 5,
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as AiDecisionPayload;
+      setAiDecision(payload);
+      setAiDecisionState("ready");
+      setApiState("api");
+    } catch {
+      setAiDecision(null);
+      setAiDecisionState("error");
+      setApiState("fallback");
+    }
+  }
+
   async function loadCandles(symbol: string) {
     const requestId = ++candleRequestRef.current;
     setDailyCandles([]);
@@ -1589,6 +1801,31 @@ function App() {
     setMstrJournal(payload.journal as MstrJournalPayload);
   }
 
+  function openWorkspace(workspace: WorkspaceName) {
+    setActiveWorkspace(workspace);
+    if (workspace === "mstr") {
+      setView("mstr");
+      window.setTimeout(() => document.getElementById("mstr-radar-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      return;
+    }
+    if (view !== "stocks") setView("stocks");
+    const targetId =
+      workspace === "ai"
+        ? "ai-trade-desk-workspace"
+        : workspace === "search"
+          ? "stock-search-workspace"
+          : workspace === "watchlist"
+            ? "stock-watchlist-workspace"
+            : workspace === "selected"
+              ? "selected-stock-workspace"
+              : workspace === "kline"
+                ? "kline-workspace"
+                : workspace === "compare"
+                  ? "strategy-compare-workspace"
+                  : "journal-workspace";
+    window.setTimeout(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1631,19 +1868,6 @@ function App() {
             options={STRATEGY_PROFILES.map((profile) => [profile.key, profile.label])}
             onChange={(value) => setSelectedProfile(value as StrategyProfileName)}
           />
-          <Segmented
-            value={selectedUniverse}
-            options={[
-              ["default", universeOptionLabel("default", lang)],
-              ["ai_five_layer", universeOptionLabel("ai_five_layer", lang)],
-              ["all", universeOptionLabel("all", lang)],
-            ]}
-            onChange={(value) => setSelectedUniverse(value as UniverseName)}
-          />
-          <button className="primary-action" type="button" onClick={() => (view === "mstr" ? void loadMstrRadar() : void loadSignals(true))}>
-            <RefreshCw size={15} />
-            {view === "mstr" ? text.refreshMstr : text.refresh}
-          </button>
         </div>
       </header>
 
@@ -1689,7 +1913,32 @@ function App() {
         <Pill tone="neutral" icon={<BarChart3 size={14} />} label={text.noBroker} />
       </section>
 
-      <section className="research-command-panel" aria-label="Stock command search">
+      <section className="stock-workspace-shell">
+        <aside className="workspace-sidebar" aria-label="Workspace navigation">
+          {[
+            ["ai", "AI", "Trade Desk"],
+            ["search", "Search", "Research"],
+            ["watchlist", "List", "Watchlist"],
+            ["selected", "Stock", "Selected"],
+            ["kline", "Chart", "K-Line"],
+            ["compare", "Systems", "Compare"],
+            ["mstr", "MSTR", "Radar"],
+            ["journal", "Notes", "Journal"],
+          ].map(([key, short, label]) => (
+            <button
+              type="button"
+              key={key}
+              className={`workspace-nav-button ${activeWorkspace === key ? "active" : ""}`}
+              onClick={() => openWorkspace(key as WorkspaceName)}
+            >
+              <strong>{short}</strong>
+              <span>{label}</span>
+            </button>
+          ))}
+        </aside>
+        <div className="stock-workspace-main">
+
+      <section className="research-command-panel" id="stock-search-workspace" aria-label="Stock command search">
         <form
           className="symbol-command symbol-command-large"
           onSubmit={(event) => {
@@ -1779,6 +2028,25 @@ function App() {
         <span className="quick-search-note">{run.profile.label ?? selectedProfile} / {run.profile.holding_period ?? ""}</span>
       </section>
 
+      <section className="workspace-control-strip" aria-label="Universe and scan controls">
+        <Segmented
+          value={selectedUniverse}
+          options={[
+            ["default", universeOptionLabel("default", lang)],
+            ["ai_five_layer", universeOptionLabel("ai_five_layer", lang)],
+            ["all", universeOptionLabel("all", lang)],
+          ]}
+          onChange={(value) => setSelectedUniverse(value as UniverseName)}
+        />
+        <button className="primary-action" type="button" onClick={() => (view === "mstr" ? void loadMstrRadar() : void loadSignals(true))}>
+          <RefreshCw size={15} />
+          {view === "mstr" ? text.refreshMstr : text.refresh}
+        </button>
+        <span className="control-strip-note">
+          AI runs automatically when today's report is stale; scans remain manually controlled to avoid provider limits.
+        </span>
+      </section>
+
       <section className="metrics-grid">
         <Metric label={text.buySetups} value={String(run.counts.buy_setup)} tone="good" />
         <Metric label={text.watch} value={String(run.counts.watch)} tone="watch" />
@@ -1803,6 +2071,7 @@ function App() {
       </section>
 
       {view === "mstr" ? (
+        <div id="mstr-radar-workspace">
         <MstrCycleRadar
           payload={mstrRadar}
           state={mstrState}
@@ -1813,10 +2082,22 @@ function App() {
           journal={mstrJournal}
           onSaveJournal={saveMstrJournal}
         />
+        </div>
       ) : (
         <>
+      <div id="ai-trade-desk-workspace">
+      <AiTradeDesk
+        report={aiDailyReport}
+        state={aiDailyState}
+        autoRunState={aiAgentAutoRunState}
+        aiStatus={aiStatus}
+        selectedUniverse={selectedUniverse}
+        onRun={() => void runAiDailyAgent("manual")}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+      />
+      </div>
       <section className="main-grid">
-        <aside className="panel queue-panel">
+        <aside className="panel queue-panel" id="stock-watchlist-workspace">
           <PanelTitle title={text.today} detail={run.profile.name} />
           <div className="signal-list">
             {run.signals.slice(0, 24).map((signal) => (
@@ -1856,7 +2137,7 @@ function App() {
         </aside>
 
         <section className="review-stack">
-          <section className="panel selected-panel">
+          <section className="panel selected-panel" id="selected-stock-workspace">
             <PanelTitle title={text.selected} detail={`${signalLayer(selected, selectedMeta)} / ${selected.liquidity_tier ?? selectedMeta.liquidity_tier ?? "core"}`} />
             <div className="selected-row">
               <div>
@@ -1869,8 +2150,10 @@ function App() {
               conclusion={selected.trade_conclusion}
               aiReview={aiReview}
               aiReviewState={aiReviewState}
+              aiDecision={aiDecision}
+              aiDecisionState={aiDecisionState}
               aiStatus={aiStatus}
-              onReview={() => void requestAiReview()}
+              onReview={() => void requestAiDecision()}
             />
             <div className="fact-grid">
               <Fact label="Close" value={formatNumber(selected.features.close)} />
@@ -1893,14 +2176,14 @@ function App() {
               <Fact label="Risk Window" value={formatNumber(selected.score_breakdown?.risk_score)} />
               <Fact label="Exit Risk" value={selected.exit_risk?.status ?? "-"} />
             </div>
-            <div className="profile-compare-panel">
+            <div className="profile-compare-panel" id="strategy-compare-workspace">
               <div className="profile-compare-head">
                 <div>
-                  <strong>Four-System Comparison</strong>
-                  <span>Same stock, different holding periods. Use this to avoid mixing short and long systems.</span>
+                  <strong>Strategy Comparison</strong>
+                  <span>Same stock, different holding periods and risk modes. Use this to avoid mixing conservative and aggressive systems.</span>
                 </div>
                 <button type="button" onClick={() => void compareProfiles(selected.symbol)} disabled={compareState === "loading"}>
-                  {compareState === "loading" ? "Comparing..." : "Compare 4 Systems"}
+                  {compareState === "loading" ? "Comparing..." : "Compare 5 Systems"}
                 </button>
               </div>
               <div className="profile-compare-grid">
@@ -1923,7 +2206,7 @@ function App() {
             <p className="secondary-note">{text.optionsLater}</p>
           </section>
 
-          <div className="chart-grid">
+          <div className="chart-grid" id="kline-workspace">
             <ChartPanel
               title={text.daily}
               subtitle={`${selected.symbol} / ${primaryPreset.label} / ${text.dailyHint}`}
@@ -2000,12 +2283,14 @@ function App() {
             <Narrative title={text.risks} items={selected.risk_warnings} />
             <Narrative title={text.checklist} items={selected.manual_checklist} />
             <Narrative title="Risk Controls" items={selected.readiness_gate?.risk_controls ?? ["No readiness gate loaded yet."]} />
+            <div id="journal-workspace">
             <StockJournalPanel
               runId={run.run_id}
               symbol={selected.symbol}
               journal={stockJournal}
               onSave={saveStockJournal}
             />
+            </div>
             <div className="data-box">
               <h3>{text.data}</h3>
               <Fact label="Daily" value={`${selected.data_status.daily_provider_status} / ${selected.data_status.daily_candles}`} />
@@ -2058,6 +2343,8 @@ function App() {
       </section>
         </>
       )}
+        </div>
+      </section>
     </main>
   );
 }
@@ -2628,28 +2915,168 @@ function StockJournalPanel({
   );
 }
 
+function AiTradeDesk({
+  report,
+  state,
+  autoRunState,
+  aiStatus,
+  selectedUniverse,
+  onRun,
+  onPick,
+}: {
+  report: AiDailyAgentPayload | null;
+  state: "idle" | "loading" | "ready" | "error";
+  autoRunState: "idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error";
+  aiStatus: AiReviewStatusPayload | null;
+  selectedUniverse: UniverseName;
+  onRun: () => void;
+  onPick: (symbol: string) => void;
+}) {
+  const aiConnected = aiStatus?.status === "available";
+  const aiReport = report?.ai_report;
+  const top = aiReport?.top_buy_candidates ?? [];
+  const watch = aiReport?.watch_for_pullback ?? [];
+  const warnings = aiReport?.data_quality_warnings ?? [];
+  return (
+    <section className="panel ai-trade-desk">
+      <div className="ai-trade-desk-head">
+        <div>
+          <span>AI Trade Desk</span>
+          <h2>AI Daily Command Center</h2>
+          <p>
+            AI leads today's opportunity ranking and trade plans for {universeOptionLabel(selectedUniverse, "en")}; hard guardrails still veto bad data, stale providers, and order wiring.
+          </p>
+        </div>
+        <div className="ai-trade-desk-actions">
+          <Pill
+            tone={aiConnected ? "good" : "warn"}
+            icon={<Activity size={14} />}
+            label={aiConnected ? `AI Connected: ${aiStatus?.models.batch ?? "batch"}` : "AI unavailable until backend key is loaded"}
+          />
+          <button className="primary-action" type="button" onClick={onRun} disabled={state === "loading"}>
+            <RefreshCw size={15} />
+            {state === "loading" ? "Generating..." : "Regenerate AI Report"}
+          </button>
+        </div>
+      </div>
+      <div className="ai-trade-summary">
+        <Fact label="Status" value={report?.status ?? "not_scanned"} />
+        <Fact label="Auto Agent" value={autoRunState} />
+        <Fact label="Freshness" value={report?.is_stale ? `stale ${report.age_seconds ?? "-"}s` : "fresh"} />
+        <Fact label="Model" value={report?.model_name ?? aiStatus?.models.batch ?? "-"} />
+        <Fact label="Candidates" value={String(report?.ai_context_candidate_count ?? 0)} />
+        <Fact label="Read Only" value={report?.broker_order_wiring_enabled === false ? "no broker / no order" : "guarded"} />
+      </div>
+      <div className="ai-opportunity-grid">
+        <AiOpportunityColumn title="AI Buy Commands" empty="No hard-veto-clean AI buy command yet." items={top} onPick={onPick} />
+        <AiOpportunityColumn title="Watch for Pullback" empty="No AI watchlist yet." items={watch.slice(0, 5)} onPick={onPick} />
+        <AiOpportunityColumn
+          title="Data / Risk Warnings"
+          empty="No warnings loaded."
+          items={warnings.slice(0, 5).map((warning, index) => ({
+            symbol: `WARN${index + 1}`,
+            action: "AI_AVOID",
+            confidence: "LOW",
+            best_profile: "data_quality",
+            entry_zone: warning,
+            stop_zone: "",
+            target_zone: "",
+            risk_reward: "",
+            position_size_hint: "",
+            why_now: [warning],
+            risk_flags: [warning],
+          }))}
+          onPick={() => undefined}
+          passive
+        />
+      </div>
+      <p className="secondary-note">
+        {aiReport?.daily_summary ??
+          report?.last_error ??
+          report?.reason ??
+          "The dashboard checks the latest AI report on open and auto-runs once when stale and AI is available."}
+      </p>
+    </section>
+  );
+}
+
+function AiOpportunityColumn({
+  title,
+  empty,
+  items,
+  onPick,
+  passive = false,
+}: {
+  title: string;
+  empty: string;
+  items: AiDailyItem[];
+  onPick: (symbol: string) => void;
+  passive?: boolean;
+}) {
+  return (
+    <div className="ai-opportunity-column">
+      <strong>{title}</strong>
+      {items.length ? (
+        items.map((item) => (
+          <button
+            type="button"
+            className={`ai-opportunity-card ${actionClass(item.action)}`}
+            key={`${title}-${item.symbol}-${item.best_profile}`}
+            onClick={() => (!passive && item.symbol ? onPick(item.symbol) : undefined)}
+            disabled={passive}
+          >
+            <div>
+              <b>{item.symbol}</b>
+              <span>{item.action} / {item.confidence}</span>
+            </div>
+            <small>{item.best_profile || "AI plan"} / R:R {item.risk_reward || "-"}</small>
+            <p>{item.entry_zone || item.why_now?.[0] || "Open for details."}</p>
+            {item.hard_veto_applied ? <em>Hard veto applied</em> : null}
+          </button>
+        ))
+      ) : (
+        <p className="probability-note">{empty}</p>
+      )}
+    </div>
+  );
+}
+
 function ManualTradingConclusion({
   conclusion,
   aiReview,
   aiReviewState,
+  aiDecision,
+  aiDecisionState,
   aiStatus,
   onReview,
 }: {
   conclusion: StockSignal["trade_conclusion"] | undefined;
   aiReview: AiReviewPayload | null;
   aiReviewState: "idle" | "loading" | "ready" | "error";
+  aiDecision: AiDecisionPayload | null;
+  aiDecisionState: "idle" | "loading" | "ready" | "error";
   aiStatus: AiReviewStatusPayload | null;
   onReview: () => void;
 }) {
   const action = conclusion?.action ?? "DO_NOT_BUY";
   const ai = aiReview?.ai_review;
+  const decision = aiDecision?.ai_decision;
+  const displayAction = decision?.action ?? action;
+  const displaySummary = decision?.summary ?? conclusion?.decision_summary ?? "No rule conclusion loaded yet.";
   const aiConnected = aiStatus?.status === "available";
+  const aiReviewRequired =
+    conclusion?.profile_name === "high_beta_growth_v1" && (action === "BUY" || action === "WAIT");
   return (
-    <section className={`manual-conclusion ${actionClass(action)}`}>
+    <section className={`manual-conclusion ${actionClass(displayAction)}`}>
       <div className="manual-conclusion-main">
-        <span>Manual Trading Conclusion</span>
-        <strong>{action}</strong>
-        <p>{conclusion?.decision_summary ?? "No rule conclusion loaded yet."}</p>
+        <span>AI Trading Command</span>
+        <strong>{displayAction}</strong>
+        <p>{displaySummary}</p>
+        {aiReviewRequired ? (
+          <p className="compare-error">
+            AI Review Required: high-beta setups need smaller size, staged entry, volatility-aware stop, and no chasing.
+          </p>
+        ) : null}
       </div>
       <div className="manual-conclusion-facts">
         <Fact label="Confidence" value={conclusion?.confidence ?? "-"} />
@@ -2657,15 +3084,41 @@ function ManualTradingConclusion({
         <Fact label="Position" value={conclusion?.position_context ?? "no_position_assumed"} />
       </div>
       <div className="manual-conclusion-actions">
-        <button type="button" onClick={onReview} disabled={aiReviewState === "loading"}>
-          {aiReviewState === "loading" ? "Reviewing..." : aiConnected ? "AI Review" : "AI Review Setup Check"}
+        <button type="button" onClick={onReview} disabled={aiDecisionState === "loading"}>
+          {aiDecisionState === "loading" ? "Generating Command..." : aiConnected ? "Generate AI Command" : "AI Key Required"}
         </button>
         <small>
           {aiConnected
-            ? `Connected: ${aiStatus?.models.review ?? "review"} / manual trigger only.`
+            ? `Model: ${aiStatus?.models.review ?? "review"} / AI synthesizes K-lines, score, regime, historical edge, and hard veto.`
             : aiStatus?.setup_hint ?? "Missing backend OPENAI_API_KEY. Add it to the local server environment, never to frontend or GitHub."}
         </small>
       </div>
+      {aiDecisionState === "ready" && aiDecision ? (
+        <div className={`ai-decision-panel ${actionClass(decision?.action)}`}>
+          <div className="ai-review-head">
+            <strong>AI Trading Command</strong>
+            <span>{aiDecision.status} / {aiDecision.model_name}</span>
+          </div>
+          <div className="ai-review-facts">
+            <Fact label="AI Action" value={decision?.action ?? "-"} />
+            <Fact label="Confidence" value={decision?.confidence ?? "-"} />
+            <Fact label="Hard Veto" value={aiDecision.hard_veto?.active ? "active" : "clear"} />
+          </div>
+          <div className="ai-plan-grid">
+            <Fact label="Entry Zone" value={decision?.entry_zone ?? "-"} />
+            <Fact label="Stop Zone" value={decision?.stop_zone ?? "-"} />
+            <Fact label="Target Zone" value={decision?.target_zone ?? "-"} />
+            <Fact label="Risk / Reward" value={decision?.risk_reward ?? "-"} />
+            <Fact label="Size Hint" value={decision?.position_size_hint ?? "-"} />
+            <Fact label="Best Profile" value={decision?.best_profile ?? "-"} />
+          </div>
+          <Narrative title="Why Now" items={decision?.why_now?.length ? decision.why_now : ["No AI decision reasons."]} />
+          <Narrative title="Invalidation" items={decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : ["No AI invalidation."]} />
+          <Narrative title="Human Checklist" items={decision?.human_checklist?.length ? decision.human_checklist : ["Save journal before acting manually."]} />
+          {aiDecision.hard_veto?.active ? <p className="compare-error">Hard veto: {aiDecision.hard_veto.reasons.join("; ")}</p> : null}
+          <p className="secondary-note">{decision?.summary ?? aiDecision.reason}</p>
+        </div>
+      ) : null}
       <div className="manual-conclusion-detail">
         <Narrative title="Why" items={conclusion?.why?.length ? conclusion.why : ["Run analysis to load rule reasons."]} />
         <Narrative title="Blockers" items={conclusion?.blockers?.length ? conclusion.blockers : ["No hard blocker listed."]} />
@@ -2688,9 +3141,9 @@ function ManualTradingConclusion({
           <p className="secondary-note">{ai?.summary ?? aiReview.reason}</p>
         </div>
       ) : null}
-      {aiReviewState === "error" ? <p className="compare-error">AI Review request failed. Check local API and model configuration.</p> : null}
-      {!aiConnected && aiReviewState === "idle" ? (
-        <p className="compare-error">AI is not active yet. Configure OPENAI_API_KEY on the local backend, then restart the dashboard.</p>
+      {aiDecisionState === "error" ? <p className="compare-error">AI Agent request failed. Check local API and model configuration.</p> : null}
+      {!aiConnected && aiDecisionState === "idle" ? (
+        <p className="compare-error">AI command layer is not active yet. Configure OPENAI_API_KEY on the local backend, then restart the dashboard.</p>
       ) : null}
     </section>
   );
@@ -3402,10 +3855,15 @@ function buyLogicItems(signal: StockSignal, regime: MarketRegimePayload | null):
     swing_1_2m_v1: "1-2M Swing: daily EMA20/50/200 trend, weekly support, relative strength, pullback quality, volume structure, and earnings-window caution.",
     position_6m_v1: "6M Position: weekly EMA20/50 trend stability, daily EMA50/200 support, industry layer leadership, and drawdown tolerance.",
     cycle_1_3y_v1: "1-3Y Cycle: monthly/weekly trend, cycle location, 200D/40W support, long-term relative strength, and narrative or financing risk.",
+    high_beta_growth_v1: "High-Beta Growth: live data + price near EMA20/EMA50 support + above EMA200 + 1H momentum turn + looser volume + wider ATR, for small staged entries only.",
   };
+  const exitRiskPhrase =
+    profileName === "high_beta_growth_v1"
+      ? "clear exit risk or accepted high-beta pullback risk"
+      : "clear exit risk";
   return [
     `BUY SETUP requires score >= ${signal.score_breakdown?.buy_setup_threshold ?? 88}; WATCH starts at ${signal.score_breakdown?.watch_threshold ?? 65}.`,
-    "BUY also requires clean live data, readiness gate ready, positive historical edge, clear exit risk, and market regime not blocking new longs.",
+    `BUY also requires clean live data, readiness gate ready, positive historical edge, ${exitRiskPhrase}, and market regime not blocking new longs.`,
     profileRules[profileName] ?? (signal.score_breakdown?.formula || "Trend + confirmation + volume + risk window."),
     `Current rule conclusion: ${signal.trade_conclusion?.action ?? "DO_NOT_BUY"} / gate ${signal.readiness_gate?.status ?? "BLOCKED"}.`,
     `Market regime: ${regime?.label ?? "loading"} (${regime?.regime ?? "unknown"}), score ${regime?.score ?? 0}.`,
@@ -3925,9 +4383,9 @@ function levelClass(level: Level) {
 }
 
 function actionClass(action: TradeAction | string | undefined) {
-  if (action === "BUY" || action === "HOLD_TRAIL") return "buy";
-  if (action === "WAIT") return "watch";
-  if (action === "EXIT_REVIEW") return "exit";
+  if (action === "BUY" || action === "HOLD_TRAIL" || action === "AI_BUY_CANDIDATE" || action === "AI_HOLD_TRAIL") return "buy";
+  if (action === "WAIT" || action === "AI_WAIT") return "watch";
+  if (action === "EXIT_REVIEW" || action === "AI_EXIT_REVIEW") return "exit";
   return "pass";
 }
 

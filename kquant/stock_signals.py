@@ -159,6 +159,33 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
         "focus_avg_return_min": 10.0,
         "formula": "monthly/weekly cycle trend + distance from extremes + long relative strength + narrative risk",
     },
+    "high_beta_growth_v1": {
+        "name": "high_beta_growth_v1",
+        "label": "High-Beta Growth",
+        "holding_period": "3-15 trading days",
+        "buy_setup_threshold": 78,
+        "strict_buy_gate_score": 82,
+        "watch_threshold": 62,
+        "direction": "long_only",
+        "primary_range": "1y",
+        "primary_interval": "1d",
+        "confirmation_range": "5d",
+        "confirmation_interval": "1h",
+        "primary_timeframe": "1D",
+        "confirmation_timeframe": "1H",
+        "focus_window": "10D",
+        "focus_horizon_bars": 10,
+        "target_return_pct": 6.0,
+        "max_atr_pct": 12.0,
+        "max_extension_pct": 12.0,
+        "confirmation_momentum_min": 0.8,
+        "volume_ratio_min": 0.9,
+        "focus_win_rate_min": 48.0,
+        "focus_avg_return_min": 1.0,
+        "pullback_ema50_floor": 0.97,
+        "high_beta_growth": True,
+        "formula": "high-beta growth pullback + 1h momentum turn + looser volume + wider ATR risk",
+    },
 }
 PROFILE = PROFILE_CONFIGS["swing_long_v1"]
 MARKET_REGIME_SYMBOLS = {
@@ -910,13 +937,288 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
     }
 
 
+def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) -> dict[str, Any]:
+    """AI-led stock decision with deterministic guardrail vetoes.
+
+    The model is allowed to lead ranking and trade planning, but the hard veto
+    layer prevents it from turning bad data or blocked rule states into a buy.
+    """
+
+    db = db_path or default_db_path()
+    symbol = normalize_symbol(payload.get("symbol") or payload.get("signal_payload", {}).get("symbol") or "NVDA")
+    profile = str(payload.get("profile") or payload.get("signal_payload", {}).get("profile_name") or "tactical_1w_v1")
+    signal_payload = payload.get("signal_payload")
+    if not isinstance(signal_payload, dict) or not signal_payload:
+        signal_payload = api_stock_analyze(symbol=symbol, source="live", profile=profile, db_path=db)["signal"]
+    profile_comparison = payload.get("profile_comparison") if isinstance(payload.get("profile_comparison"), list) else []
+    if not profile_comparison:
+        profile_comparison = [
+            api_stock_analyze(symbol=symbol, source="live", profile=profile_key, db_path=db)["signal"]
+            for profile_key in visible_strategy_profile_keys()
+        ]
+    journal_limit = int(payload.get("journal_context_limit") or 5)
+    journal = api_stock_signal_journal(db_path=db, symbol=symbol, limit=max(1, min(journal_limit, 20)))
+    market_regime = api_stock_market_regime(source="live", db_path=db)
+    model = ai_review_model(payload)
+    context = ai_decision_context(symbol, profile, signal_payload, profile_comparison, journal, market_regime)
+    veto = ai_hard_veto(signal_payload, market_regime)
+    safety = ai_agent_safety_policy(veto)
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        decision = unavailable_ai_decision(signal_payload, veto, "OPENAI_API_KEY is not configured.")
+        return {
+            "product": "KQUANT AI Trading Agent",
+            "status": "ai_unavailable",
+            "reason": "OPENAI_API_KEY is not configured.",
+            "model_name": model,
+            "generated_at": iso_now(),
+            "input_summary": context["input_summary"],
+            "rule_conclusion": signal_payload.get("trade_conclusion", {}),
+            "ai_decision": decision,
+            "hard_veto": veto,
+            "safety_policy": safety,
+        }
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/responses",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=openai_decision_request(model, context),
+            timeout=60,
+        )
+        response.raise_for_status()
+        raw = response.json()
+        text = extract_openai_text(raw)
+        decision = sanitize_ai_decision(json.loads(text), signal_payload, veto)
+        status = "available"
+        reason = "ok"
+    except Exception as exc:
+        decision = unavailable_ai_decision(signal_payload, veto, f"AI decision request failed: {type(exc).__name__}")
+        status = "ai_unavailable"
+        reason = str(exc)[:240]
+    return {
+        "product": "KQUANT AI Trading Agent",
+        "status": status,
+        "reason": reason,
+        "model_name": model,
+        "generated_at": iso_now(),
+        "input_summary": context["input_summary"],
+        "rule_conclusion": signal_payload.get("trade_conclusion", {}),
+        "ai_decision": decision,
+        "hard_veto": veto,
+        "safety_policy": safety,
+    }
+
+
+def api_stock_ai_daily_agent(
+    payload: dict[str, Any] | None = None,
+    db_path: Path | None = None,
+    outputs_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Run the daily AI opportunity workflow.
+
+    It scans a bounded candidate set, lets AI rank/plan the opportunities, then
+    applies the same hard veto policy. Auto-trigger requests respect a local
+    cooldown so opening the dashboard does not repeatedly hit Yahoo/OpenAI.
+    """
+
+    payload = payload or {}
+    db = db_path or default_db_path()
+    outputs = outputs_dir or Path("outputs")
+    trigger = str(payload.get("trigger") or "manual").lower()
+    cooldown_seconds = max(0, min(int(payload.get("cooldown_seconds") or 1800), 86400))
+    if trigger == "auto":
+        latest = api_stock_ai_daily_report_latest(outputs_dir=outputs)
+        age_seconds = latest.get("age_seconds")
+        if (
+            latest.get("status") not in ("not_scanned", "report_unreadable")
+            and isinstance(age_seconds, int)
+            and age_seconds < cooldown_seconds
+        ):
+            return {
+                **latest,
+                "auto_run_skipped": True,
+                "auto_run_skip_reason": f"cooldown_active_{cooldown_seconds}s",
+                "trigger": trigger,
+                "cooldown_seconds": cooldown_seconds,
+            }
+    universe = str(payload.get("universe") or "all")
+    source = "live"
+    scan_limit = max(5, min(int(payload.get("limit") or 40), 80))
+    top_n = max(3, min(int(payload.get("top_n") or 8), 12))
+    profiles = payload.get("profiles")
+    if not isinstance(profiles, list) or not profiles:
+        profiles = visible_strategy_profile_keys()
+    profiles = [str(profile) for profile in profiles if str(profile) in PROFILE_CONFIGS][:5]
+    market_regime = api_stock_market_regime(source=source, db_path=db)
+    candidate_map: dict[str, dict[str, Any]] = {}
+    provider_errors: list[str] = []
+    for profile in profiles:
+        try:
+            run = api_stock_signals(
+                source=source,
+                universe=universe,
+                profile=profile,
+                db_path=db,
+                outputs_dir=outputs,
+                limit=scan_limit,
+            )
+        except Exception as exc:
+            provider_errors.append(f"{profile}: {type(exc).__name__}")
+            continue
+        provider_errors.extend(run.get("provider_errors", [])[:5])
+        for signal in run.get("signals", []):
+            if not isinstance(signal, dict):
+                continue
+            existing = candidate_map.get(signal["symbol"])
+            if existing is None or ai_candidate_sort_key(signal) > ai_candidate_sort_key(existing):
+                candidate_map[signal["symbol"]] = signal
+    candidates = sorted(candidate_map.values(), key=ai_candidate_sort_key, reverse=True)[:top_n]
+    candidate_context = [ai_daily_candidate_summary(signal, market_regime) for signal in candidates]
+    model = ai_review_model({"model_tier": payload.get("model_tier") or "batch", "model": payload.get("model") or ""})
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    run_id = f"ai-daily-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}"
+    if not api_key:
+        ai_report = unavailable_daily_ai_report(candidate_context, "OPENAI_API_KEY is not configured.")
+        status = "ai_unavailable"
+        reason = "OPENAI_API_KEY is not configured."
+    else:
+        try:
+            response = requests.post(
+                "https://api.openai.com/v1/responses",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=openai_daily_agent_request(model, {
+                    "run_id": run_id,
+                    "universe": universe,
+                    "profiles": profiles,
+                    "market_regime": market_regime,
+                    "candidates": candidate_context,
+                    "provider_errors": provider_errors[:20],
+                }),
+                timeout=90,
+            )
+            response.raise_for_status()
+            raw = response.json()
+            text = extract_openai_text(raw)
+            ai_report = sanitize_daily_ai_report(json.loads(text), candidates, market_regime)
+            status = "available"
+            reason = "ok"
+        except Exception as exc:
+            ai_report = unavailable_daily_ai_report(candidate_context, f"AI daily agent failed: {type(exc).__name__}")
+            status = "ai_unavailable"
+            reason = str(exc)[:240]
+    payload_out = {
+        "product": "KQUANT AI Daily Opportunity Agent",
+        "run_id": run_id,
+        "status": status,
+        "reason": reason,
+        "trigger": trigger,
+        "cooldown_seconds": cooldown_seconds,
+        "model_name": model,
+        "generated_at": iso_now(),
+        "market_date": ai_market_date(),
+        "is_stale": False,
+        "age_seconds": 0,
+        "auto_run_recommended": False,
+        "last_error": None if status == "available" else reason,
+        "source": source,
+        "universe": universe,
+        "profiles": profiles,
+        "scanned_candidate_count": len(candidate_map),
+        "ai_context_candidate_count": len(candidate_context),
+        "provider_errors": provider_errors[:30],
+        "market_regime": market_regime,
+        "ai_report": ai_report,
+        "hard_veto_policy": "AI may lead ranking and planning, but cannot override bad data, stale provider state, broker/order restrictions, or rule vetoes.",
+        "read_only_research": True,
+        "broker_order_wiring_enabled": False,
+        "account_access_enabled": False,
+        "order_submission_enabled": False,
+    }
+    write_ai_daily_report(outputs, payload_out)
+    return payload_out
+
+
+def api_stock_ai_daily_report_latest(outputs_dir: Path | None = None) -> dict[str, Any]:
+    outputs = outputs_dir or Path("outputs")
+    report = outputs / "ai-daily-opportunities.json"
+    if not report.exists():
+        return {
+            "product": "KQUANT AI Daily Opportunity Agent",
+            "status": "not_scanned",
+            "reason": "No AI daily opportunity report yet. The dashboard may auto-run when AI is available.",
+            "market_date": ai_market_date(),
+            "is_stale": True,
+            "age_seconds": None,
+            "auto_run_recommended": True,
+            "last_error": "not_scanned",
+            "read_only_research": True,
+            "broker_order_wiring_enabled": False,
+        }
+    try:
+        payload = json.loads(report.read_text(encoding="utf-8"))
+        return enrich_ai_daily_report_freshness(payload)
+    except json.JSONDecodeError:
+        return {
+            "product": "KQUANT AI Daily Opportunity Agent",
+            "status": "report_unreadable",
+            "reason": "Latest AI daily report is not valid JSON.",
+            "market_date": ai_market_date(),
+            "is_stale": True,
+            "age_seconds": None,
+            "auto_run_recommended": True,
+            "last_error": "report_unreadable",
+            "read_only_research": True,
+            "broker_order_wiring_enabled": False,
+        }
+
+
+def ai_market_date(now: datetime | None = None) -> str:
+    """Return a simple US-market date for the local daily agent.
+
+    The app only needs a stable day key for freshness. Using Eastern time keeps
+    reports generated after China midnight attached to the US trading session.
+    """
+
+    eastern = timezone(timedelta(hours=-4))
+    return (now or datetime.now(UTC)).astimezone(eastern).date().isoformat()
+
+
+def enrich_ai_daily_report_freshness(payload: dict[str, Any], max_age_seconds: int = 21600) -> dict[str, Any]:
+    generated_at = str(payload.get("generated_at") or "")
+    age_seconds: int | None = None
+    try:
+        generated = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+        age_seconds = max(0, int((datetime.now(UTC) - generated.astimezone(UTC)).total_seconds()))
+    except ValueError:
+        age_seconds = None
+    market_date = str(payload.get("market_date") or ai_market_date())
+    today = ai_market_date()
+    is_stale = market_date != today or age_seconds is None or age_seconds > max_age_seconds
+    status = str(payload.get("status") or "unknown")
+    last_error = payload.get("last_error") or (payload.get("reason") if status not in ("available", "not_scanned") else None)
+    return {
+        **payload,
+        "market_date": market_date,
+        "is_stale": is_stale,
+        "age_seconds": age_seconds,
+        "auto_run_recommended": is_stale,
+        "last_error": last_error,
+    }
+
+
 def api_stock_ai_review_status() -> dict[str, Any]:
     review_model = os.environ.get("KQUANT_AI_REVIEW_MODEL", "gpt-5.4").strip() or "gpt-5.4"
     batch_model = os.environ.get("KQUANT_AI_BATCH_MODEL", "gpt-5.4-mini").strip() or "gpt-5.4-mini"
     deep_model = os.environ.get("KQUANT_AI_DEEP_MODEL", "gpt-5.5").strip() or "gpt-5.5"
     has_key = bool(os.environ.get("OPENAI_API_KEY", "").strip())
     return {
-        "product": "KQUANT AI Review Assistant",
+        "product": "KQUANT AI Trading Agent",
         "status": "available" if has_key else "missing_key",
         "reason": "OPENAI_API_KEY is configured." if has_key else "OPENAI_API_KEY is not configured on the backend.",
         "setup_hint": "Set OPENAI_API_KEY in the local backend environment and restart KQUANT. Never put this key in web/, GitHub, or Vercel frontend variables.",
@@ -925,10 +1227,16 @@ def api_stock_ai_review_status() -> dict[str, Any]:
             "batch": batch_model,
             "deep": deep_model,
         },
-        "manual_trigger_only": True,
+        "manual_trigger_only": False,
+        "daily_agent_auto_check_enabled": has_key,
         "read_only_research": True,
-        "llm_signal_core_enabled": False,
-        "ai_review_only": True,
+        "llm_signal_core_enabled": True,
+        "ai_review_only": False,
+        "ai_decision_engine_enabled": has_key,
+        "daily_opportunity_agent_enabled": has_key,
+        "hard_rule_veto_enabled": True,
+        "ai_can_lead_decisions": has_key,
+        "ai_can_place_orders": False,
         "broker_order_wiring_enabled": False,
         "account_access_enabled": False,
         "order_submission_enabled": False,
@@ -1171,10 +1479,16 @@ def build_signal(
     label_samples = build_historical_label_samples(symbol, daily)
     historical_edge = estimate_historical_edge(label_samples)
     historical_edge = profile_historical_edge(historical_edge, label_samples, active_profile)
+    high_beta_growth = bool(active_profile.get("high_beta_growth"))
     trend_aligned = close > ema20 > ema50 > ema200
     trigger_confirmed = hourly_close[-1] > h_ema20 > h_ema50 and one_hour_momentum >= float(active_profile.get("confirmation_momentum_min", 0.6))
     volume_confirmed = volume_ratio >= float(active_profile.get("volume_ratio_min", 1.2))
     risk_window_ok = -2.5 <= extension_pct <= float(active_profile.get("max_extension_pct", 5.5)) and atr_pct <= float(active_profile.get("max_atr_pct", 5.0))
+    if high_beta_growth:
+        ema50_floor = float(active_profile.get("pullback_ema50_floor", 0.97))
+        trend_aligned = close >= ema50 * ema50_floor and close > ema200
+        trigger_confirmed = one_hour_momentum >= float(active_profile.get("confirmation_momentum_min", 0.8)) and hourly_close[-1] > h_ema20
+        risk_window_ok = close >= ema50 * ema50_floor and extension_pct <= float(active_profile.get("max_extension_pct", 12.0)) and atr_pct <= float(active_profile.get("max_atr_pct", 12.0))
     daily_status = daily_payload["provider_status"]
     hourly_status = hourly_payload["provider_status"]
     data_clean = daily_status == "available" and hourly_status == "available"
@@ -1189,10 +1503,13 @@ def build_signal(
         and historical_edge.get("focus_avg_return", historical_edge["avg_forward_return_5d"]) > float(active_profile.get("focus_avg_return_min", 0.4))
     )
     buy_gates = trend_aligned and trigger_confirmed and volume_confirmed and risk_window_ok and data_clean and edge_ok
-    watch_gates = score >= float(active_profile["watch_threshold"]) and close > ema50 and one_hour_momentum > -1.5 and has_real_or_internal_data
+    if high_beta_growth:
+        watch_gates = score >= float(active_profile["watch_threshold"]) and close > ema200 and one_hour_momentum > -2.0 and has_real_or_internal_data
+    else:
+        watch_gates = score >= float(active_profile["watch_threshold"]) and close > ema50 and one_hour_momentum > -1.5 and has_real_or_internal_data
     level = "BUY SETUP" if score >= float(active_profile["strict_buy_gate_score"]) and buy_gates else "WATCH" if watch_gates else "PASS"
     risks = []
-    if atr_pct > 5:
+    if atr_pct > float(active_profile.get("max_atr_pct", 5.0)):
         risks.append("ATR risk is elevated; size manually and wait for cleaner structure.")
     if extension_pct > 7:
         risks.append("Price is extended above EMA20; avoid chasing a late move.")
@@ -1223,6 +1540,7 @@ def build_signal(
         atr_pct=atr_pct,
         extension_pct=extension_pct,
         data_clean=data_clean,
+        profile=active_profile,
     )
     return {
         "symbol": symbol,
@@ -1853,8 +2171,9 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
             "",
             "## AI Review Notes",
             "",
-            "- AI Review is manual-trigger commentary only; it does not change score, level, or action conclusion.",
-            "- `llm_signal_core_enabled` remains `False`; broker and order wiring remain disabled.",
+            "- AI Trading Agent is a manual-trigger decision layer: it can rank, plan, and challenge the rule conclusion.",
+            "- Hard rule veto remains active: stale data, provider failure, blocked rule states, and broker/order restrictions cannot be overridden by AI.",
+            "- Broker and order wiring remain disabled; all AI output is read-only research for human execution.",
             "",
             "## Historical Validation",
         "",
@@ -1943,6 +2262,74 @@ def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
             ]
         )
     (outputs_dir / "stock-signals-report.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def write_ai_daily_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    public_payload = {key: value for key, value in payload.items() if not key.startswith("_")}
+    (outputs_dir / "ai-daily-opportunities.json").write_text(json.dumps(public_payload, indent=2), encoding="utf-8")
+    ai_report = payload.get("ai_report", {})
+    market = payload.get("market_regime", {})
+    lines = [
+        "# KQUANT AI Daily Opportunities",
+        "",
+        f"- Run: `{payload.get('run_id')}`",
+        f"- Status: `{payload.get('status')}` / `{payload.get('reason')}`",
+        f"- Model: `{payload.get('model_name')}`",
+        f"- Universe: `{payload.get('universe')}`",
+        f"- Profiles: `{', '.join(payload.get('profiles', []))}`",
+        f"- Candidates passed to AI: `{payload.get('ai_context_candidate_count', 0)}`",
+        f"- Market regime: `{market.get('regime', 'unknown')}` / score `{market.get('score', 0)}`",
+        f"- Read-only: `{payload.get('read_only_research')}`",
+        f"- Broker order wiring: `{payload.get('broker_order_wiring_enabled')}`",
+        "",
+        "## Daily Summary",
+        "",
+        str(ai_report.get("daily_summary") or "No AI summary."),
+        "",
+        "## Top AI Buy Candidates",
+        "",
+    ]
+    top = ai_report.get("top_buy_candidates", [])
+    if top:
+        for item in top:
+            lines.extend(
+                [
+                    f"### {item.get('symbol')} - {item.get('action')} - {item.get('confidence')}",
+                    "",
+                    f"- Best profile: `{item.get('best_profile')}`",
+                    f"- Entry: {item.get('entry_zone')}",
+                    f"- Stop: {item.get('stop_zone')}",
+                    f"- Target: {item.get('target_zone')}",
+                    f"- R/R: `{item.get('risk_reward')}`",
+                    f"- Size: {item.get('position_size_hint')}",
+                    f"- Why: {'; '.join(item.get('why_now', []))}",
+                    f"- Risk: {'; '.join(item.get('risk_flags', []))}",
+                    "",
+                ]
+            )
+    else:
+        lines.append("- None. AI did not produce a hard-veto-clean buy candidate.")
+    lines.extend(["", "## Watch for Pullback", ""])
+    for item in ai_report.get("watch_for_pullback", [])[:10]:
+        lines.append(f"- `{item.get('symbol')}` {item.get('action')} / {item.get('best_profile')}: {item.get('entry_zone')}")
+    lines.extend(["", "## Avoid / Risk Elevated", ""])
+    for item in ai_report.get("avoid_or_risk_elevated", [])[:10]:
+        lines.append(f"- `{item.get('symbol')}` {item.get('action')}: {'; '.join(item.get('risk_flags', []))}")
+    lines.extend(
+        [
+            "",
+            "## MSTR Cycle Update",
+            "",
+            str(ai_report.get("mstr_cycle_update") or "No MSTR update."),
+            "",
+            "## Data Quality Warnings",
+            "",
+        ]
+    )
+    for warning in ai_report.get("data_quality_warnings", []):
+        lines.append(f"- {warning}")
+    (outputs_dir / "ai-daily-opportunities.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def write_stock_live_data_health_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
@@ -2095,7 +2482,10 @@ def build_exit_risk(
     atr_pct: float,
     extension_pct: float,
     data_clean: bool,
+    profile: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    active_profile = profile or PROFILE
+    high_beta_growth = bool(active_profile.get("high_beta_growth"))
     reasons: list[str] = []
     status = "CLEAR"
     level = "HOLD"
@@ -2103,7 +2493,21 @@ def build_exit_risk(
         status = "DATA CAUTION"
         level = "CAUTION"
         reasons.append("Provider or freshness caution; do not rely on the setup until candles are clean.")
-    if close < ema50:
+    if high_beta_growth:
+        ema50_floor = float(active_profile.get("pullback_ema50_floor", 0.97))
+        if close < ema50 * 0.96:
+            status = "SETUP INVALIDATED"
+            level = "EXIT RISK"
+            reasons.append("High-beta structure is invalidated below the EMA50 risk floor.")
+        elif close < ema20 and one_hour_momentum >= float(active_profile.get("confirmation_momentum_min", 0.8)) and close >= ema50 * ema50_floor:
+            status = "PULLBACK RISK" if status == "CLEAR" else status
+            level = "CAUTION" if level == "HOLD" else level
+            reasons.append("High-beta pullback is below EMA20, but 1h momentum is turning up near EMA50 support.")
+        elif close < ema20:
+            status = "EXIT RISK" if status == "CLEAR" else status
+            level = "CAUTION" if level == "HOLD" else level
+            reasons.append("High-beta pullback lacks enough 1h momentum confirmation.")
+    elif close < ema50:
         status = "SETUP INVALIDATED"
         level = "EXIT RISK"
         reasons.append("Daily close is below EMA50; long setup structure is invalidated.")
@@ -2111,7 +2515,8 @@ def build_exit_risk(
         status = "EXIT RISK"
         level = "CAUTION"
         reasons.append("Daily close is below EMA20; momentum is losing the preferred trend support.")
-    if one_hour_momentum < -0.7:
+    momentum_exit = -1.5 if high_beta_growth else -0.7
+    if one_hour_momentum < momentum_exit:
         status = "EXIT RISK" if status == "CLEAR" else status
         level = "CAUTION" if level == "HOLD" else level
         reasons.append("1h momentum is negative enough to require manual risk review.")
@@ -2119,7 +2524,11 @@ def build_exit_risk(
         status = "EXIT RISK"
         level = "EXIT RISK"
         reasons.append("Downside 1h momentum is appearing with elevated volume.")
-    if atr_pct > 6:
+    if high_beta_growth and atr_pct > 12:
+        status = "HIGH VOLATILITY RISK" if status == "CLEAR" else status
+        level = "CAUTION" if level == "HOLD" else level
+        reasons.append("High-beta ATR is above the system limit; use smaller size or wait for volatility compression.")
+    elif not high_beta_growth and atr_pct > 6:
         status = "EXIT RISK" if status == "CLEAR" else status
         level = "CAUTION" if level == "HOLD" else level
         reasons.append("ATR is elevated; position risk is expanding.")
@@ -2177,6 +2586,7 @@ def build_trade_readiness(signal: dict[str, Any], market_regime: dict[str, Any])
     data_status = signal.get("data_status", {})
     historical = signal.get("historical_edge", {})
     exit_risk = signal.get("exit_risk", {})
+    high_beta_growth = signal.get("profile_name") == "high_beta_growth_v1"
     market_state = str(market_regime.get("regime", "DATA_CAUTION"))
     review_bucket = str(signal.get("review_bucket") or signal_review_bucket(signal))
     reasons: list[str] = []
@@ -2191,13 +2601,19 @@ def build_trade_readiness(signal: dict[str, Any], market_regime: dict[str, Any])
         "Skip the setup if data becomes stale, provider fails, or price gaps away.",
         "Treat WATCH as research only until the strict gate becomes ready.",
     ]
+    if high_beta_growth:
+        required_checks.append("High-beta setups require smaller size, staged entry, and AI Review before action.")
+        risk_controls.append("High-beta BUY is a manual review candidate only; use smaller size and a wider volatility-aware stop.")
     data_clean = data_status.get("data_quality") == "clean"
+    min_focus_win = 48 if high_beta_growth else 52
+    min_focus_avg = 1.0 if high_beta_growth else 0
     historical_positive = (
         historical.get("sample_count", 0) >= 10
-        and historical.get("focus_win_rate", historical.get("win_rate_5d", 0)) >= 52
-        and historical.get("focus_avg_return", historical.get("avg_forward_return_5d", 0)) > 0
+        and historical.get("focus_win_rate", historical.get("win_rate_5d", 0)) >= min_focus_win
+        and historical.get("focus_avg_return", historical.get("avg_forward_return_5d", 0)) >= min_focus_avg
     )
-    exit_clear = exit_risk.get("status") == "CLEAR"
+    acceptable_exit_statuses = {"CLEAR", "PULLBACK RISK"} if high_beta_growth else {"CLEAR"}
+    exit_clear = exit_risk.get("status") in acceptable_exit_statuses
     if not data_clean:
         reasons.append("Data quality is not clean; provider or stale-cache caution blocks readiness.")
     if market_state in {"RISK_OFF", "DATA_CAUTION"}:
@@ -2220,10 +2636,14 @@ def build_trade_readiness(signal: dict[str, Any], market_regime: dict[str, Any])
     )
     if ready:
         return {
-            "status": "READY_FOR_MANUAL_REVIEW",
+            "status": "READY_FOR_HIGH_BETA_REVIEW" if high_beta_growth else "READY_FOR_MANUAL_REVIEW",
             "ready": True,
             "market_regime": market_state,
-            "reasons": ["All strict data, historical, exit-risk, and market filters passed."],
+            "reasons": [
+                "High-beta growth gate passed; review size, staged entry, stop, and AI Review before action."
+                if high_beta_growth
+                else "All strict data, historical, exit-risk, and market filters passed."
+            ],
             "required_checks": required_checks,
             "risk_controls": risk_controls,
             "read_only_research": True,
@@ -2260,15 +2680,19 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
     historical = signal.get("historical_edge", {})
     exit_risk = signal.get("exit_risk", {})
     readiness = signal.get("readiness_gate", {})
+    high_beta_growth = signal.get("profile_name") == "high_beta_growth_v1"
     market_state = str(market_regime.get("regime", "DATA_CAUTION"))
     data_clean = data_status.get("data_quality") == "clean"
+    min_focus_win = 48 if high_beta_growth else 52
+    min_focus_avg = 1.0 if high_beta_growth else 0
     historical_positive = (
         historical.get("sample_count", 0) >= 10
-        and historical.get("focus_win_rate", historical.get("win_rate_5d", 0)) >= 52
-        and historical.get("focus_avg_return", historical.get("avg_forward_return_5d", 0)) > 0
+        and historical.get("focus_win_rate", historical.get("win_rate_5d", 0)) >= min_focus_win
+        and historical.get("focus_avg_return", historical.get("avg_forward_return_5d", 0)) >= min_focus_avg
     )
     exit_status = str(exit_risk.get("status", "DATA CAUTION"))
-    exit_clear = exit_status == "CLEAR"
+    acceptable_exit_statuses = {"CLEAR", "PULLBACK RISK"} if high_beta_growth else {"CLEAR"}
+    exit_clear = exit_status in acceptable_exit_statuses
     blockers: list[str] = []
     why: list[str] = []
     invalidation = [
@@ -2301,11 +2725,13 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
         f"Historical focus {historical.get('focus_window', 'n/a')}: win {historical.get('focus_win_rate', 0)}%, avg return {historical.get('focus_avg_return', 0)}%."
     )
     why.append(f"Exit risk status is {exit_status}.")
+    if high_beta_growth:
+        why.append("High-beta profile requires smaller size, staged entry, and AI Review before action.")
 
     if readiness.get("ready") is True and signal.get("level") == "BUY SETUP" and data_clean and historical_positive and exit_clear:
         action = "BUY"
         confidence = "HIGH" if market_state == "RISK_ON" else "MEDIUM"
-        risk_bucket = "standard_risk" if confidence == "HIGH" else "light_risk"
+        risk_bucket = "high_beta_risk" if high_beta_growth else "standard_risk" if confidence == "HIGH" else "light_risk"
         summary = f"BUY: {signal.get('strategy_label', signal.get('profile_name', 'profile'))} setup is ready for manual review."
     elif exit_status in {"EXIT RISK", "SETUP INVALIDATED", "TAKE PROFIT WATCH"}:
         action = "EXIT_REVIEW"
@@ -2315,8 +2741,12 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
     elif signal.get("level") == "WATCH" and data_clean and market_state in {"RISK_ON", "MIXED"}:
         action = "WAIT"
         confidence = "MEDIUM"
-        risk_bucket = "light_risk"
-        summary = "WAIT: setup is researchable, but one or more strict buy gates are missing."
+        risk_bucket = "high_beta_risk" if high_beta_growth else "light_risk"
+        summary = (
+            "WAIT: high-beta setup is researchable, but it still needs AI Review and staged-entry discipline."
+            if high_beta_growth
+            else "WAIT: setup is researchable, but one or more strict buy gates are missing."
+        )
     else:
         action = "DO_NOT_BUY"
         confidence = "LOW"
@@ -2328,7 +2758,7 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
         "confidence": confidence,
         "risk_bucket": risk_bucket,
         "decision_summary": summary,
-        "why": why[:5],
+        "why": why[:6],
         "blockers": blockers[:6],
         "invalidation": invalidation,
         "profile_name": signal.get("profile_name", ""),
@@ -2464,6 +2894,419 @@ def openai_review_request(model: str, context: dict[str, Any]) -> dict[str, Any]
                 "strict": True,
             }
         },
+    }
+
+
+def visible_strategy_profile_keys() -> list[str]:
+    return [
+        "tactical_1w_v1",
+        "swing_1_2m_v1",
+        "position_6m_v1",
+        "cycle_1_3y_v1",
+        "high_beta_growth_v1",
+    ]
+
+
+def ai_agent_safety_policy(veto: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "read_only_research": True,
+        "ai_leads_decision_layer": True,
+        "hard_rule_veto_enabled": True,
+        "hard_veto_active": bool(veto.get("active")),
+        "llm_signal_core_enabled": True,
+        "broker_order_wiring_enabled": False,
+        "account_access_enabled": False,
+        "order_submission_enabled": False,
+        "manual_human_execution_only": True,
+    }
+
+
+def ai_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
+    data_status = signal.get("data_status", {})
+    trade_conclusion = signal.get("trade_conclusion", {})
+    exit_risk = signal.get("exit_risk", {})
+    historical = signal.get("historical_edge", {})
+    reasons: list[str] = []
+    data_quality = data_status.get("data_quality")
+    daily_status = data_status.get("daily_provider_status")
+    hourly_status = data_status.get("hourly_provider_status")
+    if data_quality != "clean":
+        reasons.append(f"data_quality={data_quality or 'missing'}")
+    if daily_status != "available" or hourly_status != "available":
+        reasons.append(f"provider daily={daily_status or 'missing'} hourly={hourly_status or 'missing'}")
+    if int(data_status.get("daily_candles") or 0) <= 0 or int(data_status.get("hourly_candles") or 0) <= 0:
+        reasons.append("missing live candles")
+    market_state = str(market_regime.get("regime", "DATA_CAUTION"))
+    if market_state in {"RISK_OFF", "DATA_CAUTION"}:
+        reasons.append(f"market_regime={market_state}")
+    exit_status = str(exit_risk.get("status", "DATA CAUTION"))
+    if exit_status in {"EXIT RISK", "SETUP INVALIDATED", "DATA CAUTION"}:
+        reasons.append(f"exit_risk={exit_status}")
+    if trade_conclusion.get("action") in {"DO_NOT_BUY", "EXIT_REVIEW"}:
+        reasons.append(f"rule_action={trade_conclusion.get('action')}")
+    focus_win = float(historical.get("focus_win_rate", historical.get("win_rate_5d", 0)) or 0)
+    focus_avg = float(historical.get("focus_avg_return", historical.get("avg_forward_return_5d", 0)) or 0)
+    if focus_win < 45 or focus_avg < -1:
+        reasons.append(f"weak_historical_edge win={round(focus_win, 1)} avg={round(focus_avg, 2)}")
+    return {
+        "active": bool(reasons),
+        "reasons": reasons[:8],
+        "can_ai_buy": not reasons,
+        "policy": "AI_BUY_CANDIDATE is blocked when live data, market regime, exit risk, rule action, or historical edge fails.",
+    }
+
+
+def ai_decision_context(
+    symbol: str,
+    profile: str,
+    signal: dict[str, Any],
+    profile_comparison: list[Any],
+    journal: dict[str, Any],
+    market_regime: dict[str, Any],
+) -> dict[str, Any]:
+    base = ai_review_context(symbol, profile, signal, profile_comparison, journal)
+    base["market_regime"] = {
+        "regime": market_regime.get("regime"),
+        "label": market_regime.get("label"),
+        "score": market_regime.get("score"),
+        "high_confidence_allowed": market_regime.get("high_confidence_allowed"),
+        "reasons": market_regime.get("reasons", [])[:5],
+    }
+    base["hard_veto"] = ai_hard_veto(signal, market_regime)
+    base["task"] = (
+        "Lead the manual trading decision. Produce a practical entry/stop/target plan, "
+        "but respect hard vetoes and never propose automatic execution."
+    )
+    return base
+
+
+def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, Any]:
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"],
+            },
+            "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+            "risk_bucket": {"type": "string", "enum": ["standard_risk", "light_risk", "high_beta_risk", "avoid"]},
+            "entry_zone": {"type": "string"},
+            "stop_zone": {"type": "string"},
+            "target_zone": {"type": "string"},
+            "risk_reward": {"type": "string"},
+            "position_size_hint": {"type": "string"},
+            "why_now": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
+            "what_invalidates_this_setup": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
+            "best_profile": {"type": "string"},
+            "human_checklist": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
+            "summary": {"type": "string"},
+        },
+        "required": [
+            "action",
+            "confidence",
+            "risk_bucket",
+            "entry_zone",
+            "stop_zone",
+            "target_zone",
+            "risk_reward",
+            "position_size_hint",
+            "why_now",
+            "what_invalidates_this_setup",
+            "best_profile",
+            "human_checklist",
+            "summary",
+        ],
+    }
+    system = (
+        "You are KQUANT AI Trading Agent. You lead the manual trading decision layer, "
+        "but you are strictly read-only. Use the provided live-data signal, profile comparison, "
+        "historical edge, market regime, and hard veto. If hard_veto.active is true, do not output "
+        "AI_BUY_CANDIDATE. Never place orders, never access broker accounts, and never promise profit. "
+        "Return concise, actionable, risk-aware planning for a human trader."
+    )
+    return {
+        "model": model,
+        "input": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": json.dumps(context, ensure_ascii=False)},
+        ],
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "kquant_ai_decision",
+                "schema": schema,
+                "strict": True,
+            }
+        },
+    }
+
+
+def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto: dict[str, Any]) -> dict[str, Any]:
+    allowed_actions = {"AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"}
+    action = decision.get("action") if decision.get("action") in allowed_actions else "AI_WAIT"
+    rule_action = (signal.get("trade_conclusion") or {}).get("action", "DO_NOT_BUY")
+    if veto.get("active") and action == "AI_BUY_CANDIDATE":
+        action = "AI_EXIT_REVIEW" if rule_action == "EXIT_REVIEW" else "AI_AVOID"
+    if rule_action == "EXIT_REVIEW" and action == "AI_BUY_CANDIDATE":
+        action = "AI_EXIT_REVIEW"
+    allowed_confidence = {"HIGH", "MEDIUM", "LOW"}
+    confidence = decision.get("confidence") if decision.get("confidence") in allowed_confidence else "LOW"
+    if veto.get("active") and confidence == "HIGH":
+        confidence = "LOW"
+    risk_bucket = decision.get("risk_bucket")
+    if risk_bucket not in {"standard_risk", "light_risk", "high_beta_risk", "avoid"}:
+        risk_bucket = "avoid" if veto.get("active") else "light_risk"
+    if veto.get("active") and action in {"AI_AVOID", "AI_EXIT_REVIEW"}:
+        risk_bucket = "avoid"
+    return {
+        "action": action,
+        "confidence": confidence,
+        "risk_bucket": risk_bucket,
+        "entry_zone": str(decision.get("entry_zone") or "Wait for a cleaner live-data setup.")[:180],
+        "stop_zone": str(decision.get("stop_zone") or "Define stop before any manual action.")[:180],
+        "target_zone": str(decision.get("target_zone") or "No target until setup quality improves.")[:180],
+        "risk_reward": str(decision.get("risk_reward") or "not_available")[:80],
+        "position_size_hint": str(decision.get("position_size_hint") or "manual sizing only; no automatic order")[:160],
+        "why_now": safe_string_list(decision.get("why_now"), 6),
+        "what_invalidates_this_setup": safe_string_list(decision.get("what_invalidates_this_setup"), 6),
+        "best_profile": str(decision.get("best_profile") or signal.get("profile_name") or "")[:80],
+        "human_checklist": safe_string_list(decision.get("human_checklist"), 6),
+        "summary": str(decision.get("summary") or "AI decision generated for manual review only.")[:600],
+        "rule_action": rule_action,
+        "hard_veto_applied": bool(veto.get("active")),
+        "hard_veto_reasons": veto.get("reasons", []),
+        "read_only_research": True,
+        "broker_order_wiring_enabled": False,
+        "order_submission_enabled": False,
+    }
+
+
+def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason: str) -> dict[str, Any]:
+    rule_action = (signal.get("trade_conclusion") or {}).get("action", "DO_NOT_BUY")
+    if rule_action == "BUY" and not veto.get("active"):
+        action = "AI_WAIT"
+    elif rule_action == "EXIT_REVIEW":
+        action = "AI_EXIT_REVIEW"
+    elif veto.get("active"):
+        action = "AI_AVOID"
+    else:
+        action = "AI_WAIT"
+    return {
+        "action": action,
+        "confidence": "LOW",
+        "risk_bucket": "avoid" if veto.get("active") else "light_risk",
+        "entry_zone": "AI unavailable; use rule setup and live K-lines only.",
+        "stop_zone": "No AI stop plan. Define manually before any trade.",
+        "target_zone": "No AI target plan. Define manually before any trade.",
+        "risk_reward": "unavailable",
+        "position_size_hint": "AI unavailable; keep manual sizing conservative.",
+        "why_now": [
+            "AI Trading Agent is unavailable.",
+            "Rule system and live-data guardrails remain active.",
+        ],
+        "what_invalidates_this_setup": veto.get("reasons", [])[:4] or ["Provider/data/risk state worsens."],
+        "best_profile": signal.get("profile_name", ""),
+        "human_checklist": [
+            "Confirm live candles are available.",
+            "Check rule conclusion, market regime, and exit risk.",
+            "Save a journal plan before acting manually.",
+        ],
+        "summary": reason,
+        "rule_action": rule_action,
+        "hard_veto_applied": bool(veto.get("active")),
+        "hard_veto_reasons": veto.get("reasons", []),
+        "read_only_research": True,
+        "broker_order_wiring_enabled": False,
+        "order_submission_enabled": False,
+    }
+
+
+def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
+    action = (signal.get("trade_conclusion") or {}).get("action", "")
+    action_bonus = {"BUY": 30, "WAIT": 16, "HOLD_TRAIL": 10, "EXIT_REVIEW": 4, "DO_NOT_BUY": 0}.get(action, 0)
+    edge = signal.get("historical_edge", {})
+    return (
+        float(signal.get("score", 0) or 0) + action_bonus,
+        float(edge.get("focus_avg_return", edge.get("avg_forward_return_5d", 0)) or 0),
+        float(edge.get("focus_win_rate", edge.get("win_rate_5d", 0)) or 0),
+    )
+
+
+def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
+    veto = ai_hard_veto(signal, market_regime)
+    return {
+        "symbol": signal.get("symbol"),
+        "profile_name": signal.get("profile_name"),
+        "strategy_label": signal.get("strategy_label"),
+        "holding_period": signal.get("holding_period"),
+        "layer": signal.get("primary_layer"),
+        "level": signal.get("level"),
+        "score": signal.get("score"),
+        "rule_action": (signal.get("trade_conclusion") or {}).get("action"),
+        "risk_bucket": (signal.get("trade_conclusion") or {}).get("risk_bucket"),
+        "trend_summary": signal.get("trend_summary"),
+        "trigger_summary": signal.get("trigger_summary"),
+        "exit_risk": (signal.get("exit_risk") or {}).get("status"),
+        "historical_edge": {
+            "window": (signal.get("historical_edge") or {}).get("focus_window"),
+            "win_rate": (signal.get("historical_edge") or {}).get("focus_win_rate"),
+            "avg_return": (signal.get("historical_edge") or {}).get("focus_avg_return"),
+            "sample_count": (signal.get("historical_edge") or {}).get("focus_sample_count"),
+        },
+        "data_status": signal.get("data_status"),
+        "hard_veto": veto,
+    }
+
+
+def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str, Any]:
+    item_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "symbol": {"type": "string"},
+            "action": {"type": "string", "enum": ["AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"]},
+            "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+            "best_profile": {"type": "string"},
+            "entry_zone": {"type": "string"},
+            "stop_zone": {"type": "string"},
+            "target_zone": {"type": "string"},
+            "risk_reward": {"type": "string"},
+            "position_size_hint": {"type": "string"},
+            "why_now": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 4},
+            "risk_flags": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 5},
+        },
+        "required": [
+            "symbol",
+            "action",
+            "confidence",
+            "best_profile",
+            "entry_zone",
+            "stop_zone",
+            "target_zone",
+            "risk_reward",
+            "position_size_hint",
+            "why_now",
+            "risk_flags",
+        ],
+    }
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "top_buy_candidates": {"type": "array", "items": item_schema, "maxItems": 5},
+            "watch_for_pullback": {"type": "array", "items": item_schema, "maxItems": 8},
+            "avoid_or_risk_elevated": {"type": "array", "items": item_schema, "maxItems": 8},
+            "mstr_cycle_update": {"type": "string"},
+            "data_quality_warnings": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 8},
+            "daily_summary": {"type": "string"},
+        },
+        "required": [
+            "top_buy_candidates",
+            "watch_for_pullback",
+            "avoid_or_risk_elevated",
+            "mstr_cycle_update",
+            "data_quality_warnings",
+            "daily_summary",
+        ],
+    }
+    system = (
+        "You are KQUANT Daily Opportunity Agent. Rank a small set of manual trading opportunities. "
+        "Respect hard_veto: candidates with hard_veto.active cannot be top_buy_candidates. "
+        "No broker, no account access, no order placement, no profit promises. Be concise and practical."
+    )
+    return {
+        "model": model,
+        "input": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": json.dumps(context, ensure_ascii=False)},
+        ],
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "kquant_ai_daily_opportunities",
+                "schema": schema,
+                "strict": True,
+            }
+        },
+    }
+
+
+def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, Any]], market_regime: dict[str, Any]) -> dict[str, Any]:
+    by_symbol = {signal.get("symbol"): signal for signal in candidates}
+
+    def sanitize_items(items: Any, allow_buy: bool) -> list[dict[str, Any]]:
+        sanitized: list[dict[str, Any]] = []
+        if not isinstance(items, list):
+            return sanitized
+        for item in items[:8]:
+            if not isinstance(item, dict):
+                continue
+            symbol = normalize_symbol(item.get("symbol", ""))
+            signal = by_symbol.get(symbol)
+            veto = ai_hard_veto(signal, market_regime) if signal else {"active": True, "reasons": ["symbol not in rule candidate set"]}
+            action = item.get("action") if item.get("action") in {"AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"} else "AI_WAIT"
+            if veto.get("active") and action == "AI_BUY_CANDIDATE":
+                action = "AI_AVOID"
+            if action == "AI_BUY_CANDIDATE" and not allow_buy:
+                action = "AI_WAIT"
+            sanitized.append(
+                {
+                    "symbol": symbol,
+                    "action": action,
+                    "confidence": item.get("confidence") if item.get("confidence") in {"HIGH", "MEDIUM", "LOW"} else "LOW",
+                    "best_profile": str(item.get("best_profile") or (signal or {}).get("profile_name") or "")[:80],
+                    "entry_zone": str(item.get("entry_zone") or "")[:160],
+                    "stop_zone": str(item.get("stop_zone") or "")[:160],
+                    "target_zone": str(item.get("target_zone") or "")[:160],
+                    "risk_reward": str(item.get("risk_reward") or "")[:80],
+                    "position_size_hint": str(item.get("position_size_hint") or "manual sizing only")[:160],
+                    "why_now": safe_string_list(item.get("why_now"), 4),
+                    "risk_flags": safe_string_list(item.get("risk_flags"), 5) + list(veto.get("reasons", [])[:3]),
+                    "hard_veto_applied": bool(veto.get("active")),
+                }
+            )
+        return sanitized
+
+    return {
+        "top_buy_candidates": sanitize_items(report.get("top_buy_candidates"), allow_buy=True)[:5],
+        "watch_for_pullback": sanitize_items(report.get("watch_for_pullback"), allow_buy=False)[:8],
+        "avoid_or_risk_elevated": sanitize_items(report.get("avoid_or_risk_elevated"), allow_buy=False)[:8],
+        "mstr_cycle_update": str(report.get("mstr_cycle_update") or "MSTR cycle update not generated.")[:500],
+        "data_quality_warnings": safe_string_list(report.get("data_quality_warnings"), 8),
+        "daily_summary": str(report.get("daily_summary") or "AI daily opportunity report generated for manual review only.")[:700],
+    }
+
+
+def unavailable_daily_ai_report(candidates: list[dict[str, Any]], reason: str) -> dict[str, Any]:
+    watch = []
+    avoid = []
+    for candidate in candidates[:8]:
+        item = {
+            "symbol": candidate.get("symbol", ""),
+            "action": "AI_WAIT" if not candidate.get("hard_veto", {}).get("active") else "AI_AVOID",
+            "confidence": "LOW",
+            "best_profile": candidate.get("profile_name", ""),
+            "entry_zone": "AI unavailable; use rule system and live K-lines only.",
+            "stop_zone": "Define manually before acting.",
+            "target_zone": "Define manually before acting.",
+            "risk_reward": "unavailable",
+            "position_size_hint": "manual sizing only",
+            "why_now": [candidate.get("trigger_summary") or "Rule candidate was shortlisted."],
+            "risk_flags": candidate.get("hard_veto", {}).get("reasons", [])[:5] or ["AI unavailable"],
+            "hard_veto_applied": bool(candidate.get("hard_veto", {}).get("active")),
+        }
+        if item["action"] == "AI_WAIT":
+            watch.append(item)
+        else:
+            avoid.append(item)
+    return {
+        "top_buy_candidates": [],
+        "watch_for_pullback": watch,
+        "avoid_or_risk_elevated": avoid,
+        "mstr_cycle_update": "AI unavailable; review MSTR Cycle Radar manually.",
+        "data_quality_warnings": [reason],
+        "daily_summary": "AI Daily Agent is unavailable. Rule shortlist is shown without AI-led ranking.",
     }
 
 
@@ -2822,16 +3665,18 @@ def signal_review_bucket(signal: dict[str, Any]) -> str:
     data = signal.get("data_status") or {}
     edge = signal.get("historical_edge") or {}
     exit_risk = signal.get("exit_risk") or {}
+    high_beta_growth = signal.get("profile_name") == "high_beta_growth_v1"
     clean_data = (
         data.get("data_quality") == "clean"
         and data.get("daily_provider_status") == "available"
         and data.get("hourly_provider_status") == "available"
     )
+    acceptable_exit_statuses = {"CLEAR", "PULLBACK RISK"} if high_beta_growth else {"CLEAR"}
     if (
         signal.get("level") == "BUY SETUP"
         and clean_data
         and edge.get("profile_verdict", edge.get("verdict")) == "positive"
-        and exit_risk.get("status") == "CLEAR"
+        and exit_risk.get("status") in acceptable_exit_statuses
     ):
         return "high_priority"
     if signal.get("level") == "PASS":
@@ -2845,17 +3690,20 @@ def downgraded_reasons(signal: dict[str, Any]) -> list[str]:
     edge = signal.get("historical_edge") or {}
     exit_risk = signal.get("exit_risk") or {}
     features = signal.get("features") or {}
+    high_beta_growth = signal.get("profile_name") == "high_beta_growth_v1"
     if data.get("data_quality") != "clean":
         reasons.append("data quality is not clean")
     if data.get("daily_provider_status") != "available" or data.get("hourly_provider_status") != "available":
         reasons.append("provider degraded or using stale cache")
     if edge.get("profile_verdict", edge.get("verdict")) != "positive":
         reasons.append("profile historical edge is not positive")
-    if exit_risk.get("status") not in (None, "CLEAR"):
+    acceptable_exit_statuses = (None, "CLEAR", "PULLBACK RISK") if high_beta_growth else (None, "CLEAR")
+    if exit_risk.get("status") not in acceptable_exit_statuses:
         reasons.append(f"exit risk is {exit_risk.get('status')}")
     if float(features.get("extension_pct", 0.0) or 0.0) > 8:
         reasons.append("price is extended above EMA20")
-    if float(features.get("atr_pct", 0.0) or 0.0) > 5:
+    atr_limit = 12 if high_beta_growth else 5
+    if float(features.get("atr_pct", 0.0) or 0.0) > atr_limit:
         reasons.append("ATR risk is elevated")
     if signal.get("level") == "PASS":
         reasons.append("score or trend confirmation is below watch threshold")

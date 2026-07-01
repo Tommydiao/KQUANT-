@@ -78,6 +78,15 @@ python -m btc_eth_15m.dashboard.stdlib_server --host 127.0.0.1 --port 8001
 
 Windows stock-terminal launcher:
 
+Daily one-click startup:
+
+```powershell
+.\KQUANT_START.cmd
+```
+
+This restarts any stale `8001` backend, opens the browser, and keeps the log
+window open. For manual startup without killing an existing backend:
+
 ```powershell
 .\start_kquant_stock_terminal.ps1
 ```
@@ -88,8 +97,15 @@ AI Review is a manual-trigger, read-only review layer. It can summarize risk,
 ask review questions, and suggest R/R improvements, but it does not change the
 rule score, does not trigger scans, and has no broker/order path.
 
-Configure keys only in the local backend environment before starting the
-dashboard:
+Recommended first-time setup:
+
+```powershell
+.\setup_kquant_ai_key.ps1
+```
+
+This stores the key in the Windows user environment. New terminal windows and
+`KQUANT_START.cmd` will pick it up automatically. You can still configure keys
+only for the current PowerShell session if needed:
 
 ```powershell
 $env:OPENAI_API_KEY="..."

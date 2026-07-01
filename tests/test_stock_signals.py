@@ -6,6 +6,9 @@ import pytest
 
 from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
 from kquant.stock_signals import (
+    api_stock_ai_daily_agent,
+    api_stock_ai_daily_report_latest,
+    api_stock_ai_decision,
     api_stock_ai_review,
     api_stock_ai_review_status,
     api_stock_analyze,
@@ -76,7 +79,9 @@ def test_ai_review_status_without_key_is_safe(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     payload = api_stock_ai_review_status()
     assert payload["status"] == "missing_key"
-    assert payload["llm_signal_core_enabled"] is False
+    assert payload["llm_signal_core_enabled"] is True
+    assert payload["ai_decision_engine_enabled"] is False
+    assert payload["hard_rule_veto_enabled"] is True
     assert payload["broker_order_wiring_enabled"] is False
 
 
@@ -204,7 +209,15 @@ def test_fixture_ai_five_layer_signal_run_has_transparent_fields(tmp_path: Path)
     assert first["primary_layer"] in {"Energy", "Chips", "Infrastructure", "Models", "Applications"}
     assert first["liquidity_tier"] in {"core", "high_beta"}
     assert first["score_breakdown"]["total_score"] == first["score"]
-    assert first["exit_risk"]["status"] in {"CLEAR", "DATA CAUTION", "EXIT RISK", "SETUP INVALIDATED", "TAKE PROFIT WATCH"}
+    assert first["exit_risk"]["status"] in {
+        "CLEAR",
+        "DATA CAUTION",
+        "EXIT RISK",
+        "SETUP INVALIDATED",
+        "TAKE PROFIT WATCH",
+        "PULLBACK RISK",
+        "HIGH VOLATILITY RISK",
+    }
 
 
 def test_all_strategy_profiles_return_profile_specific_fields(tmp_path: Path) -> None:
@@ -213,6 +226,7 @@ def test_all_strategy_profiles_return_profile_specific_fields(tmp_path: Path) ->
         "swing_1_2m_v1": "20-40 trading days",
         "position_6m_v1": "3-6 months",
         "cycle_1_3y_v1": "1-3 years",
+        "high_beta_growth_v1": "3-15 trading days",
     }
     for profile, holding_period in profiles.items():
         payload = api_stock_signals(
@@ -238,6 +252,24 @@ def test_all_strategy_profiles_return_profile_specific_fields(tmp_path: Path) ->
         assert first["trade_conclusion"]["llm_signal_core_enabled"] is False
         assert "focus_window" in first["historical_edge"]
         assert first["historical_edge"]["profile_note"].startswith("Profile edge")
+
+
+def test_high_beta_growth_profile_is_separate_aggressive_system(tmp_path: Path) -> None:
+    payload = api_stock_analyze(
+        "RKLB",
+        source="fixture",
+        profile="high_beta_growth_v1",
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    signal = payload["signal"]
+    assert payload["profile"]["name"] == "high_beta_growth_v1"
+    assert payload["profile"]["label"] == "High-Beta Growth"
+    assert payload["profile"]["max_atr_pct"] == 12.0
+    assert signal["profile_name"] == "high_beta_growth_v1"
+    assert signal["holding_period"] == "3-15 trading days"
+    assert "high-beta" in signal["score_breakdown"]["formula"]
+    assert signal["trade_conclusion"]["llm_signal_core_enabled"] is False
+    assert signal["trade_conclusion"]["broker_order_wiring_enabled"] is False
 
 
 def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> None:
@@ -321,6 +353,107 @@ def test_ai_review_parses_openai_response_without_overriding_rule(tmp_path: Path
     assert payload["ai_review"]["does_not_override_rule_conclusion"] is True
     assert payload["rule_conclusion"] == signal["trade_conclusion"]
     assert payload["safety_policy"]["llm_signal_core_enabled"] is False
+
+
+def test_ai_decision_without_key_is_agent_fallback_and_read_only(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+    payload = api_stock_ai_decision(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "journal_context_limit": 5,
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["status"] == "ai_unavailable"
+    assert payload["product"] == "KQUANT AI Trading Agent"
+    assert payload["ai_decision"]["action"] in {"AI_WAIT", "AI_AVOID", "AI_EXIT_REVIEW"}
+    assert payload["ai_decision"]["broker_order_wiring_enabled"] is False
+    assert payload["safety_policy"]["ai_leads_decision_layer"] is True
+    assert payload["safety_policy"]["order_submission_enabled"] is False
+
+
+def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+    signal["data_status"]["data_quality"] = "caution"
+    signal["data_status"]["daily_provider_status"] = "provider_failed"
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "action": "AI_BUY_CANDIDATE",
+                        "confidence": "HIGH",
+                        "risk_bucket": "standard_risk",
+                        "entry_zone": "Buy near support.",
+                        "stop_zone": "Below support.",
+                        "target_zone": "Prior high.",
+                        "risk_reward": "2.5R",
+                        "position_size_hint": "small",
+                        "why_now": ["Momentum is improving.", "Trend is supportive."],
+                        "what_invalidates_this_setup": ["Provider fails.", "Price loses support."],
+                        "best_profile": "tactical_1w_v1",
+                        "human_checklist": ["Check live K-line.", "Save journal."],
+                        "summary": "Model wants buy.",
+                    }
+                )
+            }
+
+    monkeypatch.setattr("kquant.stock_signals.requests.post", lambda *args, **kwargs: Response())
+    payload = api_stock_ai_decision(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "model_tier": "review",
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["status"] == "available"
+    assert payload["hard_veto"]["active"] is True
+    assert payload["ai_decision"]["action"] != "AI_BUY_CANDIDATE"
+    assert payload["ai_decision"]["hard_veto_applied"] is True
+    assert payload["ai_decision"]["confidence"] != "HIGH"
+
+
+def test_ai_daily_agent_without_key_writes_read_only_report(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+
+    def fake_signals(*args, **kwargs):
+        return {
+            "signals": [signal],
+            "provider_errors": [],
+        }
+
+    monkeypatch.setattr("kquant.stock_signals.api_stock_signals", fake_signals)
+    monkeypatch.setattr(
+        "kquant.stock_signals.api_stock_market_regime",
+        lambda *args, **kwargs: {"regime": "RISK_ON", "score": 70, "high_confidence_allowed": True, "reasons": []},
+    )
+    payload = api_stock_ai_daily_agent(
+        {
+            "universe": "default",
+            "limit": 5,
+            "top_n": 3,
+            "profiles": ["tactical_1w_v1"],
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+    )
+    assert payload["status"] == "ai_unavailable"
+    assert payload["broker_order_wiring_enabled"] is False
+    assert payload["ai_report"]["top_buy_candidates"] == []
+    assert (tmp_path / "outputs" / "ai-daily-opportunities.json").exists()
+    latest = api_stock_ai_daily_report_latest(outputs_dir=tmp_path / "outputs")
+    assert latest["run_id"] == payload["run_id"]
 
 
 def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: Path, monkeypatch) -> None:

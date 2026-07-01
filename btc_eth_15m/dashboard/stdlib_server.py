@@ -49,6 +49,9 @@ from btc_eth_15m.options_snapshots import (
     latest_price_history_payload,
 )
 from kquant.stock_signals import (
+    api_stock_ai_daily_agent,
+    api_stock_ai_daily_report_latest,
+    api_stock_ai_decision,
     api_stock_ai_review,
     api_stock_ai_review_status,
     api_stock_analyze,
@@ -823,6 +826,18 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/stocks/ai-review":
                 self.send_json(api_stock_ai_review(self.read_json_body(), db_path=self.dashboard.stock_db_path))
                 return
+            if path == "/api/stocks/ai-decision":
+                self.send_json(api_stock_ai_decision(self.read_json_body(), db_path=self.dashboard.stock_db_path))
+                return
+            if path == "/api/stocks/ai-daily-agent":
+                self.send_json(
+                    api_stock_ai_daily_agent(
+                        self.read_json_body(),
+                        db_path=self.dashboard.stock_db_path,
+                        outputs_dir=self.dashboard.outputs_dir,
+                    )
+                )
+                return
             if path == "/api/options/order-intents":
                 self.send_json(
                     create_option_order_intent(
@@ -940,6 +955,8 @@ class Handler(BaseHTTPRequestHandler):
             return api_stock_provider_health(db_path=self.dashboard.stock_db_path)
         if path == "/api/stocks/ai-review/status":
             return api_stock_ai_review_status()
+        if path == "/api/stocks/ai-daily-report/latest":
+            return api_stock_ai_daily_report_latest(outputs_dir=self.dashboard.outputs_dir)
         if path == "/api/stocks/analyze":
             source = stock_live_only_source(query)
             return api_stock_analyze(

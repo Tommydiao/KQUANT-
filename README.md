@@ -89,6 +89,26 @@ Runtime data is stored in:
 
 ## Start the Local Terminal
 
+Daily startup:
+
+```powershell
+.\KQUANT_START.cmd
+```
+
+The launcher restarts any stale `8001` backend, opens
+`http://127.0.0.1:8001/`, and keeps the terminal window open for logs.
+
+First-time AI Review setup:
+
+```powershell
+.\setup_kquant_ai_key.ps1
+```
+
+This stores `OPENAI_API_KEY` in your Windows user environment, not in GitHub or
+the frontend. Rotate the key if it has ever appeared in screenshots or chat.
+
+Manual startup remains available:
+
 ```powershell
 .\start_kquant_stock_terminal.ps1
 ```
@@ -138,8 +158,11 @@ The local Python dashboard exposes:
 - `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=live`
 - `GET /api/stocks/signals?source=live&universe=ai_five_layer&profile=swing_long_v1`
 - `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=tactical_1w_v1`
-- `POST /api/stocks/ai-review`
+- `POST /api/stocks/ai-review` (legacy review/commentary endpoint)
+- `POST /api/stocks/ai-decision`
+- `POST /api/stocks/ai-daily-agent`
 - `GET /api/stocks/ai-review/status`
+- `GET /api/stocks/ai-daily-report/latest`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
 - `GET /api/stocks/live-data-health?universes=default,ai_five_layer&limit=20`
@@ -148,9 +171,13 @@ The local Python dashboard exposes:
 
 Each stock candle payload includes source, provider status, freshness, and
 provider errors. Stock signal payloads include score breakdown, AI layer, and
-manual exit-risk reminders. Live failures are surfaced as stale real cache,
-provider failed, or unavailable status; the live path never silently mixes
-fixture candles. Internal fixture helpers are reserved for deterministic tests.
+manual exit-risk reminders. The AI Trading Agent can rank opportunities and
+generate entry/stop/target plans, but a deterministic hard-veto layer blocks
+AI buy candidates when live data, provider status, market regime, or exit-risk
+guardrails fail. Broker, account, and order wiring remain disabled. Live
+failures are surfaced as stale real cache, provider failed, or unavailable
+status; the live path never silently mixes fixture candles. Internal fixture
+helpers are reserved for deterministic tests.
 
 The MSTR Cycle Radar uses MSTR and BTC-USD as live/reference market data, but
 does not restore BTC/ETH trading as a product path. It is read-only and reports

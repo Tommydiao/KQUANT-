@@ -429,6 +429,217 @@ p {
   padding: 16px 0 12px;
 }
 
+.stock-workspace-shell {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.workspace-sidebar {
+  position: sticky;
+  top: 86px;
+  z-index: 15;
+  display: grid;
+  gap: 8px;
+  max-height: calc(100vh - 104px);
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.workspace-nav-button {
+  display: grid;
+  gap: 3px;
+  min-height: 56px;
+  padding: 8px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+}
+
+.workspace-nav-button strong {
+  color: var(--strong);
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.workspace-nav-button span {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-nav-button.active,
+.workspace-nav-button:hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface-soft));
+  color: var(--accent);
+}
+
+.stock-workspace-main {
+  min-width: 0;
+}
+
+.workspace-control-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.control-strip-note {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.ai-trade-desk {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 42%),
+    var(--surface);
+}
+
+.ai-trade-desk-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px 0;
+}
+
+.ai-trade-desk-head span {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.ai-trade-desk-head h2 {
+  margin-top: 3px;
+  color: var(--strong);
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.ai-trade-desk-head p {
+  max-width: 780px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ai-trade-desk-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ai-trade-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.ai-opportunity-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 10px;
+  padding: 0 16px 14px;
+}
+
+.ai-opportunity-column {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ai-opportunity-column > strong {
+  color: var(--strong);
+  font-size: 13px;
+}
+
+.ai-opportunity-card {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  min-height: 92px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ai-opportunity-card:disabled {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.ai-opportunity-card.buy {
+  border-color: color-mix(in srgb, var(--good) 38%, var(--border));
+  background: color-mix(in srgb, var(--good) 8%, var(--surface-soft));
+}
+
+.ai-opportunity-card.watch {
+  border-color: color-mix(in srgb, var(--watch) 38%, var(--border));
+  background: color-mix(in srgb, var(--watch) 7%, var(--surface-soft));
+}
+
+.ai-opportunity-card.exit,
+.ai-opportunity-card.pass {
+  border-color: color-mix(in srgb, var(--bad) 28%, var(--border));
+}
+
+.ai-opportunity-card div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai-opportunity-card b {
+  color: var(--strong);
+  font-size: 15px;
+}
+
+.ai-opportunity-card span,
+.ai-opportunity-card small,
+.ai-opportunity-card em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 760;
+}
+
+.ai-opportunity-card p {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .pill {
   min-height: 30px;
   gap: 7px;
@@ -794,6 +1005,36 @@ p {
   gap: 10px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
+}
+
+.ai-decision-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.ai-decision-panel.buy {
+  border-color: color-mix(in srgb, var(--good) 40%, var(--border));
+  background: color-mix(in srgb, var(--good) 8%, var(--surface-soft));
+}
+
+.ai-decision-panel.watch {
+  border-color: color-mix(in srgb, var(--watch) 38%, var(--border));
+  background: color-mix(in srgb, var(--watch) 7%, var(--surface-soft));
+}
+
+.ai-decision-panel.exit,
+.ai-decision-panel.pass {
+  border-color: color-mix(in srgb, var(--bad) 30%, var(--border));
+}
+
+.ai-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .ai-review-head {
@@ -1847,6 +2088,10 @@ p {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .ai-opportunity-grid {
+    grid-template-columns: 1fr;
+  }
+
   .main-grid {
     grid-template-columns: 1fr;
   }
@@ -1863,6 +2108,7 @@ p {
   .fact-grid,
   .score-breakdown-row,
   .manual-conclusion-detail,
+  .ai-plan-grid,
   .profile-compare-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1898,6 +2144,12 @@ p {
   .segmented,
   .primary-action {
     width: 100%;
+  }
+
+  .ai-trade-desk-head,
+  .ai-trade-desk-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .symbol-command {
@@ -1944,6 +2196,9 @@ p {
   .manual-conclusion-facts,
     .manual-conclusion-detail,
     .ai-review-facts,
+    .ai-plan-grid,
+    .ai-trade-summary,
+    .ai-opportunity-grid,
     .profile-compare-grid,
     .tracker-summary,
     .tracker-grid,
