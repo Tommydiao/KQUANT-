@@ -80,6 +80,7 @@ type ApiHealthPayload = {
 type AiReviewStatusPayload = {
   status: "available" | "missing_key" | string;
   reason: string;
+  setup_hint?: string;
   models: {
     review?: string;
     batch?: string;
@@ -623,6 +624,9 @@ type UniverseStock = {
   layer: string;
   primary_layer?: string;
   tags: string[];
+  aliases?: string[];
+  match_score?: number;
+  search_text?: string;
   rank: number;
   liquidity_tier?: string;
 };
@@ -1092,6 +1096,48 @@ const AI_FIVE_LAYER_STOCKS: UniverseStock[] = [
 
 const ALL_STOCKS = uniqueStocks([...STOCKS, ...AI_FIVE_LAYER_STOCKS]);
 
+const SEARCH_QUERY_ALIASES: Record<string, string[]> = {
+  英伟达: ["nvda", "nvidia", "gpu", "accelerator", "chips"],
+  微软: ["msft", "microsoft", "azure", "cloud"],
+  谷歌: ["googl", "google", "alphabet", "search"],
+  亚马逊: ["amzn", "amazon", "aws", "cloud"],
+  特斯拉: ["tsla", "tesla", "robotics", "autonomy"],
+  机器人: ["robot", "robotics", "automation", "autonomy", "space robotics"],
+  太空: ["space", "rocket", "satellite", "aerospace", "space robotics"],
+  航天: ["space", "rocket", "satellite", "aerospace", "space robotics"],
+  芯片: ["chips", "semis", "semiconductor", "ai semis"],
+  半导体: ["chips", "semis", "semiconductor", "ai semis"],
+  能源: ["energy", "power", "nuclear", "grid"],
+  核电: ["nuclear", "uranium", "power", "ai energy"],
+  比特币: ["bitcoin", "btc", "crypto", "mstr", "coin"],
+};
+
+const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
+  NVDA: ["英伟达", "gpu", "accelerator"],
+  MSFT: ["微软", "azure"],
+  GOOGL: ["谷歌", "google", "gemini"],
+  AMZN: ["亚马逊", "aws"],
+  TSLA: ["特斯拉", "robotaxi", "autonomy"],
+  MSTR: ["microstrategy", "strategy", "比特币", "bitcoin", "btc"],
+  RKLB: ["rocket lab", "火箭", "太空", "space"],
+  ASTS: ["satellite", "space mobile", "太空", "卫星"],
+  LUNR: ["moon", "lunar", "space", "太空"],
+  BOTZ: ["robotics etf", "机器人", "automation"],
+  ROBO: ["robotics etf", "机器人", "automation"],
+  ISRG: ["surgical robot", "机器人", "robotics"],
+  SYM: ["warehouse robot", "机器人", "automation"],
+};
+
+const SEARCH_SHORTCUTS = [
+  { label: "NVDA", query: "NVDA", symbol: "NVDA" },
+  { label: "MSTR", query: "MSTR", symbol: "MSTR" },
+  { label: "AI Chips", query: "半导体" },
+  { label: "Space", query: "太空" },
+  { label: "Robotics", query: "机器人" },
+  { label: "Mag 7", query: "mega cap tech" },
+  { label: "High Beta", query: "high_beta" },
+] as const;
+
 function App() {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", "en");
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
@@ -1122,6 +1168,7 @@ function App() {
   const [mstrJournal, setMstrJournal] = useState<MstrJournalPayload | null>(null);
   const [mstrState, setMstrState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [fixtureBlocked, setFixtureBlocked] = useState(() => urlRequestedFixture());
+  const [analysisState, setAnalysisState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [profileCompare, setProfileCompare] = useState<StockSignal[]>([]);
   const [compareState, setCompareState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiReview, setAiReview] = useState<AiReviewPayload | null>(null);
@@ -1160,6 +1207,13 @@ function App() {
     void loadAiStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (view === "stocks") {
+      void analyzeSymbol(selectedSymbol, { keepSearch: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProfile]);
 
   useEffect(() => {
     try {
@@ -1280,12 +1334,26 @@ function App() {
       setRun(payload);
       setMarketRegime(payload.market_regime ?? null);
       setApiState("api");
-      if (!payload.signals.some((signal) => signal.symbol === selectedSymbol)) {
-        setSelectedSymbol(payload.signals[0]?.symbol ?? "NVDA");
+      const preferredSymbol = payload.signals.some((signal) => signal.symbol === selectedSymbol)
+        ? selectedSymbol
+        : payload.signals[0]?.symbol ?? "NVDA";
+      if (preferredSymbol !== selectedSymbol) {
+        setSelectedSymbol(preferredSymbol);
+      }
+      const preferredSignal = payload.signals.find((signal) => signal.symbol === preferredSymbol);
+      const needsDirectRepair =
+        !preferredSignal ||
+        preferredSignal.data_status?.daily_candles === 0 ||
+        preferredSignal.data_status?.hourly_candles === 0 ||
+        preferredSignal.data_status?.daily_provider_status === "provider_failed" ||
+        preferredSignal.data_status?.hourly_provider_status === "provider_failed";
+      if (needsDirectRepair) {
+        void analyzeSymbol(preferredSymbol, { keepSearch: true });
       }
     } catch {
       setRun(makeUnavailableSignalRun(nextUniverse));
       setUniverse(stocksForUniverse(nextUniverse));
+      void analyzeSymbol(selectedSymbol || "NVDA", { keepSearch: true });
       setApiState("fallback");
     }
   }
@@ -1340,9 +1408,14 @@ function App() {
     setStockJournal(payload.journal as StockJournalPayload);
   }
 
-  async function analyzeSymbol(rawSymbol: string) {
+  async function analyzeSymbol(rawSymbol: string, options: { keepSearch?: boolean } = {}) {
     const symbol = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
     if (!symbol) return;
+    setSelectedSymbol(symbol);
+    setAnalysisState("loading");
+    const candlePromise = loadCandles(symbol);
+    const journalPromise = loadStockJournal(symbol);
+    const aiStatusPromise = loadAiStatus();
     try {
       const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1356,6 +1429,14 @@ function App() {
           run_id: `analyze-${signal.symbol}-${selectedProfile}`,
           profile: payload.profile ?? current.profile,
           signals: nextSignals,
+          provider_status:
+            signal.data_status?.daily_provider_status === "available" || signal.data_status?.hourly_provider_status === "available"
+              ? "available"
+              : current.provider_status,
+          provider_error_count:
+            signal.data_status?.daily_provider_status === "available" || signal.data_status?.hourly_provider_status === "available"
+              ? 0
+              : current.provider_error_count,
           counts: {
             buy_setup: nextSignals.filter((item) => item.level === "BUY SETUP").length,
             watch: nextSignals.filter((item) => item.level === "WATCH").length,
@@ -1366,15 +1447,23 @@ function App() {
       });
       setMarketRegime(payload.market_regime ?? null);
       setSelectedSymbol(signal.symbol);
-      setSearchText("");
-      setSearchOpen(false);
+      if (!options.keepSearch) {
+        setSearchText("");
+        setSearchOpen(false);
+      }
       const nextRecent = [signal.symbol, ...recentSymbols.filter((item) => item !== signal.symbol)].slice(0, 8);
       setRecentSearches(nextRecent.join(","));
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
+      setAnalysisState("ready");
       setApiState("api");
     } catch {
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
       setSelectedSymbol(symbol);
-      setSearchText("");
-      setSearchOpen(false);
+      if (!options.keepSearch) {
+        setSearchText("");
+        setSearchOpen(false);
+      }
+      setAnalysisState("error");
       setApiState("fallback");
     }
   }
@@ -1530,54 +1619,6 @@ function App() {
             ]}
             onChange={(value) => setView(value as AppView)}
           />
-          <form
-            className="symbol-command"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void analyzeSymbol(searchText);
-            }}
-          >
-            <Search size={15} />
-            <input
-              value={searchText}
-              onFocus={() => setSearchOpen(true)}
-              onChange={(event) => {
-                setSearchText(event.target.value);
-                setSearchOpen(true);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") setSearchOpen(false);
-                if (event.key === "Enter" && !searchText.trim() && activeSearchResults[0]) {
-                  event.preventDefault();
-                  void analyzeSymbol(activeSearchResults[0].symbol);
-                }
-              }}
-              placeholder="Search ticker, company, robot, space..."
-              aria-label="Search ticker, company, theme, or layer"
-            />
-            <button type="submit">Analyze</button>
-            {searchOpen ? (
-              <div className="command-results" role="listbox">
-                <div className="command-results-head">
-                  <span>{searchState === "loading" ? "Searching..." : "Command Search"}</span>
-                  <button type="button" onClick={() => setSearchOpen(false)}>Close</button>
-                </div>
-                {(searchText.trim() ? activeSearchResults : quickSearchStocks(ALL_STOCKS)).slice(0, 10).map((stock) => (
-                  <button
-                    type="button"
-                    className="command-result"
-                    key={stock.symbol}
-                    onClick={() => void analyzeSymbol(stock.symbol)}
-                  >
-                    <strong>{stock.symbol}</strong>
-                    <span>{stock.name}</span>
-                    <small>{stock.layer} / {stock.liquidity_tier ?? "core"}</small>
-                  </button>
-                ))}
-                {searchState === "error" ? <p>Search API offline. Local symbol index is still available.</p> : null}
-              </div>
-            ) : null}
-          </form>
           <Segmented
             value={selectedProfile}
             options={STRATEGY_PROFILES.map((profile) => [profile.key, profile.label])}
@@ -1639,6 +1680,84 @@ function App() {
           />
         ) : null}
         <Pill tone="neutral" icon={<BarChart3 size={14} />} label={text.noBroker} />
+      </section>
+
+      <section className="research-command-panel" aria-label="Stock command search">
+        <form
+          className="symbol-command symbol-command-large"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const first = activeSearchResults[0];
+            void analyzeSymbol(searchText.trim() || first?.symbol || selected.symbol);
+          }}
+        >
+          <Search size={17} />
+          <input
+            value={searchText}
+            onFocus={() => setSearchOpen(true)}
+            onChange={(event) => {
+              setSearchText(event.target.value);
+              setSearchOpen(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setSearchOpen(false);
+              if (event.key === "ArrowDown") setSearchOpen(true);
+              if (event.key === "Enter" && !searchText.trim() && activeSearchResults[0]) {
+                event.preventDefault();
+                void analyzeSymbol(activeSearchResults[0].symbol);
+              }
+            }}
+            placeholder="Search NVDA, 英伟达, robot, 机器人, space, 太空, semiconductor..."
+            aria-label="Search ticker, company, Chinese alias, theme, or layer"
+          />
+          <button type="submit" disabled={analysisState === "loading"}>
+            {analysisState === "loading" ? "Loading..." : "Analyze"}
+          </button>
+        </form>
+        <div className="search-shortcuts">
+          {SEARCH_SHORTCUTS.map((shortcut) => (
+            <button
+              type="button"
+              key={shortcut.label}
+              onClick={() => {
+                setSearchText(shortcut.query);
+                setSearchOpen(true);
+                if ("symbol" in shortcut) {
+                  void analyzeSymbol(shortcut.symbol);
+                } else {
+                  void loadSearchResults(shortcut.query);
+                }
+              }}
+            >
+              {shortcut.label}
+            </button>
+          ))}
+        </div>
+        {searchOpen || searchText.trim() ? (
+          <div className="command-results command-results-inline" role="listbox">
+            <div className="command-results-head">
+              <span>{searchState === "loading" ? "Searching live universe..." : "Command Search"}</span>
+              <button type="button" onClick={() => setSearchOpen(false)}>Close</button>
+            </div>
+            {(searchText.trim() ? activeSearchResults : quickSearchStocks(ALL_STOCKS)).slice(0, 12).map((stock) => {
+              const signal = run.signals.find((item) => item.symbol === stock.symbol);
+              return (
+                <button
+                  type="button"
+                  className="command-result"
+                  key={stock.symbol}
+                  onClick={() => void analyzeSymbol(stock.symbol)}
+                >
+                  <strong>{stock.symbol}</strong>
+                  <span>{stock.name}</span>
+                  <small>{stock.layer} / {signal?.trade_conclusion?.action ?? "Analyze"} / {signal?.data_status?.data_quality ?? "live check"}</small>
+                </button>
+              );
+            })}
+            {searchState === "error" ? <p>Search API offline. Local symbol index is still available.</p> : null}
+            {searchState === "ready" && searchText.trim() && activeSearchResults.length === 0 ? <p>No match yet. Try ticker, company, layer, or Chinese theme.</p> : null}
+          </div>
+        ) : null}
       </section>
 
       <section className="quick-search-row" aria-label="Recent symbol searches">
@@ -1741,6 +1860,7 @@ function App() {
               conclusion={selected.trade_conclusion}
               aiReview={aiReview}
               aiReviewState={aiReviewState}
+              aiStatus={aiStatus}
               onReview={() => void requestAiReview()}
             />
             <div className="fact-grid">
@@ -1806,6 +1926,7 @@ function App() {
               presets={CHART_PRESETS}
               presetKey={primaryPresetKey}
               onPresetChange={(value) => setPrimaryPresetKey(value as ChartPresetKey)}
+              onReload={() => void analyzeSymbol(selected.symbol, { keepSearch: true })}
               labels={{
                 source: text.chartSource,
                 status: text.chartStatus,
@@ -1825,6 +1946,7 @@ function App() {
               presets={CHART_PRESETS}
               presetKey={confirmationPresetKey}
               onPresetChange={(value) => setConfirmationPresetKey(value as ChartPresetKey)}
+              onReload={() => void analyzeSymbol(selected.symbol, { keepSearch: true })}
               labels={{
                 source: text.chartSource,
                 status: text.chartStatus,
@@ -1839,10 +1961,7 @@ function App() {
             <Narrative title={text.reasons} items={[selected.trend_summary, selected.trigger_summary]} />
             <Narrative
               title="Buy Logic"
-              items={[
-                `BUY SETUP >= ${selected.score_breakdown?.buy_setup_threshold ?? 88}; WATCH >= ${selected.score_breakdown?.watch_threshold ?? 65}.`,
-                selected.score_breakdown?.formula ?? "trend + 1h trigger + volume confirmation + risk window",
-              ]}
+              items={buyLogicItems(selected, activeMarketRegime)}
             />
             <Narrative
               title="Market Regime"
@@ -2504,15 +2623,18 @@ function ManualTradingConclusion({
   conclusion,
   aiReview,
   aiReviewState,
+  aiStatus,
   onReview,
 }: {
   conclusion: StockSignal["trade_conclusion"] | undefined;
   aiReview: AiReviewPayload | null;
   aiReviewState: "idle" | "loading" | "ready" | "error";
+  aiStatus: AiReviewStatusPayload | null;
   onReview: () => void;
 }) {
   const action = conclusion?.action ?? "DO_NOT_BUY";
   const ai = aiReview?.ai_review;
+  const aiConnected = aiStatus?.status === "available";
   return (
     <section className={`manual-conclusion ${actionClass(action)}`}>
       <div className="manual-conclusion-main">
@@ -2527,9 +2649,13 @@ function ManualTradingConclusion({
       </div>
       <div className="manual-conclusion-actions">
         <button type="button" onClick={onReview} disabled={aiReviewState === "loading"}>
-          {aiReviewState === "loading" ? "Reviewing..." : "AI Review"}
+          {aiReviewState === "loading" ? "Reviewing..." : aiConnected ? "AI Review" : "AI Review Setup Check"}
         </button>
-        <small>Manual trigger only. AI cannot change score, conclusion, or place orders.</small>
+        <small>
+          {aiConnected
+            ? `Connected: ${aiStatus?.models.review ?? "review"} / manual trigger only.`
+            : aiStatus?.setup_hint ?? "Missing backend OPENAI_API_KEY. Add it to the local server environment, never to frontend or GitHub."}
+        </small>
       </div>
       <div className="manual-conclusion-detail">
         <Narrative title="Why" items={conclusion?.why?.length ? conclusion.why : ["Run analysis to load rule reasons."]} />
@@ -2554,6 +2680,9 @@ function ManualTradingConclusion({
         </div>
       ) : null}
       {aiReviewState === "error" ? <p className="compare-error">AI Review request failed. Check local API and model configuration.</p> : null}
+      {!aiConnected && aiReviewState === "idle" ? (
+        <p className="compare-error">AI is not active yet. Configure OPENAI_API_KEY on the local backend, then restart the dashboard.</p>
+      ) : null}
     </section>
   );
 }
@@ -2727,6 +2856,7 @@ function ChartPanel({
   presets,
   presetKey,
   onPresetChange,
+  onReload,
   labels,
 }: {
   title: string;
@@ -2739,6 +2869,7 @@ function ChartPanel({
   presets: ChartPreset[];
   presetKey: ChartPresetKey;
   onPresetChange: (value: string) => void;
+  onReload?: () => void;
   labels: {
     source: string;
     status: string;
@@ -2833,6 +2964,9 @@ function ChartPanel({
         </div>
         <div className="chart-tools">
           <Segmented value={presetKey} options={presets.map((preset) => [preset.key, preset.label])} onChange={onPresetChange} />
+          <button className="chart-reload" type="button" onClick={onReload}>
+            Reload Real Data
+          </button>
           <div className="indicator-tags">
             <span>EMA20</span>
             <span>EMA50</span>
@@ -2885,7 +3019,18 @@ function ChartPanel({
           <span>{ohlcHint}</span>
         )}
       </div>
-      {candles.length ? <div className="chart-canvas" ref={containerRef} /> : <div className="chart-empty">{emptyText}</div>}
+      {candles.length ? (
+        <div className="chart-canvas" ref={containerRef} />
+      ) : (
+        <div className="chart-empty">
+          <span>{emptyText}</span>
+          {onReload ? (
+            <button type="button" onClick={onReload}>
+              Repair Chart With Real Data
+            </button>
+          ) : null}
+        </div>
+      )}
     </section>
   );
 }
@@ -3152,23 +3297,44 @@ function uniqueStocks(stocks: UniverseStock[]): UniverseStock[] {
 }
 
 function searchStocks(query: string, stocks: UniverseStock[], limit = 10): UniverseStock[] {
-  const normalized = query.trim().toLowerCase();
+  const terms = expandedSearchTerms(query);
+  const normalized = terms[0] ?? "";
   if (!normalized) return quickSearchStocks(stocks).slice(0, limit);
   const scored = stocks
     .map((stock) => {
-      const haystack = `${stock.symbol} ${stock.name} ${stock.sector} ${stock.layer} ${(stock.tags ?? []).join(" ")}`.toLowerCase();
+      const aliases = [...(stock.aliases ?? []), ...(STOCK_SEARCH_ALIASES[stock.symbol] ?? [])].join(" ");
+      const haystack = `${stock.symbol} ${stock.name} ${stock.sector} ${stock.layer} ${(stock.tags ?? []).join(" ")} ${aliases}`.toLowerCase();
       let score = 0;
-      if (stock.symbol.toLowerCase() === normalized) score += 100;
-      if (stock.symbol.toLowerCase().startsWith(normalized)) score += 75;
-      if (stock.name.toLowerCase().includes(normalized)) score += 45;
-      if (stock.layer.toLowerCase().includes(normalized)) score += 36;
-      if ((stock.tags ?? []).join(" ").toLowerCase().includes(normalized)) score += 30;
-      if (haystack.includes(normalized)) score += 10;
+      for (const [index, term] of terms.entries()) {
+        const weight = index === 0 ? 1 : 0.72;
+        if (stock.symbol.toLowerCase() === term) score += 140 * weight;
+        if (stock.symbol.toLowerCase().startsWith(term)) score += 95 * weight;
+        if (stock.symbol.toLowerCase().includes(term)) score += 70 * weight;
+        if (stock.name.toLowerCase().includes(term)) score += 48 * weight;
+        if (aliases.toLowerCase().includes(term)) score += 46 * weight;
+        if (stock.layer.toLowerCase().includes(term)) score += 38 * weight;
+        if ((stock.tags ?? []).join(" ").toLowerCase().includes(term)) score += 34 * weight;
+        if (haystack.includes(term)) score += 12 * weight;
+      }
       return { stock, score };
     })
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || (a.stock.rank ?? 9999) - (b.stock.rank ?? 9999));
   return scored.slice(0, limit).map((item) => item.stock);
+}
+
+function expandedSearchTerms(query: string): string[] {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return [];
+  const terms = [normalized];
+  Object.entries(SEARCH_QUERY_ALIASES).forEach(([alias, expansions]) => {
+    if (normalized.includes(alias.toLowerCase())) {
+      terms.push(...expansions.map((item) => item.toLowerCase()));
+    }
+  });
+  const compact = normalized.replace(/\s+/g, "");
+  if (compact !== normalized) terms.push(compact);
+  return [...new Set(terms.filter(Boolean))];
 }
 
 function quickSearchStocks(stocks: UniverseStock[]): UniverseStock[] {
@@ -3192,6 +3358,24 @@ function universeOptionLabel(universeName: UniverseName, lang: Lang): string {
   if (universeName === "ai_five_layer") return "AI Five-Layer";
   if (universeName === "all") return "All";
   return "Core 200";
+}
+
+function buyLogicItems(signal: StockSignal, regime: MarketRegimePayload | null): string[] {
+  const profileName = signal.profile_name ?? "tactical_1w_v1";
+  const profileRules: Record<string, string> = {
+    tactical_1w_v1: "1W Tactical: daily EMA10/20/50 structure + 1H momentum + volume expansion + ATR, RSI, gap, and extension discipline.",
+    swing_1_2m_v1: "1-2M Swing: daily EMA20/50/200 trend, weekly support, relative strength, pullback quality, volume structure, and earnings-window caution.",
+    position_6m_v1: "6M Position: weekly EMA20/50 trend stability, daily EMA50/200 support, industry layer leadership, and drawdown tolerance.",
+    cycle_1_3y_v1: "1-3Y Cycle: monthly/weekly trend, cycle location, 200D/40W support, long-term relative strength, and narrative or financing risk.",
+  };
+  return [
+    `BUY SETUP requires score >= ${signal.score_breakdown?.buy_setup_threshold ?? 88}; WATCH starts at ${signal.score_breakdown?.watch_threshold ?? 65}.`,
+    "BUY also requires clean live data, readiness gate ready, positive historical edge, clear exit risk, and market regime not blocking new longs.",
+    profileRules[profileName] ?? (signal.score_breakdown?.formula || "Trend + confirmation + volume + risk window."),
+    `Current rule conclusion: ${signal.trade_conclusion?.action ?? "DO_NOT_BUY"} / gate ${signal.readiness_gate?.status ?? "BLOCKED"}.`,
+    `Market regime: ${regime?.label ?? "loading"} (${regime?.regime ?? "unknown"}), score ${regime?.score ?? 0}.`,
+    `Exit risk: ${signal.exit_risk?.status ?? "not loaded"}; stale or provider-failed data blocks BUY.`,
+  ];
 }
 
 function signalLayer(signal: StockSignal, stock: UniverseStock): string {

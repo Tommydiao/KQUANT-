@@ -59,9 +59,17 @@ def test_space_robotics_universe_and_search_are_available() -> None:
     robot_results = api_stock_search(q="robot", universe="all")["results"]
     space_results = api_stock_search(q="space", universe="all")["results"]
     rklb_results = api_stock_search(q="RKLB", universe="all")["results"]
+    chinese_robot_results = api_stock_search(q="机器人", universe="all")["results"]
+    chinese_space_results = api_stock_search(q="太空", universe="all")["results"]
+    chinese_nvda_results = api_stock_search(q="英伟达", universe="all")["results"]
+    chinese_chip_results = api_stock_search(q="半导体", universe="all")["results"]
     assert any(item["symbol"] in {"BOTZ", "ROBO", "SYM", "ISRG"} for item in robot_results)
     assert any(item["symbol"] in {"RKLB", "ASTS", "LUNR", "PL"} for item in space_results)
     assert rklb_results[0]["symbol"] == "RKLB"
+    assert any(item["symbol"] in {"BOTZ", "ROBO", "SYM", "ISRG"} for item in chinese_robot_results)
+    assert any(item["symbol"] in {"RKLB", "ASTS", "LUNR", "PL"} for item in chinese_space_results)
+    assert chinese_nvda_results[0]["symbol"] == "NVDA"
+    assert any(item["symbol"] in {"NVDA", "AMD", "SMH", "SOXX"} for item in chinese_chip_results)
 
 
 def test_ai_review_status_without_key_is_safe(monkeypatch: pytest.MonkeyPatch) -> None:

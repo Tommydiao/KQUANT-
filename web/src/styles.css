@@ -290,6 +290,72 @@ p {
   font-weight: 760;
 }
 
+.research-command-panel {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 42%),
+    var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.symbol-command-large {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 8px 0 12px;
+}
+
+.symbol-command-large input {
+  flex: 1 1 320px;
+  width: auto;
+  min-height: 42px;
+  font-size: 14px;
+}
+
+.symbol-command-large > button {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.search-shortcuts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.search-shortcuts button,
+.chart-reload,
+.chart-empty button {
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--strong);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.search-shortcuts button:hover,
+.chart-reload:hover,
+.chart-empty button:hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.command-results-inline {
+  position: static;
+  width: 100%;
+  max-height: 360px;
+  box-shadow: none;
+}
+
 .quick-search-row {
   display: flex;
   align-items: center;
@@ -980,6 +1046,7 @@ p {
 .chart-empty {
   min-height: 260px;
   display: grid;
+  gap: 10px;
   place-items: center;
   margin-top: 10px;
   border: 1px dashed var(--border-strong);
@@ -989,6 +1056,11 @@ p {
   font-size: 13px;
   font-weight: 760;
   text-align: center;
+}
+
+.chart-empty button {
+  background: var(--accent);
+  color: #ffffff;
 }
 
 .detail-grid {
@@ -1823,6 +1895,10 @@ p {
 
   .symbol-command {
     width: 100%;
+  }
+
+  .research-command-panel {
+    padding: 10px;
   }
 
   .symbol-command input {

@@ -208,37 +208,92 @@ def api_stock_universe(universe: str = "default", db_path: Path | None = None) -
     return payload
 
 
+SEARCH_QUERY_ALIASES: dict[str, tuple[str, ...]] = {
+    "英伟达": ("nvda", "nvidia", "gpu", "accelerator", "chips", "ai compute"),
+    "微软": ("msft", "microsoft", "cloud", "ai cloud"),
+    "谷歌": ("googl", "alphabet", "google", "search", "cloud"),
+    "亚马逊": ("amzn", "amazon", "aws", "cloud"),
+    "特斯拉": ("tsla", "tesla", "robotics", "autonomy", "ev"),
+    "机器人": ("robot", "robotics", "automation", "autonomy", "space robotics"),
+    "太空": ("space", "rocket", "satellite", "aerospace", "space robotics"),
+    "航天": ("space", "rocket", "satellite", "aerospace", "space robotics"),
+    "芯片": ("chips", "semis", "semiconductor", "ai semis", "foundry"),
+    "半导体": ("chips", "semis", "semiconductor", "ai semis", "foundry"),
+    "云": ("cloud", "ai cloud", "infrastructure"),
+    "网络安全": ("security", "cybersecurity", "ai security"),
+    "能源": ("energy", "power", "nuclear", "grid"),
+    "核电": ("nuclear", "uranium", "power", "ai energy"),
+    "比特币": ("bitcoin", "btc", "crypto", "mstr", "coin"),
+}
+
+STOCK_SEARCH_ALIASES: dict[str, tuple[str, ...]] = {
+    "NVDA": ("英伟达", "nvidia", "gpu", "accelerator"),
+    "MSFT": ("微软", "microsoft", "azure"),
+    "GOOGL": ("谷歌", "google", "alphabet", "gemini"),
+    "AMZN": ("亚马逊", "amazon", "aws"),
+    "TSLA": ("特斯拉", "tesla", "robotaxi", "autonomy"),
+    "MSTR": ("microstrategy", "strategy", "比特币", "bitcoin", "btc"),
+    "RKLB": ("rocket lab", "火箭", "太空", "space"),
+    "ASTS": ("satellite", "space mobile", "太空", "卫星"),
+    "LUNR": ("moon", "lunar", "space", "太空"),
+    "BOTZ": ("robotics etf", "机器人", "automation"),
+    "ROBO": ("robotics etf", "机器人", "automation"),
+    "ISRG": ("surgical robot", "机器人", "robotics"),
+    "SYM": ("warehouse robot", "机器人", "automation"),
+}
+
+
+def expanded_search_terms(raw_query: str) -> list[str]:
+    query = str(raw_query or "").strip().lower()
+    if not query:
+        return []
+    terms = [query]
+    for alias, expansions in SEARCH_QUERY_ALIASES.items():
+        if alias in query:
+            terms.extend(item.lower() for item in expansions)
+    compact = query.replace(" ", "")
+    if compact != query:
+        terms.append(compact)
+    return list(dict.fromkeys(term for term in terms if term))
+
+
 def api_stock_search(q: str = "", universe: str = "all", limit: int = 24) -> dict[str, Any]:
     query = str(q or "").strip().lower()
+    terms = expanded_search_terms(query)
     limit = max(1, min(int(limit or 24), 50))
     stocks = stock_universe(universe or "all")
     matches: list[dict[str, Any]] = []
 
     def score_stock(stock: Any) -> int:
-        if not query:
+        if not terms:
             return 10 if stock.symbol in {"NVDA", "MSTR", "SPY", "QQQ", "RKLB", "TSLA"} else 1
         symbol = stock.symbol.lower()
         name = stock.name.lower()
         layer = stock.layer.lower()
         tags = " ".join(stock.tags).lower()
-        haystack = f"{symbol} {name} {stock.sector.lower()} {layer} {tags}"
+        aliases = " ".join(STOCK_SEARCH_ALIASES.get(stock.symbol, ())).lower()
+        haystack = f"{symbol} {name} {stock.sector.lower()} {layer} {tags} {aliases}"
         score = 0
-        if symbol == query:
-            score += 120
-        if symbol.startswith(query):
-            score += 90
-        if query in symbol:
-            score += 65
-        if name.startswith(query):
-            score += 60
-        if query in name:
-            score += 45
-        if query in layer:
-            score += 35
-        if query in tags:
-            score += 30
-        if query in haystack:
-            score += 10
+        for index, term in enumerate(terms):
+            weight = 1.0 if index == 0 else 0.72
+            if symbol == term:
+                score += int(140 * weight)
+            if symbol.startswith(term):
+                score += int(95 * weight)
+            if term in symbol:
+                score += int(70 * weight)
+            if name.startswith(term):
+                score += int(64 * weight)
+            if term in name:
+                score += int(48 * weight)
+            if term in aliases:
+                score += int(46 * weight)
+            if term in layer:
+                score += int(38 * weight)
+            if term in tags:
+                score += int(34 * weight)
+            if term in haystack:
+                score += int(12 * weight)
         return score
 
     for stock in stocks:
@@ -247,13 +302,16 @@ def api_stock_search(q: str = "", universe: str = "all", limit: int = 24) -> dic
             continue
         item = stock.to_dict()
         item["match_score"] = score
-        item["search_text"] = f"{stock.symbol} {stock.name} {stock.layer} {' '.join(stock.tags)}"
+        item["aliases"] = list(STOCK_SEARCH_ALIASES.get(stock.symbol, ()))
+        item["matched_terms"] = terms
+        item["search_text"] = f"{stock.symbol} {stock.name} {stock.layer} {' '.join(stock.tags)} {' '.join(item['aliases'])}"
         matches.append(item)
 
     matches.sort(key=lambda item: (-int(item.get("match_score", 0)), int(item.get("rank", 9999)), str(item.get("symbol", ""))))
     return {
         "product": "KQUANT US Stock Signal Terminal",
         "query": q,
+        "expanded_terms": terms,
         "universe": universe or "all",
         "count": len(matches[:limit]),
         "results": matches[:limit],
@@ -861,6 +919,7 @@ def api_stock_ai_review_status() -> dict[str, Any]:
         "product": "KQUANT AI Review Assistant",
         "status": "available" if has_key else "missing_key",
         "reason": "OPENAI_API_KEY is configured." if has_key else "OPENAI_API_KEY is not configured on the backend.",
+        "setup_hint": "Set OPENAI_API_KEY in the local backend environment and restart KQUANT. Never put this key in web/, GitHub, or Vercel frontend variables.",
         "models": {
             "review": review_model,
             "batch": batch_model,
