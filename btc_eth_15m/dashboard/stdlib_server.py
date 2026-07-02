@@ -60,6 +60,7 @@ from kquant.stock_signals import (
     api_stock_live_data_health_latest,
     api_stock_market_regime,
     api_stock_provider_health,
+    api_stock_research_chat,
     api_stock_search,
     api_stock_signal_journal,
     api_stock_signal_journal_entry,
@@ -68,6 +69,12 @@ from kquant.stock_signals import (
     api_stock_universe,
 )
 from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
+from kquant.knode_bridge import (
+    api_research_company_dossier,
+    api_research_evidence,
+    api_research_evidence_save,
+    api_research_reports,
+)
 
 
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
@@ -829,6 +836,9 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/stocks/ai-decision":
                 self.send_json(api_stock_ai_decision(self.read_json_body(), db_path=self.dashboard.stock_db_path))
                 return
+            if path == "/api/stocks/research-chat":
+                self.send_json(api_stock_research_chat(self.read_json_body(), db_path=self.dashboard.stock_db_path))
+                return
             if path == "/api/stocks/ai-daily-agent":
                 self.send_json(
                     api_stock_ai_daily_agent(
@@ -837,6 +847,9 @@ class Handler(BaseHTTPRequestHandler):
                         outputs_dir=self.dashboard.outputs_dir,
                     )
                 )
+                return
+            if path == "/api/research/evidence/save":
+                self.send_json(api_research_evidence_save(self.read_json_body()))
                 return
             if path == "/api/options/order-intents":
                 self.send_json(
@@ -988,6 +1001,18 @@ class Handler(BaseHTTPRequestHandler):
             )
         if path == "/api/stocks/live-data-health/latest":
             return api_stock_live_data_health_latest(outputs_dir=self.dashboard.outputs_dir)
+        if path == "/api/research/company-dossier":
+            return api_research_company_dossier(symbol=query_value(query, "symbol", "NVDA"))
+        if path == "/api/research/evidence":
+            return api_research_evidence(
+                symbol=query_value(query, "symbol", "NVDA"),
+                limit=query_int(query, "limit", 20, 1, 100),
+            )
+        if path == "/api/research/reports":
+            return api_research_reports(
+                symbol=query_value(query, "symbol", "NVDA"),
+                limit=query_int(query, "limit", 10, 1, 50),
+            )
         if path == "/api/mstr/cycle-radar":
             source = stock_live_only_source(query)
             return api_mstr_cycle_radar(

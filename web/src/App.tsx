@@ -6,9 +6,11 @@ import {
   Database,
   Languages,
   Lock,
+  MessageCircle,
   Moon,
   RefreshCw,
   Search,
+  Send,
   ShieldCheck,
   Sun,
 } from "lucide-react";
@@ -33,7 +35,20 @@ type TradeAction = "BUY" | "WAIT" | "DO_NOT_BUY" | "HOLD_TRAIL" | "EXIT_REVIEW";
 type AiAction = "AI_BUY_CANDIDATE" | "AI_WAIT" | "AI_AVOID" | "AI_HOLD_TRAIL" | "AI_EXIT_REVIEW";
 type UniverseName = "default" | "ai_five_layer" | "all";
 type AppView = "stocks" | "mstr";
-type WorkspaceName = "ai" | "search" | "watchlist" | "selected" | "kline" | "compare" | "mstr" | "journal";
+type WorkspaceName =
+  | "today"
+  | "search"
+  | "watchlist"
+  | "stock"
+  | "charts"
+  | "aiPlan"
+  | "chat"
+  | "research"
+  | "evidence"
+  | "reports"
+  | "mstr"
+  | "journal"
+  | "settings";
 type StrategyProfileName =
   | "tactical_1w_v1"
   | "swing_1_2m_v1"
@@ -92,11 +107,13 @@ type AiReviewStatusPayload = {
     review?: string;
     batch?: string;
     deep?: string;
+    research?: string;
   };
   read_only_research: boolean;
   llm_signal_core_enabled: boolean;
   ai_decision_engine_enabled?: boolean;
   daily_opportunity_agent_enabled?: boolean;
+  deep_research_chat_enabled?: boolean;
   hard_rule_veto_enabled?: boolean;
   ai_can_lead_decisions?: boolean;
   ai_can_place_orders?: boolean;
@@ -269,6 +286,137 @@ type AiDecisionPayload = {
     order_submission_enabled: boolean;
     manual_human_execution_only: boolean;
   };
+};
+
+type ResearchChatAnswer = {
+  answer: string;
+  direct_view: string;
+  key_points: string[];
+  risk_flags: string[];
+  what_to_check_next: string[];
+  evidence_used: string[];
+  follow_up_questions: string[];
+  safety_note: string;
+};
+
+type AiResearchChatPayload = {
+  product: string;
+  status: "available" | "ai_unavailable" | string;
+  reason: string;
+  model_name: string;
+  primary_model_name?: string;
+  fallback_model_used?: boolean;
+  fallback_reason?: string;
+  generated_at: string;
+  symbol: string;
+  profile: string;
+  question: string;
+  answer: ResearchChatAnswer;
+  safety_policy: {
+    read_only_research: boolean;
+    ai_research_chat_enabled: boolean;
+    ai_can_place_orders: boolean;
+    broker_order_wiring_enabled: boolean;
+    account_access_enabled: boolean;
+    order_submission_enabled: boolean;
+    does_not_change_rule_score: boolean;
+    does_not_trigger_scans: boolean;
+  };
+};
+
+type ResearchChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  payload?: AiResearchChatPayload;
+  created_at: string;
+};
+
+type ResearchBridgeStatus = {
+  api_base_url?: string;
+  api_status?: string;
+  api_error?: string;
+  project_root?: string;
+  local_data_status?: string;
+  integration_mode?: string;
+  database_migrated?: boolean;
+  read_only_research?: boolean;
+};
+
+type ResearchDossierPayload = {
+  status: string;
+  symbol: string;
+  bridge_status: ResearchBridgeStatus;
+  dossier: {
+    symbol?: string;
+    company_name?: string;
+    thesis?: string;
+    bull_case?: string[];
+    bear_risks?: string[];
+    tags?: string[];
+    source?: string;
+    updated_at?: string;
+  } | null;
+  summary: {
+    evidence_count: number;
+    report_count: number;
+    dossier_source: string;
+    knode_authenticated: boolean;
+  };
+  read_only_research: boolean;
+};
+
+type ResearchEvidenceItem = {
+  id: string;
+  symbol: string;
+  title: string;
+  type: string;
+  summary: string;
+  fact: string;
+  interpretation: string;
+  risks: string;
+  impact_direction: string;
+  thesis_impact: string;
+  confidence: number | string;
+  url: string;
+  source_domain: string;
+  created_at: string;
+  tags: string[];
+  source: string;
+};
+
+type ResearchEvidencePayload = {
+  status: string;
+  symbol: string;
+  bridge_status: ResearchBridgeStatus;
+  items: ResearchEvidenceItem[];
+  count: number;
+  source: string;
+  read_only_research: boolean;
+};
+
+type ResearchReportItem = {
+  id: string;
+  symbol: string;
+  title: string;
+  type: string;
+  filename: string;
+  mime_type: string;
+  created_at: string;
+  summary: string;
+  open_url: string;
+  download_url: string;
+  source: string;
+};
+
+type ResearchReportsPayload = {
+  status: string;
+  symbol: string;
+  bridge_status: ResearchBridgeStatus;
+  reports: ResearchReportItem[];
+  count: number;
+  source: string;
+  read_only_research: boolean;
 };
 
 type AiDailyItem = {
@@ -816,79 +964,315 @@ const copy = {
     modelLimitations: "Model Limitations",
     probability: "Probability",
     confidence: "Confidence",
+    currentPage: "Current",
+    systemStatus: "System",
+    navigation: "Navigation",
+    tradingSystem: "Trading System",
+    universeControl: "Universe",
+    actions: "Actions",
+    preferences: "Preferences",
+    todayNav: "Today",
+    todaySub: "AI Signals",
+    searchNav: "Search",
+    searchSub: "Stocks",
+    watchlistNav: "Watchlist",
+    watchlistSub: "Universe",
+    stockNav: "Stock",
+    stockSub: "Detail",
+    chartsNav: "Charts",
+    chartsSub: "K-Line",
+    aiPlanNav: "AI Plan",
+    aiPlanSub: "Command",
+    chatNav: "Chat",
+    chatSub: "Deep Research",
+    researchNav: "Research",
+    researchSub: "Dossier",
+    evidenceNav: "Evidence",
+    evidenceSub: "Sources",
+    reportsNav: "Reports",
+    reportsSub: "Exports",
+    mstrNav: "MSTR",
+    mstrSub: "Radar",
+    journalNav: "Journal",
+    journalSub: "Notes",
+    settingsNav: "Settings",
+    settingsSub: "Safety",
+    refreshStock: "Refresh Stock",
+    refreshAiToday: "Refresh AI Today",
+    searchPlaceholder: "Search NVDA, NVIDIA, robot, robotics, space, semiconductor...",
+    analyze: "Analyze",
+    loading: "Loading...",
+    recent: "Recent",
+    commandSearch: "Command Search",
+    searchingUniverse: "Searching live universe...",
+    close: "Close",
+    searchOffline: "Search API offline. Local symbol index is still available.",
+    noSearchMatch: "No match yet. Try ticker, company, layer, or Chinese theme.",
+    analyzeFeedback: "Analyzing {symbol} with live candles and rule engine...",
+    aiTradingCommand: "AI Trading Command",
+    regenerateAiCommand: "Regenerate AI Command",
+    aiCommandGenerating: "AI Command generating...",
+    aiKeyRequired: "AI Key Required",
+    aiModelNote: "AI synthesizes K-lines, score, regime, historical edge, research evidence, and hard veto.",
+    aiUnavailableHint: "Missing backend OPENAI_API_KEY. Add it to the local server environment, never to frontend or GitHub.",
+    aiReviewRequired: "AI Review Required: high-beta setups need smaller size, staged entry, volatility-aware stop, and no chasing.",
+    aiSignalPlan: "AI Signal Plan",
+    aiAction: "AI Action",
+    hardVeto: "Hard Veto",
+    entryZone: "Entry Zone",
+    stopZone: "Stop Zone",
+    targetZone: "Target Zone",
+    riskReward: "Risk / Reward",
+    sizeHint: "Size Hint",
+    bestProfile: "Best Profile",
+    whyNow: "Why Now",
+    invalidation: "Invalidation",
+    humanChecklist: "Human Checklist",
+    ruleGuardrails: "Rule Guardrails",
+    why: "Why",
+    aiRequestFailed: "AI Agent request failed. Check local API and model configuration.",
+    aiNotActive: "AI signal layer is not active yet. Configure OPENAI_API_KEY on the local backend, then restart the dashboard.",
+    aiToday: "AI Today",
+    aiResearchSignals: "AI Research Signals",
+    aiTodayDescription: "AI ranks today's research opportunities for {universe} and turns them into entry, stop, target, risk/reward, and position-size plans. Hard guardrails still veto bad data, stale providers, and any order path.",
+    aiUnavailableUntilKey: "AI unavailable until backend key is loaded",
+    refreshAiSignals: "Refresh AI Signals",
+    generating: "Generating...",
+    status: "Status",
+    autoAgent: "Auto Agent",
+    freshness: "Freshness",
+    model: "Model",
+    candidates: "Candidates",
+    readOnlyShort: "Read Only",
+    noBrokerNoOrder: "no broker / no order",
+    guarded: "guarded",
+    topAiSignals: "Top AI Signals",
+    noAiCandidate: "No hard-veto-clean AI buy candidate yet.",
+    watchForPullback: "Watch for Pullback",
+    noAiWatchlist: "No AI watchlist yet.",
+    dataRiskWarnings: "Data / Risk Warnings",
+    noWarnings: "No warnings loaded.",
+    aiDailyFallback: "The dashboard checks the latest AI report on open and auto-runs once when stale and AI is available.",
+    deepResearchChat: "Deep Research Chat",
+    deepResearchSubtitle: "Ask the strongest configured model about this stock. The chat includes K-lines, AI command, rule guardrails, historical edge, and KNODE evidence.",
+    researchModel: "Research Model",
+    askResearchPlaceholder: "Ask about this setup, risks, better entry, thesis evidence, or what would change the AI view...",
+    askResearch: "Ask",
+    askingResearch: "Thinking...",
+    researchChatUnavailable: "Deep research chat is unavailable until the backend AI key is loaded.",
+    researchChatEmpty: "Ask a focused question to start deep research on the selected stock.",
+    directView: "Direct View",
+    keyPoints: "Key Points",
+    whatToCheckNext: "What To Check Next",
+    evidenceUsed: "Evidence Used",
+    followUps: "Follow-up Questions",
+    settingsTitle: "SaaS Readiness and Safety Boundary",
+    settingsDescription: "KQUANT is moving toward a consumer AI research signal product. This page keeps the product boundary explicit before login, payments, and hosted infrastructure are added.",
+    researchSignalOnly: "Research signal only",
+    currentLocalMode: "Current Local Mode",
+    futureSaasTarget: "Future SaaS Target",
+    futureSaasCopy: "Vercel frontend + hosted Python API + Postgres. A public SaaS cannot depend on this PC's localhost backend.",
+    paymentDisabled: "Payment hooks are intentionally not enabled yet.",
+    dataSourceTitle: "Data Source",
+    dataSourceCopy: "Prototype: Yahoo/public chart with stale real cache. Production must evaluate a formal market-data provider.",
+    remoteApi: "Remote API",
+    aiStatusTitle: "AI Status",
+    aiStatusCopy: "AI can rank research opportunities and produce plans, but hard veto blocks bad data and all order paths.",
+    consumerSafetyCopy: "Consumer Safety Copy",
+    consumerSafetyText: "KQUANT provides AI research signals for manual review. It does not read brokerage accounts, submit orders, manage portfolios, or promise returns.",
+    journalDesign: "Journal Design",
+    journalDesignText: "Planned user journal states: watched, skipped, entered manually, exited manually. These are review records, not execution events.",
   },
   zh: {
-    title: "KQUANT US Stock Signal Terminal",
-    subtitle: "Long-only stock setups first. Options return later as expression tools.",
-    stockView: "Stock Terminal",
-    mstrView: "MSTR Cycle Radar",
-    source: "Source",
-    fixture: "Fixture",
-    live: "Live",
-    refresh: "Run Stock Scan",
-    refreshMstr: "Refresh MSTR Radar",
-    readOnly: "Read-only research",
-    llmLocked: "AI-led / hard veto",
-    db: "New DB",
-    buySetups: "BUY SETUP",
-    watch: "WATCH",
-    pass: "PASS",
-    provider: "Provider",
-    universe: "Universe",
-    historicalValidation: "Historical Validation",
-    historicalEdge: "Historical Edge",
-    winRate: "5D Win Rate",
-    samples: "Samples",
-    avgReturn: "Avg 5D Return",
-    dataQuality: "Data Quality",
-    today: "Today Stock Signals",
-    selected: "Selected Stock Review",
-    daily: "Stock K-Line",
-    hourly: "Confirmation K-Line",
-    reasons: "Signal Reasons",
-    risks: "Risk Warnings",
-    checklist: "Manual Checklist",
-    layers: "Market Layers",
-    data: "Data Status",
-    optionsLater: "Options are paused until stock signals are stable.",
-    noBroker: "No broker, no account access, no paper/live/testnet order path.",
-    dailyHint: "Daily trend: EMA20 / EMA50 / EMA200",
-    hourlyHint: "1H confirmation: momentum and entry rhythm",
-    ohlc: "Move crosshair to inspect OHLC",
-    noCandles: "No live candles from the current public provider.",
-    chartSource: "Source",
-    chartStatus: "Status",
-    chartRange: "Range",
-    candles: "Candles",
-    firstLast: "First / Last",
-    report: "Report",
-    fallback: "Local API unavailable; synthetic stock data is not shown.",
-    apiReady: "Connected to local KQUANT API.",
-    clean: "Clean",
-    caution: "Caution",
+    title: "KQUANT 美股 AI 交易研究台",
+    subtitle: "AI 主动筛选美股机会，系统只读，不接券商，不自动下单。",
+    stockView: "美股终端",
+    mstrView: "MSTR 周期雷达",
+    source: "数据源",
+    fixture: "演示数据",
+    live: "实时",
+    refresh: "运行股票扫描",
+    refreshMstr: "刷新 MSTR 雷达",
+    readOnly: "只读研究",
+    llmLocked: "AI 主导 / 硬风控",
+    db: "新数据库",
+    buySetups: "买入候选",
+    watch: "观察",
+    pass: "跳过",
+    provider: "数据状态",
+    universe: "股票池",
+    historicalValidation: "历史验证",
+    historicalEdge: "历史优势",
+    winRate: "5日胜率",
+    samples: "样本数",
+    avgReturn: "5日平均收益",
+    dataQuality: "数据质量",
+    today: "今日股票信号",
+    selected: "当前股票分析",
+    daily: "股票 K 线",
+    hourly: "确认 K 线",
+    reasons: "信号理由",
+    risks: "风险提示",
+    checklist: "人工复核清单",
+    layers: "市场分类",
+    data: "数据状态",
+    optionsLater: "期权模块暂时后置，等正股信号稳定后再接回。",
+    noBroker: "无券商、无账户读取、无模拟/实盘/测试网下单路径。",
+    dailyHint: "日线趋势：EMA20 / EMA50 / EMA200",
+    hourlyHint: "1H 确认：动量与入场节奏",
+    ohlc: "移动十字光标查看 OHLC",
+    noCandles: "当前公开数据源没有返回实时 K 线。",
+    chartSource: "来源",
+    chartStatus: "状态",
+    chartRange: "周期",
+    candles: "K线数",
+    firstLast: "首尾时间",
+    report: "报告",
+    fallback: "本地 API 不可用；不会显示合成假数据。",
+    apiReady: "已连接本地 KQUANT API。",
+    clean: "干净",
+    caution: "谨慎",
     chinese: "中文",
     english: "EN",
-    light: "Light",
-    dark: "Dark",
-    mstrCycleTitle: "MSTR Cycle Bottom Radar",
-    mstrCycleSubtitle: "Cross-cycle MSTR accumulation research. BTC is reference-only; no BTC trading module is restored.",
-    bottomScore: "Bottom Score",
-    distributionRisk: "Distribution Risk",
-    btcCycle: "BTC Cycle",
-    mstrBottom: "MSTR Bottom",
-    relativeBtc: "MSTR/BTC Relative",
-    premiumProxy: "Premium Proxy",
-    financingRisk: "Financing Risk",
-    blockers: "Blockers",
-    monteCarlo: "Monte Carlo Distribution",
-    bayesianBottom: "Bayesian Bottom Probability",
-    cycleDashboard: "Cycle Dashboard",
-    whyWait: "Why Not Yet",
-    upgradeTriggers: "Upgrade Triggers",
-    tenXPath: "10x Path Map",
-    modelLimitations: "Model Limitations",
-    probability: "Probability",
-    confidence: "Confidence",
+    light: "浅色",
+    dark: "深色",
+    mstrCycleTitle: "MSTR 周期抄底雷达",
+    mstrCycleSubtitle: "跨周期 MSTR 建仓研究。BTC 仅作为参考因子，不恢复 BTC 交易模块。",
+    bottomScore: "底部评分",
+    distributionRisk: "顶部/派发风险",
+    btcCycle: "BTC 周期",
+    mstrBottom: "MSTR 底部",
+    relativeBtc: "MSTR/BTC 相对强弱",
+    premiumProxy: "溢价代理",
+    financingRisk: "融资风险",
+    blockers: "阻断因素",
+    monteCarlo: "蒙特卡洛分布",
+    bayesianBottom: "贝叶斯底部概率",
+    cycleDashboard: "周期仪表盘",
+    whyWait: "为什么还不能买",
+    upgradeTriggers: "升级触发条件",
+    tenXPath: "10倍路径图",
+    modelLimitations: "模型限制",
+    probability: "概率",
+    confidence: "置信度",
+    currentPage: "当前",
+    systemStatus: "系统状态",
+    navigation: "导航",
+    tradingSystem: "交易系统",
+    universeControl: "股票池",
+    actions: "操作",
+    preferences: "偏好",
+    todayNav: "今日",
+    todaySub: "AI信号",
+    searchNav: "搜索",
+    searchSub: "股票",
+    watchlistNav: "自选池",
+    watchlistSub: "股票池",
+    stockNav: "股票",
+    stockSub: "详情",
+    chartsNav: "图表",
+    chartsSub: "K线",
+    aiPlanNav: "AI计划",
+    aiPlanSub: "交易指令",
+    chatNav: "问答",
+    chatSub: "深度研究",
+    researchNav: "研究",
+    researchSub: "档案",
+    evidenceNav: "证据",
+    evidenceSub: "材料",
+    reportsNav: "报告",
+    reportsSub: "导出",
+    mstrNav: "MSTR",
+    mstrSub: "雷达",
+    journalNav: "复盘",
+    journalSub: "笔记",
+    settingsNav: "设置",
+    settingsSub: "安全",
+    refreshStock: "刷新当前股票",
+    refreshAiToday: "刷新今日AI",
+    searchPlaceholder: "搜索 NVDA、英伟达、机器人、太空、半导体...",
+    analyze: "分析",
+    loading: "加载中...",
+    recent: "最近",
+    commandSearch: "命令搜索",
+    searchingUniverse: "正在搜索股票池...",
+    close: "关闭",
+    searchOffline: "搜索 API 离线，本地股票索引仍可使用。",
+    noSearchMatch: "暂未匹配。可以输入 ticker、公司名、分类或中文主题。",
+    analyzeFeedback: "正在用真实K线和规则引擎分析 {symbol}...",
+    aiTradingCommand: "AI 交易指令",
+    regenerateAiCommand: "重新生成 AI 指令",
+    aiCommandGenerating: "AI 指令生成中...",
+    aiKeyRequired: "需要 AI Key",
+    aiModelNote: "AI 综合 K 线、分数、市场状态、历史优势、研究证据和硬风控。",
+    aiUnavailableHint: "后端缺少 OPENAI_API_KEY。请只放在本地后端环境变量，不要放进前端或 GitHub。",
+    aiReviewRequired: "需要 AI 复核：高波动交易必须小仓、分批、波动止损，不能追高。",
+    aiSignalPlan: "AI 信号计划",
+    aiAction: "AI 动作",
+    hardVeto: "硬风控",
+    entryZone: "入场区",
+    stopZone: "止损区",
+    targetZone: "目标区",
+    riskReward: "盈亏比",
+    sizeHint: "仓位提示",
+    bestProfile: "最佳系统",
+    whyNow: "为什么现在",
+    invalidation: "失效条件",
+    humanChecklist: "人工检查清单",
+    ruleGuardrails: "规则风控",
+    why: "原因",
+    aiRequestFailed: "AI Agent 请求失败，请检查本地 API 和模型配置。",
+    aiNotActive: "AI 信号层尚未启用。请在本地后端配置 OPENAI_API_KEY 后重启仪表盘。",
+    aiToday: "今日 AI",
+    aiResearchSignals: "AI 研究信号",
+    aiTodayDescription: "AI 会为 {universe} 排序今日研究机会，并生成入场、止损、目标、盈亏比和仓位计划。坏数据、过期数据和任何下单路径仍会被硬风控否决。",
+    aiUnavailableUntilKey: "后端 Key 加载前 AI 不可用",
+    refreshAiSignals: "刷新 AI 信号",
+    generating: "生成中...",
+    status: "状态",
+    autoAgent: "自动 Agent",
+    freshness: "新鲜度",
+    model: "模型",
+    candidates: "候选数",
+    readOnlyShort: "只读",
+    noBrokerNoOrder: "无券商 / 无下单",
+    guarded: "受保护",
+    topAiSignals: "AI 顶级信号",
+    noAiCandidate: "暂无通过硬风控的 AI 买入候选。",
+    watchForPullback: "等待回踩",
+    noAiWatchlist: "暂无 AI 观察名单。",
+    dataRiskWarnings: "数据 / 风险警告",
+    noWarnings: "暂无风险警告。",
+    aiDailyFallback: "页面打开时会检查最新 AI 报告；当报告过期且 AI 可用时自动运行一次。",
+    deepResearchChat: "深度研究问答",
+    deepResearchSubtitle: "围绕当前股票向最强研究模型提问。上下文会自动包含 K线、AI 指令、规则风控、历史优势和 KNODE 证据。",
+    researchModel: "研究模型",
+    askResearchPlaceholder: "询问这个形态、风险、更好入场点、公司证据，或者什么条件会改变 AI 判断...",
+    askResearch: "提问",
+    askingResearch: "思考中...",
+    researchChatUnavailable: "后端 AI Key 加载前，深度研究问答不可用。",
+    researchChatEmpty: "输入一个具体问题，开始对当前股票做深度研究。",
+    directView: "直接观点",
+    keyPoints: "关键要点",
+    whatToCheckNext: "下一步检查",
+    evidenceUsed: "使用的证据",
+    followUps: "可继续追问",
+    settingsTitle: "SaaS 就绪度与安全边界",
+    settingsDescription: "KQUANT 正在向 To C AI 研究信号产品演进。登录、支付和托管基础设施上线前，这里明确产品边界。",
+    researchSignalOnly: "仅研究信号",
+    currentLocalMode: "当前本地模式",
+    futureSaasTarget: "未来 SaaS 目标",
+    futureSaasCopy: "Vercel 前端 + 托管 Python API + Postgres。公开 SaaS 不能依赖这台电脑的 localhost 后端。",
+    paymentDisabled: "支付入口目前刻意不启用。",
+    dataSourceTitle: "数据源",
+    dataSourceCopy: "原型阶段使用 Yahoo/public chart + 真实缓存。生产化必须评估正式行情源。",
+    remoteApi: "远程 API",
+    aiStatusTitle: "AI 状态",
+    aiStatusCopy: "AI 可以排序研究机会并生成计划，但硬风控会阻断坏数据和所有下单路径。",
+    consumerSafetyCopy: "消费者安全文案",
+    consumerSafetyText: "KQUANT 提供用于人工复核的 AI 研究信号；不读取券商账户，不提交订单，不管理组合，也不承诺收益。",
+    journalDesign: "复盘设计",
+    journalDesignText: "计划中的用户复盘状态：已观察、跳过、手动进入、手动退出。这些是复盘记录，不是执行事件。",
   },
 } as const;
 const CHART_PRESETS: ChartPreset[] = [
@@ -1210,6 +1594,8 @@ const SEARCH_QUERY_ALIASES: Record<string, string[]> = {
   机器人: ["robot", "robotics", "automation", "autonomy", "space robotics"],
   太空: ["space", "rocket", "satellite", "aerospace", "space robotics"],
   航天: ["space", "rocket", "satellite", "aerospace", "space robotics"],
+  火箭: ["space", "rocket", "rklb", "aerospace"],
+  卫星: ["satellite", "space", "asts", "irdm"],
   芯片: ["chips", "semis", "semiconductor", "ai semis"],
   半导体: ["chips", "semis", "semiconductor", "ai semis"],
   能源: ["energy", "power", "nuclear", "grid"],
@@ -1243,8 +1629,30 @@ const SEARCH_SHORTCUTS = [
   { label: "High Beta", query: "high_beta" },
 ] as const;
 
+function initialLanguage(): Lang {
+  if (typeof navigator !== "undefined" && navigator.language.toLowerCase().startsWith("zh")) {
+    return "zh";
+  }
+  return "en";
+}
+
+function aiDecisionCacheKey(signal: StockSignal, profile: StrategyProfileName): string {
+  const dataStamp = [
+    signal.symbol,
+    profile,
+    signal.score,
+    signal.level,
+    signal.features?.close ?? "-",
+    signal.data_status?.source ?? "-",
+    signal.data_status?.freshness ?? "-",
+    signal.data_status?.daily_candles ?? 0,
+    signal.data_status?.hourly_candles ?? 0,
+  ].join(":");
+  return dataStamp;
+}
+
 function App() {
-  const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", "en");
+  const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", initialLanguage());
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
   const [view, setView] = useStoredState<AppView>("kquant-stock:view:v1", "stocks");
   const source: Source = "live";
@@ -1280,15 +1688,26 @@ function App() {
   const [aiReviewState, setAiReviewState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiDecision, setAiDecision] = useState<AiDecisionPayload | null>(null);
   const [aiDecisionState, setAiDecisionState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [researchChatMessages, setResearchChatMessages] = useState<ResearchChatMessage[]>([]);
+  const [researchChatInput, setResearchChatInput] = useState("");
+  const [researchChatState, setResearchChatState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiDailyReport, setAiDailyReport] = useState<AiDailyAgentPayload | null>(null);
   const [aiDailyState, setAiDailyState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [researchDossier, setResearchDossier] = useState<ResearchDossierPayload | null>(null);
+  const [researchEvidence, setResearchEvidence] = useState<ResearchEvidencePayload | null>(null);
+  const [researchReports, setResearchReports] = useState<ResearchReportsPayload | null>(null);
+  const [researchState, setResearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("ai");
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("today");
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [searchOpen, setSearchOpen] = useState(false);
   const analyzeRequestRef = useRef(0);
   const candleRequestRef = useRef(0);
+  const researchRequestRef = useRef(0);
+  const aiDecisionRequestRef = useRef(0);
+  const researchChatRequestRef = useRef(0);
+  const aiDecisionCacheRef = useRef<Record<string, AiDecisionPayload>>({});
   const autoAgentAttemptRef = useRef("");
   const text = copy[lang];
 
@@ -1404,6 +1823,9 @@ function App() {
     setCompareState("idle");
     setAiReview(null);
     setAiReviewState("idle");
+    setResearchChatMessages([]);
+    setResearchChatInput("");
+    setResearchChatState("idle");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.symbol, primaryPresetKey, confirmationPresetKey]);
 
@@ -1599,6 +2021,7 @@ function App() {
     const candlePromise = loadCandles(symbol);
     const journalPromise = loadStockJournal(symbol);
     const aiStatusPromise = loadAiStatus();
+    const researchPromise = loadResearchLayer(symbol);
     try {
       const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1637,11 +2060,12 @@ function App() {
       }
       const nextRecent = [signal.symbol, ...recentSymbols.filter((item) => item !== signal.symbol)].slice(0, 8);
       setRecentSearches(nextRecent.join(","));
-      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise, researchPromise]);
       setAnalysisState("ready");
       setApiState("api");
+      void requestAiDecision({ trigger: "auto", signalOverride: signal });
     } catch {
-      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise, researchPromise]);
       if (requestId !== analyzeRequestRef.current) return;
       setSelectedSymbol(symbol);
       if (!options.keepSearch) {
@@ -1675,6 +2099,70 @@ function App() {
     }
   }
 
+  async function loadResearchLayer(symbol: string) {
+    const requestId = ++researchRequestRef.current;
+    setResearchState("loading");
+    try {
+      const encoded = encodeURIComponent(symbol);
+      const [dossierResponse, evidenceResponse, reportsResponse] = await Promise.all([
+        apiFetch(`/api/research/company-dossier?symbol=${encoded}`),
+        apiFetch(`/api/research/evidence?symbol=${encoded}&limit=12`),
+        apiFetch(`/api/research/reports?symbol=${encoded}&limit=8`),
+      ]);
+      if (!dossierResponse.ok || !evidenceResponse.ok || !reportsResponse.ok) {
+        throw new Error("research layer unavailable");
+      }
+      const [dossier, evidence, reports] = await Promise.all([
+        dossierResponse.json() as Promise<ResearchDossierPayload>,
+        evidenceResponse.json() as Promise<ResearchEvidencePayload>,
+        reportsResponse.json() as Promise<ResearchReportsPayload>,
+      ]);
+      if (requestId !== researchRequestRef.current) return;
+      setResearchDossier(dossier);
+      setResearchEvidence(evidence);
+      setResearchReports(reports);
+      setResearchState("ready");
+    } catch {
+      if (requestId !== researchRequestRef.current) return;
+      setResearchDossier(null);
+      setResearchEvidence(null);
+      setResearchReports(null);
+      setResearchState("error");
+    }
+  }
+
+  async function saveResearchEvidence(entry: {
+    title: string;
+    type: string;
+    summary: string;
+    url: string;
+    tags: string;
+  }) {
+    const response = await apiFetch("/api/research/evidence/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symbol: selected.symbol,
+        company_name: selectedMeta.name,
+        primary_layer: selectedMeta.primary_layer,
+        title: entry.title,
+        type: entry.type,
+        summary: entry.summary,
+        url: entry.url,
+        tags: entry.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+      }),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    setResearchDossier(payload.dossier as ResearchDossierPayload);
+    setResearchEvidence(payload.evidence as ResearchEvidencePayload);
+    setResearchReports(payload.reports as ResearchReportsPayload);
+    setResearchState("ready");
+  }
+
   async function requestAiReview() {
     try {
       setAiReviewState("loading");
@@ -1687,6 +2175,11 @@ function App() {
           model_tier: "review",
           signal_payload: selected,
           profile_comparison: profileCompare,
+          research_context: {
+            dossier: researchDossier?.dossier ?? null,
+            evidence: researchEvidence?.items?.slice(0, 5) ?? [],
+            reports: researchReports?.reports?.slice(0, 3) ?? [],
+          },
           journal_context_limit: 5,
         }),
       });
@@ -1702,29 +2195,110 @@ function App() {
     }
   }
 
-  async function requestAiDecision() {
+  async function requestAiDecision(options: { trigger?: "auto" | "manual"; signalOverride?: StockSignal; force?: boolean } = {}) {
+    const signal = options.signalOverride ?? selected;
+    const requestId = ++aiDecisionRequestRef.current;
+    const cacheKey = aiDecisionCacheKey(signal, selectedProfile);
+    if (!options.force && aiDecisionCacheRef.current[cacheKey]) {
+      setAiDecision(aiDecisionCacheRef.current[cacheKey]);
+      setAiDecisionState("ready");
+      return;
+    }
     try {
       setAiDecisionState("loading");
       const response = await apiFetch("/api/stocks/ai-decision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          symbol: selected.symbol,
+          symbol: signal.symbol,
           profile: selectedProfile,
-          model_tier: selected.profile_name === "cycle_1_3y_v1" || selected.symbol === "MSTR" ? "deep" : "review",
-          signal_payload: selected,
+          model_tier: signal.profile_name === "cycle_1_3y_v1" || signal.symbol === "MSTR" ? "deep" : "review",
+          signal_payload: signal,
           profile_comparison: profileCompare,
+          trigger: options.trigger ?? "manual",
+          research_context: {
+            dossier: researchDossier?.dossier ?? null,
+            evidence: researchEvidence?.items?.slice(0, 5) ?? [],
+            reports: researchReports?.reports?.slice(0, 3) ?? [],
+          },
           journal_context_limit: 5,
         }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = (await response.json()) as AiDecisionPayload;
+      if (requestId !== aiDecisionRequestRef.current) return;
+      aiDecisionCacheRef.current[cacheKey] = payload;
       setAiDecision(payload);
       setAiDecisionState("ready");
       setApiState("api");
     } catch {
+      if (requestId !== aiDecisionRequestRef.current) return;
       setAiDecision(null);
       setAiDecisionState("error");
+      setApiState("fallback");
+    }
+  }
+
+  async function sendResearchChat(questionOverride?: string) {
+    const question = (questionOverride ?? researchChatInput).trim();
+    if (!question || researchChatState === "loading") return;
+    const requestId = ++researchChatRequestRef.current;
+    const userMessage: ResearchChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: question,
+      created_at: new Date().toISOString(),
+    };
+    const nextMessages = [...researchChatMessages, userMessage].slice(-12);
+    setResearchChatMessages(nextMessages);
+    setResearchChatInput("");
+    setResearchChatState("loading");
+    try {
+      const response = await apiFetch("/api/stocks/research-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol: selected.symbol,
+          profile: selectedProfile,
+          language: lang,
+          question,
+          messages: nextMessages.map((message) => ({ role: message.role, content: message.content })),
+          signal_payload: selected,
+          ai_decision: aiDecision,
+          research_context: {
+            dossier: researchDossier?.dossier ?? null,
+            evidence: researchEvidence?.items?.slice(0, 8) ?? [],
+            reports: researchReports?.reports?.slice(0, 4) ?? [],
+          },
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as AiResearchChatPayload;
+      if (requestId !== researchChatRequestRef.current) return;
+      setResearchChatMessages([
+        ...nextMessages,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: payload.answer.answer,
+          payload,
+          created_at: payload.generated_at,
+        },
+      ]);
+      setResearchChatState("ready");
+      setApiState("api");
+    } catch {
+      if (requestId !== researchChatRequestRef.current) return;
+      setResearchChatMessages([
+        ...nextMessages,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: "assistant",
+          content: text.aiRequestFailed,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      setResearchChatState("error");
       setApiState("fallback");
     }
   }
@@ -1810,19 +2384,29 @@ function App() {
     }
     if (view !== "stocks") setView("stocks");
     const targetId =
-      workspace === "ai"
+      workspace === "today"
         ? "ai-trade-desk-workspace"
         : workspace === "search"
           ? "stock-search-workspace"
           : workspace === "watchlist"
             ? "stock-watchlist-workspace"
-            : workspace === "selected"
+            : workspace === "stock"
               ? "selected-stock-workspace"
-              : workspace === "kline"
+              : workspace === "charts"
                 ? "kline-workspace"
-                : workspace === "compare"
+                : workspace === "aiPlan"
                   ? "strategy-compare-workspace"
-                  : "journal-workspace";
+                  : workspace === "chat"
+                    ? "deep-research-chat-workspace"
+                    : workspace === "research"
+                      ? "research-dossier-workspace"
+                      : workspace === "evidence"
+                        ? "research-evidence-workspace"
+                        : workspace === "reports"
+                          ? "research-reports-workspace"
+                          : workspace === "journal"
+                            ? "journal-workspace"
+                            : "settings-workspace";
     window.setTimeout(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
 
@@ -1836,105 +2420,156 @@ function App() {
             <p>{text.subtitle}</p>
           </div>
         </div>
-        <div className="top-actions">
-          <Segmented
-            value={lang}
-            options={[
-              ["en", text.english],
-              ["zh", text.chinese],
-            ]}
-            onChange={(value) => setLang(value as Lang)}
-            icon={<Languages size={14} />}
+        <div className="top-context">
+          <span>{text.currentPage}</span>
+          <strong>{view === "mstr" ? text.mstrCycleTitle : `${selected.symbol} / ${text.aiTradingCommand}`}</strong>
+        </div>
+        <div className="top-status-mini" aria-label={text.systemStatus}>
+          <Pill
+            tone={apiConnection === "connected" ? "good" : "warn"}
+            icon={<Activity size={14} />}
+            label={apiConnection === "connected" ? "Live" : "Offline"}
           />
-          <Segmented
-            value={theme}
-            options={[
-              ["light", text.light],
-              ["dark", text.dark],
-            ]}
-            onChange={(value) => setTheme(value as Theme)}
-            icon={theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
+          <Pill
+            tone={aiStatus?.status === "available" ? "good" : "warn"}
+            icon={<Lock size={14} />}
+            label={aiStatus?.status === "available" ? "AI" : "AI Key"}
           />
-          <Segmented
-            value={view}
-            options={[
-              ["stocks", text.stockView],
-              ["mstr", text.mstrView],
-            ]}
-            onChange={(value) => setView(value as AppView)}
-          />
-          <Segmented
-            value={selectedProfile}
-            options={STRATEGY_PROFILES.map((profile) => [profile.key, profile.label])}
-            onChange={(value) => setSelectedProfile(value as StrategyProfileName)}
+          <Pill
+            tone={regimeTone(activeMarketRegime?.regime)}
+            icon={<BarChart3 size={14} />}
+            label={activeMarketRegime?.regime ?? "Market"}
           />
         </div>
       </header>
 
-      <section className="status-rail" aria-label="System status">
-        <Pill tone="good" icon={<ShieldCheck size={14} />} label={text.readOnly} />
-        <Pill tone="neutral" icon={<Lock size={14} />} label={text.llmLocked} />
-        <Pill tone="neutral" icon={<Database size={14} />} label={`${text.db}: work/kquant_us.sqlite3`} />
-        <Pill
-          tone={apiConnection === "connected" ? "good" : "warn"}
-          icon={<Activity size={14} />}
-          label={apiConnection === "connected" ? `Live API Connected: ${apiHealth?.backend ?? "backend"}` : "Live API Offline"}
-        />
-        <Pill
-          tone={aiStatus?.status === "available" ? "good" : "warn"}
-          icon={<Lock size={14} />}
-          label={aiStatus?.status === "available" ? `AI Connected: ${aiStatus.models.review ?? "review"}` : "AI Missing Key"}
-        />
-        <Pill tone={apiState === "api" ? "good" : "warn"} icon={<Activity size={14} />} label={apiState === "api" ? text.apiReady : text.fallback} />
-        <Pill
-          tone={regimeTone(activeMarketRegime?.regime)}
-          icon={<BarChart3 size={14} />}
-          label={`Market Regime: ${activeMarketRegime?.regime ?? "loading"}`}
-        />
-        <Pill
-          tone="good"
-          icon={<CheckCircle2 size={14} />}
-          label="Real Data Guard: No Fixture"
-        />
-        {API_BASE_URL ? (
-          <Pill
-            tone="neutral"
-            icon={<Database size={14} />}
-            label={`Remote API: ${API_BASE_URL.replace(/^https?:\/\//, "")}`}
-          />
-        ) : null}
-        {fixtureBlocked ? (
-          <Pill
-            tone="warn"
-            icon={<AlertTriangle size={14} />}
-            label="Fixture URL ignored: stock terminal is live-only"
-          />
-        ) : null}
-        <Pill tone="neutral" icon={<BarChart3 size={14} />} label={text.noBroker} />
-      </section>
-
       <section className="stock-workspace-shell">
         <aside className="workspace-sidebar" aria-label="Workspace navigation">
-          {[
-            ["ai", "AI", "Trade Desk"],
-            ["search", "Search", "Research"],
-            ["watchlist", "List", "Watchlist"],
-            ["selected", "Stock", "Selected"],
-            ["kline", "Chart", "K-Line"],
-            ["compare", "Systems", "Compare"],
-            ["mstr", "MSTR", "Radar"],
-            ["journal", "Notes", "Journal"],
-          ].map(([key, short, label]) => (
-            <button
-              type="button"
-              key={key}
-              className={`workspace-nav-button ${activeWorkspace === key ? "active" : ""}`}
-              onClick={() => openWorkspace(key as WorkspaceName)}
-            >
-              <strong>{short}</strong>
-              <span>{label}</span>
+          <div className="sidebar-section sidebar-status-stack">
+            <Pill
+              tone={apiConnection === "connected" ? "good" : "warn"}
+              icon={<Activity size={14} />}
+              label={apiConnection === "connected" ? `Live: ${apiHealth?.backend ?? "API"}` : "Live API offline"}
+            />
+            <Pill
+              tone={aiStatus?.status === "available" ? "good" : "warn"}
+              icon={<Lock size={14} />}
+              label={aiStatus?.status === "available" ? `AI: ${aiStatus.models.review ?? "review"}` : "AI key missing"}
+            />
+            <Pill
+              tone={regimeTone(activeMarketRegime?.regime)}
+              icon={<BarChart3 size={14} />}
+              label={`Market: ${activeMarketRegime?.regime ?? "loading"}`}
+            />
+            <Pill tone="good" icon={<CheckCircle2 size={14} />} label="No fixture" />
+            {fixtureBlocked ? <Pill tone="warn" icon={<AlertTriangle size={14} />} label="Fixture URL ignored" /> : null}
+            <Pill tone="neutral" icon={<ShieldCheck size={14} />} label="No broker / no order" />
+          </div>
+
+          <div className="sidebar-section primary-nav-section">
+            <span className="sidebar-section-title">{text.navigation}</span>
+            {[
+              ["today", text.todayNav, text.todaySub],
+              ["search", text.searchNav, text.searchSub],
+              ["watchlist", text.watchlistNav, text.watchlistSub],
+              ["stock", text.stockNav, text.stockSub],
+              ["charts", text.chartsNav, text.chartsSub],
+              ["aiPlan", text.aiPlanNav, text.aiPlanSub],
+              ["chat", text.chatNav, text.chatSub],
+              ["research", text.researchNav, text.researchSub],
+              ["evidence", text.evidenceNav, text.evidenceSub],
+              ["reports", text.reportsNav, text.reportsSub],
+              ["mstr", text.mstrNav, text.mstrSub],
+              ["journal", text.journalNav, text.journalSub],
+              ["settings", text.settingsNav, text.settingsSub],
+            ].map(([key, short, label]) => (
+              <button
+                type="button"
+                key={key}
+                className={`workspace-nav-button ${activeWorkspace === key ? "active" : ""}`}
+                onClick={() => openWorkspace(key as WorkspaceName)}
+              >
+                <strong>{short}</strong>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="sidebar-section">
+            <span className="sidebar-section-title">{text.tradingSystem}</span>
+            {STRATEGY_PROFILES.map((profile) => (
+              <button
+                type="button"
+                key={profile.key}
+                className={`sidebar-option ${selectedProfile === profile.key ? "active" : ""}`}
+                onClick={() => setSelectedProfile(profile.key)}
+              >
+                <strong>{profile.label}</strong>
+                <span>{profile.period}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="sidebar-section">
+            <span className="sidebar-section-title">{text.universeControl}</span>
+            {(["default", "ai_five_layer", "all"] as UniverseName[]).map((item) => (
+              <button
+                type="button"
+                key={item}
+                className={`sidebar-option ${selectedUniverse === item ? "active" : ""}`}
+                onClick={() => setSelectedUniverse(item)}
+              >
+                <strong>{universeOptionLabel(item, lang)}</strong>
+                <span>{item === "default" ? "Core" : item === "ai_five_layer" ? "AI" : "Merged"}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="sidebar-section">
+            <span className="sidebar-section-title">{text.actions}</span>
+            <button className="sidebar-action-button" type="button" onClick={() => void analyzeSymbol(selected.symbol, { keepSearch: true })}>
+              <RefreshCw size={14} />
+              {text.refreshStock}
             </button>
-          ))}
+            <button className="sidebar-action-button" type="button" onClick={() => void runAiDailyAgent("manual")}>
+              <RefreshCw size={14} />
+              {text.refreshAiToday}
+            </button>
+            <button className="sidebar-action-button" type="button" onClick={() => (view === "mstr" ? void loadMstrRadar() : void loadSignals(true))}>
+              <RefreshCw size={14} />
+              {view === "mstr" ? text.refreshMstr : text.refresh}
+            </button>
+          </div>
+
+          <div className="sidebar-section sidebar-preferences">
+            <span className="sidebar-section-title">{text.preferences}</span>
+            <Segmented
+              value={lang}
+              options={[
+                ["en", text.english],
+                ["zh", text.chinese],
+              ]}
+              onChange={(value) => setLang(value as Lang)}
+              icon={<Languages size={14} />}
+            />
+            <Segmented
+              value={theme}
+              options={[
+                ["light", text.light],
+                ["dark", text.dark],
+              ]}
+              onChange={(value) => setTheme(value as Theme)}
+              icon={theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
+            />
+            <Segmented
+              value={view}
+              options={[
+                ["stocks", text.stockView],
+                ["mstr", text.mstrView],
+              ]}
+              onChange={(value) => setView(value as AppView)}
+            />
+          </div>
         </aside>
         <div className="stock-workspace-main">
 
@@ -1962,11 +2597,11 @@ function App() {
                 void analyzeSymbol(resolveSearchSymbol(searchText, activeSearchResults, selected.symbol));
               }
             }}
-            placeholder="Search NVDA, 英伟达, robot, 机器人, space, 太空, semiconductor..."
+            placeholder={text.searchPlaceholder}
             aria-label="Search ticker, company, Chinese alias, theme, or layer"
           />
           <button type="submit">
-            {analysisState === "loading" ? "Loading..." : "Analyze"}
+            {analysisState === "loading" ? text.loading : text.analyze}
           </button>
         </form>
         <div className="search-shortcuts">
@@ -1989,13 +2624,13 @@ function App() {
           ))}
         </div>
         {analysisState === "loading" ? (
-          <p className="command-feedback">Analyzing {selectedSymbol} with live candles and rule engine...</p>
+          <p className="command-feedback">{text.analyzeFeedback.replace("{symbol}", selectedSymbol)}</p>
         ) : null}
         {searchOpen || searchText.trim() ? (
           <div className="command-results command-results-inline" role="listbox">
             <div className="command-results-head">
-              <span>{searchState === "loading" ? "Searching live universe..." : "Command Search"}</span>
-              <button type="button" onClick={() => setSearchOpen(false)}>Close</button>
+              <span>{searchState === "loading" ? text.searchingUniverse : text.commandSearch}</span>
+              <button type="button" onClick={() => setSearchOpen(false)}>{text.close}</button>
             </div>
             {(searchText.trim() ? activeSearchResults : quickSearchStocks(ALL_STOCKS)).slice(0, 12).map((stock) => {
               const signal = run.signals.find((item) => item.symbol === stock.symbol);
@@ -2008,43 +2643,24 @@ function App() {
                 >
                   <strong>{stock.symbol}</strong>
                   <span>{stock.name}</span>
-                  <small>{stock.layer} / {signal?.trade_conclusion?.action ?? "Analyze"} / {signal?.data_status?.data_quality ?? "live check"}</small>
+                  <small>{stock.layer} / {signal?.trade_conclusion?.action ?? text.analyze} / {signal?.data_status?.data_quality ?? "live check"}</small>
                 </button>
               );
             })}
-            {searchState === "error" ? <p>Search API offline. Local symbol index is still available.</p> : null}
-            {searchState === "ready" && searchText.trim() && activeSearchResults.length === 0 ? <p>No match yet. Try ticker, company, layer, or Chinese theme.</p> : null}
+            {searchState === "error" ? <p>{text.searchOffline}</p> : null}
+            {searchState === "ready" && searchText.trim() && activeSearchResults.length === 0 ? <p>{text.noSearchMatch}</p> : null}
           </div>
         ) : null}
       </section>
 
       <section className="quick-search-row" aria-label="Recent symbol searches">
-        <span>Recent</span>
+        <span>{text.recent}</span>
         {recentSymbols.map((symbol) => (
           <button key={symbol} type="button" className={symbol === selected.symbol ? "symbol-chip active" : "symbol-chip"} onClick={() => void analyzeSymbol(symbol)}>
             {symbol}
           </button>
         ))}
         <span className="quick-search-note">{run.profile.label ?? selectedProfile} / {run.profile.holding_period ?? ""}</span>
-      </section>
-
-      <section className="workspace-control-strip" aria-label="Universe and scan controls">
-        <Segmented
-          value={selectedUniverse}
-          options={[
-            ["default", universeOptionLabel("default", lang)],
-            ["ai_five_layer", universeOptionLabel("ai_five_layer", lang)],
-            ["all", universeOptionLabel("all", lang)],
-          ]}
-          onChange={(value) => setSelectedUniverse(value as UniverseName)}
-        />
-        <button className="primary-action" type="button" onClick={() => (view === "mstr" ? void loadMstrRadar() : void loadSignals(true))}>
-          <RefreshCw size={15} />
-          {view === "mstr" ? text.refreshMstr : text.refresh}
-        </button>
-        <span className="control-strip-note">
-          AI runs automatically when today's report is stale; scans remain manually controlled to avoid provider limits.
-        </span>
       </section>
 
       <section className="metrics-grid">
@@ -2092,11 +2708,23 @@ function App() {
         autoRunState={aiAgentAutoRunState}
         aiStatus={aiStatus}
         selectedUniverse={selectedUniverse}
+        lang={lang}
+        text={text}
         onRun={() => void runAiDailyAgent("manual")}
         onPick={(symbol) => void analyzeSymbol(symbol)}
       />
       </div>
-      <section className="main-grid">
+      <DataReliabilityPanel
+        apiConnection={apiConnection}
+        apiHealth={apiHealth}
+        run={run}
+        dailyMeta={dailyMeta}
+        hourlyMeta={hourlyMeta}
+        selectedSymbol={selected.symbol}
+        apiBaseUrl={API_BASE_URL}
+      />
+      <section className={`main-grid ${activeWorkspace === "watchlist" ? "with-watchlist" : "single-main"}`}>
+        {activeWorkspace === "watchlist" ? (
         <aside className="panel queue-panel" id="stock-watchlist-workspace">
           <PanelTitle title={text.today} detail={run.profile.name} />
           <div className="signal-list">
@@ -2135,6 +2763,7 @@ function App() {
             ))}
           </div>
         </aside>
+        ) : null}
 
         <section className="review-stack">
           <section className="panel selected-panel" id="selected-stock-workspace">
@@ -2153,7 +2782,8 @@ function App() {
               aiDecision={aiDecision}
               aiDecisionState={aiDecisionState}
               aiStatus={aiStatus}
-              onReview={() => void requestAiDecision()}
+              text={text}
+              onReview={() => void requestAiDecision({ trigger: "manual", force: true })}
             />
             <div className="fact-grid">
               <Fact label="Close" value={formatNumber(selected.features.close)} />
@@ -2205,6 +2835,19 @@ function App() {
             </div>
             <p className="secondary-note">{text.optionsLater}</p>
           </section>
+
+          <DeepResearchChatPanel
+            text={text}
+            selected={selected}
+            aiStatus={aiStatus}
+            aiDecision={aiDecision}
+            state={researchChatState}
+            messages={researchChatMessages}
+            input={researchChatInput}
+            onInputChange={setResearchChatInput}
+            onSend={() => void sendResearchChat()}
+            onAsk={(question) => void sendResearchChat(question)}
+          />
 
           <div className="chart-grid" id="kline-workspace">
             <ChartPanel
@@ -2303,6 +2946,16 @@ function App() {
         </section>
       </section>
 
+      <ResearchBridgePanel
+        symbol={selected.symbol}
+        companyName={selectedMeta.name}
+        state={researchState}
+        dossier={researchDossier}
+        evidence={researchEvidence}
+        reports={researchReports}
+        onSave={saveResearchEvidence}
+      />
+
       <section className="panel layers-panel">
         <PanelTitle title="AI Five-Layer Cake" detail={`${universe.length} selected stocks / ${universeOptionLabel(selectedUniverse, lang)}`} />
         <div className="layer-grid">
@@ -2341,11 +2994,145 @@ function App() {
           ))}
         </div>
       </section>
+      <SettingsPanel
+        apiConnection={apiConnection}
+        aiStatus={aiStatus}
+        apiBaseUrl={API_BASE_URL}
+        apiHealth={apiHealth}
+        text={text}
+      />
         </>
       )}
         </div>
       </section>
     </main>
+  );
+}
+
+function DeepResearchChatPanel({
+  text,
+  selected,
+  aiStatus,
+  aiDecision,
+  state,
+  messages,
+  input,
+  onInputChange,
+  onSend,
+  onAsk,
+}: {
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+  selected: StockSignal;
+  aiStatus: AiReviewStatusPayload | null;
+  aiDecision: AiDecisionPayload | null;
+  state: "idle" | "loading" | "ready" | "error";
+  messages: ResearchChatMessage[];
+  input: string;
+  onInputChange: (value: string) => void;
+  onSend: () => void;
+  onAsk: (question: string) => void;
+}) {
+  const model = aiStatus?.models?.research ?? aiStatus?.models?.deep ?? "gpt-5.5-pro";
+  const promptIdeas = [
+    `Analyze ${selected.symbol}'s risk/reward and best entry zone.`,
+    `What would change the AI view on ${selected.symbol}?`,
+    `Compare bullish and bearish evidence for ${selected.symbol}.`,
+  ];
+  return (
+    <section className="panel deep-research-chat" id="deep-research-chat-workspace">
+      <div className="deep-chat-head">
+        <div>
+          <span className="eyebrow">{text.chatSub}</span>
+          <h2>{text.deepResearchChat}</h2>
+          <p>{text.deepResearchSubtitle}</p>
+        </div>
+        <div className="deep-chat-model">
+          <span>{text.researchModel}</span>
+          <strong>{model}</strong>
+        </div>
+      </div>
+      <div className="deep-chat-context">
+        <Fact label="Symbol" value={selected.symbol} />
+        <Fact label="Rule" value={`${selected.level} / ${formatNumber(selected.score)}`} />
+        <Fact label="AI" value={aiDecision?.ai_decision?.action ?? "-"} />
+        <Fact label={text.dataQuality} value={selected.data_status?.data_quality ?? "-"} />
+      </div>
+      <div className="deep-chat-messages">
+        {messages.length === 0 ? (
+          <div className="deep-chat-empty">
+            <MessageCircle size={28} />
+            <strong>{text.researchChatEmpty}</strong>
+            <div className="deep-chat-prompts">
+              {promptIdeas.map((prompt) => (
+                <button type="button" key={prompt} onClick={() => onAsk(prompt)} disabled={state === "loading" || aiStatus?.status !== "available"}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <article className={`deep-chat-message ${message.role}`} key={message.id}>
+              <div className="deep-chat-bubble">
+                <strong>{message.role === "user" ? "You" : "KQUANT AI"}</strong>
+                <p>{message.content}</p>
+              </div>
+              {message.payload?.answer ? <ResearchChatAnswerCard payload={message.payload} text={text} /> : null}
+            </article>
+          ))
+        )}
+        {state === "loading" ? (
+          <div className="deep-chat-message assistant">
+            <div className="deep-chat-bubble">
+              <strong>KQUANT AI</strong>
+              <p>{text.askingResearch}</p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <form
+        className="deep-chat-input"
+        onSubmit={(event: FormEvent<HTMLFormElement>) => {
+          event.preventDefault();
+          onSend();
+        }}
+      >
+        <textarea
+          value={input}
+          onChange={(event) => onInputChange(event.target.value)}
+          placeholder={aiStatus?.status === "available" ? text.askResearchPlaceholder : text.researchChatUnavailable}
+          disabled={state === "loading" || aiStatus?.status !== "available"}
+        />
+        <button type="submit" disabled={state === "loading" || aiStatus?.status !== "available" || !input.trim()}>
+          <Send size={15} />
+          {state === "loading" ? text.askingResearch : text.askResearch}
+        </button>
+      </form>
+      {aiStatus?.status !== "available" ? <p className="secondary-note">{text.aiUnavailableHint}</p> : null}
+    </section>
+  );
+}
+
+function ResearchChatAnswerCard({ payload, text }: { payload: AiResearchChatPayload; text: (typeof copy)["en"] | (typeof copy)["zh"] }) {
+  const answer = payload.answer;
+  const isDegraded = payload.status !== "available" || Boolean(payload.fallback_model_used);
+  return (
+    <div className={`deep-chat-answer-card ${isDegraded ? "degraded" : ""}`}>
+      <div className="deep-chat-status-row">
+        <span>Status: <strong>{payload.status}</strong></span>
+        <span>Model: <strong>{payload.model_name}</strong></span>
+        {payload.fallback_model_used ? <span>Fallback: <strong>{payload.primary_model_name ?? "primary"} failed</strong></span> : null}
+        {payload.reason && payload.reason !== "ok" ? <span>Reason: <strong>{payload.reason}</strong></span> : null}
+      </div>
+      {payload.fallback_reason ? <p className="secondary-note">Fallback reason: {payload.fallback_reason}</p> : null}
+      <Fact label={text.directView} value={answer.direct_view} />
+      <Narrative title={text.keyPoints} items={answer.key_points} />
+      <Narrative title={text.risks} items={answer.risk_flags} />
+      <Narrative title={text.whatToCheckNext} items={answer.what_to_check_next} />
+      {answer.evidence_used?.length ? <Narrative title={text.evidenceUsed} items={answer.evidence_used} /> : null}
+      <Narrative title={text.followUps} items={answer.follow_up_questions} />
+      <p className="secondary-note">{answer.safety_note}</p>
+    </div>
   );
 }
 
@@ -2688,7 +3475,7 @@ function CycleDashboardPanel({
               <span className={`status-dot ${item.status}`}>{item.status}</span>
               <strong>{item.label}</strong>
               <small>
-                {String(item.current)} 鈫?{String(item.target)}
+                {`${String(item.current)} -> ${String(item.target)}`}
               </small>
               <p>{item.why}</p>
             </div>
@@ -2828,6 +3615,187 @@ function PathStressPanel({ payload }: { payload?: PathStressPayload }) {
   );
 }
 
+function ResearchBridgePanel({
+  symbol,
+  companyName,
+  state,
+  dossier,
+  evidence,
+  reports,
+  onSave,
+}: {
+  symbol: string;
+  companyName: string;
+  state: "idle" | "loading" | "ready" | "error";
+  dossier: ResearchDossierPayload | null;
+  evidence: ResearchEvidencePayload | null;
+  reports: ResearchReportsPayload | null;
+  onSave: (entry: { title: string; type: string; summary: string; url: string; tags: string }) => Promise<void>;
+}) {
+  const bridge = dossier?.bridge_status ?? evidence?.bridge_status ?? reports?.bridge_status ?? {};
+  const offline = state === "error" || bridge.api_status === "auth_required" || bridge.api_status === "offline";
+  const dossierData = dossier?.dossier;
+  const evidenceItems = evidence?.items ?? [];
+  const reportItems = reports?.reports ?? [];
+  return (
+    <section className="panel research-bridge-panel">
+      <div className="research-bridge-head">
+        <div>
+          <span>KNODE Research Layer</span>
+          <h2>{symbol} Research Evidence</h2>
+          <p>KQUANT owns live market data and AI commands. KNODE contributes dossier, saved evidence, and reports for the same symbol.</p>
+        </div>
+        <div className="research-status-stack">
+          <Pill tone={offline ? "warn" : "good"} icon={<Database size={14} />} label={offline ? "Research layer offline" : "Research layer connected"} />
+          <Pill tone="neutral" icon={<ShieldCheck size={14} />} label={bridge.integration_mode ?? "ui_api_bridge_v1"} />
+        </div>
+      </div>
+      <div className="research-summary-grid">
+        <Fact label="Company" value={dossierData?.company_name || companyName || symbol} />
+        <Fact label="Dossier" value={dossier?.summary?.dossier_source ?? (state === "loading" ? "loading" : "unavailable")} />
+        <Fact label="Evidence" value={String(evidence?.count ?? evidenceItems.length)} />
+        <Fact label="Reports" value={String(reports?.count ?? reportItems.length)} />
+        <Fact label="KNODE API" value={bridge.api_status ?? "not checked"} />
+        <Fact label="Local Data" value={bridge.local_data_status ?? "unknown"} />
+      </div>
+
+      <div className="research-section-grid">
+        <section id="research-dossier-workspace" className="research-section">
+          <PanelTitle title="Research Dossier" detail={dossierData?.source ?? "KNODE bridge"} />
+          {state === "loading" ? <p className="probability-note">Loading KNODE dossier...</p> : null}
+          {dossierData ? (
+            <div className="research-dossier-body">
+              <h3>{dossierData.company_name || companyName || symbol}</h3>
+              <p>{dossierData.thesis || "No thesis saved yet. Add evidence below to start building the company dossier."}</p>
+              <div className="research-columns">
+                <Narrative title="Bull Case" items={dossierData.bull_case?.length ? dossierData.bull_case : ["No bull-case notes saved yet."]} />
+                <Narrative title="Bear Risks" items={dossierData.bear_risks?.length ? dossierData.bear_risks : ["No bear-risk notes saved yet."]} />
+              </div>
+              <div className="tag-row">
+                {(dossierData.tags ?? []).slice(0, 8).map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="probability-note">{offline ? "KNODE is offline or requires login. KQUANT trading data remains available." : "No company dossier saved yet."}</p>
+          )}
+        </section>
+
+        <section id="research-evidence-workspace" className="research-section">
+          <PanelTitle title="Evidence" detail={`${evidenceItems.length} saved items`} />
+          <div className="research-list">
+            {evidenceItems.length ? (
+              evidenceItems.map((item) => (
+                <article className="research-item" key={item.id || `${item.title}-${item.created_at}`}>
+                  <div className="research-item-top">
+                    <strong>{item.title || "Untitled evidence"}</strong>
+                    <span>{item.type || item.source || "evidence"}</span>
+                  </div>
+                  <p>{item.summary || item.fact || item.interpretation || "No summary saved."}</p>
+                  <small>
+                    {item.impact_direction || item.thesis_impact || "impact unknown"} / confidence {String(item.confidence || "-")}
+                  </small>
+                  {item.url ? (
+                    <a href={item.url} target="_blank" rel="noreferrer">
+                      Open source
+                    </a>
+                  ) : null}
+                </article>
+              ))
+            ) : (
+              <p className="probability-note">No evidence found for {symbol}. Save a source below or open KNODE to build the dossier.</p>
+            )}
+          </div>
+          <EvidenceSaveForm onSave={onSave} />
+        </section>
+
+        <section id="research-reports-workspace" className="research-section">
+          <PanelTitle title="Reports" detail={`${reportItems.length} linked reports`} />
+          <div className="research-list">
+            {reportItems.length ? (
+              reportItems.map((report) => (
+                <article className="research-item report-item" key={report.id || report.filename}>
+                  <div className="research-item-top">
+                    <strong>{report.title || report.filename || "Research report"}</strong>
+                    <span>{report.type || report.mime_type || "report"}</span>
+                  </div>
+                  <p>{report.summary || "Report summary unavailable."}</p>
+                  <small>{report.created_at || "date unknown"}</small>
+                  {report.open_url ? (
+                    <a href={report.open_url} target="_blank" rel="noreferrer">
+                      Open report
+                    </a>
+                  ) : null}
+                </article>
+              ))
+            ) : (
+              <p className="probability-note">No KNODE reports linked for {symbol} yet.</p>
+            )}
+          </div>
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function EvidenceSaveForm({
+  onSave,
+}: {
+  onSave: (entry: { title: string; type: string; summary: string; url: string; tags: string }) => Promise<void>;
+}) {
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState("note");
+  const [summary, setSummary] = useState("");
+  const [url, setUrl] = useState("");
+  const [tags, setTags] = useState("");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!title.trim() && !summary.trim() && !url.trim()) return;
+    try {
+      setSaveState("saving");
+      await onSave({ title, type, summary, url, tags });
+      setTitle("");
+      setSummary("");
+      setUrl("");
+      setTags("");
+      setType("note");
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
+  }
+
+  return (
+    <form className="evidence-save-form" onSubmit={handleSubmit}>
+      <strong>Save Evidence to KNODE</strong>
+      <div className="evidence-form-grid">
+        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Evidence title" />
+        <select value={type} onChange={(event) => setType(event.target.value)}>
+          <option value="note">note</option>
+          <option value="news">news</option>
+          <option value="filing">filing</option>
+          <option value="earnings">earnings</option>
+          <option value="x_post">X / social</option>
+          <option value="pdf">PDF / deck</option>
+        </select>
+      </div>
+      <textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="What does this evidence prove or challenge?" />
+      <div className="evidence-form-grid">
+        <input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="Optional source URL" />
+        <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="tags, comma separated" />
+      </div>
+      <button type="submit" className="primary-action" disabled={saveState === "saving"}>
+        {saveState === "saving" ? "Saving..." : "Save Evidence"}
+      </button>
+      {saveState === "saved" ? <small>Saved to KNODE local evidence JSONL.</small> : null}
+      {saveState === "error" ? <small>Save failed. Check KNODE project path and local API.</small> : null}
+    </form>
+  );
+}
+
 function StockJournalPanel({
   runId,
   symbol,
@@ -2915,12 +3883,131 @@ function StockJournalPanel({
   );
 }
 
+function SettingsPanel({
+  apiConnection,
+  aiStatus,
+  apiBaseUrl,
+  apiHealth,
+  text,
+}: {
+  apiConnection: ApiConnectionState;
+  aiStatus: AiReviewStatusPayload | null;
+  apiBaseUrl: string;
+  apiHealth: ApiHealthPayload | null;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+}) {
+  return (
+    <section className="panel settings-panel" id="settings-workspace">
+      <div className="settings-head">
+        <div>
+          <span>{text.settingsNav}</span>
+          <h2>{text.settingsTitle}</h2>
+          <p>{text.settingsDescription}</p>
+        </div>
+        <Pill tone="neutral" icon={<ShieldCheck size={14} />} label={text.researchSignalOnly} />
+      </div>
+      <div className="settings-grid">
+        <div className="settings-card">
+          <strong>{text.currentLocalMode}</strong>
+          <p>Local backend: {apiHealth?.backend ?? "127.0.0.1:8001"} / SQLite: work/kquant_us.sqlite3</p>
+          <p>Status: {apiConnection === "connected" ? "live API connected" : "live API offline"}</p>
+        </div>
+        <div className="settings-card">
+          <strong>{text.futureSaasTarget}</strong>
+          <p>{text.futureSaasCopy}</p>
+          <p>{text.paymentDisabled}</p>
+        </div>
+        <div className="settings-card">
+          <strong>{text.dataSourceTitle}</strong>
+          <p>{text.dataSourceCopy}</p>
+          <p>{text.remoteApi}: {apiBaseUrl ? apiBaseUrl : "not configured"}</p>
+        </div>
+        <div className="settings-card">
+          <strong>{text.aiStatusTitle}</strong>
+          <p>{aiStatus?.status === "available" ? `Connected: ${aiStatus.models.review ?? "review model"}` : "Missing backend OPENAI_API_KEY"}</p>
+          <p>{text.aiStatusCopy}</p>
+        </div>
+        <div className="settings-card wide">
+          <strong>{text.consumerSafetyCopy}</strong>
+          <p>{text.consumerSafetyText}</p>
+        </div>
+        <div className="settings-card wide">
+          <strong>{text.journalDesign}</strong>
+          <p>{text.journalDesignText}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DataReliabilityPanel({
+  apiConnection,
+  apiHealth,
+  run,
+  dailyMeta,
+  hourlyMeta,
+  selectedSymbol,
+  apiBaseUrl,
+}: {
+  apiConnection: ApiConnectionState;
+  apiHealth: ApiHealthPayload | null;
+  run: SignalRun;
+  dailyMeta: CandleMeta;
+  hourlyMeta: CandleMeta;
+  selectedSymbol: string;
+  apiBaseUrl: string;
+}) {
+  const available = run.provider_coverage?.available ?? 0;
+  const stale = run.provider_coverage?.stale_or_partial ?? 0;
+  const failed = run.provider_coverage?.failed ?? run.provider_error_count ?? 0;
+  const candleTimes = [dailyMeta.last, hourlyMeta.last].filter(Boolean).sort();
+  const latestCandle = candleTimes[candleTimes.length - 1] ?? "-";
+  const worstStatus =
+    apiConnection !== "connected"
+      ? "Live API offline"
+      : dailyMeta.providerStatus === "available" || hourlyMeta.providerStatus === "available"
+        ? "Live data available"
+        : run.provider_status === "available"
+          ? "Latest scan available"
+          : "Provider degraded";
+  return (
+    <section className="panel data-reliability-panel" id="data-reliability-workspace">
+      <div className="data-reliability-head">
+        <div>
+          <span>Data Reliability</span>
+          <h2>{worstStatus}</h2>
+          <p>
+            User-facing charts stay live-only. If Yahoo/public data fails, KQUANT shows provider failed or stale real cache instead of synthetic candles.
+          </p>
+        </div>
+        <Pill
+          tone={apiConnection === "connected" ? "good" : "warn"}
+          icon={<Activity size={14} />}
+          label={apiConnection === "connected" ? "Live backend connected" : "Live backend offline"}
+        />
+      </div>
+      <div className="data-reliability-grid">
+        <Fact label="Provider Status" value={`${run.provider_status} / errors ${run.provider_error_count}`} />
+        <Fact label="Coverage" value={`${available} live / ${stale} stale / ${failed} failed`} />
+        <Fact label="Scanned Symbols" value={`${run.scanned_count ?? run.counts.total}/${run.universe_total ?? run.counts.total}`} />
+        <Fact label="Last Candle" value={`${selectedSymbol} / ${latestCandle}`} />
+        <Fact label="Selected Daily" value={`${dailyMeta.providerStatus} / ${dailyMeta.count} candles`} />
+        <Fact label="Selected Confirm" value={`${hourlyMeta.providerStatus} / ${hourlyMeta.count} candles`} />
+        <Fact label="Stale Age" value={`${dailyMeta.staleAge || "none"} / ${hourlyMeta.staleAge || "none"}`} />
+        <Fact label="Environment" value={apiBaseUrl ? `remote API ${apiBaseUrl.replace(/^https?:\/\//, "")}` : `local ${apiHealth?.backend ?? "stdlib_server"}`} />
+      </div>
+    </section>
+  );
+}
+
 function AiTradeDesk({
   report,
   state,
   autoRunState,
   aiStatus,
   selectedUniverse,
+  lang,
+  text,
   onRun,
   onPick,
 }: {
@@ -2929,6 +4016,8 @@ function AiTradeDesk({
   autoRunState: "idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error";
   aiStatus: AiReviewStatusPayload | null;
   selectedUniverse: UniverseName;
+  lang: Lang;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
   onRun: () => void;
   onPick: (symbol: string) => void;
 }) {
@@ -2941,38 +4030,38 @@ function AiTradeDesk({
     <section className="panel ai-trade-desk">
       <div className="ai-trade-desk-head">
         <div>
-          <span>AI Trade Desk</span>
-          <h2>AI Daily Command Center</h2>
+          <span>{text.aiToday}</span>
+          <h2>{text.aiResearchSignals}</h2>
           <p>
-            AI leads today's opportunity ranking and trade plans for {universeOptionLabel(selectedUniverse, "en")}; hard guardrails still veto bad data, stale providers, and order wiring.
+            {text.aiTodayDescription.replace("{universe}", universeOptionLabel(selectedUniverse, lang))}
           </p>
         </div>
         <div className="ai-trade-desk-actions">
           <Pill
             tone={aiConnected ? "good" : "warn"}
             icon={<Activity size={14} />}
-            label={aiConnected ? `AI Connected: ${aiStatus?.models.batch ?? "batch"}` : "AI unavailable until backend key is loaded"}
+            label={aiConnected ? `AI: ${aiStatus?.models.batch ?? "batch"}` : text.aiUnavailableUntilKey}
           />
           <button className="primary-action" type="button" onClick={onRun} disabled={state === "loading"}>
             <RefreshCw size={15} />
-            {state === "loading" ? "Generating..." : "Regenerate AI Report"}
+            {state === "loading" ? text.generating : text.refreshAiSignals}
           </button>
         </div>
       </div>
       <div className="ai-trade-summary">
-        <Fact label="Status" value={report?.status ?? "not_scanned"} />
-        <Fact label="Auto Agent" value={autoRunState} />
-        <Fact label="Freshness" value={report?.is_stale ? `stale ${report.age_seconds ?? "-"}s` : "fresh"} />
-        <Fact label="Model" value={report?.model_name ?? aiStatus?.models.batch ?? "-"} />
-        <Fact label="Candidates" value={String(report?.ai_context_candidate_count ?? 0)} />
-        <Fact label="Read Only" value={report?.broker_order_wiring_enabled === false ? "no broker / no order" : "guarded"} />
+        <Fact label={text.status} value={report?.status ?? "not_scanned"} />
+        <Fact label={text.autoAgent} value={autoRunState} />
+        <Fact label={text.freshness} value={report?.is_stale ? `stale ${report.age_seconds ?? "-"}s` : "fresh"} />
+        <Fact label={text.model} value={report?.model_name ?? aiStatus?.models.batch ?? "-"} />
+        <Fact label={text.candidates} value={String(report?.ai_context_candidate_count ?? 0)} />
+        <Fact label={text.readOnlyShort} value={report?.broker_order_wiring_enabled === false ? text.noBrokerNoOrder : text.guarded} />
       </div>
       <div className="ai-opportunity-grid">
-        <AiOpportunityColumn title="AI Buy Commands" empty="No hard-veto-clean AI buy command yet." items={top} onPick={onPick} />
-        <AiOpportunityColumn title="Watch for Pullback" empty="No AI watchlist yet." items={watch.slice(0, 5)} onPick={onPick} />
+        <AiOpportunityColumn title={text.topAiSignals} empty={text.noAiCandidate} items={top} onPick={onPick} />
+        <AiOpportunityColumn title={text.watchForPullback} empty={text.noAiWatchlist} items={watch.slice(0, 5)} onPick={onPick} />
         <AiOpportunityColumn
-          title="Data / Risk Warnings"
-          empty="No warnings loaded."
+          title={text.dataRiskWarnings}
+          empty={text.noWarnings}
           items={warnings.slice(0, 5).map((warning, index) => ({
             symbol: `WARN${index + 1}`,
             action: "AI_AVOID",
@@ -2994,7 +4083,7 @@ function AiTradeDesk({
         {aiReport?.daily_summary ??
           report?.last_error ??
           report?.reason ??
-          "The dashboard checks the latest AI report on open and auto-runs once when stale and AI is available."}
+          text.aiDailyFallback}
       </p>
     </section>
   );
@@ -3048,6 +4137,7 @@ function ManualTradingConclusion({
   aiDecision,
   aiDecisionState,
   aiStatus,
+  text,
   onReview,
 }: {
   conclusion: StockSignal["trade_conclusion"] | undefined;
@@ -3056,6 +4146,7 @@ function ManualTradingConclusion({
   aiDecision: AiDecisionPayload | null;
   aiDecisionState: "idle" | "loading" | "ready" | "error";
   aiStatus: AiReviewStatusPayload | null;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
   onReview: () => void;
 }) {
   const action = conclusion?.action ?? "DO_NOT_BUY";
@@ -3069,12 +4160,12 @@ function ManualTradingConclusion({
   return (
     <section className={`manual-conclusion ${actionClass(displayAction)}`}>
       <div className="manual-conclusion-main">
-        <span>AI Trading Command</span>
+        <span>{text.aiTradingCommand}</span>
         <strong>{displayAction}</strong>
         <p>{displaySummary}</p>
         {aiReviewRequired ? (
           <p className="compare-error">
-            AI Review Required: high-beta setups need smaller size, staged entry, volatility-aware stop, and no chasing.
+            {text.aiReviewRequired}
           </p>
         ) : null}
       </div>
@@ -3085,44 +4176,44 @@ function ManualTradingConclusion({
       </div>
       <div className="manual-conclusion-actions">
         <button type="button" onClick={onReview} disabled={aiDecisionState === "loading"}>
-          {aiDecisionState === "loading" ? "Generating Command..." : aiConnected ? "Generate AI Command" : "AI Key Required"}
+          {aiDecisionState === "loading" ? text.aiCommandGenerating : aiConnected ? text.regenerateAiCommand : text.aiKeyRequired}
         </button>
         <small>
           {aiConnected
-            ? `Model: ${aiStatus?.models.review ?? "review"} / AI synthesizes K-lines, score, regime, historical edge, and hard veto.`
-            : aiStatus?.setup_hint ?? "Missing backend OPENAI_API_KEY. Add it to the local server environment, never to frontend or GitHub."}
+            ? `Model: ${aiStatus?.models.review ?? "review"} / ${text.aiModelNote}`
+            : aiStatus?.setup_hint ?? text.aiUnavailableHint}
         </small>
       </div>
       {aiDecisionState === "ready" && aiDecision ? (
         <div className={`ai-decision-panel ${actionClass(decision?.action)}`}>
           <div className="ai-review-head">
-            <strong>AI Trading Command</strong>
+            <strong>{text.aiSignalPlan}</strong>
             <span>{aiDecision.status} / {aiDecision.model_name}</span>
           </div>
           <div className="ai-review-facts">
-            <Fact label="AI Action" value={decision?.action ?? "-"} />
-            <Fact label="Confidence" value={decision?.confidence ?? "-"} />
-            <Fact label="Hard Veto" value={aiDecision.hard_veto?.active ? "active" : "clear"} />
+            <Fact label={text.aiAction} value={decision?.action ?? "-"} />
+            <Fact label={text.confidence} value={decision?.confidence ?? "-"} />
+            <Fact label={text.hardVeto} value={aiDecision.hard_veto?.active ? "active" : "clear"} />
           </div>
           <div className="ai-plan-grid">
-            <Fact label="Entry Zone" value={decision?.entry_zone ?? "-"} />
-            <Fact label="Stop Zone" value={decision?.stop_zone ?? "-"} />
-            <Fact label="Target Zone" value={decision?.target_zone ?? "-"} />
-            <Fact label="Risk / Reward" value={decision?.risk_reward ?? "-"} />
-            <Fact label="Size Hint" value={decision?.position_size_hint ?? "-"} />
-            <Fact label="Best Profile" value={decision?.best_profile ?? "-"} />
+            <Fact label={text.entryZone} value={decision?.entry_zone ?? "-"} />
+            <Fact label={text.stopZone} value={decision?.stop_zone ?? "-"} />
+            <Fact label={text.targetZone} value={decision?.target_zone ?? "-"} />
+            <Fact label={text.riskReward} value={decision?.risk_reward ?? "-"} />
+            <Fact label={text.sizeHint} value={decision?.position_size_hint ?? "-"} />
+            <Fact label={text.bestProfile} value={decision?.best_profile ?? "-"} />
           </div>
-          <Narrative title="Why Now" items={decision?.why_now?.length ? decision.why_now : ["No AI decision reasons."]} />
-          <Narrative title="Invalidation" items={decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : ["No AI invalidation."]} />
-          <Narrative title="Human Checklist" items={decision?.human_checklist?.length ? decision.human_checklist : ["Save journal before acting manually."]} />
+          <Narrative title={text.whyNow} items={decision?.why_now?.length ? decision.why_now : ["No AI decision reasons."]} />
+          <Narrative title={text.invalidation} items={decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : ["No AI invalidation."]} />
+          <Narrative title={text.humanChecklist} items={decision?.human_checklist?.length ? decision.human_checklist : ["Save journal before acting manually."]} />
           {aiDecision.hard_veto?.active ? <p className="compare-error">Hard veto: {aiDecision.hard_veto.reasons.join("; ")}</p> : null}
           <p className="secondary-note">{decision?.summary ?? aiDecision.reason}</p>
         </div>
       ) : null}
       <div className="manual-conclusion-detail">
-        <Narrative title="Why" items={conclusion?.why?.length ? conclusion.why : ["Run analysis to load rule reasons."]} />
-        <Narrative title="Blockers" items={conclusion?.blockers?.length ? conclusion.blockers : ["No hard blocker listed."]} />
-        <Narrative title="Invalidation" items={conclusion?.invalidation?.length ? conclusion.invalidation : ["No invalidation loaded."]} />
+        <Narrative title={text.why} items={conclusion?.why?.length ? conclusion.why : ["Run analysis to load rule reasons."]} />
+        <Narrative title={text.blockers} items={conclusion?.blockers?.length ? conclusion.blockers : ["No hard blocker listed."]} />
+        <Narrative title={text.invalidation} items={conclusion?.invalidation?.length ? conclusion.invalidation : ["No invalidation loaded."]} />
       </div>
       {aiReviewState === "ready" && aiReview ? (
         <div className="ai-review-panel">
@@ -3141,9 +4232,9 @@ function ManualTradingConclusion({
           <p className="secondary-note">{ai?.summary ?? aiReview.reason}</p>
         </div>
       ) : null}
-      {aiDecisionState === "error" ? <p className="compare-error">AI Agent request failed. Check local API and model configuration.</p> : null}
+      {aiDecisionState === "error" ? <p className="compare-error">{text.aiRequestFailed}</p> : null}
       {!aiConnected && aiDecisionState === "idle" ? (
-        <p className="compare-error">AI command layer is not active yet. Configure OPENAI_API_KEY on the local backend, then restart the dashboard.</p>
+        <p className="compare-error">{text.aiNotActive}</p>
       ) : null}
     </section>
   );
@@ -3340,6 +4431,7 @@ function ChartPanel({
     firstLast: string;
   };
 }) {
+  const panelRef = useRef<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState<OhlcState | null>(null);
   const indicators = useMemo(
@@ -3347,6 +4439,12 @@ function ChartPanel({
     [candles],
   );
   const effectiveEmptyText = meta.providerStatus === "refreshing" ? "Refreshing real data..." : emptyText;
+  const openFullscreen = () => {
+    const node = panelRef.current;
+    if (node?.requestFullscreen) {
+      void node.requestFullscreen();
+    }
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -3419,7 +4517,7 @@ function ChartPanel({
   }, [candles, indicators.ema20, indicators.ema50, indicators.ema200, indicators.vwap, theme]);
 
   return (
-    <section className="panel chart-panel">
+    <section className="panel chart-panel" ref={panelRef}>
       <div className="chart-header">
         <div>
           <h3>{title}</h3>
@@ -3429,6 +4527,9 @@ function ChartPanel({
           <Segmented value={presetKey} options={presets.map((preset) => [preset.key, preset.label])} onChange={onPresetChange} />
           <button className="chart-reload" type="button" onClick={onReload}>
             Reload Real Data
+          </button>
+          <button className="chart-reload" type="button" onClick={openFullscreen}>
+            Fullscreen
           </button>
           <div className="indicator-tags">
             <span>EMA20</span>

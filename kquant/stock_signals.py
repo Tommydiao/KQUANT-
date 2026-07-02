@@ -959,8 +959,9 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
     journal_limit = int(payload.get("journal_context_limit") or 5)
     journal = api_stock_signal_journal(db_path=db, symbol=symbol, limit=max(1, min(journal_limit, 20)))
     market_regime = api_stock_market_regime(source="live", db_path=db)
+    research_context = payload.get("research_context") if isinstance(payload.get("research_context"), dict) else {}
     model = ai_review_model(payload)
-    context = ai_decision_context(symbol, profile, signal_payload, profile_comparison, journal, market_regime)
+    context = ai_decision_context(symbol, profile, signal_payload, profile_comparison, journal, market_regime, research_context)
     veto = ai_hard_veto(signal_payload, market_regime)
     safety = ai_agent_safety_policy(veto)
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
@@ -1008,6 +1009,128 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         "rule_conclusion": signal_payload.get("trade_conclusion", {}),
         "ai_decision": decision,
         "hard_veto": veto,
+        "safety_policy": safety,
+    }
+
+
+def api_stock_research_chat(payload: dict[str, Any], db_path: Path | None = None) -> dict[str, Any]:
+    """Deep research chat for a single stock.
+
+    This endpoint is intentionally read-only. It gives the strongest configured
+    research model the current stock context, but it cannot change rule scores,
+    trigger scans, access accounts, or submit orders.
+    """
+
+    db = db_path or default_db_path()
+    symbol = normalize_symbol(payload.get("symbol") or payload.get("signal_payload", {}).get("symbol") or "NVDA")
+    profile = str(payload.get("profile") or payload.get("signal_payload", {}).get("profile_name") or "tactical_1w_v1")
+    question = str(payload.get("question") or "").strip()
+    if not question:
+        raise ValueError("Research chat question is required.")
+    signal_payload = payload.get("signal_payload")
+    if not isinstance(signal_payload, dict) or not signal_payload:
+        signal_payload = api_stock_analyze(symbol=symbol, source="live", profile=profile, db_path=db)["signal"]
+    ai_decision = payload.get("ai_decision") if isinstance(payload.get("ai_decision"), dict) else {}
+    research_context = payload.get("research_context") if isinstance(payload.get("research_context"), dict) else {}
+    messages = payload.get("messages") if isinstance(payload.get("messages"), list) else []
+    language = str(payload.get("language") or "zh").lower()
+    primary_model = ai_research_chat_model(payload)
+    fallback_model = (
+        os.environ.get("KQUANT_AI_RESEARCH_FALLBACK_MODEL", "").strip()
+        or os.environ.get("KQUANT_AI_DEEP_MODEL", "").strip()
+        or os.environ.get("KQUANT_AI_REVIEW_MODEL", "").strip()
+    )
+    model_candidates = [primary_model]
+    if fallback_model and fallback_model not in model_candidates:
+        model_candidates.append(fallback_model)
+    context = research_chat_context(
+        symbol=symbol,
+        profile=profile,
+        question=question,
+        signal=signal_payload,
+        ai_decision=ai_decision,
+        research_context=research_context,
+        messages=messages,
+        language=language,
+    )
+    safety = {
+        "read_only_research": True,
+        "ai_research_chat_enabled": True,
+        "ai_can_place_orders": False,
+        "broker_order_wiring_enabled": False,
+        "account_access_enabled": False,
+        "order_submission_enabled": False,
+        "does_not_change_rule_score": True,
+        "does_not_trigger_scans": True,
+    }
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return {
+            "product": "KQUANT Deep Research Chat",
+            "status": "ai_unavailable",
+            "reason": "OPENAI_API_KEY is not configured.",
+            "model_name": primary_model,
+            "primary_model_name": primary_model,
+            "fallback_model_used": False,
+            "fallback_reason": "",
+            "generated_at": iso_now(),
+            "symbol": symbol,
+            "profile": profile,
+            "question": question,
+            "answer": unavailable_research_chat_answer(question),
+            "safety_policy": safety,
+        }
+    answer: dict[str, Any] | None = None
+    status = "ai_unavailable"
+    reason = "No model request was attempted."
+    model_name = primary_model
+    fallback_used = False
+    fallback_reason = ""
+    last_error = ""
+    for index, candidate_model in enumerate(model_candidates):
+        try:
+            response = requests.post(
+                "https://api.openai.com/v1/responses",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=openai_research_chat_request(candidate_model, context),
+                timeout=120,
+            )
+            response.raise_for_status()
+            raw = response.json()
+            text = extract_openai_text(raw)
+            answer = sanitize_research_chat_answer(json.loads(text))
+            status = "available"
+            model_name = candidate_model
+            fallback_used = index > 0
+            if fallback_used:
+                fallback_reason = last_error
+                reason = f"fallback_model_used_after_primary_failed: {last_error[:180]}"
+            else:
+                reason = "ok"
+            break
+        except Exception as exc:
+            last_error = f"{type(exc).__name__}: {str(exc)[:200]}"
+            continue
+    if answer is None:
+        answer = unavailable_research_chat_answer(f"{question}\n\nAI request failed: {last_error}")
+        reason = last_error or reason
+    return {
+        "product": "KQUANT Deep Research Chat",
+        "status": status,
+        "reason": reason,
+        "model_name": model_name,
+        "primary_model_name": primary_model,
+        "fallback_model_used": fallback_used,
+        "fallback_reason": fallback_reason,
+        "generated_at": iso_now(),
+        "symbol": symbol,
+        "profile": profile,
+        "question": question,
+        "answer": answer,
+        "input_summary": context["input_summary"],
         "safety_policy": safety,
     }
 
@@ -1216,6 +1339,7 @@ def api_stock_ai_review_status() -> dict[str, Any]:
     review_model = os.environ.get("KQUANT_AI_REVIEW_MODEL", "gpt-5.4").strip() or "gpt-5.4"
     batch_model = os.environ.get("KQUANT_AI_BATCH_MODEL", "gpt-5.4-mini").strip() or "gpt-5.4-mini"
     deep_model = os.environ.get("KQUANT_AI_DEEP_MODEL", "gpt-5.5").strip() or "gpt-5.5"
+    research_model = os.environ.get("KQUANT_AI_RESEARCH_MODEL", "").strip() or "gpt-5.5-pro"
     has_key = bool(os.environ.get("OPENAI_API_KEY", "").strip())
     return {
         "product": "KQUANT AI Trading Agent",
@@ -1226,6 +1350,7 @@ def api_stock_ai_review_status() -> dict[str, Any]:
             "review": review_model,
             "batch": batch_model,
             "deep": deep_model,
+            "research": research_model,
         },
         "manual_trigger_only": False,
         "daily_agent_auto_check_enabled": has_key,
@@ -1234,6 +1359,7 @@ def api_stock_ai_review_status() -> dict[str, Any]:
         "ai_review_only": False,
         "ai_decision_engine_enabled": has_key,
         "daily_opportunity_agent_enabled": has_key,
+        "deep_research_chat_enabled": has_key,
         "hard_rule_veto_enabled": True,
         "ai_can_lead_decisions": has_key,
         "ai_can_place_orders": False,
@@ -2782,6 +2908,13 @@ def ai_review_model(payload: dict[str, Any]) -> str:
     return os.environ.get("KQUANT_AI_REVIEW_MODEL", "gpt-5.4")
 
 
+def ai_research_chat_model(payload: dict[str, Any]) -> str:
+    requested = str(payload.get("model") or "").strip()
+    if requested:
+        return requested
+    return os.environ.get("KQUANT_AI_RESEARCH_MODEL", "").strip() or "gpt-5.5-pro"
+
+
 def ai_review_context(
     symbol: str,
     profile: str,
@@ -2963,6 +3096,7 @@ def ai_decision_context(
     profile_comparison: list[Any],
     journal: dict[str, Any],
     market_regime: dict[str, Any],
+    research_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     base = ai_review_context(symbol, profile, signal, profile_comparison, journal)
     base["market_regime"] = {
@@ -2973,9 +3107,14 @@ def ai_decision_context(
         "reasons": market_regime.get("reasons", [])[:5],
     }
     base["hard_veto"] = ai_hard_veto(signal, market_regime)
+    base["research_context"] = research_context or {
+        "status": "not_loaded",
+        "note": "KNODE research evidence was not available for this request.",
+    }
     base["task"] = (
         "Lead the manual trading decision. Produce a practical entry/stop/target plan, "
-        "but respect hard vetoes and never propose automatic execution."
+        "using both KQUANT technical inputs and any KNODE research evidence, but respect hard vetoes "
+        "and never propose automatic execution."
     )
     return base
 
@@ -3021,7 +3160,7 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
     system = (
         "You are KQUANT AI Trading Agent. You lead the manual trading decision layer, "
         "but you are strictly read-only. Use the provided live-data signal, profile comparison, "
-        "historical edge, market regime, and hard veto. If hard_veto.active is true, do not output "
+        "historical edge, market regime, KNODE research evidence, and hard veto. If hard_veto.active is true, do not output "
         "AI_BUY_CANDIDATE. Never place orders, never access broker accounts, and never promise profit. "
         "Return concise, actionable, risk-aware planning for a human trader."
     )
@@ -3122,6 +3261,165 @@ def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason
     }
 
 
+def research_chat_context(
+    symbol: str,
+    profile: str,
+    question: str,
+    signal: dict[str, Any],
+    ai_decision: dict[str, Any],
+    research_context: dict[str, Any],
+    messages: list[Any],
+    language: str,
+) -> dict[str, Any]:
+    compact_messages = [
+        {
+            "role": str(message.get("role") or "")[:20],
+            "content": str(message.get("content") or "")[:1200],
+        }
+        for message in messages[-8:]
+        if isinstance(message, dict) and str(message.get("content") or "").strip()
+    ]
+    compact_signal = {
+        "symbol": signal.get("symbol", symbol),
+        "profile_name": signal.get("profile_name", profile),
+        "strategy_label": signal.get("strategy_label"),
+        "holding_period": signal.get("holding_period"),
+        "level": signal.get("level"),
+        "score": signal.get("score"),
+        "trade_conclusion": signal.get("trade_conclusion"),
+        "score_breakdown": signal.get("score_breakdown"),
+        "exit_risk": signal.get("exit_risk"),
+        "historical_edge": signal.get("historical_edge"),
+        "data_status": signal.get("data_status"),
+        "features": {
+            key: signal.get("features", {}).get(key)
+            for key in ["close", "ema20", "ema50", "ema200", "atr_pct", "volume_ratio", "rsi14", "momentum_1h_pct"]
+        },
+        "trend_summary": signal.get("trend_summary"),
+        "trigger_summary": signal.get("trigger_summary"),
+        "risk_warnings": signal.get("risk_warnings", [])[:8],
+    }
+    decision_payload = ai_decision.get("ai_decision") if isinstance(ai_decision.get("ai_decision"), dict) else ai_decision
+    return {
+        "input_summary": {
+            "symbol": symbol,
+            "profile": profile,
+            "question": question[:240],
+            "language": "zh" if language.startswith("zh") else "en",
+            "messages": len(compact_messages),
+            "rule_level": signal.get("level"),
+            "rule_score": signal.get("score"),
+            "ai_action": decision_payload.get("action") if isinstance(decision_payload, dict) else None,
+        },
+        "task": (
+            "Answer the user's deep research question using KQUANT live technical inputs, AI trading command, "
+            "KNODE evidence, and safety guardrails. Be specific, trader-oriented, and skeptical. "
+            "You may challenge the setup, ask for patience, or propose what would change the view. "
+            "Do not place orders, access brokerage accounts, or promise profit."
+        ),
+        "question": question,
+        "language": "zh" if language.startswith("zh") else "en",
+        "signal": compact_signal,
+        "ai_decision": decision_payload if isinstance(decision_payload, dict) else {},
+        "research_context": research_context or {
+            "status": "not_loaded",
+            "note": "KNODE research evidence was not available for this request.",
+        },
+        "recent_messages": compact_messages,
+        "safety": {
+            "read_only_research": True,
+            "no_broker": True,
+            "no_order_submission": True,
+            "human_execution_only": True,
+        },
+    }
+
+
+def openai_research_chat_request(model: str, context: dict[str, Any]) -> dict[str, Any]:
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "answer": {"type": "string"},
+            "direct_view": {"type": "string"},
+            "key_points": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 7},
+            "risk_flags": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 6},
+            "what_to_check_next": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
+            "evidence_used": {"type": "array", "items": {"type": "string"}, "minItems": 0, "maxItems": 6},
+            "follow_up_questions": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 5},
+            "safety_note": {"type": "string"},
+        },
+        "required": [
+            "answer",
+            "direct_view",
+            "key_points",
+            "risk_flags",
+            "what_to_check_next",
+            "evidence_used",
+            "follow_up_questions",
+            "safety_note",
+        ],
+    }
+    language = context.get("language", "zh")
+    system = (
+        "You are KQUANT Deep Research Chat, the strongest-model research layer inside a read-only stock research terminal. "
+        "Use the supplied live K-line facts, rule signals, AI trading command, historical edge, and KNODE evidence. "
+        "Answer like a senior trading research partner: concise, evidence-based, skeptical, and practical. "
+        "Never claim certainty, never promise returns, never place orders, and never ask for broker credentials. "
+        f"Return the answer in {'Simplified Chinese' if language == 'zh' else 'English'}."
+    )
+    return {
+        "model": model,
+        "input": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": json.dumps(context, ensure_ascii=False)},
+        ],
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "kquant_deep_research_chat",
+                "schema": schema,
+                "strict": True,
+            }
+        },
+    }
+
+
+def sanitize_research_chat_answer(answer: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "answer": str(answer.get("answer") or "No answer returned.")[:4000],
+        "direct_view": str(answer.get("direct_view") or "research_only")[:400],
+        "key_points": safe_string_list(answer.get("key_points"), 7),
+        "risk_flags": safe_string_list(answer.get("risk_flags"), 6),
+        "what_to_check_next": safe_string_list(answer.get("what_to_check_next"), 6),
+        "evidence_used": safe_string_list(answer.get("evidence_used"), 6),
+        "follow_up_questions": safe_string_list(answer.get("follow_up_questions"), 5),
+        "safety_note": str(answer.get("safety_note") or "Read-only research; human execution only.")[:500],
+    }
+
+
+def unavailable_research_chat_answer(question: str) -> dict[str, Any]:
+    return {
+        "answer": "AI research chat is unavailable because the backend model key or request failed. Live K-lines, rule guardrails, and AI Daily reports remain usable.",
+        "direct_view": "AI unavailable; use rule system and K-line evidence only.",
+        "key_points": [
+            "The question was received, but no model answer was generated.",
+            "Do not treat missing AI output as a buy or sell signal.",
+        ],
+        "risk_flags": ["AI unavailable", "Manual verification required"],
+        "what_to_check_next": [
+            "Confirm OPENAI_API_KEY is set in the backend environment.",
+            "Confirm KQUANT backend was restarted after setting the key.",
+        ],
+        "evidence_used": [],
+        "follow_up_questions": [
+            "Should I inspect live K-lines and rule guardrails instead?",
+            "Should I retry after backend model configuration is fixed?",
+        ],
+        "safety_note": "Read-only research only; no broker, account, or order path is connected.",
+    }
+
+
 def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
     action = (signal.get("trade_conclusion") or {}).get("action", "")
     action_bonus = {"BUY": 30, "WAIT": 16, "HOLD_TRAIL": 10, "EXIT_REVIEW": 4, "DO_NOT_BUY": 0}.get(action, 0)
@@ -3135,6 +3433,38 @@ def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
 
 def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
     veto = ai_hard_veto(signal, market_regime)
+    research_summary: dict[str, Any] = {
+        "status": "not_loaded",
+        "evidence_count": 0,
+        "top_evidence": [],
+    }
+    symbol = str(signal.get("symbol") or "").upper()
+    if symbol:
+        try:
+            from kquant.knode_bridge import api_research_evidence
+
+            evidence_payload = api_research_evidence(symbol=symbol, limit=3)
+            items = evidence_payload.get("items", []) if isinstance(evidence_payload, dict) else []
+            research_summary = {
+                "status": evidence_payload.get("status", "unavailable") if isinstance(evidence_payload, dict) else "unavailable",
+                "evidence_count": len(items) if isinstance(items, list) else 0,
+                "top_evidence": [
+                    {
+                        "title": item.get("title"),
+                        "type": item.get("type"),
+                        "summary": item.get("summary") or item.get("fact") or item.get("interpretation"),
+                    }
+                    for item in (items[:3] if isinstance(items, list) else [])
+                    if isinstance(item, dict)
+                ],
+            }
+        except Exception as exc:  # pragma: no cover - research layer must not break trading scans
+            research_summary = {
+                "status": "unavailable",
+                "evidence_count": 0,
+                "top_evidence": [],
+                "error": type(exc).__name__,
+            }
     return {
         "symbol": signal.get("symbol"),
         "profile_name": signal.get("profile_name"),
@@ -3156,6 +3486,7 @@ def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, 
         },
         "data_status": signal.get("data_status"),
         "hard_veto": veto,
+        "research_context": research_summary,
     }
 
 

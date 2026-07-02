@@ -14,6 +14,7 @@ from kquant.stock_signals import (
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_research_chat,
     api_stock_search,
     api_stock_signals,
     api_stock_signals_latest,
@@ -421,6 +422,128 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
     assert payload["ai_decision"]["action"] != "AI_BUY_CANDIDATE"
     assert payload["ai_decision"]["hard_veto_applied"] is True
     assert payload["ai_decision"]["confidence"] != "HIGH"
+
+
+def test_research_chat_without_key_returns_safe_unavailable(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+    payload = api_stock_research_chat(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "question": "Should I buy this setup?",
+            "language": "zh",
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["status"] == "ai_unavailable"
+    assert payload["model_name"]
+    assert payload["answer"]["risk_flags"]
+    assert payload["safety_policy"]["broker_order_wiring_enabled"] is False
+    assert payload["safety_policy"]["order_submission_enabled"] is False
+
+
+def test_research_chat_uses_research_model_and_parses_response(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("KQUANT_AI_RESEARCH_MODEL", "gpt-5.5-pro")
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "answer": "NVDA is a researchable setup, but wait for confirmation.",
+                        "direct_view": "Wait for cleaner entry.",
+                        "key_points": ["Trend is constructive.", "Risk/reward depends on entry."],
+                        "risk_flags": ["High valuation risk"],
+                        "what_to_check_next": ["Daily support", "1H momentum"],
+                        "evidence_used": ["KQUANT signal payload"],
+                        "follow_up_questions": ["What is the stop?", "What invalidates the setup?"],
+                        "safety_note": "Read-only research.",
+                    }
+                )
+            }
+
+    def fake_post(*args, **kwargs):
+        assert kwargs["json"]["model"] == "gpt-5.5-pro"
+        return Response()
+
+    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
+    payload = api_stock_research_chat(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "question": "Deep research this setup.",
+            "messages": [{"role": "user", "content": "Prior question"}],
+            "language": "en",
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert payload["status"] == "available"
+    assert payload["model_name"] == "gpt-5.5-pro"
+    assert payload["answer"]["direct_view"] == "Wait for cleaner entry."
+    assert payload["safety_policy"]["does_not_trigger_scans"] is True
+    assert payload["safety_policy"]["order_submission_enabled"] is False
+
+
+def test_research_chat_falls_back_when_primary_model_fails(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("KQUANT_AI_RESEARCH_MODEL", "gpt-5.5-pro")
+    monkeypatch.setenv("KQUANT_AI_DEEP_MODEL", "gpt-5.5")
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+    calls: list[str] = []
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "answer": "Fallback model answered safely.",
+                        "direct_view": "Fallback succeeded.",
+                        "key_points": ["Primary failed.", "Fallback model returned a structured answer."],
+                        "risk_flags": ["Model fallback was used"],
+                        "what_to_check_next": ["Review model status.", "Confirm live data remains clean."],
+                        "evidence_used": ["KQUANT signal payload"],
+                        "follow_up_questions": ["Retry primary later?", "Check setup again?"],
+                        "safety_note": "Read-only research.",
+                    }
+                )
+            }
+
+    def fake_post(*args, **kwargs):
+        model = kwargs["json"]["model"]
+        calls.append(model)
+        if model == "gpt-5.5-pro":
+            raise TimeoutError("primary model timed out")
+        return Response()
+
+    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
+    payload = api_stock_research_chat(
+        {
+            "symbol": "NVDA",
+            "profile": "tactical_1w_v1",
+            "signal_payload": signal,
+            "question": "Deep research this setup.",
+            "language": "en",
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert calls == ["gpt-5.5-pro", "gpt-5.5"]
+    assert payload["status"] == "available"
+    assert payload["model_name"] == "gpt-5.5"
+    assert payload["primary_model_name"] == "gpt-5.5-pro"
+    assert payload["fallback_model_used"] is True
+    assert "TimeoutError" in payload["fallback_reason"]
+    assert payload["answer"]["direct_view"] == "Fallback succeeded."
 
 
 def test_ai_daily_agent_without_key_writes_read_only_report(tmp_path: Path, monkeypatch) -> None:

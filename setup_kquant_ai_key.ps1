@@ -1,7 +1,8 @@
 param(
   [string]$ReviewModel = "gpt-5.4",
   [string]$BatchModel = "gpt-5.4-mini",
-  [string]$DeepModel = "gpt-5.5"
+  [string]$DeepModel = "gpt-5.5",
+  [string]$ResearchModel = "gpt-5.5-pro"
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,12 +29,13 @@ if (-not $key -or -not $key.Trim()) {
 [Environment]::SetEnvironmentVariable("KQUANT_AI_REVIEW_MODEL", $ReviewModel, "User")
 [Environment]::SetEnvironmentVariable("KQUANT_AI_BATCH_MODEL", $BatchModel, "User")
 [Environment]::SetEnvironmentVariable("KQUANT_AI_DEEP_MODEL", $DeepModel, "User")
+[Environment]::SetEnvironmentVariable("KQUANT_AI_RESEARCH_MODEL", $ResearchModel, "User")
 
 $env:OPENAI_API_KEY = $key.Trim()
 $env:KQUANT_AI_REVIEW_MODEL = $ReviewModel
 $env:KQUANT_AI_BATCH_MODEL = $BatchModel
 $env:KQUANT_AI_DEEP_MODEL = $DeepModel
+$env:KQUANT_AI_RESEARCH_MODEL = $ResearchModel
 
 Write-Host "Saved AI Review environment variables for this Windows user." -ForegroundColor Green
 Write-Host "Next daily startup: double-click KQUANT_START.cmd or run .\KQUANT_START.cmd" -ForegroundColor Green
-

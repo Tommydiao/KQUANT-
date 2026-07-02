@@ -56,6 +56,8 @@ Write-Host "Database: work/kquant_us.sqlite3" -ForegroundColor DarkGray
 Write-Host "Mode: read-only stock research" -ForegroundColor DarkGray
 if ($env:OPENAI_API_KEY) {
   Write-Host "AI Review: enabled from backend environment" -ForegroundColor Green
+  $researchModel = if ($env:KQUANT_AI_RESEARCH_MODEL) { $env:KQUANT_AI_RESEARCH_MODEL } elseif ($env:KQUANT_AI_DEEP_MODEL) { $env:KQUANT_AI_DEEP_MODEL } else { "gpt-5.5-pro" }
+  Write-Host "Deep Research Chat: $researchModel" -ForegroundColor Green
 } else {
   Write-Host "AI Review: missing OPENAI_API_KEY (manual review button will show setup guidance)" -ForegroundColor Yellow
 }

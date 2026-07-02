@@ -5,14 +5,16 @@ KQUANT is being reset into a US stock-first research terminal.
 The active product path is:
 
 1. scan a curated Core 200 US stock/ETF universe;
-2. judge long-only stock setups with four holding-period profiles;
-3. output `BUY SETUP`, `WATCH`, or `PASS`, plus a manual trading conclusion;
+2. judge long-only stock setups with five holding-period/risk profiles;
+3. output `BUY SETUP`, `WATCH`, or `PASS`, plus an AI research signal plan;
 4. review 1H / 1D / 1W / 1M K-Lines before any manual decision;
 5. add options later only as an expression layer for high-quality stock setups.
 
 The system remains read-only. There is no broker account read, no paper order,
-no live order, no testnet execution, and no LLM in the signal core. The optional
-AI Review Assistant is manual-trigger commentary only.
+no live order, no testnet execution, and no automatic execution path. The AI
+layer can rank research opportunities and generate entry/stop/target plans, but
+a deterministic hard-veto layer blocks bad data, stale providers, risk-off
+conditions, and every order/broker path.
 
 ## Current Phase
 
@@ -22,15 +24,40 @@ The current implementation starts Phase 0-2 of the roadmap:
 - new database: `work/kquant_us.sqlite3`;
 - Core 200 default universe plus AI Five-Layer universe;
 - Space / Robotics research layer available in `All` and search;
-- four long-only strategy profiles for 1W, 1-2M, 6M, and 1-3Y holding periods;
+- five long-only strategy profiles for 1W, 1-2M, 6M, 1-3Y, and High-Beta Growth modes;
 - rule-based Action Conclusion Layer: `BUY`, `WAIT`, `DO_NOT_BUY`,
   `HOLD_TRAIL`, `EXIT_REVIEW`;
-- manual-trigger AI Review Assistant that cannot change score, level, or action;
+- AI Research Signal layer that ranks candidates and proposes entry, stop,
+  target, risk/reward, and position-size hints under hard guardrails;
 - API routes for stock universe, candles, provider health, and signal reports;
-- React frontend refocused on `Today's Stock Setups`, stock K-Lines,
-  signal reasons, risk warnings, and manual checklist.
+- React frontend refocused on `AI Today -> Search Stock -> Stock Detail ->
+  K-Line -> AI Plan -> Journal`, with a consumer-style left navigation and
+  explicit data reliability panel.
 
 Options are intentionally secondary until the stock signal workflow is stable.
+
+## Product Direction: Consumer SaaS Preview
+
+KQUANT is being shaped toward a future To C SaaS product, but the public
+positioning is `AI Research Signal`, not investment advisory, managed trading,
+or guaranteed performance.
+
+Near-term local mode:
+
+- local Python API at `http://127.0.0.1:8001/`;
+- SQLite database at `work/kquant_us.sqlite3`;
+- Yahoo/public chart data as a prototype provider;
+- OpenAI key stored only in the local backend environment.
+
+Future SaaS target:
+
+- Vercel frontend;
+- hosted Python API;
+- Postgres for user signals, journals, and scans;
+- a formal market-data provider before any paid-user reliability commitment.
+
+Payment, login, subscriptions, broker integrations, and order execution are not
+enabled in this phase.
 
 ## Local Setup
 
