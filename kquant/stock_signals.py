@@ -242,10 +242,30 @@ SEARCH_QUERY_ALIASES: dict[str, tuple[str, ...]] = {
     "亚马逊": ("amzn", "amazon", "aws", "cloud"),
     "特斯拉": ("tsla", "tesla", "robotics", "autonomy", "ev"),
     "机器人": ("robot", "robotics", "automation", "autonomy", "space robotics"),
+    "具身智能": ("embodied", "robotics", "automation", "sensors", "machine_vision", "motor_control"),
+    "人形机器人": ("humanoid", "robotics", "automation", "embodied", "sensors"),
+    "减速器": ("robotics", "automation", "motor_control", "industrial_automation"),
+    "传感器": ("sensors", "machine_vision", "lidar", "3d_sensing", "analog_semis"),
+    "无人机": ("drones", "unmanned_systems", "low_altitude", "defense_tech", "evtol"),
+    "低空经济": ("drones", "evtol", "low_altitude", "autonomous_aircraft", "aviation"),
     "太空": ("space", "rocket", "satellite", "aerospace", "space robotics"),
     "航天": ("space", "rocket", "satellite", "aerospace", "space robotics"),
+    "太空探索": ("space", "space_exploration", "launch", "satellite", "lunar"),
+    "卫星星座": ("satellite", "space", "satellite_network", "direct_to_device", "earth_observation"),
+    "空间计算": ("spatial_computing", "ar", "vr_ar", "mixed_reality", "lidar", "3d_sensing"),
+    "激光雷达": ("lidar", "3d_sensing", "4d_sensing", "spatial_computing", "autonomy"),
     "芯片": ("chips", "semis", "semiconductor", "ai semis", "foundry"),
     "半导体": ("chips", "semis", "semiconductor", "ai semis", "foundry"),
+    "存储": ("storage", "memory", "nand", "hdd", "ai_storage", "sndk", "wdc", "stx", "mu"),
+    "内存": ("memory", "hbm", "storage", "mu", "sndk"),
+    "光模块": ("optical", "photonics", "datacenter_interconnect", "ai_networking", "cohr", "fn", "lite", "crdo"),
+    "光互联": ("optical", "photonics", "datacenter_interconnect", "ai_networking", "cohr", "fn", "lite", "crdo"),
+    "硅光": ("optical", "photonics", "datacenter_interconnect", "cohr", "lite"),
+    "gpu云": ("neocloud", "gpu_cloud", "ai_datacenter", "iren", "nbis", "corz"),
+    "gpu 云": ("neocloud", "gpu_cloud", "ai_datacenter", "iren", "nbis", "corz"),
+    "新云": ("neocloud", "gpu_cloud", "ai_datacenter", "iren", "nbis", "corz"),
+    "电源半导体": ("power_semis", "gan", "sic", "ai_power", "nvts", "mpwr", "on"),
+    "氮化镓": ("gan", "power_semis", "ai_power", "nvts"),
     "云": ("cloud", "ai cloud", "infrastructure"),
     "网络安全": ("security", "cybersecurity", "ai security"),
     "能源": ("energy", "power", "nuclear", "grid"),
@@ -267,6 +287,39 @@ STOCK_SEARCH_ALIASES: dict[str, tuple[str, ...]] = {
     "ROBO": ("robotics etf", "机器人", "automation"),
     "ISRG": ("surgical robot", "机器人", "robotics"),
     "SYM": ("warehouse robot", "机器人", "automation"),
+    "AVAV": ("aerovironment", "无人机", "drones", "unmanned systems"),
+    "RCAT": ("red cat", "无人机", "drones", "teal drones"),
+    "ONDS": ("ondas", "无人机", "autonomous systems", "drones"),
+    "UMAC": ("unusual machines", "无人机", "drone components"),
+    "EH": ("ehang", "低空经济", "evtol", "autonomous aircraft"),
+    "TRMB": ("trimble", "传感器", "positioning", "industrial automation"),
+    "KEYS": ("keysight", "传感器", "test equipment", "robotics"),
+    "SNAP": ("snap", "空间计算", "ar glasses", "augmented reality"),
+    "VUZI": ("vuzix", "空间计算", "ar glasses"),
+    "KOPN": ("kopin", "空间计算", "microdisplays", "ar vr"),
+    "MVIS": ("microvision", "激光雷达", "lidar", "3d sensing"),
+    "LAZR": ("luminar", "激光雷达", "lidar", "autonomy"),
+    "HSAI": ("hesai", "激光雷达", "lidar", "3d sensing"),
+    "AEVA": ("aeva", "激光雷达", "4d lidar", "sensing"),
+    "SPIR": ("spire global", "太空探索", "satellite data"),
+    "BKSY": ("blacksky", "太空探索", "satellite imagery"),
+    "RDW": ("redwire", "太空探索", "space infrastructure"),
+    "GSAT": ("globalstar", "卫星星座", "satellite network"),
+    "SATL": ("satellogic", "太空探索", "earth observation"),
+    "ARKX": ("space exploration etf", "太空探索", "space etf"),
+    "SNDK": ("sandisk", "存储", "nand", "ai storage"),
+    "MU": ("micron", "内存", "存储", "hbm"),
+    "IREN": ("gpu cloud", "neocloud", "gpu云", "新云", "ai datacenter"),
+    "NVTS": ("navitas", "电源半导体", "氮化镓", "gan", "sic"),
+    "COHR": ("coherent", "光模块", "光互联", "silicon photonics", "optical"),
+    "FN": ("fabrinet", "光模块", "optical manufacturing"),
+    "LITE": ("lumentum", "光模块", "光互联", "photonics"),
+    "ALAB": ("astera labs", "ai connectivity", "pcie", "datacenter"),
+    "CRDO": ("credo", "ai networking", "serdes", "datacenter"),
+    "NBIS": ("nebius", "gpu cloud", "neocloud", "gpu云"),
+    "CORZ": ("core scientific", "neocloud", "ai datacenter", "bitcoin miner conversion"),
+    "SERV": ("serve robotics", "机器人", "delivery robotics", "autonomy"),
+    "AMBA": ("ambarella", "edge ai", "computer vision", "autonomy"),
 }
 
 
@@ -3108,12 +3161,12 @@ def ai_decision_context(
     }
     base["hard_veto"] = ai_hard_veto(signal, market_regime)
     base["research_context"] = research_context or {
-        "status": "not_loaded",
-        "note": "KNODE research evidence was not available for this request.",
+        "status": "disabled",
+        "note": "External research layer is disabled; use KQUANT live data, rule guardrails, AI command, historical edge, and journal context.",
     }
     base["task"] = (
         "Lead the manual trading decision. Produce a practical entry/stop/target plan, "
-        "using both KQUANT technical inputs and any KNODE research evidence, but respect hard vetoes "
+        "using KQUANT technical inputs, journal context, and hard vetoes, "
         "and never propose automatic execution."
     )
     return base
@@ -3160,7 +3213,7 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
     system = (
         "You are KQUANT AI Trading Agent. You lead the manual trading decision layer, "
         "but you are strictly read-only. Use the provided live-data signal, profile comparison, "
-        "historical edge, market regime, KNODE research evidence, and hard veto. If hard_veto.active is true, do not output "
+        "historical edge, market regime, journal context, and hard veto. If hard_veto.active is true, do not output "
         "AI_BUY_CANDIDATE. Never place orders, never access broker accounts, and never promise profit. "
         "Return concise, actionable, risk-aware planning for a human trader."
     )
@@ -3313,7 +3366,7 @@ def research_chat_context(
         },
         "task": (
             "Answer the user's deep research question using KQUANT live technical inputs, AI trading command, "
-            "KNODE evidence, and safety guardrails. Be specific, trader-oriented, and skeptical. "
+            "historical edge, journal context, and safety guardrails. Be specific, trader-oriented, and skeptical. "
             "You may challenge the setup, ask for patience, or propose what would change the view. "
             "Do not place orders, access brokerage accounts, or promise profit."
         ),
@@ -3322,8 +3375,8 @@ def research_chat_context(
         "signal": compact_signal,
         "ai_decision": decision_payload if isinstance(decision_payload, dict) else {},
         "research_context": research_context or {
-            "status": "not_loaded",
-            "note": "KNODE research evidence was not available for this request.",
+            "status": "disabled",
+            "note": "External research layer is disabled; use KQUANT live data, AI command, historical edge, and journal context.",
         },
         "recent_messages": compact_messages,
         "safety": {
@@ -3363,7 +3416,7 @@ def openai_research_chat_request(model: str, context: dict[str, Any]) -> dict[st
     language = context.get("language", "zh")
     system = (
         "You are KQUANT Deep Research Chat, the strongest-model research layer inside a read-only stock research terminal. "
-        "Use the supplied live K-line facts, rule signals, AI trading command, historical edge, and KNODE evidence. "
+        "Use the supplied live K-line facts, rule signals, AI trading command, historical edge, and journal context. "
         "Answer like a senior trading research partner: concise, evidence-based, skeptical, and practical. "
         "Never claim certainty, never promise returns, never place orders, and never ask for broker credentials. "
         f"Return the answer in {'Simplified Chinese' if language == 'zh' else 'English'}."
@@ -3434,37 +3487,11 @@ def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
 def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
     veto = ai_hard_veto(signal, market_regime)
     research_summary: dict[str, Any] = {
-        "status": "not_loaded",
+        "status": "disabled",
         "evidence_count": 0,
         "top_evidence": [],
+        "note": "External research layer removed; daily agent uses KQUANT live data, rule guardrails, market regime, and journal context.",
     }
-    symbol = str(signal.get("symbol") or "").upper()
-    if symbol:
-        try:
-            from kquant.knode_bridge import api_research_evidence
-
-            evidence_payload = api_research_evidence(symbol=symbol, limit=3)
-            items = evidence_payload.get("items", []) if isinstance(evidence_payload, dict) else []
-            research_summary = {
-                "status": evidence_payload.get("status", "unavailable") if isinstance(evidence_payload, dict) else "unavailable",
-                "evidence_count": len(items) if isinstance(items, list) else 0,
-                "top_evidence": [
-                    {
-                        "title": item.get("title"),
-                        "type": item.get("type"),
-                        "summary": item.get("summary") or item.get("fact") or item.get("interpretation"),
-                    }
-                    for item in (items[:3] if isinstance(items, list) else [])
-                    if isinstance(item, dict)
-                ],
-            }
-        except Exception as exc:  # pragma: no cover - research layer must not break trading scans
-            research_summary = {
-                "status": "unavailable",
-                "evidence_count": 0,
-                "top_evidence": [],
-                "error": type(exc).__name__,
-            }
     return {
         "symbol": signal.get("symbol"),
         "profile_name": signal.get("profile_name"),

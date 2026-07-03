@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle2,
-  Database,
   Languages,
   Lock,
   MessageCircle,
@@ -33,7 +32,7 @@ type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
 type TradeAction = "BUY" | "WAIT" | "DO_NOT_BUY" | "HOLD_TRAIL" | "EXIT_REVIEW";
 type AiAction = "AI_BUY_CANDIDATE" | "AI_WAIT" | "AI_AVOID" | "AI_HOLD_TRAIL" | "AI_EXIT_REVIEW";
-type UniverseName = "default" | "ai_five_layer" | "all";
+type UniverseName = "default" | "ai_five_layer" | "physical_ai" | "all";
 type AppView = "stocks" | "mstr";
 type WorkspaceName =
   | "today"
@@ -43,9 +42,6 @@ type WorkspaceName =
   | "charts"
   | "aiPlan"
   | "chat"
-  | "research"
-  | "evidence"
-  | "reports"
   | "mstr"
   | "journal"
   | "settings";
@@ -330,93 +326,6 @@ type ResearchChatMessage = {
   content: string;
   payload?: AiResearchChatPayload;
   created_at: string;
-};
-
-type ResearchBridgeStatus = {
-  api_base_url?: string;
-  api_status?: string;
-  api_error?: string;
-  project_root?: string;
-  local_data_status?: string;
-  integration_mode?: string;
-  database_migrated?: boolean;
-  read_only_research?: boolean;
-};
-
-type ResearchDossierPayload = {
-  status: string;
-  symbol: string;
-  bridge_status: ResearchBridgeStatus;
-  dossier: {
-    symbol?: string;
-    company_name?: string;
-    thesis?: string;
-    bull_case?: string[];
-    bear_risks?: string[];
-    tags?: string[];
-    source?: string;
-    updated_at?: string;
-  } | null;
-  summary: {
-    evidence_count: number;
-    report_count: number;
-    dossier_source: string;
-    knode_authenticated: boolean;
-  };
-  read_only_research: boolean;
-};
-
-type ResearchEvidenceItem = {
-  id: string;
-  symbol: string;
-  title: string;
-  type: string;
-  summary: string;
-  fact: string;
-  interpretation: string;
-  risks: string;
-  impact_direction: string;
-  thesis_impact: string;
-  confidence: number | string;
-  url: string;
-  source_domain: string;
-  created_at: string;
-  tags: string[];
-  source: string;
-};
-
-type ResearchEvidencePayload = {
-  status: string;
-  symbol: string;
-  bridge_status: ResearchBridgeStatus;
-  items: ResearchEvidenceItem[];
-  count: number;
-  source: string;
-  read_only_research: boolean;
-};
-
-type ResearchReportItem = {
-  id: string;
-  symbol: string;
-  title: string;
-  type: string;
-  filename: string;
-  mime_type: string;
-  created_at: string;
-  summary: string;
-  open_url: string;
-  download_url: string;
-  source: string;
-};
-
-type ResearchReportsPayload = {
-  status: string;
-  symbol: string;
-  bridge_status: ResearchBridgeStatus;
-  reports: ResearchReportItem[];
-  count: number;
-  source: string;
-  read_only_research: boolean;
 };
 
 type AiDailyItem = {
@@ -1054,9 +963,9 @@ const copy = {
     noWarnings: "No warnings loaded.",
     aiDailyFallback: "The dashboard checks the latest AI report on open and auto-runs once when stale and AI is available.",
     deepResearchChat: "Deep Research Chat",
-    deepResearchSubtitle: "Ask the strongest configured model about this stock. The chat includes K-lines, AI command, rule guardrails, historical edge, and KNODE evidence.",
+    deepResearchSubtitle: "Ask the strongest configured model about this stock. The chat includes K-lines, AI command, rule guardrails, historical edge, and journal context.",
     researchModel: "Research Model",
-    askResearchPlaceholder: "Ask about this setup, risks, better entry, thesis evidence, or what would change the AI view...",
+    askResearchPlaceholder: "Ask about this setup, risks, better entry, K-line evidence, or what would change the AI view...",
     askResearch: "Ask",
     askingResearch: "Thinking...",
     researchChatUnavailable: "Deep research chat is unavailable until the backend AI key is loaded.",
@@ -1245,9 +1154,9 @@ const copy = {
     noWarnings: "暂无风险警告。",
     aiDailyFallback: "页面打开时会检查最新 AI 报告；当报告过期且 AI 可用时自动运行一次。",
     deepResearchChat: "深度研究问答",
-    deepResearchSubtitle: "围绕当前股票向最强研究模型提问。上下文会自动包含 K线、AI 指令、规则风控、历史优势和 KNODE 证据。",
+    deepResearchSubtitle: "围绕当前股票向最强研究模型提问。上下文会自动包含 K线、AI 指令、规则风控、历史优势和复盘上下文。",
     researchModel: "研究模型",
-    askResearchPlaceholder: "询问这个形态、风险、更好入场点、公司证据，或者什么条件会改变 AI 判断...",
+    askResearchPlaceholder: "询问这个形态、风险、更好入场点、K线证据，或者什么条件会改变 AI 判断...",
     askResearch: "提问",
     askingResearch: "思考中...",
     researchChatUnavailable: "后端 AI Key 加载前，深度研究问答不可用。",
@@ -1504,9 +1413,12 @@ const STOCKS: UniverseStock[] = [
   "ACHR:Archer Aviation:Industrials:Space / Robotics",
   "JOBY:Joby Aviation:Industrials:Space / Robotics",
   "SYM:Symbotic:Industrials:Space / Robotics",
+  "SERV:Serve Robotics:Industrials:Space / Robotics",
   "TER:Teradyne:Technology:Space / Robotics",
   "ZBRA:Zebra Technologies:Technology:Space / Robotics",
   "CGNX:Cognex:Technology:Space / Robotics",
+  "AMBA:Ambarella:Technology:Space / Robotics",
+  "ARBE:Arbe Robotics:Technology:Space / Robotics",
   "OUST:Ouster:Technology:Space / Robotics",
   "MBLY:Mobileye:Technology:Space / Robotics",
   "BOTZ:Global X Robotics & AI ETF:ETF:Space / Robotics",
@@ -1548,6 +1460,12 @@ const AI_FIVE_LAYER_STOCKS: UniverseStock[] = [
   "MCHP:Microchip Technology:Technology:Chips",
   "MPWR:Monolithic Power Systems:Technology:Chips",
   "ON:ON Semiconductor:Technology:Chips",
+  "NVTS:Navitas Semiconductor:Technology:Chips",
+  "SNDK:SanDisk:Technology:Chips",
+  "WDC:Western Digital:Technology:Chips",
+  "STX:Seagate Technology:Technology:Chips",
+  "AMBA:Ambarella:Technology:Chips",
+  "ACLS:Axcelis Technologies:Technology:Chips",
   "SMH:VanEck Semiconductor ETF:ETF:Chips",
   "SOXX:iShares Semiconductor ETF:ETF:Chips",
   "MSFT:Microsoft:Technology:Infrastructure",
@@ -1563,6 +1481,17 @@ const AI_FIVE_LAYER_STOCKS: UniverseStock[] = [
   "SMCI:Super Micro Computer:Technology:Infrastructure",
   "EQIX:Equinix:Real Estate:Infrastructure",
   "DLR:Digital Realty:Real Estate:Infrastructure",
+  "COHR:Coherent:Technology:Infrastructure",
+  "LITE:Lumentum:Technology:Infrastructure",
+  "FN:Fabrinet:Technology:Infrastructure",
+  "ALAB:Astera Labs:Technology:Infrastructure",
+  "CRDO:Credo Technology:Technology:Infrastructure",
+  "CLS:Celestica:Technology:Infrastructure",
+  "JBL:Jabil:Technology:Infrastructure",
+  "FLEX:Flex:Technology:Infrastructure",
+  "IREN:IREN:Technology:Infrastructure",
+  "NBIS:Nebius Group:Technology:Infrastructure",
+  "CORZ:Core Scientific:Technology:Infrastructure",
   "NET:Cloudflare:Technology:Infrastructure",
   "DDOG:Datadog:Technology:Infrastructure",
   "PLTR:Palantir:Technology:Models",
@@ -1583,7 +1512,69 @@ const AI_FIVE_LAYER_STOCKS: UniverseStock[] = [
   "SHOP:Shopify:Technology:Applications",
 ].map(parseStockRow);
 
-const ALL_STOCKS = uniqueStocks([...STOCKS, ...AI_FIVE_LAYER_STOCKS]);
+const PHYSICAL_AI_STOCKS: UniverseStock[] = [
+  "ROK:Rockwell Automation:Industrials:Embodied AI Components",
+  "TER:Teradyne:Technology:Embodied AI Components",
+  "SYM:Symbotic:Industrials:Embodied AI Components",
+  "ISRG:Intuitive Surgical:Healthcare:Embodied AI Components",
+  "ZBRA:Zebra Technologies:Technology:Embodied AI Components",
+  "CGNX:Cognex:Technology:Embodied AI Components",
+  "SERV:Serve Robotics:Industrials:Embodied AI Components",
+  "TRMB:Trimble:Technology:Embodied AI Components",
+  "KEYS:Keysight Technologies:Technology:Embodied AI Components",
+  "ADI:Analog Devices:Technology:Embodied AI Components",
+  "ON:ON Semiconductor:Technology:Embodied AI Components",
+  "MPWR:Monolithic Power Systems:Technology:Embodied AI Components",
+  "BOTZ:Global X Robotics & AI ETF:ETF:Embodied AI Components",
+  "ROBO:ROBO Global Robotics ETF:ETF:Embodied AI Components",
+  "AVAV:AeroVironment:Industrials:Drones / Low Altitude",
+  "KTOS:Kratos Defense & Security:Industrials:Drones / Low Altitude",
+  "RCAT:Red Cat Holdings:Technology:Drones / Low Altitude",
+  "ONDS:Ondas Holdings:Technology:Drones / Low Altitude",
+  "UMAC:Unusual Machines:Technology:Drones / Low Altitude",
+  "EH:EHang:Industrials:Drones / Low Altitude",
+  "ACHR:Archer Aviation:Industrials:Drones / Low Altitude",
+  "JOBY:Joby Aviation:Industrials:Drones / Low Altitude",
+  "TXT:Textron:Industrials:Drones / Low Altitude",
+  "LHX:L3Harris Technologies:Industrials:Drones / Low Altitude",
+  "LDOS:Leidos:Industrials:Drones / Low Altitude",
+  "ITA:iShares U.S. Aerospace & Defense ETF:ETF:Drones / Low Altitude",
+  "XAR:SPDR S&P Aerospace & Defense ETF:ETF:Drones / Low Altitude",
+  "AAPL:Apple:Technology:Spatial Computing",
+  "META:Meta Platforms:Communication Services:Spatial Computing",
+  "SNAP:Snap:Communication Services:Spatial Computing",
+  "VUZI:Vuzix:Technology:Spatial Computing",
+  "KOPN:Kopin:Technology:Spatial Computing",
+  "MVIS:MicroVision:Technology:Spatial Computing",
+  "LAZR:Luminar:Technology:Spatial Computing",
+  "OUST:Ouster:Technology:Spatial Computing",
+  "HSAI:Hesai Group:Technology:Spatial Computing",
+  "AEVA:Aeva Technologies:Technology:Spatial Computing",
+  "MBLY:Mobileye:Technology:Spatial Computing",
+  "AMBA:Ambarella:Technology:Spatial Computing",
+  "COHR:Coherent:Technology:Spatial Computing",
+  "LITE:Lumentum:Technology:Spatial Computing",
+  "RKLB:Rocket Lab:Industrials:Space Exploration",
+  "ASTS:AST SpaceMobile:Communication Services:Space Exploration",
+  "LUNR:Intuitive Machines:Industrials:Space Exploration",
+  "PL:Planet Labs:Industrials:Space Exploration",
+  "IRDM:Iridium Communications:Communication Services:Space Exploration",
+  "SPIR:Spire Global:Industrials:Space Exploration",
+  "BKSY:BlackSky Technology:Industrials:Space Exploration",
+  "RDW:Redwire:Industrials:Space Exploration",
+  "GSAT:Globalstar:Communication Services:Space Exploration",
+  "SATL:Satellogic:Industrials:Space Exploration",
+  "BA:Boeing:Industrials:Space Exploration",
+  "LMT:Lockheed Martin:Industrials:Space Exploration",
+  "NOC:Northrop Grumman:Industrials:Space Exploration",
+  "RTX:RTX:Industrials:Space Exploration",
+  "GD:General Dynamics:Industrials:Space Exploration",
+  "KTOS:Kratos Defense & Security:Industrials:Space Exploration",
+  "UFO:Procure Space ETF:ETF:Space Exploration",
+  "ARKX:ARK Space Exploration ETF:ETF:Space Exploration",
+].map(parseStockRow);
+
+const ALL_STOCKS = uniqueStocks([...STOCKS, ...AI_FIVE_LAYER_STOCKS, ...PHYSICAL_AI_STOCKS]);
 
 const SEARCH_QUERY_ALIASES: Record<string, string[]> = {
   英伟达: ["nvda", "nvidia", "gpu", "accelerator", "chips"],
@@ -1592,12 +1583,32 @@ const SEARCH_QUERY_ALIASES: Record<string, string[]> = {
   亚马逊: ["amzn", "amazon", "aws", "cloud"],
   特斯拉: ["tsla", "tesla", "robotics", "autonomy"],
   机器人: ["robot", "robotics", "automation", "autonomy", "space robotics"],
+  具身智能: ["embodied", "robotics", "automation", "sensors", "machine vision", "motor control"],
+  人形机器人: ["humanoid", "robotics", "automation", "embodied", "sensors"],
+  减速器: ["robotics", "automation", "motor control", "industrial automation"],
+  传感器: ["sensors", "machine vision", "lidar", "3d sensing", "analog semis"],
+  无人机: ["drones", "unmanned systems", "low altitude", "defense tech", "evtol"],
+  低空经济: ["drones", "evtol", "low altitude", "autonomous aircraft", "aviation"],
   太空: ["space", "rocket", "satellite", "aerospace", "space robotics"],
   航天: ["space", "rocket", "satellite", "aerospace", "space robotics"],
+  太空探索: ["space", "space exploration", "launch", "satellite", "lunar"],
+  卫星星座: ["satellite", "space", "satellite network", "direct to device", "earth observation"],
+  空间计算: ["spatial computing", "ar", "vr", "mixed reality", "lidar", "3d sensing"],
+  激光雷达: ["lidar", "3d sensing", "4d sensing", "spatial computing", "autonomy"],
   火箭: ["space", "rocket", "rklb", "aerospace"],
   卫星: ["satellite", "space", "asts", "irdm"],
   芯片: ["chips", "semis", "semiconductor", "ai semis"],
   半导体: ["chips", "semis", "semiconductor", "ai semis"],
+  存储: ["storage", "memory", "nand", "hdd", "ai storage", "sndk", "wdc", "stx", "mu"],
+  内存: ["memory", "hbm", "storage", "mu", "sndk"],
+  光模块: ["optical", "photonics", "datacenter interconnect", "ai networking", "cohr", "fn", "lite", "crdo"],
+  光互联: ["optical", "photonics", "datacenter interconnect", "ai networking", "cohr", "fn", "lite", "crdo"],
+  硅光: ["optical", "photonics", "cohr", "lite"],
+  gpu云: ["neocloud", "gpu cloud", "ai datacenter", "iren", "nbis", "corz"],
+  "gpu 云": ["neocloud", "gpu cloud", "ai datacenter", "iren", "nbis", "corz"],
+  新云: ["neocloud", "gpu cloud", "ai datacenter", "iren", "nbis", "corz"],
+  电源半导体: ["power semis", "gan", "sic", "ai power", "nvts", "mpwr", "on"],
+  氮化镓: ["gan", "power semis", "ai power", "nvts"],
   能源: ["energy", "power", "nuclear", "grid"],
   核电: ["nuclear", "uranium", "power", "ai energy"],
   比特币: ["bitcoin", "btc", "crypto", "mstr", "coin"],
@@ -1617,12 +1628,51 @@ const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
   ROBO: ["robotics etf", "机器人", "automation"],
   ISRG: ["surgical robot", "机器人", "robotics"],
   SYM: ["warehouse robot", "机器人", "automation"],
+  AVAV: ["aerovironment", "无人机", "drones", "unmanned systems"],
+  RCAT: ["red cat", "无人机", "drones", "teal drones"],
+  ONDS: ["ondas", "无人机", "autonomous systems", "drones"],
+  UMAC: ["unusual machines", "无人机", "drone components"],
+  EH: ["ehang", "低空经济", "evtol", "autonomous aircraft"],
+  TRMB: ["trimble", "传感器", "positioning", "industrial automation"],
+  KEYS: ["keysight", "传感器", "test equipment", "robotics"],
+  SNAP: ["snap", "空间计算", "ar glasses", "augmented reality"],
+  VUZI: ["vuzix", "空间计算", "ar glasses"],
+  KOPN: ["kopin", "空间计算", "microdisplays", "ar vr"],
+  MVIS: ["microvision", "激光雷达", "lidar", "3d sensing"],
+  LAZR: ["luminar", "激光雷达", "lidar", "autonomy"],
+  HSAI: ["hesai", "激光雷达", "lidar", "3d sensing"],
+  AEVA: ["aeva", "激光雷达", "4d lidar", "sensing"],
+  SPIR: ["spire global", "太空探索", "satellite data"],
+  BKSY: ["blacksky", "太空探索", "satellite imagery"],
+  RDW: ["redwire", "太空探索", "space infrastructure"],
+  GSAT: ["globalstar", "卫星星座", "satellite network"],
+  SATL: ["satellogic", "太空探索", "earth observation"],
+  ARKX: ["space exploration etf", "太空探索", "space etf"],
+  SNDK: ["sandisk", "存储", "nand", "ai storage"],
+  MU: ["micron", "内存", "存储", "hbm"],
+  IREN: ["gpu cloud", "neocloud", "gpu云", "新云", "ai datacenter"],
+  NVTS: ["navitas", "电源半导体", "氮化镓", "gan", "sic"],
+  COHR: ["coherent", "光模块", "光互联", "silicon photonics", "optical"],
+  FN: ["fabrinet", "光模块", "optical manufacturing"],
+  LITE: ["lumentum", "光模块", "光互联", "photonics"],
+  ALAB: ["astera labs", "ai connectivity", "pcie", "datacenter"],
+  CRDO: ["credo", "ai networking", "serdes", "datacenter"],
+  NBIS: ["nebius", "gpu cloud", "neocloud", "gpu云"],
+  CORZ: ["core scientific", "neocloud", "ai datacenter"],
+  SERV: ["serve robotics", "机器人", "delivery robotics", "autonomy"],
+  AMBA: ["ambarella", "edge ai", "computer vision", "autonomy"],
 };
 
 const SEARCH_SHORTCUTS = [
   { label: "NVDA", query: "NVDA", symbol: "NVDA" },
   { label: "MSTR", query: "MSTR", symbol: "MSTR" },
   { label: "AI Chips", query: "半导体" },
+  { label: "AI Infra", query: "gpu云" },
+  { label: "Storage", query: "存储" },
+  { label: "Optical", query: "光模块" },
+  { label: "Physical AI", query: "具身智能" },
+  { label: "Drones", query: "无人机" },
+  { label: "Spatial", query: "空间计算" },
   { label: "Space", query: "太空" },
   { label: "Robotics", query: "机器人" },
   { label: "Mag 7", query: "mega cap tech" },
@@ -1693,10 +1743,6 @@ function App() {
   const [researchChatState, setResearchChatState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiDailyReport, setAiDailyReport] = useState<AiDailyAgentPayload | null>(null);
   const [aiDailyState, setAiDailyState] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [researchDossier, setResearchDossier] = useState<ResearchDossierPayload | null>(null);
-  const [researchEvidence, setResearchEvidence] = useState<ResearchEvidencePayload | null>(null);
-  const [researchReports, setResearchReports] = useState<ResearchReportsPayload | null>(null);
-  const [researchState, setResearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("today");
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
@@ -1704,7 +1750,6 @@ function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const analyzeRequestRef = useRef(0);
   const candleRequestRef = useRef(0);
-  const researchRequestRef = useRef(0);
   const aiDecisionRequestRef = useRef(0);
   const researchChatRequestRef = useRef(0);
   const aiDecisionCacheRef = useRef<Record<string, AiDecisionPayload>>({});
@@ -1728,6 +1773,13 @@ function App() {
   );
   const localSearchResults = useMemo(() => searchStocks(searchText, ALL_STOCKS, 10), [searchText]);
   const activeSearchResults = searchResults.length ? searchResults : localSearchResults;
+  const latestResearchMessage = [...researchChatMessages].reverse().find((message) => message.role === "assistant");
+  const latestResearchAnswer = latestResearchMessage?.payload?.answer;
+  const showStockWorkspace = ["watchlist", "stock", "charts", "aiPlan", "chat", "journal"].includes(activeWorkspace);
+  const showSelectedPanel = ["stock", "aiPlan", "journal"].includes(activeWorkspace);
+  const showDeepResearch = activeWorkspace === "stock" || activeWorkspace === "chat";
+  const showCharts = activeWorkspace === "stock" || activeWorkspace === "charts";
+  const showRuleDetails = activeWorkspace === "aiPlan" || activeWorkspace === "journal";
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -1784,7 +1836,7 @@ function App() {
     if (!CHART_PRESETS.some((preset) => preset.key === confirmationPresetKey)) {
       setConfirmationPresetKey("1h");
     }
-    if (!["default", "ai_five_layer", "all"].includes(selectedUniverse)) {
+    if (!["default", "ai_five_layer", "physical_ai", "all"].includes(selectedUniverse)) {
       setSelectedUniverse("default");
     }
     if (!STRATEGY_PROFILES.some((profile) => profile.key === selectedProfile)) {
@@ -2021,7 +2073,6 @@ function App() {
     const candlePromise = loadCandles(symbol);
     const journalPromise = loadStockJournal(symbol);
     const aiStatusPromise = loadAiStatus();
-    const researchPromise = loadResearchLayer(symbol);
     try {
       const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2060,12 +2111,12 @@ function App() {
       }
       const nextRecent = [signal.symbol, ...recentSymbols.filter((item) => item !== signal.symbol)].slice(0, 8);
       setRecentSearches(nextRecent.join(","));
-      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise, researchPromise]);
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
       setAnalysisState("ready");
       setApiState("api");
       void requestAiDecision({ trigger: "auto", signalOverride: signal });
     } catch {
-      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise, researchPromise]);
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
       if (requestId !== analyzeRequestRef.current) return;
       setSelectedSymbol(symbol);
       if (!options.keepSearch) {
@@ -2099,70 +2150,6 @@ function App() {
     }
   }
 
-  async function loadResearchLayer(symbol: string) {
-    const requestId = ++researchRequestRef.current;
-    setResearchState("loading");
-    try {
-      const encoded = encodeURIComponent(symbol);
-      const [dossierResponse, evidenceResponse, reportsResponse] = await Promise.all([
-        apiFetch(`/api/research/company-dossier?symbol=${encoded}`),
-        apiFetch(`/api/research/evidence?symbol=${encoded}&limit=12`),
-        apiFetch(`/api/research/reports?symbol=${encoded}&limit=8`),
-      ]);
-      if (!dossierResponse.ok || !evidenceResponse.ok || !reportsResponse.ok) {
-        throw new Error("research layer unavailable");
-      }
-      const [dossier, evidence, reports] = await Promise.all([
-        dossierResponse.json() as Promise<ResearchDossierPayload>,
-        evidenceResponse.json() as Promise<ResearchEvidencePayload>,
-        reportsResponse.json() as Promise<ResearchReportsPayload>,
-      ]);
-      if (requestId !== researchRequestRef.current) return;
-      setResearchDossier(dossier);
-      setResearchEvidence(evidence);
-      setResearchReports(reports);
-      setResearchState("ready");
-    } catch {
-      if (requestId !== researchRequestRef.current) return;
-      setResearchDossier(null);
-      setResearchEvidence(null);
-      setResearchReports(null);
-      setResearchState("error");
-    }
-  }
-
-  async function saveResearchEvidence(entry: {
-    title: string;
-    type: string;
-    summary: string;
-    url: string;
-    tags: string;
-  }) {
-    const response = await apiFetch("/api/research/evidence/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        symbol: selected.symbol,
-        company_name: selectedMeta.name,
-        primary_layer: selectedMeta.primary_layer,
-        title: entry.title,
-        type: entry.type,
-        summary: entry.summary,
-        url: entry.url,
-        tags: entry.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-      }),
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
-    setResearchDossier(payload.dossier as ResearchDossierPayload);
-    setResearchEvidence(payload.evidence as ResearchEvidencePayload);
-    setResearchReports(payload.reports as ResearchReportsPayload);
-    setResearchState("ready");
-  }
-
   async function requestAiReview() {
     try {
       setAiReviewState("loading");
@@ -2176,9 +2163,8 @@ function App() {
           signal_payload: selected,
           profile_comparison: profileCompare,
           research_context: {
-            dossier: researchDossier?.dossier ?? null,
-            evidence: researchEvidence?.items?.slice(0, 5) ?? [],
-            reports: researchReports?.reports?.slice(0, 3) ?? [],
+            status: "removed",
+            note: "External research layer has been removed. Use KQUANT live K-lines, rule guardrails, AI command, historical edge, and journal context.",
           },
           journal_context_limit: 5,
         }),
@@ -2217,9 +2203,8 @@ function App() {
           profile_comparison: profileCompare,
           trigger: options.trigger ?? "manual",
           research_context: {
-            dossier: researchDossier?.dossier ?? null,
-            evidence: researchEvidence?.items?.slice(0, 5) ?? [],
-            reports: researchReports?.reports?.slice(0, 3) ?? [],
+            status: "removed",
+            note: "External research layer has been removed. Use KQUANT live K-lines, rule guardrails, historical edge, and journal context.",
           },
           journal_context_limit: 5,
         }),
@@ -2266,9 +2251,8 @@ function App() {
           signal_payload: selected,
           ai_decision: aiDecision,
           research_context: {
-            dossier: researchDossier?.dossier ?? null,
-            evidence: researchEvidence?.items?.slice(0, 8) ?? [],
-            reports: researchReports?.reports?.slice(0, 4) ?? [],
+            status: "removed",
+            note: "External research layer has been removed. Use KQUANT live K-lines, rule guardrails, AI command, historical edge, and journal context.",
           },
         }),
       });
@@ -2379,35 +2363,9 @@ function App() {
     setActiveWorkspace(workspace);
     if (workspace === "mstr") {
       setView("mstr");
-      window.setTimeout(() => document.getElementById("mstr-radar-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       return;
     }
     if (view !== "stocks") setView("stocks");
-    const targetId =
-      workspace === "today"
-        ? "ai-trade-desk-workspace"
-        : workspace === "search"
-          ? "stock-search-workspace"
-          : workspace === "watchlist"
-            ? "stock-watchlist-workspace"
-            : workspace === "stock"
-              ? "selected-stock-workspace"
-              : workspace === "charts"
-                ? "kline-workspace"
-                : workspace === "aiPlan"
-                  ? "strategy-compare-workspace"
-                  : workspace === "chat"
-                    ? "deep-research-chat-workspace"
-                    : workspace === "research"
-                      ? "research-dossier-workspace"
-                      : workspace === "evidence"
-                        ? "research-evidence-workspace"
-                        : workspace === "reports"
-                          ? "research-reports-workspace"
-                          : workspace === "journal"
-                            ? "journal-workspace"
-                            : "settings-workspace";
-    window.setTimeout(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
 
   return (
@@ -2476,9 +2434,6 @@ function App() {
               ["charts", text.chartsNav, text.chartsSub],
               ["aiPlan", text.aiPlanNav, text.aiPlanSub],
               ["chat", text.chatNav, text.chatSub],
-              ["research", text.researchNav, text.researchSub],
-              ["evidence", text.evidenceNav, text.evidenceSub],
-              ["reports", text.reportsNav, text.reportsSub],
               ["mstr", text.mstrNav, text.mstrSub],
               ["journal", text.journalNav, text.journalSub],
               ["settings", text.settingsNav, text.settingsSub],
@@ -2512,7 +2467,7 @@ function App() {
 
           <div className="sidebar-section">
             <span className="sidebar-section-title">{text.universeControl}</span>
-            {(["default", "ai_five_layer", "all"] as UniverseName[]).map((item) => (
+            {(["default", "ai_five_layer", "physical_ai", "all"] as UniverseName[]).map((item) => (
               <button
                 type="button"
                 key={item}
@@ -2520,7 +2475,7 @@ function App() {
                 onClick={() => setSelectedUniverse(item)}
               >
                 <strong>{universeOptionLabel(item, lang)}</strong>
-                <span>{item === "default" ? "Core" : item === "ai_five_layer" ? "AI" : "Merged"}</span>
+                <span>{item === "default" ? "Core" : item === "ai_five_layer" ? "AI" : item === "physical_ai" ? "Physical" : "Merged"}</span>
               </button>
             ))}
           </div>
@@ -2663,7 +2618,7 @@ function App() {
         <span className="quick-search-note">{run.profile.label ?? selectedProfile} / {run.profile.holding_period ?? ""}</span>
       </section>
 
-      <section className="metrics-grid">
+      <section className={`metrics-grid market-snapshot-strip ${activeWorkspace === "today" ? "" : "workspace-hidden"}`}>
         <Metric label={text.buySetups} value={String(run.counts.buy_setup)} tone="good" />
         <Metric label={text.watch} value={String(run.counts.watch)} tone="watch" />
         <Metric label={text.pass} value={String(run.counts.pass)} />
@@ -2701,7 +2656,7 @@ function App() {
         </div>
       ) : (
         <>
-      <div id="ai-trade-desk-workspace">
+      <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
       <AiTradeDesk
         report={aiDailyReport}
         state={aiDailyState}
@@ -2713,7 +2668,19 @@ function App() {
         onRun={() => void runAiDailyAgent("manual")}
         onPick={(symbol) => void analyzeSymbol(symbol)}
       />
+      <section className="panel deep-research-preview">
+        <div>
+          <span className="eyebrow">{text.chatSub}</span>
+          <h2>{text.deepResearchChat}</h2>
+          <p>{latestResearchAnswer?.direct_view ?? text.researchChatEmpty}</p>
+        </div>
+        <button type="button" className="secondary-action" onClick={() => openWorkspace("chat")}>
+          <MessageCircle size={15} />
+          {text.chatNav}
+        </button>
+      </section>
       </div>
+      <div className={activeWorkspace === "settings" ? "" : "workspace-hidden"}>
       <DataReliabilityPanel
         apiConnection={apiConnection}
         apiHealth={apiHealth}
@@ -2723,7 +2690,9 @@ function App() {
         selectedSymbol={selected.symbol}
         apiBaseUrl={API_BASE_URL}
       />
-      <section className={`main-grid ${activeWorkspace === "watchlist" ? "with-watchlist" : "single-main"}`}>
+      </div>
+      {showStockWorkspace ? (
+      <section className={`main-grid ${activeWorkspace === "watchlist" ? "watchlist-only" : "single-main"}`}>
         {activeWorkspace === "watchlist" ? (
         <aside className="panel queue-panel" id="stock-watchlist-workspace">
           <PanelTitle title={text.today} detail={run.profile.name} />
@@ -2765,7 +2734,9 @@ function App() {
         </aside>
         ) : null}
 
+        {activeWorkspace !== "watchlist" ? (
         <section className="review-stack">
+          {showSelectedPanel ? (
           <section className="panel selected-panel" id="selected-stock-workspace">
             <PanelTitle title={text.selected} detail={`${signalLayer(selected, selectedMeta)} / ${selected.liquidity_tier ?? selectedMeta.liquidity_tier ?? "core"}`} />
             <div className="selected-row">
@@ -2835,7 +2806,9 @@ function App() {
             </div>
             <p className="secondary-note">{text.optionsLater}</p>
           </section>
+          ) : null}
 
+          {showDeepResearch ? (
           <DeepResearchChatPanel
             text={text}
             selected={selected}
@@ -2848,7 +2821,9 @@ function App() {
             onSend={() => void sendResearchChat()}
             onAsk={(question) => void sendResearchChat(question)}
           />
+          ) : null}
 
+          {showCharts ? (
           <div className="chart-grid" id="kline-workspace">
             <ChartPanel
               title={text.daily}
@@ -2891,7 +2866,9 @@ function App() {
               }}
             />
           </div>
+          ) : null}
 
+          {showRuleDetails ? (
           <section className="panel detail-grid">
             <Narrative title={text.reasons} items={[selected.trend_summary, selected.trigger_summary]} />
             <Narrative
@@ -2943,19 +2920,13 @@ function App() {
               <Fact label={text.report} value={run.run_id} />
             </div>
           </section>
+          ) : null}
         </section>
+        ) : null}
       </section>
+      ) : null}
 
-      <ResearchBridgePanel
-        symbol={selected.symbol}
-        companyName={selectedMeta.name}
-        state={researchState}
-        dossier={researchDossier}
-        evidence={researchEvidence}
-        reports={researchReports}
-        onSave={saveResearchEvidence}
-      />
-
+      {activeWorkspace === "watchlist" ? (
       <section className="panel layers-panel">
         <PanelTitle title="AI Five-Layer Cake" detail={`${universe.length} selected stocks / ${universeOptionLabel(selectedUniverse, lang)}`} />
         <div className="layer-grid">
@@ -2994,6 +2965,8 @@ function App() {
           ))}
         </div>
       </section>
+      ) : null}
+      {activeWorkspace === "settings" ? (
       <SettingsPanel
         apiConnection={apiConnection}
         aiStatus={aiStatus}
@@ -3001,6 +2974,7 @@ function App() {
         apiHealth={apiHealth}
         text={text}
       />
+      ) : null}
         </>
       )}
         </div>
@@ -3612,187 +3586,6 @@ function PathStressPanel({ payload }: { payload?: PathStressPayload }) {
       </div>
       {payload?.assumptions?.length ? <p className="probability-note">{payload.assumptions[0]}</p> : null}
     </section>
-  );
-}
-
-function ResearchBridgePanel({
-  symbol,
-  companyName,
-  state,
-  dossier,
-  evidence,
-  reports,
-  onSave,
-}: {
-  symbol: string;
-  companyName: string;
-  state: "idle" | "loading" | "ready" | "error";
-  dossier: ResearchDossierPayload | null;
-  evidence: ResearchEvidencePayload | null;
-  reports: ResearchReportsPayload | null;
-  onSave: (entry: { title: string; type: string; summary: string; url: string; tags: string }) => Promise<void>;
-}) {
-  const bridge = dossier?.bridge_status ?? evidence?.bridge_status ?? reports?.bridge_status ?? {};
-  const offline = state === "error" || bridge.api_status === "auth_required" || bridge.api_status === "offline";
-  const dossierData = dossier?.dossier;
-  const evidenceItems = evidence?.items ?? [];
-  const reportItems = reports?.reports ?? [];
-  return (
-    <section className="panel research-bridge-panel">
-      <div className="research-bridge-head">
-        <div>
-          <span>KNODE Research Layer</span>
-          <h2>{symbol} Research Evidence</h2>
-          <p>KQUANT owns live market data and AI commands. KNODE contributes dossier, saved evidence, and reports for the same symbol.</p>
-        </div>
-        <div className="research-status-stack">
-          <Pill tone={offline ? "warn" : "good"} icon={<Database size={14} />} label={offline ? "Research layer offline" : "Research layer connected"} />
-          <Pill tone="neutral" icon={<ShieldCheck size={14} />} label={bridge.integration_mode ?? "ui_api_bridge_v1"} />
-        </div>
-      </div>
-      <div className="research-summary-grid">
-        <Fact label="Company" value={dossierData?.company_name || companyName || symbol} />
-        <Fact label="Dossier" value={dossier?.summary?.dossier_source ?? (state === "loading" ? "loading" : "unavailable")} />
-        <Fact label="Evidence" value={String(evidence?.count ?? evidenceItems.length)} />
-        <Fact label="Reports" value={String(reports?.count ?? reportItems.length)} />
-        <Fact label="KNODE API" value={bridge.api_status ?? "not checked"} />
-        <Fact label="Local Data" value={bridge.local_data_status ?? "unknown"} />
-      </div>
-
-      <div className="research-section-grid">
-        <section id="research-dossier-workspace" className="research-section">
-          <PanelTitle title="Research Dossier" detail={dossierData?.source ?? "KNODE bridge"} />
-          {state === "loading" ? <p className="probability-note">Loading KNODE dossier...</p> : null}
-          {dossierData ? (
-            <div className="research-dossier-body">
-              <h3>{dossierData.company_name || companyName || symbol}</h3>
-              <p>{dossierData.thesis || "No thesis saved yet. Add evidence below to start building the company dossier."}</p>
-              <div className="research-columns">
-                <Narrative title="Bull Case" items={dossierData.bull_case?.length ? dossierData.bull_case : ["No bull-case notes saved yet."]} />
-                <Narrative title="Bear Risks" items={dossierData.bear_risks?.length ? dossierData.bear_risks : ["No bear-risk notes saved yet."]} />
-              </div>
-              <div className="tag-row">
-                {(dossierData.tags ?? []).slice(0, 8).map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="probability-note">{offline ? "KNODE is offline or requires login. KQUANT trading data remains available." : "No company dossier saved yet."}</p>
-          )}
-        </section>
-
-        <section id="research-evidence-workspace" className="research-section">
-          <PanelTitle title="Evidence" detail={`${evidenceItems.length} saved items`} />
-          <div className="research-list">
-            {evidenceItems.length ? (
-              evidenceItems.map((item) => (
-                <article className="research-item" key={item.id || `${item.title}-${item.created_at}`}>
-                  <div className="research-item-top">
-                    <strong>{item.title || "Untitled evidence"}</strong>
-                    <span>{item.type || item.source || "evidence"}</span>
-                  </div>
-                  <p>{item.summary || item.fact || item.interpretation || "No summary saved."}</p>
-                  <small>
-                    {item.impact_direction || item.thesis_impact || "impact unknown"} / confidence {String(item.confidence || "-")}
-                  </small>
-                  {item.url ? (
-                    <a href={item.url} target="_blank" rel="noreferrer">
-                      Open source
-                    </a>
-                  ) : null}
-                </article>
-              ))
-            ) : (
-              <p className="probability-note">No evidence found for {symbol}. Save a source below or open KNODE to build the dossier.</p>
-            )}
-          </div>
-          <EvidenceSaveForm onSave={onSave} />
-        </section>
-
-        <section id="research-reports-workspace" className="research-section">
-          <PanelTitle title="Reports" detail={`${reportItems.length} linked reports`} />
-          <div className="research-list">
-            {reportItems.length ? (
-              reportItems.map((report) => (
-                <article className="research-item report-item" key={report.id || report.filename}>
-                  <div className="research-item-top">
-                    <strong>{report.title || report.filename || "Research report"}</strong>
-                    <span>{report.type || report.mime_type || "report"}</span>
-                  </div>
-                  <p>{report.summary || "Report summary unavailable."}</p>
-                  <small>{report.created_at || "date unknown"}</small>
-                  {report.open_url ? (
-                    <a href={report.open_url} target="_blank" rel="noreferrer">
-                      Open report
-                    </a>
-                  ) : null}
-                </article>
-              ))
-            ) : (
-              <p className="probability-note">No KNODE reports linked for {symbol} yet.</p>
-            )}
-          </div>
-        </section>
-      </div>
-    </section>
-  );
-}
-
-function EvidenceSaveForm({
-  onSave,
-}: {
-  onSave: (entry: { title: string; type: string; summary: string; url: string; tags: string }) => Promise<void>;
-}) {
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState("note");
-  const [summary, setSummary] = useState("");
-  const [url, setUrl] = useState("");
-  const [tags, setTags] = useState("");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!title.trim() && !summary.trim() && !url.trim()) return;
-    try {
-      setSaveState("saving");
-      await onSave({ title, type, summary, url, tags });
-      setTitle("");
-      setSummary("");
-      setUrl("");
-      setTags("");
-      setType("note");
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  }
-
-  return (
-    <form className="evidence-save-form" onSubmit={handleSubmit}>
-      <strong>Save Evidence to KNODE</strong>
-      <div className="evidence-form-grid">
-        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Evidence title" />
-        <select value={type} onChange={(event) => setType(event.target.value)}>
-          <option value="note">note</option>
-          <option value="news">news</option>
-          <option value="filing">filing</option>
-          <option value="earnings">earnings</option>
-          <option value="x_post">X / social</option>
-          <option value="pdf">PDF / deck</option>
-        </select>
-      </div>
-      <textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="What does this evidence prove or challenge?" />
-      <div className="evidence-form-grid">
-        <input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="Optional source URL" />
-        <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="tags, comma separated" />
-      </div>
-      <button type="submit" className="primary-action" disabled={saveState === "saving"}>
-        {saveState === "saving" ? "Saving..." : "Save Evidence"}
-      </button>
-      {saveState === "saved" ? <small>Saved to KNODE local evidence JSONL.</small> : null}
-      {saveState === "error" ? <small>Save failed. Check KNODE project path and local API.</small> : null}
-    </form>
   );
 }
 
@@ -4934,6 +4727,7 @@ function quickSearchStocks(stocks: UniverseStock[]): UniverseStock[] {
 
 function stocksForUniverse(universeName: UniverseName): UniverseStock[] {
   if (universeName === "ai_five_layer") return AI_FIVE_LAYER_STOCKS;
+  if (universeName === "physical_ai") return PHYSICAL_AI_STOCKS;
   if (universeName === "all") return ALL_STOCKS;
   return STOCKS;
 }
@@ -4941,10 +4735,12 @@ function stocksForUniverse(universeName: UniverseName): UniverseStock[] {
 function universeOptionLabel(universeName: UniverseName, lang: Lang): string {
   if (lang === "zh") {
     if (universeName === "ai_five_layer") return "AI Five-Layer";
+    if (universeName === "physical_ai") return "Physical AI";
     if (universeName === "all") return "All";
     return "Core 200";
   }
   if (universeName === "ai_five_layer") return "AI Five-Layer";
+  if (universeName === "physical_ai") return "Physical AI";
   if (universeName === "all") return "All";
   return "Core 200";
 }

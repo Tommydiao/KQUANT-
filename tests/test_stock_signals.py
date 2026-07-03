@@ -40,28 +40,50 @@ def test_ai_five_layer_universe_is_complete_and_deduped() -> None:
     assert len(symbols) == len(set(symbols))
     assert {"Energy", "Chips", "Infrastructure", "Models", "Applications"}.issubset(layers)
     assert {"NVDA", "CEG", "MSFT", "PLTR", "CRM"}.issubset(set(symbols))
+    assert {"SNDK", "MU", "IREN", "NVTS", "COHR"}.issubset(set(symbols))
     assert next(stock for stock in stocks if stock.symbol == "NVDA").layer == "Chips"
+    assert next(stock for stock in stocks if stock.symbol == "SNDK").layer == "Chips"
+    assert next(stock for stock in stocks if stock.symbol == "COHR").layer == "Infrastructure"
 
 
 def test_all_universe_is_core_200_plus_ai_deduped() -> None:
     default_symbols = {stock.symbol for stock in stock_universe("default")}
     ai_symbols = {stock.symbol for stock in stock_universe("ai_five_layer")}
     space_symbols = {stock.symbol for stock in stock_universe("space_robotics")}
+    physical_symbols = {stock.symbol for stock in stock_universe("physical_ai")}
     all_symbols = [stock.symbol for stock in stock_universe("all")]
     assert len(all_symbols) == len(set(all_symbols))
-    assert set(all_symbols) == default_symbols | ai_symbols | space_symbols
+    assert set(all_symbols) == default_symbols | ai_symbols | space_symbols | physical_symbols
     assert {"RKLB", "ASTS", "BOTZ", "ROBO"}.issubset(set(all_symbols))
+    assert {"SNDK", "IREN", "NVTS", "COHR", "SERV", "AVAV", "LAZR", "RDW"}.issubset(set(all_symbols))
     assert len(all_symbols) > 200
+
+
+def test_physical_ai_universe_has_four_research_tracks() -> None:
+    stocks = stock_universe("physical_ai")
+    symbols = {stock.symbol for stock in stocks}
+    layers = {stock.layer for stock in stocks}
+    assert {
+        "Embodied AI Components",
+        "Drones / Low Altitude",
+        "Spatial Computing",
+        "Space Exploration",
+    }.issubset(layers)
+    assert {"AVAV", "RCAT", "ONDS", "LAZR", "HSAI", "RDW", "RKLB", "BOTZ"}.issubset(symbols)
+    assert len(symbols) == len(stocks)
 
 
 def test_space_robotics_universe_and_search_are_available() -> None:
     stocks = stock_universe("space_robotics")
     symbols = {stock.symbol for stock in stocks}
-    assert {"RKLB", "ASTS", "LUNR", "ISRG", "BOTZ"}.intersection(symbols)
+    assert {"RKLB", "ASTS", "LUNR", "ISRG", "BOTZ", "SERV"}.intersection(symbols)
     assert all(stock.layer == "Space / Robotics" for stock in stocks)
 
     robot_results = api_stock_search(q="robot", universe="all")["results"]
     space_results = api_stock_search(q="space", universe="all")["results"]
+    optical_results = api_stock_search(q="光模块", universe="all")["results"]
+    storage_results = api_stock_search(q="存储", universe="all")["results"]
+    gpu_cloud_results = api_stock_search(q="GPU云", universe="all")["results"]
     rklb_results = api_stock_search(q="RKLB", universe="all")["results"]
     chinese_robot_results = api_stock_search(q="机器人", universe="all")["results"]
     chinese_space_results = api_stock_search(q="太空", universe="all")["results"]
@@ -69,11 +91,27 @@ def test_space_robotics_universe_and_search_are_available() -> None:
     chinese_chip_results = api_stock_search(q="半导体", universe="all")["results"]
     assert any(item["symbol"] in {"BOTZ", "ROBO", "SYM", "ISRG"} for item in robot_results)
     assert any(item["symbol"] in {"RKLB", "ASTS", "LUNR", "PL"} for item in space_results)
+    assert any(item["symbol"] in {"COHR", "FN", "LITE", "CRDO"} for item in optical_results)
+    assert any(item["symbol"] in {"SNDK", "WDC", "STX", "MU"} for item in storage_results)
+    assert any(item["symbol"] in {"IREN", "NBIS", "CORZ"} for item in gpu_cloud_results)
     assert rklb_results[0]["symbol"] == "RKLB"
     assert any(item["symbol"] in {"BOTZ", "ROBO", "SYM", "ISRG"} for item in chinese_robot_results)
     assert any(item["symbol"] in {"RKLB", "ASTS", "LUNR", "PL"} for item in chinese_space_results)
     assert chinese_nvda_results[0]["symbol"] == "NVDA"
     assert any(item["symbol"] in {"NVDA", "AMD", "SMH", "SOXX"} for item in chinese_chip_results)
+
+
+def test_physical_ai_search_terms_route_to_research_tracks() -> None:
+    embodied = api_stock_search(q="具身智能", universe="all")["results"]
+    drones = api_stock_search(q="无人机", universe="all")["results"]
+    spatial = api_stock_search(q="空间计算", universe="all")["results"]
+    lidar = api_stock_search(q="激光雷达", universe="all")["results"]
+    space = api_stock_search(q="太空探索", universe="all")["results"]
+    assert any(item["symbol"] in {"BOTZ", "ROBO", "SYM", "ISRG", "ROK"} for item in embodied)
+    assert any(item["symbol"] in {"AVAV", "KTOS", "RCAT", "ONDS", "EH"} for item in drones)
+    assert any(item["symbol"] in {"AAPL", "META", "VUZI", "KOPN", "OUST"} for item in spatial)
+    assert any(item["symbol"] in {"LAZR", "OUST", "HSAI", "AEVA", "MVIS"} for item in lidar)
+    assert any(item["symbol"] in {"RKLB", "ASTS", "LUNR", "PL", "RDW"} for item in space)
 
 
 def test_ai_review_status_without_key_is_safe(monkeypatch: pytest.MonkeyPatch) -> None:

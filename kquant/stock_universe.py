@@ -4,7 +4,7 @@ from dataclasses import dataclass, asdict
 from typing import Iterable, Literal
 
 
-UniverseName = Literal["default", "ai", "ai_five_layer", "all"]
+UniverseName = Literal["default", "ai", "ai_five_layer", "space_robotics", "physical_ai", "all"]
 
 
 @dataclass(frozen=True)
@@ -246,9 +246,12 @@ _SPACE_ROBOTICS_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("ACHR", "Archer Aviation", "Industrials", "Space / Robotics", ("evtol", "aviation", "high_beta")),
     ("JOBY", "Joby Aviation", "Industrials", "Space / Robotics", ("evtol", "aviation", "high_beta")),
     ("SYM", "Symbotic", "Industrials", "Space / Robotics", ("warehouse_robotics", "automation", "high_beta")),
+    ("SERV", "Serve Robotics", "Industrials", "Space / Robotics", ("delivery_robotics", "autonomy", "high_beta")),
     ("TER", "Teradyne", "Technology", "Space / Robotics", ("robotics", "test_equipment", "automation")),
     ("ZBRA", "Zebra Technologies", "Technology", "Space / Robotics", ("automation", "robotics", "supply_chain")),
     ("CGNX", "Cognex", "Technology", "Space / Robotics", ("machine_vision", "automation", "robotics")),
+    ("AMBA", "Ambarella", "Technology", "Space / Robotics", ("edge_ai", "computer_vision", "autonomy", "high_beta")),
+    ("ARBE", "Arbe Robotics", "Technology", "Space / Robotics", ("radar", "autonomy", "robotics", "high_beta")),
     ("OUST", "Ouster", "Technology", "Space / Robotics", ("lidar", "robotics", "high_beta")),
     ("MBLY", "Mobileye", "Technology", "Space / Robotics", ("autonomy", "robotics", "high_beta")),
     ("BOTZ", "Global X Robotics & AI ETF", "ETF", "Space / Robotics", ("robotics_etf", "automation")),
@@ -257,6 +260,68 @@ _SPACE_ROBOTICS_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("ITA", "iShares U.S. Aerospace & Defense ETF", "ETF", "Space / Robotics", ("aerospace_etf", "defense")),
     ("XAR", "SPDR S&P Aerospace & Defense ETF", "ETF", "Space / Robotics", ("aerospace_etf", "defense")),
     ("UFO", "Procure Space ETF", "ETF", "Space / Robotics", ("space_etf", "satellite")),
+]
+
+_PHYSICAL_AI_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
+    ("ROK", "Rockwell Automation", "Industrials", "Embodied AI Components", ("industrial_automation", "robotics", "controls")),
+    ("TER", "Teradyne", "Technology", "Embodied AI Components", ("robotics", "test_equipment", "automation")),
+    ("SYM", "Symbotic", "Industrials", "Embodied AI Components", ("warehouse_robotics", "automation", "high_beta")),
+    ("ISRG", "Intuitive Surgical", "Healthcare", "Embodied AI Components", ("surgical_robotics", "medtech", "robotics")),
+    ("ZBRA", "Zebra Technologies", "Technology", "Embodied AI Components", ("automation", "robotics", "supply_chain")),
+    ("CGNX", "Cognex", "Technology", "Embodied AI Components", ("machine_vision", "sensors", "robotics")),
+    ("SERV", "Serve Robotics", "Industrials", "Embodied AI Components", ("delivery_robotics", "autonomy", "high_beta")),
+    ("TRMB", "Trimble", "Technology", "Embodied AI Components", ("positioning", "sensors", "industrial_automation")),
+    ("KEYS", "Keysight Technologies", "Technology", "Embodied AI Components", ("test_equipment", "sensors", "robotics")),
+    ("ADI", "Analog Devices", "Technology", "Embodied AI Components", ("sensors", "analog_semis", "edge_ai")),
+    ("ON", "ON Semiconductor", "Technology", "Embodied AI Components", ("sensors", "power_semis", "edge_ai")),
+    ("MPWR", "Monolithic Power Systems", "Technology", "Embodied AI Components", ("motor_control", "power_semis", "robotics")),
+    ("BOTZ", "Global X Robotics & AI ETF", "ETF", "Embodied AI Components", ("robotics_etf", "automation")),
+    ("ROBO", "ROBO Global Robotics ETF", "ETF", "Embodied AI Components", ("robotics_etf", "automation")),
+    ("AVAV", "AeroVironment", "Industrials", "Drones / Low Altitude", ("drones", "unmanned_systems", "defense", "high_beta")),
+    ("KTOS", "Kratos Defense & Security", "Industrials", "Drones / Low Altitude", ("drones", "defense_tech", "unmanned_systems")),
+    ("RCAT", "Red Cat Holdings", "Technology", "Drones / Low Altitude", ("drones", "defense_tech", "high_beta")),
+    ("ONDS", "Ondas Holdings", "Technology", "Drones / Low Altitude", ("drones", "autonomous_systems", "high_beta")),
+    ("UMAC", "Unusual Machines", "Technology", "Drones / Low Altitude", ("drones", "components", "high_beta")),
+    ("EH", "EHang", "Industrials", "Drones / Low Altitude", ("evtol", "autonomous_aircraft", "high_beta")),
+    ("ACHR", "Archer Aviation", "Industrials", "Drones / Low Altitude", ("evtol", "aviation", "high_beta")),
+    ("JOBY", "Joby Aviation", "Industrials", "Drones / Low Altitude", ("evtol", "aviation", "high_beta")),
+    ("TXT", "Textron", "Industrials", "Drones / Low Altitude", ("aerospace", "defense", "aircraft")),
+    ("LHX", "L3Harris Technologies", "Industrials", "Drones / Low Altitude", ("defense", "communications", "drones")),
+    ("LDOS", "Leidos", "Industrials", "Drones / Low Altitude", ("defense_tech", "mission_systems")),
+    ("ITA", "iShares U.S. Aerospace & Defense ETF", "ETF", "Drones / Low Altitude", ("aerospace_etf", "defense")),
+    ("XAR", "SPDR S&P Aerospace & Defense ETF", "ETF", "Drones / Low Altitude", ("aerospace_etf", "defense")),
+    ("AAPL", "Apple", "Technology", "Spatial Computing", ("spatial_computing", "mixed_reality", "consumer_tech")),
+    ("META", "Meta Platforms", "Communication Services", "Spatial Computing", ("spatial_computing", "vr_ar", "ai_platform")),
+    ("SNAP", "Snap", "Communication Services", "Spatial Computing", ("ar", "consumer_camera", "high_beta")),
+    ("VUZI", "Vuzix", "Technology", "Spatial Computing", ("ar_glasses", "spatial_computing", "high_beta")),
+    ("KOPN", "Kopin", "Technology", "Spatial Computing", ("microdisplays", "ar_vr", "high_beta")),
+    ("MVIS", "MicroVision", "Technology", "Spatial Computing", ("lidar", "3d_sensing", "high_beta")),
+    ("LAZR", "Luminar", "Technology", "Spatial Computing", ("lidar", "autonomy", "high_beta")),
+    ("OUST", "Ouster", "Technology", "Spatial Computing", ("lidar", "3d_sensing", "robotics", "high_beta")),
+    ("HSAI", "Hesai Group", "Technology", "Spatial Computing", ("lidar", "3d_sensing", "adr", "high_beta")),
+    ("AEVA", "Aeva Technologies", "Technology", "Spatial Computing", ("lidar", "4d_sensing", "high_beta")),
+    ("MBLY", "Mobileye", "Technology", "Spatial Computing", ("autonomy", "vision", "robotics", "high_beta")),
+    ("AMBA", "Ambarella", "Technology", "Spatial Computing", ("edge_ai", "computer_vision", "autonomy", "high_beta")),
+    ("COHR", "Coherent", "Technology", "Spatial Computing", ("optical", "photonics", "3d_sensing")),
+    ("LITE", "Lumentum", "Technology", "Spatial Computing", ("optical", "photonics", "3d_sensing", "high_beta")),
+    ("RKLB", "Rocket Lab", "Industrials", "Space Exploration", ("space", "launch", "spacecraft", "high_beta")),
+    ("ASTS", "AST SpaceMobile", "Communication Services", "Space Exploration", ("space", "satellite", "direct_to_device", "high_beta")),
+    ("LUNR", "Intuitive Machines", "Industrials", "Space Exploration", ("space", "lunar", "high_beta")),
+    ("PL", "Planet Labs", "Industrials", "Space Exploration", ("space", "satellite_imagery", "high_beta")),
+    ("IRDM", "Iridium Communications", "Communication Services", "Space Exploration", ("space", "satellite_network")),
+    ("SPIR", "Spire Global", "Industrials", "Space Exploration", ("space", "satellite_data", "high_beta")),
+    ("BKSY", "BlackSky Technology", "Industrials", "Space Exploration", ("space", "satellite_imagery", "high_beta")),
+    ("RDW", "Redwire", "Industrials", "Space Exploration", ("space", "space_infrastructure", "high_beta")),
+    ("GSAT", "Globalstar", "Communication Services", "Space Exploration", ("space", "satellite_network", "high_beta")),
+    ("SATL", "Satellogic", "Industrials", "Space Exploration", ("space", "earth_observation", "high_beta")),
+    ("BA", "Boeing", "Industrials", "Space Exploration", ("space", "aerospace", "defense")),
+    ("LMT", "Lockheed Martin", "Industrials", "Space Exploration", ("space", "defense", "aerospace")),
+    ("NOC", "Northrop Grumman", "Industrials", "Space Exploration", ("space", "defense", "aerospace")),
+    ("RTX", "RTX", "Industrials", "Space Exploration", ("space", "defense", "aerospace")),
+    ("GD", "General Dynamics", "Industrials", "Space Exploration", ("space", "defense", "aerospace")),
+    ("KTOS", "Kratos Defense & Security", "Industrials", "Space Exploration", ("space", "defense_tech", "satellite")),
+    ("UFO", "Procure Space ETF", "ETF", "Space Exploration", ("space_etf", "satellite")),
+    ("ARKX", "ARK Space Exploration ETF", "ETF", "Space Exploration", ("space_etf", "innovation")),
 ]
 
 
@@ -326,6 +391,12 @@ _AI_FIVE_LAYER_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("MCHP", "Microchip Technology", "Technology", "Chips", ("microcontrollers", "edge_ai")),
     ("MPWR", "Monolithic Power Systems", "Technology", "Chips", ("power_semis", "data_center")),
     ("ON", "ON Semiconductor", "Technology", "Chips", ("power_semis", "edge_ai")),
+    ("NVTS", "Navitas Semiconductor", "Technology", "Chips", ("power_semis", "gan", "sic", "ai_power", "high_beta")),
+    ("SNDK", "SanDisk", "Technology", "Chips", ("storage", "nand", "ai_storage", "high_beta")),
+    ("WDC", "Western Digital", "Technology", "Chips", ("storage", "hdd", "nand", "ai_storage")),
+    ("STX", "Seagate Technology", "Technology", "Chips", ("storage", "hdd", "ai_storage")),
+    ("AMBA", "Ambarella", "Technology", "Chips", ("edge_ai", "computer_vision", "autonomy", "high_beta")),
+    ("ACLS", "Axcelis Technologies", "Technology", "Chips", ("semi_equipment", "power_semis", "high_beta")),
     ("SMH", "VanEck Semiconductor ETF", "ETF", "Chips", ("sector_etf", "ai_semis")),
     ("SOXX", "iShares Semiconductor ETF", "ETF", "Chips", ("sector_etf", "ai_semis")),
     ("MSFT", "Microsoft", "Technology", "Infrastructure", ("cloud", "models", "enterprise_ai")),
@@ -341,6 +412,17 @@ _AI_FIVE_LAYER_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("SMCI", "Super Micro Computer", "Technology", "Infrastructure", ("servers", "ai_factory")),
     ("EQIX", "Equinix", "Real Estate", "Infrastructure", ("data_center", "colo")),
     ("DLR", "Digital Realty", "Real Estate", "Infrastructure", ("data_center", "colo")),
+    ("COHR", "Coherent", "Technology", "Infrastructure", ("optical", "photonics", "datacenter_interconnect", "ai_networking")),
+    ("LITE", "Lumentum", "Technology", "Infrastructure", ("optical", "photonics", "datacenter_interconnect", "high_beta")),
+    ("FN", "Fabrinet", "Technology", "Infrastructure", ("optical", "datacenter_interconnect", "manufacturing")),
+    ("ALAB", "Astera Labs", "Technology", "Infrastructure", ("connectivity", "pcie", "ai_datacenter", "high_beta")),
+    ("CRDO", "Credo Technology", "Technology", "Infrastructure", ("connectivity", "serdes", "ai_networking", "high_beta")),
+    ("CLS", "Celestica", "Technology", "Infrastructure", ("ai_servers", "electronics_manufacturing", "high_beta")),
+    ("JBL", "Jabil", "Technology", "Infrastructure", ("ai_servers", "electronics_manufacturing")),
+    ("FLEX", "Flex", "Technology", "Infrastructure", ("ai_servers", "electronics_manufacturing")),
+    ("IREN", "IREN", "Technology", "Infrastructure", ("neocloud", "gpu_cloud", "ai_datacenter", "power", "high_beta")),
+    ("NBIS", "Nebius Group", "Technology", "Infrastructure", ("neocloud", "gpu_cloud", "ai_datacenter", "high_beta")),
+    ("CORZ", "Core Scientific", "Technology", "Infrastructure", ("neocloud", "ai_datacenter", "bitcoin_miner_conversion", "high_beta")),
     ("NET", "Cloudflare", "Technology", "Infrastructure", ("edge", "security", "inference")),
     ("DDOG", "Datadog", "Technology", "Infrastructure", ("observability", "cloud_ops")),
     ("PLTR", "Palantir", "Technology", "Models", ("model_ops", "enterprise_ai", "data")),
@@ -386,9 +468,16 @@ def make_stock_meta(index: int, row: tuple[str, str, str, str, tuple[str, ...]])
 _DEFAULT_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_ACTIVE_STOCK_ROWS)}
 _AI_FIVE_LAYER_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_AI_FIVE_LAYER_ROWS)}
 _SPACE_ROBOTICS_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_SPACE_ROBOTICS_ROWS)}
-_META_BY_SYMBOL = {**_DEFAULT_META_BY_SYMBOL, **_AI_FIVE_LAYER_META_BY_SYMBOL, **_SPACE_ROBOTICS_META_BY_SYMBOL}
+_PHYSICAL_AI_META_BY_SYMBOL = {row[0]: make_stock_meta(index, row) for index, row in enumerate(_PHYSICAL_AI_ROWS)}
+_META_BY_SYMBOL = {
+    **_DEFAULT_META_BY_SYMBOL,
+    **_AI_FIVE_LAYER_META_BY_SYMBOL,
+    **_SPACE_ROBOTICS_META_BY_SYMBOL,
+    **_PHYSICAL_AI_META_BY_SYMBOL,
+}
 AI_FIVE_LAYER_SYMBOLS = tuple(dict.fromkeys(row[0] for row in _AI_FIVE_LAYER_ROWS))
 SPACE_ROBOTICS_SYMBOLS = tuple(dict.fromkeys(row[0] for row in _SPACE_ROBOTICS_ROWS))
+PHYSICAL_AI_SYMBOLS = tuple(dict.fromkeys(row[0] for row in _PHYSICAL_AI_ROWS))
 
 
 def stock_universe(universe: str = "default") -> list[StockMeta]:
@@ -399,6 +488,9 @@ def stock_universe(universe: str = "default") -> list[StockMeta]:
     elif normalized in {"space_robotics", "space-robotics", "space"}:
         symbols = SPACE_ROBOTICS_SYMBOLS
         meta_by_symbol = _SPACE_ROBOTICS_META_BY_SYMBOL
+    elif normalized in {"physical_ai", "physical-ai", "physical"}:
+        symbols = PHYSICAL_AI_SYMBOLS
+        meta_by_symbol = _PHYSICAL_AI_META_BY_SYMBOL
     elif normalized == "ai":
         symbols = AI_SYMBOLS
         meta_by_symbol = _META_BY_SYMBOL
@@ -423,6 +515,8 @@ def stock_universe_payload(universe: str = "default") -> dict[str, object]:
         display_name = "AI Five-Layer"
     elif normalized in {"space_robotics", "space-robotics", "space"}:
         display_name = "Space / Robotics"
+    elif normalized in {"physical_ai", "physical-ai", "physical"}:
+        display_name = "Physical AI"
     elif normalized == "ai":
         display_name = "AI Watchlist"
     else:
@@ -435,7 +529,18 @@ def stock_universe_payload(universe: str = "default") -> dict[str, object]:
         "stocks": [stock.to_dict() for stock in stocks],
         "layers": [{"name": name, "count": count} for name, count in sorted(layers.items())],
         "layer_model": "ai_five_layer_cake" if normalized in {"ai_five_layer", "ai5", "ai-five-layer"} else "market_layers",
-        "layer_order": ["Energy", "Chips", "Infrastructure", "Models", "Applications", "Space / Robotics"],
+        "layer_order": [
+            "Energy",
+            "Chips",
+            "Infrastructure",
+            "Models",
+            "Applications",
+            "Embodied AI Components",
+            "Drones / Low Altitude",
+            "Spatial Computing",
+            "Space Exploration",
+            "Space / Robotics",
+        ],
         "btc_eth_removed_from_main_path": True,
         "options_are_secondary": True,
     }
