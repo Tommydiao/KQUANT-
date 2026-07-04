@@ -59,6 +59,7 @@ from kquant.stock_signals import (
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
     api_stock_market_regime,
+    api_stock_monday_readiness_latest,
     api_stock_provider_health,
     api_stock_research_chat,
     api_stock_search,
@@ -992,6 +993,8 @@ class Handler(BaseHTTPRequestHandler):
             )
         if path == "/api/stocks/live-data-health/latest":
             return api_stock_live_data_health_latest(outputs_dir=self.dashboard.outputs_dir)
+        if path == "/api/stocks/monday-readiness/latest":
+            return api_stock_monday_readiness_latest(outputs_dir=self.dashboard.outputs_dir)
         if path == "/api/mstr/cycle-radar":
             source = stock_live_only_source(query)
             return api_mstr_cycle_radar(

@@ -429,6 +429,28 @@ type MondayReadiness = {
   riskRules: string[];
 };
 
+type MondayReadinessReport = {
+  latest_cache_status?: string;
+  available?: boolean;
+  run_id?: string;
+  generated_at_utc?: string | null;
+  status?: "READY" | "CAUTION" | "NO_TRADE" | "not_scanned" | "read_error" | string;
+  summary?: string;
+  critical_failure_count?: number;
+  warning_count?: number;
+  critical_failures?: string[];
+  warnings?: string[];
+  checks?: {
+    name?: string;
+    passed?: boolean;
+    critical?: boolean;
+    detail?: string;
+  }[];
+  pilot_rules?: Record<string, unknown>;
+  report_path?: string;
+  markdown_path?: string;
+};
+
 type ManualTradeTicket = {
   status: "cleared_for_review" | "journal_required" | "blocked";
   title: string;
@@ -1838,6 +1860,7 @@ function App() {
   const [researchChatState, setResearchChatState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiDailyReport, setAiDailyReport] = useState<AiDailyAgentPayload | null>(null);
   const [aiDailyState, setAiDailyState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [mondayReadinessReport, setMondayReadinessReport] = useState<MondayReadinessReport | null>(null);
   const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("today");
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
@@ -1884,6 +1907,7 @@ function App() {
     run,
     dailyMeta,
     hourlyMeta,
+    mondayReadinessReport,
     text,
   });
   const manualTradeTicket = deriveManualTradeTicket({
@@ -1905,6 +1929,7 @@ function App() {
     void loadApiHealth();
     void loadAiStatus();
     void loadAiDailyReportLatest();
+    void loadMondayReadinessReport();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2038,6 +2063,16 @@ function App() {
     } catch {
       setAiDailyReport(null);
       setAiDailyState("error");
+    }
+  }
+
+  async function loadMondayReadinessReport() {
+    try {
+      const response = await apiFetch("/api/stocks/monday-readiness/latest");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setMondayReadinessReport((await response.json()) as MondayReadinessReport);
+    } catch {
+      setMondayReadinessReport(null);
     }
   }
 
@@ -5567,6 +5602,7 @@ function deriveMondayReadiness({
   run,
   dailyMeta,
   hourlyMeta,
+  mondayReadinessReport,
   text,
 }: {
   apiConnection: ApiConnectionState;
@@ -5577,9 +5613,21 @@ function deriveMondayReadiness({
   run: SignalRun;
   dailyMeta: CandleMeta;
   hourlyMeta: CandleMeta;
+  mondayReadinessReport: MondayReadinessReport | null;
   text: (typeof copy)["en"] | (typeof copy)["zh"];
 }): MondayReadiness {
+  const auditStatus = mondayReadinessReport?.status ?? "not_scanned";
+  const auditAvailable = mondayReadinessReport?.latest_cache_status === "available" || mondayReadinessReport?.available === true;
+  const auditIsNoTrade = auditStatus === "NO_TRADE" || auditStatus === "read_error";
+  const auditIsCaution = auditStatus === "CAUTION" || auditStatus === "not_scanned";
+  const auditGenerated = mondayReadinessReport?.generated_at_utc ? shortDateTime(mondayReadinessReport.generated_at_utc) : "not scanned";
   const checks = [
+    {
+      label: "Readiness Audit",
+      value: auditAvailable ? `${auditStatus} / ${auditGenerated}` : String(auditStatus),
+      ok: auditAvailable && !auditIsNoTrade && !auditIsCaution,
+      critical: auditIsNoTrade,
+    },
     {
       label: "Live API",
       value: apiConnection === "connected" && apiHealth?.live_data_enabled !== false ? "online" : "offline",
@@ -5623,18 +5671,27 @@ function deriveMondayReadiness({
       critical: true,
     },
   ];
-  const reasons = checks.filter((check) => !check.ok).map((check) => `${check.label}: ${check.value}`);
+  const reportReasons = [
+    ...(mondayReadinessReport?.critical_failures ?? []),
+    ...(mondayReadinessReport?.warnings ?? []),
+  ].filter(Boolean);
+  const reasons = [
+    ...checks.filter((check) => !check.ok).map((check) => `${check.label}: ${check.value}`),
+    ...reportReasons.slice(0, 6),
+  ];
   const criticalFailed = checks.some((check) => check.critical && !check.ok);
   const status: MondayReadiness["status"] = criticalFailed ? "NO_TRADE" : reasons.length ? "CAUTION" : "READY";
+  const reportSummary = mondayReadinessReport?.summary || (auditAvailable ? `Latest local audit: ${auditStatus}.` : "");
   return {
     status,
     title: text.mondayReadiness,
     summary:
-      status === "READY"
+      reportSummary ||
+      (status === "READY"
         ? "Ready for small-size manual pilot review. The system is still read-only and cannot place orders."
         : status === "CAUTION"
           ? "Use observation mode unless the listed caution items are cleared before entry."
-          : "No real-money pilot until critical data, AI, market, or safety checks are clear.",
+          : "No real-money pilot until critical data, AI, market, or safety checks are clear."),
     checks,
     reasons,
     riskRules: [
@@ -5744,6 +5801,18 @@ function formatNumber(value: number | null | undefined) {
 function formatSigned(value: number | null | undefined) {
   if (value === undefined || value === null || Number.isNaN(value)) return "-";
   return `${value > 0 ? "+" : ""}${formatNumber(value)}`;
+}
+
+function shortDateTime(value: string | null | undefined) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleString(undefined, {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function money(value: number | null | undefined) {

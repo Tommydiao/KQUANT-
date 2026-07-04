@@ -79,6 +79,7 @@ from kquant.stock_signals import (
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
     api_stock_market_regime,
+    api_stock_monday_readiness_latest,
     api_stock_provider_health,
     api_stock_search,
     api_stock_signal_journal,
@@ -747,6 +748,10 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/stocks/live-data-health/latest")
     def stock_live_data_health_latest_endpoint() -> dict:
         return api_stock_live_data_health_latest(outputs_dir=config.outputs_dir)
+
+    @app.get("/api/stocks/monday-readiness/latest")
+    def stock_monday_readiness_latest_endpoint() -> dict:
+        return api_stock_monday_readiness_latest(outputs_dir=config.outputs_dir)
 
     @app.get("/api/mstr/cycle-radar")
     def mstr_cycle_radar_endpoint(source: str = Query(default="live")) -> dict:

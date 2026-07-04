@@ -14,6 +14,7 @@ from kquant.stock_signals import (
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_monday_readiness_latest,
     api_stock_research_chat,
     api_stock_search,
     api_stock_signals,
@@ -737,6 +738,51 @@ def test_live_data_health_report_writes_database_summary(tmp_path: Path, monkeyp
     assert payload["database"]["tables_ready"] is True
     assert (tmp_path / "outputs" / "stock-live-data-health.json").exists()
     assert "KQUANT Stock Live Data Health" in (tmp_path / "outputs" / "stock-live-data-health.md").read_text(encoding="utf-8")
+
+
+def test_monday_readiness_latest_missing_is_not_scanned(tmp_path: Path) -> None:
+    payload = api_stock_monday_readiness_latest(outputs_dir=tmp_path / "outputs")
+    assert payload["status"] == "not_scanned"
+    assert payload["available"] is False
+    assert payload["fixture_user_visible"] is False
+    assert payload["broker_order_wiring_enabled"] is False
+    assert payload["order_submission_enabled"] is False
+    assert payload["pilot_rules"]["journal_before_entry"] is True
+
+
+def test_monday_readiness_latest_reads_ready_report(tmp_path: Path) -> None:
+    outputs = tmp_path / "outputs"
+    outputs.mkdir()
+    (outputs / "monday-pilot-readiness.json").write_text(
+        json.dumps(
+            {
+                "run_id": "monday-readiness-test",
+                "generated_at_utc": "2026-07-04T10:06:55Z",
+                "status": "READY",
+                "critical_failure_count": 0,
+                "warning_count": 0,
+                "checks": [{"name": "backend_online", "passed": True, "critical": True, "detail": "status=online"}],
+                "pilot_rules": {"journal_before_entry": True},
+            }
+        ),
+        encoding="utf-8",
+    )
+    payload = api_stock_monday_readiness_latest(outputs_dir=outputs)
+    assert payload["status"] == "READY"
+    assert payload["available"] is True
+    assert payload["latest_cache_status"] == "available"
+    assert payload["checks"][0]["name"] == "backend_online"
+    assert payload["read_only_research"] is True
+
+
+def test_monday_readiness_latest_bad_json_is_read_error(tmp_path: Path) -> None:
+    outputs = tmp_path / "outputs"
+    outputs.mkdir()
+    (outputs / "monday-pilot-readiness.json").write_text("{bad", encoding="utf-8")
+    payload = api_stock_monday_readiness_latest(outputs_dir=outputs)
+    assert payload["status"] == "read_error"
+    assert payload["available"] is False
+    assert payload["critical_failure_count"] == 1
 
 
 def test_latest_stock_signals_do_not_cross_mix_source(tmp_path: Path) -> None:

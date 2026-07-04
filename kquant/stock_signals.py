@@ -709,6 +709,91 @@ def api_stock_live_data_health_latest(outputs_dir: Path | None = None) -> dict[s
     }
 
 
+def api_stock_monday_readiness_latest(outputs_dir: Path | None = None) -> dict[str, Any]:
+    outputs = outputs_dir or Path("outputs")
+    report = outputs / "monday-pilot-readiness.json"
+    markdown = outputs / "monday-pilot-readiness.md"
+    base = {
+        "product": "KQUANT US Stock Signal Terminal",
+        "source": "local_readiness_audit",
+        "report_path": str(report),
+        "markdown_path": str(markdown),
+        "read_only_research": True,
+        "broker_order_wiring_enabled": False,
+        "account_access_enabled": False,
+        "order_submission_enabled": False,
+        "fixture_user_visible": False,
+        "latest_cache_status": "not_scanned",
+        "available": False,
+    }
+    if not report.exists():
+        return {
+            **base,
+            "run_id": "monday-readiness-not-scanned",
+            "status": "not_scanned",
+            "summary": "No Monday pilot readiness report is available. Run KQUANT_VERIFY.cmd before trusting real-money pilot status.",
+            "generated_at_utc": None,
+            "critical_failure_count": 0,
+            "warning_count": 1,
+            "critical_failures": [],
+            "warnings": ["Monday pilot readiness has not been verified in this workspace."],
+            "checks": [],
+            "pilot_rules": {
+                "stocks_only": True,
+                "max_account_risk_per_trade_pct": 0.25,
+                "first_day_max_trades": "1-2",
+                "total_first_day_risk_pct": 0.5,
+                "journal_before_entry": True,
+                "no_trade_during_data_caution": True,
+            },
+        }
+    try:
+        payload = json.loads(report.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {
+            **base,
+            "run_id": "monday-readiness-read-error",
+            "status": "read_error",
+            "summary": "Monday pilot readiness report exists but could not be read.",
+            "generated_at_utc": None,
+            "critical_failure_count": 1,
+            "warning_count": 0,
+            "critical_failures": [str(exc)],
+            "warnings": [],
+            "checks": [],
+            "pilot_rules": {},
+            "latest_cache_status": "read_error",
+        }
+    if not isinstance(payload, dict):
+        return {
+            **base,
+            "run_id": "monday-readiness-invalid",
+            "status": "read_error",
+            "summary": "Monday pilot readiness report has an invalid format.",
+            "generated_at_utc": None,
+            "critical_failure_count": 1,
+            "warning_count": 0,
+            "critical_failures": ["Readiness report JSON root is not an object."],
+            "warnings": [],
+            "checks": [],
+            "pilot_rules": {},
+            "latest_cache_status": "read_error",
+        }
+    return {
+        **base,
+        **payload,
+        "latest_cache_status": "available",
+        "available": True,
+        "report_path": str(report),
+        "markdown_path": str(markdown),
+        "read_only_research": True,
+        "broker_order_wiring_enabled": False,
+        "account_access_enabled": False,
+        "order_submission_enabled": False,
+        "fixture_user_visible": False,
+    }
+
+
 def api_stock_signals(
     source: str = "live",
     universe: str = "default",
