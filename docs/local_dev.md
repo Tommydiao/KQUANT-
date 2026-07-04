@@ -112,6 +112,17 @@ The script verifies live data, AI status, latest AI Daily report, representative
 NVDA/RKLB/MSTR K-lines, and that broker/account/order wiring is still disabled.
 Use `docs/monday_live_pilot_runbook.md` as the operating checklist.
 
+For a one-command local release check, run:
+
+```powershell
+.\verify_kquant_local.ps1
+```
+
+This wrapper runs `npm run build`, `check_kquant_monday_pilot.ps1`, and pytest
+when a usable Python runtime exists. On machines where `.venv-win` points to a
+removed Python install, it prints the venv repair commands and exits with
+caution. Add `-Strict` to make a missing Python test runtime fail the check.
+
 ## AI Review Assistant
 
 AI Review is a manual-trigger, read-only review layer. It can summarize risk,

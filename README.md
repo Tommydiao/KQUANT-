@@ -176,6 +176,18 @@ Pilot risk rules:
 
 Detailed runbook: `docs/monday_live_pilot_runbook.md`.
 
+Run the full local verification wrapper before freezing a trading-day build:
+
+```powershell
+.\verify_kquant_local.ps1
+```
+
+It runs the React production build, the Monday readiness check, and Python
+pytest when a usable Windows Python environment is available. If `.venv-win`
+is broken, it prints the repair commands and exits with caution rather than
+pretending the Python regression passed. Use `-Strict` when you want missing
+pytest coverage to fail the verification.
+
 ## Protected Vercel Frontend + Cloudflare Access Backend
 
 The Vercel deployment is a static React frontend. Real K-Lines require a
