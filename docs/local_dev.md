@@ -112,6 +112,16 @@ The script verifies live data, AI status, latest AI Daily report, representative
 NVDA/RKLB/MSTR K-lines, and that broker/account/order wiring is still disabled.
 Use `docs/monday_live_pilot_runbook.md` as the operating checklist.
 
+The readiness script also writes:
+
+- `outputs/monday-pilot-readiness.json`
+- `outputs/monday-pilot-readiness.md`
+
+These files are the pre-trade audit record for the day. If the status is
+`NO_TRADE`, do not place a real-money trade. If the status is `CAUTION`, treat
+the day as observation-only unless the warning is explicitly understood and
+documented in the journal.
+
 For a one-command local release check, run:
 
 ```powershell

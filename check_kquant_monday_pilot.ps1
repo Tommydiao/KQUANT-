@@ -1,12 +1,15 @@
 param(
   [int]$Port = 8001,
   [string[]]$Symbols = @("NVDA", "RKLB", "MSTR"),
-  [string]$Profile = "high_beta_growth_v1"
+  [string]$Profile = "high_beta_growth_v1",
+  [string]$OutputsDir = "outputs"
 )
 
 $ErrorActionPreference = "Continue"
 $DashboardUrl = "http://127.0.0.1:$Port"
 $Checks = New-Object System.Collections.Generic.List[object]
+$GeneratedAt = (Get-Date).ToUniversalTime().ToString("o")
+$RunId = "monday-readiness-" + (Get-Date -Format "yyyyMMdd-HHmmss")
 
 function Add-Check {
   param(
@@ -30,6 +33,121 @@ function Invoke-KquantJson {
     throw "HTTP $($response.StatusCode) for $Path"
   }
   return $response.Content | ConvertFrom-Json
+}
+
+function Convert-ReadinessMarkdown {
+  param(
+    [string]$Status,
+    [object[]]$CriticalFailed,
+    [object[]]$Warnings
+  )
+
+  $lines = New-Object System.Collections.Generic.List[string]
+  $lines.Add("# KQUANT Monday Pilot Readiness")
+  $lines.Add("")
+  $lines.Add("- Run ID: ``$RunId``")
+  $lines.Add("- Generated UTC: ``$GeneratedAt``")
+  $lines.Add("- Dashboard: ``$DashboardUrl``")
+  $lines.Add("- Profile: ``$Profile``")
+  $lines.Add("- Symbols: ``$($Symbols -join ', ')``")
+  $lines.Add("- Status: **$Status**")
+  $lines.Add("")
+  $lines.Add("## Summary")
+  $lines.Add("")
+  $lines.Add("- Critical failures: ``$($CriticalFailed.Count)``")
+  $lines.Add("- Warnings: ``$($Warnings.Count)``")
+  $lines.Add("- Safety mode: ``read-only research; no broker/order path``")
+  $lines.Add("")
+  $lines.Add("## Checks")
+  $lines.Add("")
+  $lines.Add("| Check | Critical | Passed | Detail |")
+  $lines.Add("| --- | --- | --- | --- |")
+  foreach ($check in $Checks) {
+    $detail = (($check.detail -replace "\|", "/") -replace "`r?`n", " ")
+    $lines.Add("| $($check.name) | $($check.critical) | $($check.passed) | $detail |")
+  }
+  $lines.Add("")
+  $lines.Add("## Pilot Rules")
+  $lines.Add("")
+  $lines.Add("- Stocks only; no options, no leveraged ETFs, no automatic execution.")
+  $lines.Add("- Max account risk per trade: ``0.25%``.")
+  $lines.Add("- First day max trades: ``1-2``.")
+  $lines.Add("- Total first-day risk: ``0.5%``.")
+  $lines.Add("- Journal before entry; no trade during provider/data caution.")
+  return ($lines -join [Environment]::NewLine)
+}
+
+function Write-ReadinessArtifacts {
+  param(
+    [string]$Status,
+    [object[]]$CriticalFailed,
+    [object[]]$Warnings
+  )
+
+  $outputPath = Join-Path (Get-Location) $OutputsDir
+  New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+
+  $jsonPath = Join-Path $outputPath "monday-pilot-readiness.json"
+  $mdPath = Join-Path $outputPath "monday-pilot-readiness.md"
+
+  $checkRows = @($Checks | ForEach-Object {
+    [ordered]@{
+      name = $_.name
+      passed = [bool]$_.passed
+      critical = [bool]$_.critical
+      detail = [string]$_.detail
+    }
+  })
+  $criticalRows = @($CriticalFailed | ForEach-Object {
+    [ordered]@{
+      name = $_.name
+      passed = [bool]$_.passed
+      critical = [bool]$_.critical
+      detail = [string]$_.detail
+    }
+  })
+  $warningRows = @($Warnings | ForEach-Object {
+    [ordered]@{
+      name = $_.name
+      passed = [bool]$_.passed
+      critical = [bool]$_.critical
+      detail = [string]$_.detail
+    }
+  })
+
+  $payload = [ordered]@{
+    run_id = $RunId
+    generated_at_utc = $GeneratedAt
+    dashboard_url = $DashboardUrl
+    profile = $Profile
+    symbols = @($Symbols)
+    status = $Status
+    critical_failure_count = $CriticalFailed.Count
+    warning_count = $Warnings.Count
+    critical_failures = $criticalRows
+    warnings = $warningRows
+    checks = $checkRows
+    safety = [ordered]@{
+      read_only_research = $true
+      broker_order_wiring_enabled = $false
+      account_access_enabled = $false
+      order_submission_enabled = $false
+    }
+    pilot_rules = [ordered]@{
+      stocks_only = $true
+      max_account_risk_per_trade_pct = 0.25
+      first_day_max_trades = "1-2"
+      total_first_day_risk_pct = 0.5
+      journal_before_entry = $true
+      no_trade_during_data_caution = $true
+    }
+  }
+
+  $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $jsonPath -Encoding UTF8
+  Convert-ReadinessMarkdown -Status $Status -CriticalFailed $CriticalFailed -Warnings $Warnings | Set-Content -Path $mdPath -Encoding UTF8
+  Write-Host "Readiness artifacts written:" -ForegroundColor DarkGray
+  Write-Host "  $jsonPath" -ForegroundColor DarkGray
+  Write-Host "  $mdPath" -ForegroundColor DarkGray
 }
 
 Write-Host "KQUANT Monday manual pilot preflight" -ForegroundColor Cyan
@@ -105,14 +223,17 @@ $warnings = @($Checks | Where-Object { -not $_.critical -and -not $_.passed })
 
 Write-Host ""
 if ($criticalFailed.Count -gt 0) {
+  Write-ReadinessArtifacts "NO_TRADE" $criticalFailed $warnings
   Write-Host "NO TRADE: $($criticalFailed.Count) critical check(s) failed." -ForegroundColor Red
   exit 1
 }
 
 if ($warnings.Count -gt 0) {
+  Write-ReadinessArtifacts "CAUTION" $criticalFailed $warnings
   Write-Host "CAUTION: critical checks passed, but $($warnings.Count) warning check(s) failed." -ForegroundColor Yellow
   exit 2
 }
 
+Write-ReadinessArtifacts "READY" $criticalFailed $warnings
 Write-Host "READY: critical checks passed. Manual pilot rules still apply: max 0.25% account risk per trade, max 1-2 trades, journal before entry." -ForegroundColor Green
 exit 0

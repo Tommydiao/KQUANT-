@@ -164,6 +164,15 @@ The check verifies:
 - live daily and confirmation candles for `NVDA`, `RKLB`, and `MSTR`;
 - no BUY bypass of the hard readiness gate.
 
+It also writes an audit trail for the session:
+
+- `outputs/monday-pilot-readiness.json`
+- `outputs/monday-pilot-readiness.md`
+
+Keep the latest readiness report with the day's journal so every manual-money
+decision can be traced back to the live data, AI, and safety state that was
+visible before trading.
+
 Pilot risk rules:
 
 - trade stocks only; no options, no leveraged ETFs, no automatic execution;
