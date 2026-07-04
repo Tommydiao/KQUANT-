@@ -142,6 +142,40 @@ Manual startup remains available:
 
 Open `http://127.0.0.1:8001/`.
 
+## Monday Manual Money Pilot
+
+The first real-money rollout is a small-size manual pilot. KQUANT can surface
+AI-led research signals, entry/stop/target plans, and hard veto reasons, but
+it still does not connect to a broker, read an account, or submit orders.
+
+Run the local readiness check before considering any real-money trade:
+
+```powershell
+.\check_kquant_monday_pilot.ps1
+```
+
+The check verifies:
+
+- backend online at `http://127.0.0.1:8001/`;
+- live data enabled and user-visible fixture data disabled;
+- AI key available on the local backend;
+- no broker, account, or order wiring;
+- latest AI Daily report freshness;
+- live daily and confirmation candles for `NVDA`, `RKLB`, and `MSTR`;
+- no BUY bypass of the hard readiness gate.
+
+Pilot risk rules:
+
+- trade stocks only; no options, no leveraged ETFs, no automatic execution;
+- max account risk per trade: `0.25%`;
+- first day max trades: `1-2`;
+- total first-day risk: `0.5%`;
+- no chasing, no averaging down, no trade during provider/data caution;
+- every real-money candidate needs a journal note before entry;
+- if readiness says `NO TRADE`, do not place a real-money trade.
+
+Detailed runbook: `docs/monday_live_pilot_runbook.md`.
+
 ## Protected Vercel Frontend + Cloudflare Access Backend
 
 The Vercel deployment is a static React frontend. Real K-Lines require a
@@ -240,7 +274,8 @@ The frontend supports:
 - Space / Robotics layer and command search for ticker, company, theme, or tag;
 - search-driven single-stock analysis and four-system comparison;
 - Live API status and AI Review status for protected deployment;
-- manual trading conclusion and manual-trigger AI Review panel;
+- AI-led daily research signals and per-stock AI Trading Command;
+- Monday readiness panel and manual trade ticket with hard veto checks;
 - selected stock review, signal reasons, risk warnings, and manual checklist;
 - MSTR Cycle Radar with MSTR, BTC, MSTR/BTC relative charts, Monte Carlo
   scenarios, Bayesian bottom probability, and StrategyTracker Metrics;
@@ -270,9 +305,11 @@ Short version:
 
 ## Safety Policy
 
-- Core signals are rule-based, not LLM-scored.
+- AI can lead opportunity ranking and research-plan generation, but hard
+  guardrails can veto any high-confidence buy candidate.
 - First version is long-only.
 - Default timeframes are daily trend and 1h confirmation.
 - Options are not the first entry point.
 - No automated execution path is allowed.
-- Any future AI assistant can only explain, summarize, and organize review notes.
+- AI outputs are research signals and manual trade plans, not broker orders.
+- Human review, journal entry, and manual execution remain required.

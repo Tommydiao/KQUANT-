@@ -1147,6 +1147,186 @@ p {
   text-align: center;
 }
 
+.live-readiness-panel {
+  display: grid;
+  gap: 12px;
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+}
+
+.live-readiness-panel.ready {
+  border-color: color-mix(in srgb, var(--good) 42%, var(--border));
+  background: color-mix(in srgb, var(--good) 5%, var(--surface));
+}
+
+.live-readiness-panel.caution {
+  border-color: color-mix(in srgb, var(--watch) 45%, var(--border));
+  background: color-mix(in srgb, var(--watch) 6%, var(--surface));
+}
+
+.live-readiness-panel.no-trade {
+  border-color: color-mix(in srgb, var(--danger) 46%, var(--border));
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+}
+
+.readiness-head,
+.manual-ticket-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.readiness-head h2,
+.manual-ticket-head strong {
+  margin-top: 3px;
+  color: var(--strong);
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.readiness-head p,
+.manual-ticket-head span,
+.ticket-actions p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.readiness-head > strong,
+.manual-ticket-head > b {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--strong);
+  background: var(--surface-soft);
+  font-size: 13px;
+}
+
+.readiness-check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.readiness-check-grid.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.readiness-check {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.readiness-check > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.readiness-check.ok > span {
+  color: var(--good);
+}
+
+.readiness-check.critical > span {
+  color: var(--danger);
+}
+
+.readiness-check.warn > span {
+  color: var(--watch);
+}
+
+.readiness-check strong,
+.ticket-risk-rules strong,
+.pilot-runbook strong {
+  color: var(--strong);
+  font-size: 12px;
+}
+
+.readiness-check p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.readiness-reasons,
+.pilot-runbook,
+.ticket-risk-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.readiness-reasons span,
+.pilot-runbook span,
+.ticket-risk-rules span {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.manual-ticket {
+  display: grid;
+  gap: 12px;
+  margin: 0 16px 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.manual-ticket.cleared-for-review {
+  border-color: color-mix(in srgb, var(--good) 44%, var(--border));
+  background: color-mix(in srgb, var(--good) 6%, var(--surface-soft));
+}
+
+.manual-ticket.journal-required {
+  border-color: color-mix(in srgb, var(--watch) 44%, var(--border));
+  background: color-mix(in srgb, var(--watch) 6%, var(--surface-soft));
+}
+
+.manual-ticket.blocked {
+  border-color: color-mix(in srgb, var(--danger) 38%, var(--border));
+}
+
+.manual-ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ticket-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ticket-actions button {
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--strong);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
 .manual-conclusion {
   display: grid;
   gap: 12px;
@@ -2760,6 +2940,9 @@ p {
 
   .fact-grid,
   .score-breakdown-row,
+  .readiness-check-grid,
+  .readiness-check-grid.compact,
+  .manual-ticket-grid,
   .manual-conclusion-detail,
   .ai-plan-grid,
   .profile-compare-grid {
@@ -2905,6 +3088,9 @@ p {
   .settings-grid,
   .signal-list,
   .fact-grid,
+  .readiness-check-grid,
+  .readiness-check-grid.compact,
+  .manual-ticket-grid,
   .score-breakdown-row,
   .manual-conclusion-facts,
     .manual-conclusion-detail,

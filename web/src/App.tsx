@@ -93,6 +93,10 @@ type ApiHealthPayload = {
   live_data_enabled?: boolean;
   ai_review_status?: string;
   read_only_research?: boolean;
+  fixture_user_visible?: boolean;
+  broker_order_wiring_enabled?: boolean;
+  account_access_enabled?: boolean;
+  order_submission_enabled?: boolean;
 };
 
 type AiReviewStatusPayload = {
@@ -408,6 +412,39 @@ type MarketRegimePayload = {
   provider_status: string;
   provider_error_count: number;
   provider_errors: string[];
+  reasons: string[];
+};
+
+type MondayReadiness = {
+  status: "READY" | "CAUTION" | "NO_TRADE";
+  title: string;
+  summary: string;
+  checks: {
+    label: string;
+    value: string;
+    ok: boolean;
+    critical?: boolean;
+  }[];
+  reasons: string[];
+  riskRules: string[];
+};
+
+type ManualTradeTicket = {
+  status: "cleared_for_review" | "journal_required" | "blocked";
+  title: string;
+  summary: string;
+  checks: {
+    label: string;
+    value: string;
+    ok: boolean;
+  }[];
+  action: string;
+  entryZone: string;
+  stopZone: string;
+  targetZone: string;
+  riskReward: string;
+  positionSizeHint: string;
+  invalidatedIf: string[];
   reasons: string[];
 };
 
@@ -991,6 +1028,27 @@ const copy = {
     consumerSafetyText: "KQUANT provides AI research signals for manual review. It does not read brokerage accounts, submit orders, manage portfolios, or promise returns.",
     journalDesign: "Journal Design",
     journalDesignText: "Planned user journal states: watched, skipped, entered manually, exited manually. These are review records, not execution events.",
+    mondayReadiness: "Monday Live Readiness",
+    realMoneyPilot: "Small-size manual pilot only",
+    readinessReady: "READY",
+    readinessCaution: "CAUTION",
+    readinessNoTrade: "NO TRADE",
+    noRealMoneyTrade: "NO REAL-MONEY TRADE",
+    manualTradeTicket: "Manual Trade Ticket",
+    clearedForReview: "Cleared for manual review",
+    journalRequired: "Journal required before any manual entry",
+    ticketBlocked: "Blocked for real-money pilot",
+    firstDayRiskRules: "First-day risk rules",
+    maxRiskPerTrade: "Max risk per trade: 0.25% of account equity",
+    maxTradesDay: "Day 1 maximum: 1-2 trades, total daily risk <= 0.5%",
+    noOptionsNoLeverage: "Stocks only: no options, no leveraged ETFs, no automatic orders",
+    noChasingNoAveraging: "No chasing, no averaging down, no trade during data caution",
+    journalBeforeTrade: "Journal must be saved before any manual trade",
+    mondayRunbook: "Monday runbook",
+    runbookPremarket: "Premarket: start KQUANT, confirm READY, regenerate AI Daily report",
+    runbookOpen: "Open: wait 15-30 minutes, inspect top AI candidates and pullback list",
+    runbookEntry: "Before entry: confirm daily/1H K-lines, entry, stop, target, R:R, invalidation, journal",
+    runbookClose: "After close: update journal and review whether AI/K-line evidence helped",
   },
   zh: {
     title: "KQUANT 美股 AI 交易研究台",
@@ -1182,6 +1240,27 @@ const copy = {
     consumerSafetyText: "KQUANT 提供用于人工复核的 AI 研究信号；不读取券商账户，不提交订单，不管理组合，也不承诺收益。",
     journalDesign: "复盘设计",
     journalDesignText: "计划中的用户复盘状态：已观察、跳过、手动进入、手动退出。这些是复盘记录，不是执行事件。",
+    mondayReadiness: "周一实盘准备度",
+    realMoneyPilot: "仅限小仓手工试运行",
+    readinessReady: "READY",
+    readinessCaution: "CAUTION",
+    readinessNoTrade: "NO TRADE",
+    noRealMoneyTrade: "禁止真钱交易",
+    manualTradeTicket: "手工交易票据",
+    clearedForReview: "可进入人工复核",
+    journalRequired: "交易前必须写复盘",
+    ticketBlocked: "实盘 Pilot 已阻断",
+    firstDayRiskRules: "第一天风控规则",
+    maxRiskPerTrade: "单笔最大风险：账户净值 0.25%",
+    maxTradesDay: "第一天最多 1-2 笔，总日风险不超过 0.5%",
+    noOptionsNoLeverage: "只做正股：不做期权、不做杠杆 ETF、不自动下单",
+    noChasingNoAveraging: "不追高、不摊平，数据异常时不交易",
+    journalBeforeTrade: "任何手工交易前必须保存 Journal",
+    mondayRunbook: "周一执行流程",
+    runbookPremarket: "开盘前：启动 KQUANT，确认 READY，重新生成 AI Daily 报告",
+    runbookOpen: "开盘后：等待 15-30 分钟，只看 Top AI 和回踩观察名单",
+    runbookEntry: "入场前：确认日线/1H、入场、止损、目标、盈亏比、失效条件和 Journal",
+    runbookClose: "盘后：更新 Journal，复盘 AI 和 K 线证据是否有效",
   },
 } as const;
 const CHART_PRESETS: ChartPreset[] = [
@@ -1780,6 +1859,26 @@ function App() {
   const showDeepResearch = activeWorkspace === "stock" || activeWorkspace === "chat";
   const showCharts = activeWorkspace === "stock" || activeWorkspace === "charts";
   const showRuleDetails = activeWorkspace === "aiPlan" || activeWorkspace === "journal";
+  const mondayReadiness = deriveMondayReadiness({
+    apiConnection,
+    apiHealth,
+    aiStatus,
+    aiDailyReport,
+    marketRegime: activeMarketRegime,
+    run,
+    dailyMeta,
+    hourlyMeta,
+    text,
+  });
+  const manualTradeTicket = deriveManualTradeTicket({
+    selected,
+    selectedSymbol: selected.symbol,
+    aiDecision,
+    dailyMeta,
+    hourlyMeta,
+    stockJournal,
+    text,
+  });
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -2657,6 +2756,7 @@ function App() {
       ) : (
         <>
       <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
+      <MondayReadinessPanel readiness={mondayReadiness} text={text} />
       <AiTradeDesk
         report={aiDailyReport}
         state={aiDailyState}
@@ -2755,6 +2855,12 @@ function App() {
               aiStatus={aiStatus}
               text={text}
               onReview={() => void requestAiDecision({ trigger: "manual", force: true })}
+            />
+            <ManualTradeTicketPanel
+              ticket={manualTradeTicket}
+              aiDecision={aiDecision}
+              text={text}
+              onOpenJournal={() => openWorkspace("journal")}
             />
             <div className="fact-grid">
               <Fact label="Close" value={formatNumber(selected.features.close)} />
@@ -3641,6 +3747,8 @@ function StockJournalPanel({
           <option value="skipped">skipped</option>
           <option value="paper-observed">paper-observed</option>
           <option value="manual-traded">manual-traded note</option>
+          <option value="entered-manually">entered manually</option>
+          <option value="exited-manually">exited manually</option>
           <option value="invalidated">invalidated</option>
         </select>
         <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Manual review note: daily, 1H, regime, entry plan..." />
@@ -3920,6 +4028,117 @@ function AiOpportunityColumn({
         <p className="probability-note">{empty}</p>
       )}
     </div>
+  );
+}
+
+function MondayReadinessPanel({
+  readiness,
+  text,
+}: {
+  readiness: MondayReadiness;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+}) {
+  const statusLabel =
+    readiness.status === "READY"
+      ? text.readinessReady
+      : readiness.status === "CAUTION"
+        ? text.readinessCaution
+        : text.readinessNoTrade;
+  return (
+    <section className={`panel live-readiness-panel ${readiness.status.toLowerCase().replace(/_/g, "-")}`}>
+      <div className="readiness-head">
+        <div>
+          <span className="eyebrow">{text.realMoneyPilot}</span>
+          <h2>{text.mondayReadiness}</h2>
+          <p>{readiness.summary}</p>
+        </div>
+        <b>{statusLabel}</b>
+      </div>
+      {readiness.status === "NO_TRADE" ? <p className="compare-error">{text.noRealMoneyTrade}</p> : null}
+      <div className="readiness-check-grid">
+        {readiness.checks.map((check) => (
+          <div className={`readiness-check ${check.ok ? "ok" : check.critical ? "critical" : "warn"}`} key={check.label}>
+            <span>{check.label}</span>
+            <strong>{check.value}</strong>
+          </div>
+        ))}
+      </div>
+      {readiness.reasons.length ? (
+        <div className="readiness-reasons">
+          {readiness.reasons.map((reason) => (
+            <span key={reason}>{reason}</span>
+          ))}
+        </div>
+      ) : null}
+      <div className="pilot-runbook">
+        <strong>{text.firstDayRiskRules}</strong>
+        {readiness.riskRules.map((rule) => (
+          <span key={rule}>{rule}</span>
+        ))}
+      </div>
+      <div className="pilot-runbook compact">
+        <strong>{text.mondayRunbook}</strong>
+        {[text.runbookPremarket, text.runbookOpen, text.runbookEntry, text.runbookClose].map((step) => (
+          <span key={step}>{step}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ManualTradeTicketPanel({
+  ticket,
+  aiDecision,
+  text,
+  onOpenJournal,
+}: {
+  ticket: ManualTradeTicket;
+  aiDecision: AiDecisionPayload | null;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+  onOpenJournal: () => void;
+}) {
+  const title =
+    ticket.status === "cleared_for_review"
+      ? text.clearedForReview
+      : ticket.status === "journal_required"
+        ? text.journalRequired
+        : text.ticketBlocked;
+  return (
+    <section className={`manual-ticket ${ticket.status.replace(/_/g, "-")}`}>
+      <div className="manual-ticket-head">
+        <div>
+          <span>{text.manualTradeTicket}</span>
+          <strong>{title}</strong>
+          <p>{ticket.summary}</p>
+        </div>
+        <b>{ticket.action}</b>
+      </div>
+      <div className="manual-ticket-grid">
+        <Fact label={text.entryZone} value={ticket.entryZone} />
+        <Fact label={text.stopZone} value={ticket.stopZone} />
+        <Fact label={text.targetZone} value={ticket.targetZone} />
+        <Fact label={text.riskReward} value={ticket.riskReward} />
+        <Fact label={text.sizeHint} value={ticket.positionSizeHint} />
+        <Fact label={text.hardVeto} value={aiDecision?.hard_veto?.active ? "active" : "clear"} />
+      </div>
+      <div className="readiness-check-grid compact">
+        {ticket.checks.map((check) => (
+          <div className={`readiness-check ${check.ok ? "ok" : "critical"}`} key={check.label}>
+            <span>{check.label}</span>
+            <strong>{check.value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="manual-conclusion-detail">
+        <Narrative title={text.invalidation} items={ticket.invalidatedIf.length ? ticket.invalidatedIf : ["No invalidation loaded."]} />
+        <Narrative title={text.blockers} items={ticket.reasons.length ? ticket.reasons : ["All ticket checks are clear."]} />
+      </div>
+      <div className="ticket-actions">
+        <button type="button" className="primary-action" onClick={onOpenJournal}>
+          {text.journalBeforeTrade}
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -5277,6 +5496,170 @@ function levelClass(level: Level) {
   if (level === "BUY SETUP") return "buy";
   if (level === "WATCH") return "watch";
   return "pass";
+}
+
+function isLiveCandleMeta(meta: CandleMeta) {
+  return meta.count > 0 && meta.providerStatus === "available" && meta.sourceType.includes("live") && !meta.sourceType.includes("fixture");
+}
+
+function parseRiskReward(value: string | undefined) {
+  if (!value) return 0;
+  const match = value.match(/(\d+(?:\.\d+)?)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function explicitPlanText(value: string | undefined) {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return Boolean(normalized) && !["-", "n/a", "na", "unavailable", "r:r unavailable"].includes(normalized);
+}
+
+function isLeveragedOrOptionsProxy(symbol: string) {
+  return new Set(["MSTU", "MSTX", "TQQQ", "SQQQ", "UPRO", "SPXL", "SPXS", "SOXL", "SOXS", "TNA", "TZA", "LABU", "LABD"]).has(symbol.toUpperCase());
+}
+
+function deriveMondayReadiness({
+  apiConnection,
+  apiHealth,
+  aiStatus,
+  aiDailyReport,
+  marketRegime,
+  run,
+  dailyMeta,
+  hourlyMeta,
+  text,
+}: {
+  apiConnection: ApiConnectionState;
+  apiHealth: ApiHealthPayload | null;
+  aiStatus: AiReviewStatusPayload | null;
+  aiDailyReport: AiDailyAgentPayload | null;
+  marketRegime: MarketRegimePayload | null;
+  run: SignalRun;
+  dailyMeta: CandleMeta;
+  hourlyMeta: CandleMeta;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+}): MondayReadiness {
+  const checks = [
+    {
+      label: "Live API",
+      value: apiConnection === "connected" && apiHealth?.live_data_enabled !== false ? "online" : "offline",
+      ok: apiConnection === "connected" && apiHealth?.live_data_enabled !== false,
+      critical: true,
+    },
+    {
+      label: "AI Agent",
+      value: aiStatus?.status === "available" ? aiStatus.models.batch ?? aiStatus.models.review ?? "available" : "unavailable",
+      ok: aiStatus?.status === "available",
+      critical: true,
+    },
+    {
+      label: "AI Daily",
+      value: aiDailyReport?.status === "available" && !aiDailyReport.is_stale ? "fresh" : aiDailyReport?.status ?? "missing",
+      ok: aiDailyReport?.status === "available" && !aiDailyReport.is_stale,
+      critical: true,
+    },
+    {
+      label: "Market",
+      value: marketRegime ? `${marketRegime.label} / ${marketRegime.score}` : "loading",
+      ok: Boolean(marketRegime) && !["RISK_OFF", "DATA_CAUTION"].includes(marketRegime?.regime ?? ""),
+      critical: true,
+    },
+    {
+      label: "Provider",
+      value: `${run.provider_status} / ${run.provider_error_count}`,
+      ok: run.provider_status === "available" && run.provider_error_count === 0,
+      critical: false,
+    },
+    {
+      label: "Selected K-Line",
+      value: `${dailyMeta.providerStatus}/${hourlyMeta.providerStatus}`,
+      ok: isLiveCandleMeta(dailyMeta) && isLiveCandleMeta(hourlyMeta),
+      critical: false,
+    },
+    {
+      label: "Order Path",
+      value: apiHealth?.broker_order_wiring_enabled || apiHealth?.order_submission_enabled ? "enabled" : "disabled",
+      ok: !apiHealth?.broker_order_wiring_enabled && !apiHealth?.order_submission_enabled && !apiHealth?.account_access_enabled,
+      critical: true,
+    },
+  ];
+  const reasons = checks.filter((check) => !check.ok).map((check) => `${check.label}: ${check.value}`);
+  const criticalFailed = checks.some((check) => check.critical && !check.ok);
+  const status: MondayReadiness["status"] = criticalFailed ? "NO_TRADE" : reasons.length ? "CAUTION" : "READY";
+  return {
+    status,
+    title: text.mondayReadiness,
+    summary:
+      status === "READY"
+        ? "Ready for small-size manual pilot review. The system is still read-only and cannot place orders."
+        : status === "CAUTION"
+          ? "Use observation mode unless the listed caution items are cleared before entry."
+          : "No real-money pilot until critical data, AI, market, or safety checks are clear.",
+    checks,
+    reasons,
+    riskRules: [
+      text.maxRiskPerTrade,
+      text.maxTradesDay,
+      text.noOptionsNoLeverage,
+      text.noChasingNoAveraging,
+      text.journalBeforeTrade,
+    ],
+  };
+}
+
+function deriveManualTradeTicket({
+  selected,
+  selectedSymbol,
+  aiDecision,
+  dailyMeta,
+  hourlyMeta,
+  stockJournal,
+  text,
+}: {
+  selected: StockSignal;
+  selectedSymbol: string;
+  aiDecision: AiDecisionPayload | null;
+  dailyMeta: CandleMeta;
+  hourlyMeta: CandleMeta;
+  stockJournal: StockJournalPayload | null;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+}): ManualTradeTicket {
+  const decision = aiDecision?.ai_decision;
+  const riskRewardValue = parseRiskReward(decision?.risk_reward);
+  const hasJournalToday = Boolean(
+    stockJournal?.entries.some((entry) => entry.symbol === selectedSymbol && entry.reviewed_at.slice(0, 10) === new Date().toISOString().slice(0, 10)),
+  );
+  const checks = [
+    { label: "AI action", value: decision?.action ?? "missing", ok: decision?.action === "AI_BUY_CANDIDATE" },
+    { label: "Daily K-line", value: `${dailyMeta.providerStatus} / ${dailyMeta.count}`, ok: isLiveCandleMeta(dailyMeta) },
+    { label: "Confirm K-line", value: `${hourlyMeta.providerStatus} / ${hourlyMeta.count}`, ok: isLiveCandleMeta(hourlyMeta) },
+    { label: "Hard veto", value: aiDecision?.hard_veto?.active ? "active" : "clear", ok: !aiDecision?.hard_veto?.active },
+    { label: "R:R", value: decision?.risk_reward ?? "-", ok: riskRewardValue >= 2 },
+    { label: "Stop", value: decision?.stop_zone ?? "-", ok: explicitPlanText(decision?.stop_zone) },
+    { label: "Position", value: decision?.position_size_hint ?? "-", ok: explicitPlanText(decision?.position_size_hint) },
+    { label: "No leverage", value: isLeveragedOrOptionsProxy(selectedSymbol) ? "blocked" : "stock", ok: !isLeveragedOrOptionsProxy(selectedSymbol) },
+  ];
+  const reasons = checks.filter((check) => !check.ok).map((check) => `${check.label}: ${check.value}`);
+  const status: ManualTradeTicket["status"] = reasons.length ? "blocked" : hasJournalToday ? "cleared_for_review" : "journal_required";
+  return {
+    status,
+    title: text.manualTradeTicket,
+    summary:
+      status === "blocked"
+        ? "This symbol is not a real-money buy candidate under the Monday pilot rules."
+        : status === "journal_required"
+          ? "All ticket checks are clear, but a journal record is required before any manual entry."
+          : "Ticket checks are clear for manual review. This still does not place or recommend an automatic order.",
+    checks,
+    action: decision?.action ?? selected.trade_conclusion?.action ?? "DO_NOT_BUY",
+    entryZone: decision?.entry_zone ?? "-",
+    stopZone: decision?.stop_zone ?? "-",
+    targetZone: decision?.target_zone ?? "-",
+    riskReward: decision?.risk_reward ?? "-",
+    positionSizeHint: decision?.position_size_hint ?? "-",
+    invalidatedIf: decision?.what_invalidates_this_setup ?? selected.trade_conclusion?.invalidation ?? [],
+    reasons,
+  };
 }
 
 function actionClass(action: TradeAction | string | undefined) {

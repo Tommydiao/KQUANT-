@@ -17,6 +17,17 @@ python -m venv .venv-win
 .\.venv-win\Scripts\python -m pip install -e ".[dev]"
 ```
 
+If `.venv-win\Scripts\python.exe` prints `No Python at ...`, the virtual
+environment points to a removed Python installation. Recreate it after
+installing Python 3.12:
+
+```powershell
+Remove-Item -Recurse -Force .\.venv-win
+python -m venv .venv-win
+.\.venv-win\Scripts\python -m pip install --upgrade pip
+.\.venv-win\Scripts\python -m pip install -e ".[dev]"
+```
+
 The copied `.venv` and `.venv-kquant` directories are legacy macOS virtual
 environments and should not be used for Windows verification.
 
@@ -90,6 +101,16 @@ window open. For manual startup without killing an existing backend:
 ```powershell
 .\start_kquant_stock_terminal.ps1
 ```
+
+Before any small-size manual real-money pilot, run the readiness check:
+
+```powershell
+.\check_kquant_monday_pilot.ps1
+```
+
+The script verifies live data, AI status, latest AI Daily report, representative
+NVDA/RKLB/MSTR K-lines, and that broker/account/order wiring is still disabled.
+Use `docs/monday_live_pilot_runbook.md` as the operating checklist.
 
 ## AI Review Assistant
 
