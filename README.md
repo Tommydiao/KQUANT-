@@ -142,6 +142,16 @@ Manual startup remains available:
 
 Open `http://127.0.0.1:8001/`.
 
+Daily pre-trade verification:
+
+```powershell
+.\KQUANT_VERIFY.cmd
+```
+
+Use this before any Monday manual-money pilot. It keeps the terminal open,
+runs the full local verification wrapper, and writes the readiness audit files
+under `outputs/`.
+
 ## Monday Manual Money Pilot
 
 The first real-money rollout is a small-size manual pilot. KQUANT can surface

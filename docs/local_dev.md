@@ -102,6 +102,17 @@ window open. For manual startup without killing an existing backend:
 .\start_kquant_stock_terminal.ps1
 ```
 
+Daily pre-trade verification:
+
+```powershell
+.\KQUANT_VERIFY.cmd
+```
+
+This keeps the terminal open while running the local verification wrapper. Use
+it before any manual-money pilot so the READY / CAUTION / NO TRADE result and
+the readiness audit files are visible without remembering the PowerShell
+command.
+
 Before any small-size manual real-money pilot, run the readiness check:
 
 ```powershell
