@@ -1044,6 +1044,14 @@ const copy = {
     noOptionsNoLeverage: "Stocks only: no options, no leveraged ETFs, no automatic orders",
     noChasingNoAveraging: "No chasing, no averaging down, no trade during data caution",
     journalBeforeTrade: "Journal must be saved before any manual trade",
+    afterCloseReview: "After-close review",
+    journalCoverage: "Journal coverage",
+    reviewedNotes: "Reviewed",
+    skippedNotes: "Skipped",
+    enteredManually: "Entered manually",
+    exitedManually: "Exited manually",
+    invalidatedNotes: "Invalidated",
+    journalPilotHint: "For the live pilot, every manual entry needs planned entry, stop, target, and an after-close outcome.",
     mondayRunbook: "Monday runbook",
     runbookPremarket: "Premarket: start KQUANT, confirm READY, regenerate AI Daily report",
     runbookOpen: "Open: wait 15-30 minutes, inspect top AI candidates and pullback list",
@@ -1256,6 +1264,14 @@ const copy = {
     noOptionsNoLeverage: "只做正股：不做期权、不做杠杆 ETF、不自动下单",
     noChasingNoAveraging: "不追高、不摊平，数据异常时不交易",
     journalBeforeTrade: "任何手工交易前必须保存 Journal",
+    afterCloseReview: "盘后复盘",
+    journalCoverage: "复盘覆盖",
+    reviewedNotes: "已复核",
+    skippedNotes: "已跳过",
+    enteredManually: "手动进入",
+    exitedManually: "手动退出",
+    invalidatedNotes: "失效记录",
+    journalPilotHint: "真钱 Pilot 中，每笔手工进入都必须记录计划入场、止损、目标和盘后结果。",
     mondayRunbook: "周一执行流程",
     runbookPremarket: "开盘前：启动 KQUANT，确认 READY，重新生成 AI Daily 报告",
     runbookOpen: "开盘后：等待 15-30 分钟，只看 Top AI 和回踩观察名单",
@@ -3014,6 +3030,7 @@ function App() {
               runId={run.run_id}
               symbol={selected.symbol}
               journal={stockJournal}
+              text={text}
               onSave={saveStockJournal}
             />
             </div>
@@ -3699,11 +3716,13 @@ function StockJournalPanel({
   runId,
   symbol,
   journal,
+  text,
   onSave,
 }: {
   runId: string;
   symbol: string;
   journal: StockJournalPayload | null;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
   onSave: (entry: { status: string; notes: string; planned_entry?: string; planned_stop?: string; planned_target?: string; outcome: string }) => Promise<void>;
 }) {
   const [status, setStatus] = useState("reviewed");
@@ -3740,6 +3759,15 @@ function StockJournalPanel({
   return (
     <section className="journal-panel">
       <PanelTitle title="Manual Journal" detail={`${symbol} / ${journal?.entries.length ?? 0} entries`} />
+      <div className="journal-summary-strip">
+        <Fact label={text.journalCoverage} value={`${journal?.summary?.total_entries ?? 0}`} />
+        <Fact label={text.reviewedNotes} value={`${journal?.summary?.reviewed_count ?? 0}`} />
+        <Fact label={text.enteredManually} value={`${journal?.summary?.entered_manually_count ?? 0}`} />
+        <Fact label={text.exitedManually} value={`${journal?.summary?.exited_manually_count ?? 0}`} />
+        <Fact label={text.skippedNotes} value={`${journal?.summary?.skipped_count ?? 0}`} />
+        <Fact label={text.invalidatedNotes} value={`${journal?.summary?.invalidated_count ?? 0}`} />
+      </div>
+      <p className="journal-pilot-hint">{text.journalPilotHint}</p>
       <form className="journal-form stock-journal-form" onSubmit={handleSubmit}>
         <select value={status} onChange={(event) => setStatus(event.target.value)}>
           <option value="reviewed">reviewed</option>
@@ -3764,6 +3792,18 @@ function StockJournalPanel({
         {saveState === "saved" ? <small>Saved locally. Read-only note only.</small> : null}
         {saveState === "error" ? <small>Save failed. Check local API and try again.</small> : null}
       </form>
+      <section className="after-close-review">
+        <div>
+          <span className="eyebrow">{text.afterCloseReview}</span>
+          <strong>{symbol}</strong>
+          <p>{text.runbookClose}</p>
+        </div>
+        <div className="after-close-checks">
+          <span>{text.enteredManually}: {journal?.summary?.entered_manually_count ?? 0}</span>
+          <span>{text.exitedManually}: {journal?.summary?.exited_manually_count ?? 0}</span>
+          <span>{text.invalidatedNotes}: {journal?.summary?.invalidated_count ?? 0}</span>
+        </div>
+      </section>
       <div className="journal-list">
         {(journal?.entries ?? []).slice(0, 4).map((entry) => (
           <div className="journal-entry" key={entry.id}>

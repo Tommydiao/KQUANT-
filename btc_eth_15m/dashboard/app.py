@@ -139,7 +139,7 @@ class StockSignalJournalEntryRequest(BaseModel):
     run_id: str = ""
     symbol: str
     strategy_profile: str = ""
-    status: str = Field(default="reviewed", pattern="^(reviewed|watch|skipped|paper-observed|manual-traded|invalidated)$")
+    status: str = Field(default="reviewed", pattern="^(reviewed|watch|skipped|paper-observed|manual-traded|entered-manually|exited-manually|invalidated)$")
     notes: str = ""
     planned_entry: float | None = None
     planned_stop: float | None = None

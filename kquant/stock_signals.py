@@ -194,7 +194,16 @@ MARKET_REGIME_SYMBOLS = {
     "IWM": "Russell 2000",
     "^VIX": "VIX",
 }
-STOCK_JOURNAL_STATUSES = {"reviewed", "watch", "skipped", "paper-observed", "manual-traded", "invalidated"}
+STOCK_JOURNAL_STATUSES = {
+    "reviewed",
+    "watch",
+    "skipped",
+    "paper-observed",
+    "manual-traded",
+    "entered-manually",
+    "exited-manually",
+    "invalidated",
+}
 
 
 def profile_config(profile: str | None = None) -> dict[str, Any]:
@@ -1471,6 +1480,8 @@ def api_stock_signal_journal(
             "skipped_count": counts.get("skipped", 0),
             "paper_observed_count": counts.get("paper-observed", 0),
             "manual_traded_note_count": counts.get("manual-traded", 0),
+            "entered_manually_count": counts.get("entered-manually", 0),
+            "exited_manually_count": counts.get("exited-manually", 0),
             "invalidated_count": counts.get("invalidated", 0),
         },
         "safety": {

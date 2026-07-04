@@ -2479,6 +2479,20 @@ p {
   padding: 12px;
 }
 
+.journal-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 12px 0;
+}
+
+.journal-pilot-hint {
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .journal-form select,
 .journal-form input,
 .journal-form textarea {
@@ -2533,6 +2547,46 @@ p {
   color: var(--text);
   font-size: 12px;
   line-height: 1.4;
+}
+
+.after-close-review {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 12px 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface-soft));
+}
+
+.after-close-review strong {
+  display: block;
+  color: var(--strong);
+  font-size: 16px;
+}
+
+.after-close-review p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.after-close-checks {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.after-close-checks span {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .probability-panel {
@@ -2939,6 +2993,7 @@ p {
   }
 
   .fact-grid,
+  .journal-summary-strip,
   .score-breakdown-row,
   .readiness-check-grid,
   .readiness-check-grid.compact,
@@ -3088,6 +3143,7 @@ p {
   .settings-grid,
   .signal-list,
   .fact-grid,
+  .journal-summary-strip,
   .readiness-check-grid,
   .readiness-check-grid.compact,
   .manual-ticket-grid,
@@ -3149,9 +3205,14 @@ p {
   }
 
   .selected-row,
-  .chart-header {
+  .chart-header,
+  .after-close-review {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .after-close-checks {
+    justify-content: flex-start;
   }
 
   .selected-score {
