@@ -195,6 +195,8 @@ Pilot risk rules:
 
 Detailed runbook: `docs/monday_live_pilot_runbook.md`.
 
+Printable checklist: `docs/monday_live_pilot_checklist.md`.
+
 Run the full local verification wrapper before freezing a trading-day build:
 
 ```powershell

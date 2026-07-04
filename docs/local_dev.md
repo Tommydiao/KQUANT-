@@ -122,6 +122,8 @@ Before any small-size manual real-money pilot, run the readiness check:
 The script verifies live data, AI status, latest AI Daily report, representative
 NVDA/RKLB/MSTR K-lines, and that broker/account/order wiring is still disabled.
 Use `docs/monday_live_pilot_runbook.md` as the operating checklist.
+Use `docs/monday_live_pilot_checklist.md` as the short printable checklist
+before and during the first manual-money session.
 
 The readiness script also writes:
 
