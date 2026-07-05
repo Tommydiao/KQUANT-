@@ -142,15 +142,25 @@ Manual startup remains available:
 
 Open `http://127.0.0.1:8001/`.
 
-Daily pre-trade verification:
+Monday pre-trade preflight:
+
+```powershell
+.\KQUANT_MONDAY_PREFLIGHT.cmd
+```
+
+Use this before any small-size manual-money pilot. It starts or reuses the
+local backend, refreshes the AI Daily report, runs the readiness audit, opens
+the dashboard, and writes the readiness files under `outputs/`.
+
+Development verification:
 
 ```powershell
 .\KQUANT_VERIFY.cmd
 ```
 
-Use this before any Monday manual-money pilot. It keeps the terminal open,
-runs the full local verification wrapper, and writes the readiness audit files
-under `outputs/`.
+Use this before freezing code. It keeps the terminal open, runs the React
+production build, the local readiness wrapper, and Python pytest when a usable
+Windows Python environment is available.
 
 ## Monday Manual Money Pilot
 
@@ -158,13 +168,15 @@ The first real-money rollout is a small-size manual pilot. KQUANT can surface
 AI-led research signals, entry/stop/target plans, and hard veto reasons, but
 it still does not connect to a broker, read an account, or submit orders.
 
-Run the local readiness check before considering any real-money trade:
+Run the one-click preflight before considering any real-money trade:
 
 ```powershell
-.\check_kquant_monday_pilot.ps1
+.\KQUANT_MONDAY_PREFLIGHT.cmd
 ```
 
-The check verifies:
+The preflight starts/reuses the local backend, refreshes the AI Daily report
+when the backend key is available, then runs the readiness check. The readiness
+check verifies:
 
 - backend online at `http://127.0.0.1:8001/`;
 - live data enabled and user-visible fixture data disabled;
@@ -182,6 +194,13 @@ It also writes an audit trail for the session:
 Keep the latest readiness report with the day's journal so every manual-money
 decision can be traced back to the live data, AI, and safety state that was
 visible before trading.
+
+If you only need to rerun the audit without refreshing AI Daily, the lower-level
+PowerShell command remains available:
+
+```powershell
+.\check_kquant_monday_pilot.ps1
+```
 
 Pilot risk rules:
 

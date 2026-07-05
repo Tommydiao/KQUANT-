@@ -26,27 +26,24 @@ unsafe setups.
 
 ## Pre-Market: 30-60 Minutes Before Open
 
-1. Start KQUANT:
+1. Run the one-click preflight:
 
    ```powershell
-   .\KQUANT_START.cmd
+   .\KQUANT_MONDAY_PREFLIGHT.cmd
    ```
 
-2. Run the local pilot check:
+   This starts or reuses the local backend, refreshes the AI Daily report,
+   runs the readiness audit, opens the dashboard, and writes
+   `outputs/monday-pilot-readiness.md/json`.
 
-   ```powershell
-   .\check_kquant_monday_pilot.ps1
-   ```
-
-3. Open `http://127.0.0.1:8001/`.
-4. Confirm the Monday readiness panel:
+2. Confirm the Monday readiness panel:
    - Live API is online.
    - AI Agent is available.
    - Real Data Guard says no fixture.
    - AI Daily report is fresh.
    - Broker/account/order wiring is disabled.
-5. If readiness is `NO_TRADE`, switch to observation-only for the day.
-6. If readiness is `CAUTION`, only observe unless the specific caution is
+3. If readiness is `NO_TRADE`, switch to observation-only for the day.
+4. If readiness is `CAUTION`, only observe unless the specific caution is
    understood and not related to the candidate's required data.
 
 ## Open: First 15-30 Minutes

@@ -4,17 +4,20 @@ Use this checklist for the first small-size real-money manual pilot. KQUANT is
 read-only research software: it does not connect to a broker, read an account,
 or submit orders. If any critical item fails, stop and switch to observation.
 
-## 1. Start And Verify
+## 1. Preflight
 
-- [ ] Start KQUANT with `KQUANT_START.cmd`.
-- [ ] Run `KQUANT_VERIFY.cmd`.
-- [ ] Confirm the verification result is `READY`.
+- [ ] Run `KQUANT_MONDAY_PREFLIGHT.cmd`.
+- [ ] Confirm the preflight result is `READY`.
 - [ ] Save or keep open `outputs/monday-pilot-readiness.md`.
 - [ ] Confirm `Live API` is online.
 - [ ] Confirm `AI` is available.
 - [ ] Confirm `Real Data Guard` says no fixture data.
 - [ ] Confirm broker/account/order wiring is disabled.
 - [ ] Confirm AI Daily report is fresh for the current trading day.
+
+Developer-only regression:
+
+- [ ] Run `KQUANT_VERIFY.cmd` before pushing or freezing a new code build.
 
 Decision:
 

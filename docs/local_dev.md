@@ -102,25 +102,37 @@ window open. For manual startup without killing an existing backend:
 .\start_kquant_stock_terminal.ps1
 ```
 
-Daily pre-trade verification:
+Monday pre-trade preflight:
+
+```powershell
+.\KQUANT_MONDAY_PREFLIGHT.cmd
+```
+
+This is the preferred trading-day entry point. It starts or reuses the local
+backend, refreshes the AI Daily report when the backend key is available, runs
+the readiness audit, opens the dashboard, and writes the readiness files under
+`outputs/`.
+
+Development verification:
 
 ```powershell
 .\KQUANT_VERIFY.cmd
 ```
 
 This keeps the terminal open while running the local verification wrapper. Use
-it before any manual-money pilot so the READY / CAUTION / NO TRADE result and
-the readiness audit files are visible without remembering the PowerShell
-command.
+it before freezing a build or pushing code; use `KQUANT_MONDAY_PREFLIGHT.cmd`
+before a manual-money pilot.
 
-Before any small-size manual real-money pilot, run the readiness check:
+Before any small-size manual real-money pilot, run the one-click preflight:
 
 ```powershell
-.\check_kquant_monday_pilot.ps1
+.\KQUANT_MONDAY_PREFLIGHT.cmd
 ```
 
-The script verifies live data, AI status, latest AI Daily report, representative
-NVDA/RKLB/MSTR K-lines, and that broker/account/order wiring is still disabled.
+The preflight verifies live data, AI status, latest AI Daily report,
+representative NVDA/RKLB/MSTR K-lines, and that broker/account/order wiring is
+still disabled. The lower-level `check_kquant_monday_pilot.ps1` remains
+available when you only want to rerun the audit without refreshing AI Daily.
 Use `docs/monday_live_pilot_runbook.md` as the operating checklist.
 Use `docs/monday_live_pilot_checklist.md` as the short printable checklist
 before and during the first manual-money session.
