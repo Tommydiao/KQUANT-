@@ -205,6 +205,7 @@ STOCK_JOURNAL_STATUSES = {
     "exited-manually",
     "invalidated",
 }
+MANUAL_ENTRY_JOURNAL_STATUSES = {"manual-traded", "entered-manually"}
 
 
 def profile_config(profile: str | None = None) -> dict[str, Any]:
@@ -1615,6 +1616,10 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
     planned_entry = optional_float(payload.get("planned_entry"))
     planned_stop = optional_float(payload.get("planned_stop"))
     planned_target = optional_float(payload.get("planned_target"))
+    if status in MANUAL_ENTRY_JOURNAL_STATUSES and (
+        planned_entry is None or planned_stop is None or planned_target is None
+    ):
+        raise ValueError("Manual trade journal entries require planned entry, stop, and target.")
     with connect(db) as conn:
         cursor = conn.execute(
             """

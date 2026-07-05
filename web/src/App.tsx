@@ -5744,7 +5744,7 @@ function deriveManualTradeTicket({
   const decision = aiDecision?.ai_decision;
   const riskRewardValue = parseRiskReward(decision?.risk_reward);
   const hasJournalToday = Boolean(
-    stockJournal?.entries.some((entry) => entry.symbol === selectedSymbol && entry.reviewed_at.slice(0, 10) === new Date().toISOString().slice(0, 10)),
+    stockJournal?.entries.some((entry) => isManualPilotJournalReady(entry, selectedSymbol)),
   );
   const checks = [
     { label: "AI action", value: decision?.action ?? "missing", ok: decision?.action === "AI_BUY_CANDIDATE" },
@@ -5777,6 +5777,23 @@ function deriveManualTradeTicket({
     invalidatedIf: decision?.what_invalidates_this_setup ?? selected.trade_conclusion?.invalidation ?? [],
     reasons,
   };
+}
+
+function isManualPilotJournalReady(entry: StockJournalEntry, symbol: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const entrySymbol = String(entry.symbol || "").toUpperCase();
+  const validStatus = entry.status === "entered-manually" || entry.status === "manual-traded";
+  const hasPlan =
+    entry.planned_entry !== null &&
+    entry.planned_entry !== undefined &&
+    entry.planned_stop !== null &&
+    entry.planned_stop !== undefined &&
+    entry.planned_target !== null &&
+    entry.planned_target !== undefined &&
+    Number.isFinite(Number(entry.planned_entry)) &&
+    Number.isFinite(Number(entry.planned_stop)) &&
+    Number.isFinite(Number(entry.planned_target));
+  return entrySymbol === symbol.toUpperCase() && entry.reviewed_at.slice(0, 10) === today && validStatus && hasPlan;
 }
 
 function actionClass(action: TradeAction | string | undefined) {

@@ -18,6 +18,7 @@ from kquant.stock_signals import (
     api_stock_monday_readiness_latest,
     api_stock_research_chat,
     api_stock_search,
+    api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
 )
@@ -833,6 +834,32 @@ def test_monday_readiness_latest_bad_json_is_read_error(tmp_path: Path) -> None:
     assert payload["status"] == "read_error"
     assert payload["available"] is False
     assert payload["critical_failure_count"] == 1
+
+
+def test_manual_trade_journal_requires_entry_stop_and_target(tmp_path: Path) -> None:
+    payload = {
+        "symbol": "RKLB",
+        "status": "entered-manually",
+        "notes": "Pilot entry without full plan should be rejected.",
+        "planned_entry": "101.2",
+        "planned_stop": "",
+        "planned_target": "112.0",
+    }
+    with pytest.raises(ValueError, match="planned entry, stop, and target"):
+        api_stock_signal_journal_entry(payload, db_path=tmp_path / "kquant_us.sqlite3")
+
+    saved = api_stock_signal_journal_entry(
+        {
+            **payload,
+            "planned_stop": "96.8",
+        },
+        db_path=tmp_path / "kquant_us.sqlite3",
+    )
+    assert saved["entry"]["status"] == "entered-manually"
+    assert saved["entry"]["planned_entry"] == 101.2
+    assert saved["entry"]["planned_stop"] == 96.8
+    assert saved["entry"]["planned_target"] == 112.0
+    assert saved["safety"]["broker_order_wiring_enabled"] is False
 
 
 def test_latest_stock_signals_do_not_cross_mix_source(tmp_path: Path) -> None:
