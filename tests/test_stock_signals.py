@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import sqlite3
 from datetime import datetime
 
 import pytest
@@ -666,6 +667,55 @@ def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: P
     assert stale["source_type"] == "stale_yahoo_chart_cache"
     assert stale["live_does_not_fallback_to_fixture"] is True
     assert all(candle["source"] != "fixture" for candle in stale["candles"])
+
+
+def test_live_stock_candles_return_when_cache_write_fails(tmp_path: Path, monkeypatch) -> None:
+    db_path = tmp_path / "kquant_us.sqlite3"
+
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "chart": {
+                    "result": [
+                        {
+                            "timestamp": [1_718_000_000, 1_718_086_400],
+                            "indicators": {
+                                "quote": [
+                                    {
+                                        "open": [100, 101],
+                                        "high": [102, 103],
+                                        "low": [99, 100],
+                                        "close": [101, 102],
+                                        "volume": [1000, 1100],
+                                    }
+                                ]
+                            },
+                        }
+                    ],
+                    "error": None,
+                }
+            }
+
+    monkeypatch.setattr("kquant.stock_signals.requests.get", lambda *args, **kwargs: Response())
+    monkeypatch.setattr(
+        "kquant.stock_signals.persist_candles",
+        lambda *args, **kwargs: (_ for _ in ()).throw(sqlite3.OperationalError("readonly")),
+    )
+
+    payload = api_stock_candles("SPY", "1y", "1d", "live", db_path)
+
+    assert payload["provider_status"] == "available"
+    assert payload["source_type"] == "live_yahoo_chart"
+    assert len(payload["candles"]) == 2
+    assert payload["cache_write_status"] == "failed"
+    assert payload["live_data_returned_despite_cache_write_failure"] is True
+    assert any("cache_write_failed" in error for error in payload["provider_errors"])
+    assert all(candle["source"] != "fixture" for candle in payload["candles"])
 
 
 def test_live_stock_signals_provider_failure_has_no_buy_setup(tmp_path: Path, monkeypatch) -> None:

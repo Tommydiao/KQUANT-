@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import sqlite3
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -410,6 +411,17 @@ def api_stock_search(q: str = "", universe: str = "all", limit: int = 24) -> dic
     }
 
 
+def annotate_cache_write_failure(payload: dict[str, Any], exc: Exception) -> None:
+    message = f"cache_write_failed: {type(exc).__name__}: {str(exc)[:180]}"
+    provider_errors = list(payload.get("provider_errors") or [])
+    if message not in provider_errors:
+        provider_errors.append(message)
+    payload["provider_errors"] = provider_errors
+    payload["cache_write_status"] = "failed"
+    payload["cache_write_error"] = message
+    payload["live_data_returned_despite_cache_write_failure"] = True
+
+
 def api_stock_candles(
     symbol: str,
     range_value: str = "1y",
@@ -422,21 +434,28 @@ def api_stock_candles(
     if source == "live":
         payload = yahoo_candles(symbol, range_value, interval)
         if payload["provider_status"] != "available" and db_path:
-            record_provider_event(
-                db_path,
-                provider="yahoo_chart",
-                instrument="stock",
-                symbol=symbol,
-                status=payload["provider_status"],
-                message="; ".join(payload.get("provider_errors", [])) or "public provider unavailable",
-            )
+            try:
+                record_provider_event(
+                    db_path,
+                    provider="yahoo_chart",
+                    instrument="stock",
+                    symbol=symbol,
+                    status=payload["provider_status"],
+                    message="; ".join(payload.get("provider_errors", [])) or "public provider unavailable",
+                )
+            except (OSError, sqlite3.Error) as exc:
+                annotate_cache_write_failure(payload, exc)
             cached = cached_candles_payload(db_path, symbol, range_value, interval, payload)
             if cached:
                 return cached
     else:
         payload = fixture_candles_payload(symbol, range_value, interval)
     if db_path:
-        persist_candles(db_path, payload)
+        try:
+            persist_candles(db_path, payload)
+            payload["cache_write_status"] = "ok"
+        except (OSError, sqlite3.Error) as exc:
+            annotate_cache_write_failure(payload, exc)
     return payload
 
 
