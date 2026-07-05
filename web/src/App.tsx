@@ -438,8 +438,8 @@ type MondayReadinessReport = {
   summary?: string;
   critical_failure_count?: number;
   warning_count?: number;
-  critical_failures?: string[];
-  warnings?: string[];
+  critical_failures?: ReadinessIssue[];
+  warnings?: ReadinessIssue[];
   checks?: {
     name?: string;
     passed?: boolean;
@@ -450,6 +450,15 @@ type MondayReadinessReport = {
   report_path?: string;
   markdown_path?: string;
 };
+
+type ReadinessIssue =
+  | string
+  | {
+      name?: string;
+      detail?: string;
+      passed?: boolean;
+      critical?: boolean;
+    };
 
 type ManualTradeTicket = {
   status: "cleared_for_review" | "journal_required" | "blocked";
@@ -5593,6 +5602,15 @@ function isLeveragedOrOptionsProxy(symbol: string) {
   return new Set(["MSTU", "MSTX", "TQQQ", "SQQQ", "UPRO", "SPXL", "SPXS", "SOXL", "SOXS", "TNA", "TZA", "LABU", "LABD"]).has(symbol.toUpperCase());
 }
 
+function readinessIssueText(issue: ReadinessIssue): string {
+  if (typeof issue === "string") {
+    return issue;
+  }
+  const name = issue.name || "readiness";
+  const detail = issue.detail ? `: ${issue.detail}` : "";
+  return `${name}${detail}`;
+}
+
 function deriveMondayReadiness({
   apiConnection,
   apiHealth,
@@ -5674,7 +5692,9 @@ function deriveMondayReadiness({
   const reportReasons = [
     ...(mondayReadinessReport?.critical_failures ?? []),
     ...(mondayReadinessReport?.warnings ?? []),
-  ].filter(Boolean);
+  ]
+    .map(readinessIssueText)
+    .filter(Boolean);
   const reasons = [
     ...checks.filter((check) => !check.ok).map((check) => `${check.label}: ${check.value}`),
     ...reportReasons.slice(0, 6),
