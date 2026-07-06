@@ -327,6 +327,16 @@ def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> 
     assert payload["signal"]["profile_name"] == "position_6m_v1"
     assert payload["signal"]["exit_plan"]["read_only_research"] is True
     assert payload["signal"]["trade_conclusion"]["read_only_research"] is True
+    assert payload["signal"]["features"]["ema8"] > 0
+    assert payload["signal"]["features"]["ema9"] > 0
+    packet = payload["signal"]["ai_feature_packet_v1"]
+    assert packet["version"] == "ai_feature_packet_v1"
+    assert packet["price_structure"]["ema8"] > 0
+    assert packet["price_structure"]["ema9"] > 0
+    assert packet["confirmation_structure"]["ema8"] > 0
+    assert packet["data_quality"]["daily_candles"] > 0
+    assert packet["rule_state"]["level"] == payload["signal"]["level"]
+    assert packet["ai_policy"]["hard_veto_remains_active"] is True
     assert payload["primary_candles"]["candle_count"] > 0
     assert payload["confirmation_candles"]["candle_count"] > 0
     assert payload["broker_order_wiring_enabled"] is False
@@ -448,7 +458,15 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
                 )
             }
 
-    monkeypatch.setattr("kquant.stock_signals.requests.post", lambda *args, **kwargs: Response())
+    def fake_post(*args, **kwargs):
+        request_payload = kwargs["json"]
+        context = json.loads(request_payload["input"][1]["content"])
+        assert context["ai_feature_packet_v1"]["version"] == "ai_feature_packet_v1"
+        assert context["ai_feature_packet_v1"]["price_structure"]["ema8"] > 0
+        assert context["ai_feature_packet_v1"]["confirmation_structure"]["ema9"] > 0
+        return Response()
+
+    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
     payload = api_stock_ai_decision(
         {
             "symbol": "NVDA",

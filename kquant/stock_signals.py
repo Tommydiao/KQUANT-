@@ -1733,9 +1733,13 @@ def build_signal(
     daily_close = [bar["close"] for bar in daily]
     daily_volume = [bar["volume"] for bar in daily]
     hourly_close = [bar["close"] for bar in hourly]
+    ema8 = ema_last(daily_close, 8)
+    ema9 = ema_last(daily_close, 9)
     ema20 = ema_last(daily_close, 20)
     ema50 = ema_last(daily_close, 50)
     ema200 = ema_last(daily_close, 200)
+    h_ema8 = ema_last(hourly_close, 8)
+    h_ema9 = ema_last(hourly_close, 9)
     h_ema20 = ema_last(hourly_close, 20)
     h_ema50 = ema_last(hourly_close, 50)
     close = daily_close[-1]
@@ -1752,9 +1756,16 @@ def build_signal(
     score = round(clamp(trend_score + trigger_score + volume_score + risk_score, 0, 100), 1)
     features = {
         "close": round(close, 2),
+        "ema8": round(ema8, 2),
+        "ema9": round(ema9, 2),
         "ema20": round(ema20, 2),
         "ema50": round(ema50, 2),
         "ema200": round(ema200, 2),
+        "hourly_close": round(hourly_close[-1], 2),
+        "hourly_ema8": round(h_ema8, 2),
+        "hourly_ema9": round(h_ema9, 2),
+        "hourly_ema20": round(h_ema20, 2),
+        "hourly_ema50": round(h_ema50, 2),
         "trend_return_5d_pct": round(trend_return, 2),
         "one_hour_momentum_pct": round(one_hour_momentum, 2),
         "volume_ratio": round(volume_ratio, 2),
@@ -1841,6 +1852,39 @@ def build_signal(
         data_clean=data_clean,
         profile=active_profile,
     )
+    ai_feature_packet = build_ai_feature_packet_v1(
+        symbol=symbol,
+        active_profile=active_profile,
+        daily_payload=daily_payload,
+        hourly_payload=hourly_payload,
+        daily=daily,
+        hourly=hourly,
+        close=close,
+        ema8=ema8,
+        ema9=ema9,
+        ema20=ema20,
+        ema50=ema50,
+        ema200=ema200,
+        h_ema8=h_ema8,
+        h_ema9=h_ema9,
+        h_ema20=h_ema20,
+        h_ema50=h_ema50,
+        trend_return=trend_return,
+        one_hour_momentum=one_hour_momentum,
+        volume_ratio=volume_ratio,
+        atr_pct=atr_pct,
+        extension_pct=extension_pct,
+        score_breakdown=score_breakdown,
+        historical_edge=historical_edge,
+        trend_aligned=trend_aligned,
+        trigger_confirmed=trigger_confirmed,
+        volume_confirmed=volume_confirmed,
+        risk_window_ok=risk_window_ok,
+        edge_ok=edge_ok,
+        data_clean=data_clean,
+        level=level,
+        exit_risk=exit_risk,
+    )
     return {
         "symbol": symbol,
         "score": score,
@@ -1883,8 +1927,120 @@ def build_signal(
             "live_does_not_fallback_to_fixture": bool(daily_payload.get("live_does_not_fallback_to_fixture")),
         },
         "features": features,
+        "ai_feature_packet_v1": ai_feature_packet,
         "historical_edge": historical_edge,
         "_label_samples": label_samples,
+    }
+
+
+def build_ai_feature_packet_v1(
+    *,
+    symbol: str,
+    active_profile: dict[str, Any],
+    daily_payload: dict[str, Any],
+    hourly_payload: dict[str, Any],
+    daily: list[dict[str, Any]],
+    hourly: list[dict[str, Any]],
+    close: float,
+    ema8: float,
+    ema9: float,
+    ema20: float,
+    ema50: float,
+    ema200: float,
+    h_ema8: float,
+    h_ema9: float,
+    h_ema20: float,
+    h_ema50: float,
+    trend_return: float,
+    one_hour_momentum: float,
+    volume_ratio: float,
+    atr_pct: float,
+    extension_pct: float,
+    score_breakdown: dict[str, Any],
+    historical_edge: dict[str, Any],
+    trend_aligned: bool,
+    trigger_confirmed: bool,
+    volume_confirmed: bool,
+    risk_window_ok: bool,
+    edge_ok: bool,
+    data_clean: bool,
+    level: str,
+    exit_risk: dict[str, Any],
+) -> dict[str, Any]:
+    hourly_close = float(hourly[-1]["close"]) if hourly else 0.0
+    return {
+        "version": "ai_feature_packet_v1",
+        "symbol": symbol,
+        "profile_name": active_profile["name"],
+        "strategy_label": active_profile["label"],
+        "holding_period": active_profile["holding_period"],
+        "timeframes": {
+            "primary": active_profile["primary_timeframe"],
+            "confirmation": active_profile["confirmation_timeframe"],
+        },
+        "price_structure": {
+            "close": round(close, 2),
+            "ema8": round(ema8, 2),
+            "ema9": round(ema9, 2),
+            "ema20": round(ema20, 2),
+            "ema50": round(ema50, 2),
+            "ema200": round(ema200, 2),
+            "close_vs_ema8_pct": round(pct(close, ema8), 2),
+            "close_vs_ema9_pct": round(pct(close, ema9), 2),
+            "close_vs_ema20_pct": round(extension_pct, 2),
+            "close_vs_ema50_pct": round(pct(close, ema50), 2),
+            "close_vs_ema200_pct": round(pct(close, ema200), 2),
+            "trend_return_5d_pct": round(trend_return, 2),
+        },
+        "confirmation_structure": {
+            "close": round(hourly_close, 2),
+            "ema8": round(h_ema8, 2),
+            "ema9": round(h_ema9, 2),
+            "ema20": round(h_ema20, 2),
+            "ema50": round(h_ema50, 2),
+            "momentum_pct": round(one_hour_momentum, 2),
+            "close_above_ema8": hourly_close > h_ema8,
+            "close_above_ema9": hourly_close > h_ema9,
+            "close_above_ema20": hourly_close > h_ema20,
+            "close_above_ema50": hourly_close > h_ema50,
+        },
+        "volume_volatility": {
+            "volume_ratio": round(volume_ratio, 2),
+            "atr_pct": round(atr_pct, 2),
+        },
+        "score_breakdown": score_breakdown,
+        "historical_edge": {
+            "focus_window": historical_edge.get("focus_window"),
+            "focus_win_rate": historical_edge.get("focus_win_rate"),
+            "focus_avg_return": historical_edge.get("focus_avg_return"),
+            "focus_sample_count": historical_edge.get("focus_sample_count"),
+            "sample_count": historical_edge.get("sample_count"),
+        },
+        "data_quality": {
+            "daily_provider_status": daily_payload.get("provider_status"),
+            "confirmation_provider_status": hourly_payload.get("provider_status"),
+            "daily_candles": len(daily),
+            "confirmation_candles": len(hourly),
+            "source": daily_payload.get("source_type"),
+            "freshness": daily_payload.get("freshness"),
+            "clean": data_clean,
+            "live_does_not_fallback_to_fixture": bool(daily_payload.get("live_does_not_fallback_to_fixture")),
+        },
+        "rule_state": {
+            "level": level,
+            "trend_aligned": bool(trend_aligned),
+            "trigger_confirmed": bool(trigger_confirmed),
+            "volume_confirmed": bool(volume_confirmed),
+            "risk_window_ok": bool(risk_window_ok),
+            "historical_edge_ok": bool(edge_ok),
+            "exit_risk": exit_risk.get("status"),
+        },
+        "ai_policy": {
+            "ai_may_lead_ranking_and_plan": True,
+            "hard_veto_remains_active": True,
+            "cannot_override_provider_failed_or_stale_data": True,
+            "cannot_trigger_broker_or_order": True,
+        },
     }
 
 
@@ -3280,6 +3436,13 @@ def ai_decision_context(
         "reasons": market_regime.get("reasons", [])[:5],
     }
     base["hard_veto"] = ai_hard_veto(signal, market_regime)
+    base["ai_feature_packet_v1"] = signal.get("ai_feature_packet_v1") or {
+        "version": "ai_feature_packet_v1",
+        "status": "unavailable",
+        "reason": "Signal payload did not include a computed AI feature packet.",
+        "features": signal.get("features", {}),
+        "data_status": signal.get("data_status", {}),
+    }
     base["research_context"] = research_context or {
         "status": "disabled",
         "note": "External research layer is disabled; use KQUANT live data, rule guardrails, AI command, historical edge, and journal context.",
@@ -3332,7 +3495,8 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
     }
     system = (
         "You are KQUANT AI Trading Agent. You lead the manual trading decision layer, "
-        "but you are strictly read-only. Use the provided live-data signal, profile comparison, "
+        "but you are strictly read-only. Treat ai_feature_packet_v1 as the primary structured trading input. "
+        "Use the provided live-data signal, profile comparison, "
         "historical edge, market regime, journal context, and hard veto. If hard_veto.active is true, do not output "
         "AI_BUY_CANDIDATE. Never place orders, never access broker accounts, and never promise profit. "
         "Return concise, actionable, risk-aware planning for a human trader."
@@ -3632,6 +3796,7 @@ def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, 
             "sample_count": (signal.get("historical_edge") or {}).get("focus_sample_count"),
         },
         "data_status": signal.get("data_status"),
+        "ai_feature_packet_v1": signal.get("ai_feature_packet_v1"),
         "hard_veto": veto,
         "research_context": research_summary,
     }
@@ -3690,6 +3855,7 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
     }
     system = (
         "You are KQUANT Daily Opportunity Agent. Rank a small set of manual trading opportunities. "
+        "Use ai_feature_packet_v1 as the structured technical-data packet for each candidate. "
         "Respect hard_veto: candidates with hard_veto.active cannot be top_buy_candidates. "
         "No broker, no account access, no order placement, no profit promises. Be concise and practical."
     )
