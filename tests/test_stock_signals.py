@@ -21,6 +21,7 @@ from kquant.stock_signals import (
     api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
+    ai_hard_veto,
 )
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
@@ -481,6 +482,80 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
     assert payload["ai_decision"]["action"] != "AI_BUY_CANDIDATE"
     assert payload["ai_decision"]["hard_veto_applied"] is True
     assert payload["ai_decision"]["confidence"] != "HIGH"
+
+
+def test_ai_primary_v2_rule_exit_is_guardrail_not_hard_veto(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    db = tmp_path / "kquant_us.sqlite3"
+    signal = api_stock_analyze("RKLB", source="fixture", profile="high_beta_growth_v1", db_path=db)["signal"]
+    signal["data_status"].update(
+        {
+            "data_quality": "clean",
+            "daily_provider_status": "available",
+            "hourly_provider_status": "available",
+            "daily_candles": 252,
+            "hourly_candles": 35,
+        }
+    )
+    signal["trade_conclusion"]["action"] = "EXIT_REVIEW"
+    signal["exit_risk"]["status"] = "SETUP INVALIDATED"
+    signal["historical_edge"]["focus_win_rate"] = 44.0
+    signal["historical_edge"]["focus_avg_return"] = -1.2
+    market = {"regime": "RISK_ON", "label": "Risk On", "score": 80, "high_confidence_allowed": True, "reasons": []}
+    veto = ai_hard_veto(signal, market)
+    assert veto["active"] is False
+    assert veto["can_ai_buy"] is True
+    assert any("rule_action=EXIT_REVIEW" in item for item in veto["guardrail_warnings"])
+    assert any("exit_risk=SETUP INVALIDATED" in item for item in veto["guardrail_warnings"])
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "action": "AI_PULLBACK_BUY",
+                        "confidence": "HIGH",
+                        "risk_bucket": "high_beta_risk",
+                        "entry_zone": "Only near the EMA8/EMA9 reclaim zone; do not chase.",
+                        "stop_zone": "Below the pullback low.",
+                        "target_zone": "Prior high then trail.",
+                        "risk_reward": "2.2R",
+                        "position_size_hint": "Small high-beta starter only.",
+                        "why_now": ["AI sees a high-beta pullback setup.", "Rule warnings are present but not a data veto."],
+                        "what_invalidates_this_setup": ["Loses reclaim level.", "Volume expands on downside."],
+                        "best_profile": "high_beta_growth_v1",
+                        "human_checklist": ["Confirm live K-line.", "Save journal."],
+                        "summary": "AI leads a guarded pullback-buy plan.",
+                    }
+                )
+            }
+
+    def fake_post(*args, **kwargs):
+        context = json.loads(kwargs["json"]["input"][1]["content"])
+        assert context["hard_veto"]["active"] is False
+        assert context["hard_veto"]["guardrail_warnings"]
+        return Response()
+
+    monkeypatch.setattr("kquant.stock_signals.api_stock_market_regime", lambda *args, **kwargs: market)
+    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
+    payload = api_stock_ai_decision(
+        {
+            "symbol": "RKLB",
+            "profile": "high_beta_growth_v1",
+            "signal_payload": signal,
+            "profile_comparison": [signal],
+            "model_tier": "review",
+        },
+        db_path=db,
+    )
+    assert payload["hard_veto"]["active"] is False
+    assert payload["ai_decision"]["action"] == "AI_PULLBACK_BUY"
+    assert payload["ai_decision"]["confidence"] == "MEDIUM"
+    assert payload["ai_decision"]["guardrail_warnings"]
+    assert payload["ai_decision"]["ai_primary_engine_version"] == "ai_primary_v2"
 
 
 def test_research_chat_without_key_returns_safe_unavailable(tmp_path: Path, monkeypatch) -> None:

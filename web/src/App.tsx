@@ -31,7 +31,15 @@ type Theme = "light" | "dark";
 type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
 type TradeAction = "BUY" | "WAIT" | "DO_NOT_BUY" | "HOLD_TRAIL" | "EXIT_REVIEW";
-type AiAction = "AI_BUY_CANDIDATE" | "AI_WAIT" | "AI_AVOID" | "AI_HOLD_TRAIL" | "AI_EXIT_REVIEW";
+type AiAction =
+  | "AI_BUY_CANDIDATE"
+  | "AI_PULLBACK_BUY"
+  | "AI_REVERSAL_WATCH"
+  | "AI_BREAKOUT_WATCH"
+  | "AI_WAIT"
+  | "AI_AVOID"
+  | "AI_HOLD_TRAIL"
+  | "AI_EXIT_REVIEW";
 type UniverseName = "default" | "ai_five_layer" | "physical_ai" | "all";
 type AppView = "stocks" | "mstr";
 type WorkspaceName =
@@ -251,8 +259,10 @@ type AiDecisionPayload = {
   hard_veto: {
     active: boolean;
     reasons: string[];
+    guardrail_warnings?: string[];
     can_ai_buy: boolean;
     policy: string;
+    veto_version?: string;
   };
   ai_decision: {
     action: AiAction | string;
@@ -271,6 +281,8 @@ type AiDecisionPayload = {
     rule_action: string;
     hard_veto_applied: boolean;
     hard_veto_reasons: string[];
+    guardrail_warnings?: string[];
+    ai_primary_engine_version?: string;
     read_only_research: boolean;
     broker_order_wiring_enabled: boolean;
     order_submission_enabled: boolean;
@@ -4266,8 +4278,8 @@ function ManualTradingConclusion({
         ) : null}
       </div>
       <div className="manual-conclusion-facts">
-        <Fact label="Confidence" value={conclusion?.confidence ?? "-"} />
-        <Fact label="Risk Bucket" value={conclusion?.risk_bucket ?? "-"} />
+        <Fact label="Confidence" value={decision?.confidence ?? conclusion?.confidence ?? "-"} />
+        <Fact label="Risk Bucket" value={decision?.risk_bucket ?? conclusion?.risk_bucket ?? "-"} />
         <Fact label="Position" value={conclusion?.position_context ?? "no_position_assumed"} />
       </div>
       <div className="manual-conclusion-actions">
@@ -4303,6 +4315,9 @@ function ManualTradingConclusion({
           <Narrative title={text.invalidation} items={decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : ["No AI invalidation."]} />
           <Narrative title={text.humanChecklist} items={decision?.human_checklist?.length ? decision.human_checklist : ["Save journal before acting manually."]} />
           {aiDecision.hard_veto?.active ? <p className="compare-error">Hard veto: {aiDecision.hard_veto.reasons.join("; ")}</p> : null}
+          {aiDecision.hard_veto?.guardrail_warnings?.length ? (
+            <p className="secondary-note">Rule guardrails: {aiDecision.hard_veto.guardrail_warnings.join("; ")}</p>
+          ) : null}
           <p className="secondary-note">{decision?.summary ?? aiDecision.reason}</p>
         </div>
       ) : null}
@@ -5747,7 +5762,7 @@ function deriveManualTradeTicket({
     stockJournal?.entries.some((entry) => isManualPilotJournalReady(entry, selectedSymbol)),
   );
   const checks = [
-    { label: "AI action", value: decision?.action ?? "missing", ok: decision?.action === "AI_BUY_CANDIDATE" },
+    { label: "AI action", value: decision?.action ?? "missing", ok: decision?.action === "AI_BUY_CANDIDATE" || decision?.action === "AI_PULLBACK_BUY" },
     { label: "Daily K-line", value: `${dailyMeta.providerStatus} / ${dailyMeta.count}`, ok: isLiveCandleMeta(dailyMeta) },
     { label: "Confirm K-line", value: `${hourlyMeta.providerStatus} / ${hourlyMeta.count}`, ok: isLiveCandleMeta(hourlyMeta) },
     { label: "Hard veto", value: aiDecision?.hard_veto?.active ? "active" : "clear", ok: !aiDecision?.hard_veto?.active },
@@ -5797,8 +5812,8 @@ function isManualPilotJournalReady(entry: StockJournalEntry, symbol: string) {
 }
 
 function actionClass(action: TradeAction | string | undefined) {
-  if (action === "BUY" || action === "HOLD_TRAIL" || action === "AI_BUY_CANDIDATE" || action === "AI_HOLD_TRAIL") return "buy";
-  if (action === "WAIT" || action === "AI_WAIT") return "watch";
+  if (action === "BUY" || action === "HOLD_TRAIL" || action === "AI_BUY_CANDIDATE" || action === "AI_PULLBACK_BUY" || action === "AI_HOLD_TRAIL") return "buy";
+  if (action === "WAIT" || action === "AI_WAIT" || action === "AI_REVERSAL_WATCH" || action === "AI_BREAKOUT_WATCH") return "watch";
   if (action === "EXIT_REVIEW" || action === "AI_EXIT_REVIEW") return "exit";
   return "pass";
 }

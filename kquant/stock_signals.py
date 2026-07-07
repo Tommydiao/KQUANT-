@@ -3389,6 +3389,7 @@ def ai_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[
     exit_risk = signal.get("exit_risk", {})
     historical = signal.get("historical_edge", {})
     reasons: list[str] = []
+    guardrail_warnings: list[str] = []
     data_quality = data_status.get("data_quality")
     daily_status = data_status.get("daily_provider_status")
     hourly_status = data_status.get("hourly_provider_status")
@@ -3402,19 +3403,26 @@ def ai_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[
     if market_state in {"RISK_OFF", "DATA_CAUTION"}:
         reasons.append(f"market_regime={market_state}")
     exit_status = str(exit_risk.get("status", "DATA CAUTION"))
-    if exit_status in {"EXIT RISK", "SETUP INVALIDATED", "DATA CAUTION"}:
+    if exit_status == "DATA CAUTION":
         reasons.append(f"exit_risk={exit_status}")
+    elif exit_status in {"EXIT RISK", "SETUP INVALIDATED", "PULLBACK RISK", "HIGH VOLATILITY RISK"}:
+        guardrail_warnings.append(f"exit_risk={exit_status}")
     if trade_conclusion.get("action") in {"DO_NOT_BUY", "EXIT_REVIEW"}:
-        reasons.append(f"rule_action={trade_conclusion.get('action')}")
+        guardrail_warnings.append(f"rule_action={trade_conclusion.get('action')}")
     focus_win = float(historical.get("focus_win_rate", historical.get("win_rate_5d", 0)) or 0)
     focus_avg = float(historical.get("focus_avg_return", historical.get("avg_forward_return_5d", 0)) or 0)
     if focus_win < 45 or focus_avg < -1:
-        reasons.append(f"weak_historical_edge win={round(focus_win, 1)} avg={round(focus_avg, 2)}")
+        guardrail_warnings.append(f"weak_historical_edge win={round(focus_win, 1)} avg={round(focus_avg, 2)}")
     return {
         "active": bool(reasons),
         "reasons": reasons[:8],
+        "guardrail_warnings": guardrail_warnings[:8],
         "can_ai_buy": not reasons,
-        "policy": "AI_BUY_CANDIDATE is blocked when live data, market regime, exit risk, rule action, or historical edge fails.",
+        "veto_version": "ai_primary_v2",
+        "policy": (
+            "AI leads opportunity recognition. Hard veto blocks only non-negotiable data/market safety failures; "
+            "rule action, exit-risk structure, and historical edge are guardrails the AI must explain and size around."
+        ),
     }
 
 
@@ -3462,7 +3470,16 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
         "properties": {
             "action": {
                 "type": "string",
-                "enum": ["AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"],
+                "enum": [
+                    "AI_BUY_CANDIDATE",
+                    "AI_PULLBACK_BUY",
+                    "AI_REVERSAL_WATCH",
+                    "AI_BREAKOUT_WATCH",
+                    "AI_WAIT",
+                    "AI_AVOID",
+                    "AI_HOLD_TRAIL",
+                    "AI_EXIT_REVIEW",
+                ],
             },
             "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
             "risk_bucket": {"type": "string", "enum": ["standard_risk", "light_risk", "high_beta_risk", "avoid"]},
@@ -3494,12 +3511,14 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
         ],
     }
     system = (
-        "You are KQUANT AI Trading Agent. You lead the manual trading decision layer, "
-        "but you are strictly read-only. Treat ai_feature_packet_v1 as the primary structured trading input. "
-        "Use the provided live-data signal, profile comparison, "
-        "historical edge, market regime, journal context, and hard veto. If hard_veto.active is true, do not output "
-        "AI_BUY_CANDIDATE. Never place orders, never access broker accounts, and never promise profit. "
-        "Return concise, actionable, risk-aware planning for a human trader."
+        "You are KQUANT AI Primary Trade Engine v2. You lead opportunity recognition and manual trade planning, "
+        "while remaining strictly read-only. Treat ai_feature_packet_v1 as the primary structured trading input, "
+        "including EMA8/9, EMA20/50/200, 1H confirmation, volume, ATR, historical edge, and market context. "
+        "The rule conclusion is a guardrail input, not the final decision. If hard_veto.active is true, do not output "
+        "AI_BUY_CANDIDATE or AI_PULLBACK_BUY. If rule guardrails are negative but hard veto is clear, you may output "
+        "AI_PULLBACK_BUY, AI_REVERSAL_WATCH, or AI_BREAKOUT_WATCH only with explicit entry zone, stop zone, no-chase "
+        "condition, position size hint, and invalidation. Never place orders, never access broker accounts, and never "
+        "promise profit. Return concise, actionable, risk-aware planning for a human trader."
     )
     return {
         "model": model,
@@ -3519,17 +3538,30 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
 
 
 def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto: dict[str, Any]) -> dict[str, Any]:
-    allowed_actions = {"AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"}
+    allowed_actions = {
+        "AI_BUY_CANDIDATE",
+        "AI_PULLBACK_BUY",
+        "AI_REVERSAL_WATCH",
+        "AI_BREAKOUT_WATCH",
+        "AI_WAIT",
+        "AI_AVOID",
+        "AI_HOLD_TRAIL",
+        "AI_EXIT_REVIEW",
+    }
+    buy_actions = {"AI_BUY_CANDIDATE", "AI_PULLBACK_BUY"}
+    watch_actions = {"AI_REVERSAL_WATCH", "AI_BREAKOUT_WATCH"}
     action = decision.get("action") if decision.get("action") in allowed_actions else "AI_WAIT"
     rule_action = (signal.get("trade_conclusion") or {}).get("action", "DO_NOT_BUY")
-    if veto.get("active") and action == "AI_BUY_CANDIDATE":
+    if veto.get("active") and action in buy_actions:
         action = "AI_EXIT_REVIEW" if rule_action == "EXIT_REVIEW" else "AI_AVOID"
-    if rule_action == "EXIT_REVIEW" and action == "AI_BUY_CANDIDATE":
-        action = "AI_EXIT_REVIEW"
+    if veto.get("active") and action in watch_actions:
+        action = "AI_WAIT"
     allowed_confidence = {"HIGH", "MEDIUM", "LOW"}
     confidence = decision.get("confidence") if decision.get("confidence") in allowed_confidence else "LOW"
     if veto.get("active") and confidence == "HIGH":
         confidence = "LOW"
+    if veto.get("guardrail_warnings") and action in buy_actions and confidence == "HIGH":
+        confidence = "MEDIUM"
     risk_bucket = decision.get("risk_bucket")
     if risk_bucket not in {"standard_risk", "light_risk", "high_beta_risk", "avoid"}:
         risk_bucket = "avoid" if veto.get("active") else "light_risk"
@@ -3552,6 +3584,8 @@ def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto:
         "rule_action": rule_action,
         "hard_veto_applied": bool(veto.get("active")),
         "hard_veto_reasons": veto.get("reasons", []),
+        "guardrail_warnings": veto.get("guardrail_warnings", []),
+        "ai_primary_engine_version": "ai_primary_v2",
         "read_only_research": True,
         "broker_order_wiring_enabled": False,
         "order_submission_enabled": False,
@@ -3808,7 +3842,19 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
         "additionalProperties": False,
         "properties": {
             "symbol": {"type": "string"},
-            "action": {"type": "string", "enum": ["AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"]},
+            "action": {
+                "type": "string",
+                "enum": [
+                    "AI_BUY_CANDIDATE",
+                    "AI_PULLBACK_BUY",
+                    "AI_REVERSAL_WATCH",
+                    "AI_BREAKOUT_WATCH",
+                    "AI_WAIT",
+                    "AI_AVOID",
+                    "AI_HOLD_TRAIL",
+                    "AI_EXIT_REVIEW",
+                ],
+            },
             "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
             "best_profile": {"type": "string"},
             "entry_zone": {"type": "string"},
@@ -3854,9 +3900,11 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
         ],
     }
     system = (
-        "You are KQUANT Daily Opportunity Agent. Rank a small set of manual trading opportunities. "
+        "You are KQUANT Daily Opportunity Agent running AI Primary Trade Engine v2. Rank a small set of manual trading opportunities. "
         "Use ai_feature_packet_v1 as the structured technical-data packet for each candidate. "
         "Respect hard_veto: candidates with hard_veto.active cannot be top_buy_candidates. "
+        "Rule PASS/EXIT_REVIEW, exit-risk warnings, and weak historical edge are guardrails, not final conclusions; "
+        "if hard veto is clear, you may propose pullback, reversal, or breakout watch plans with explicit risk controls. "
         "No broker, no account access, no order placement, no profit promises. Be concise and practical."
     )
     return {
@@ -3889,10 +3937,20 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
             symbol = normalize_symbol(item.get("symbol", ""))
             signal = by_symbol.get(symbol)
             veto = ai_hard_veto(signal, market_regime) if signal else {"active": True, "reasons": ["symbol not in rule candidate set"]}
-            action = item.get("action") if item.get("action") in {"AI_BUY_CANDIDATE", "AI_WAIT", "AI_AVOID", "AI_HOLD_TRAIL", "AI_EXIT_REVIEW"} else "AI_WAIT"
-            if veto.get("active") and action == "AI_BUY_CANDIDATE":
+            allowed_actions = {
+                "AI_BUY_CANDIDATE",
+                "AI_PULLBACK_BUY",
+                "AI_REVERSAL_WATCH",
+                "AI_BREAKOUT_WATCH",
+                "AI_WAIT",
+                "AI_AVOID",
+                "AI_HOLD_TRAIL",
+                "AI_EXIT_REVIEW",
+            }
+            action = item.get("action") if item.get("action") in allowed_actions else "AI_WAIT"
+            if veto.get("active") and action in {"AI_BUY_CANDIDATE", "AI_PULLBACK_BUY"}:
                 action = "AI_AVOID"
-            if action == "AI_BUY_CANDIDATE" and not allow_buy:
+            if action in {"AI_BUY_CANDIDATE", "AI_PULLBACK_BUY"} and not allow_buy:
                 action = "AI_WAIT"
             sanitized.append(
                 {
@@ -3908,6 +3966,7 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
                     "why_now": safe_string_list(item.get("why_now"), 4),
                     "risk_flags": safe_string_list(item.get("risk_flags"), 5) + list(veto.get("reasons", [])[:3]),
                     "hard_veto_applied": bool(veto.get("active")),
+                    "guardrail_warnings": list(veto.get("guardrail_warnings", [])[:5]),
                 }
             )
         return sanitized
