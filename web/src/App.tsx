@@ -34,6 +34,7 @@ type TradeAction = "BUY" | "WAIT" | "DO_NOT_BUY" | "HOLD_TRAIL" | "EXIT_REVIEW";
 type AiAction =
   | "AI_BUY_CANDIDATE"
   | "AI_PULLBACK_BUY"
+  | "AI_PROBE_BUY"
   | "AI_REVERSAL_WATCH"
   | "AI_BREAKOUT_WATCH"
   | "AI_WAIT"
@@ -59,9 +60,9 @@ type StrategyProfileName =
   | "position_6m_v1"
   | "cycle_1_3y_v1"
   | "high_beta_growth_v1";
-type RangeValue = "5d" | "1y" | "5y" | "10y";
-type IntervalValue = "1h" | "1d" | "1wk" | "1mo";
-type ChartPresetKey = "1h" | "1d" | "1w" | "1m";
+type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
+type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
+type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
 
 type Candle = {
@@ -105,6 +106,16 @@ type ApiHealthPayload = {
   broker_order_wiring_enabled?: boolean;
   account_access_enabled?: boolean;
   order_submission_enabled?: boolean;
+  market_data_provider?: string;
+  longbridge_status?: string;
+  market_data?: {
+    provider?: string;
+    status?: string;
+    longbridge_env?: string;
+    longbridge_sdk?: string;
+    default_source_type?: string;
+    real_money_requires_longbridge_live?: boolean;
+  };
 };
 
 type AiReviewStatusPayload = {
@@ -155,6 +166,63 @@ type StockSignal = {
     live_does_not_fallback_to_fixture?: boolean;
   };
   features: Record<string, number>;
+  ai_feature_packet_v2?: Record<string, unknown>;
+  entry_plan?: {
+    zone?: string;
+    entry_low?: number | null;
+    entry_high?: number | null;
+    trigger?: string;
+    no_chase_rule?: string;
+    data_note?: string;
+  };
+  stop_plan?: {
+    zone?: string;
+    stop?: number | null;
+    basis?: string;
+    invalidation?: string[];
+  };
+  target_plan?: {
+    zone?: string;
+    target_low?: number | null;
+    target_high?: number | null;
+    management?: string;
+  };
+  risk_reward_plan?: {
+    risk_reward?: string;
+    risk_reward_value?: number;
+    position_size_hint?: string;
+    minimum_for_money_pilot?: number;
+    eligible_for_manual_money_review?: boolean;
+  };
+  money_pilot_eligibility?: MoneyPilotEligibility;
+  ai_action_validation?: {
+    version?: string;
+    action?: string;
+    sample_count?: number;
+    evidence_quality?: string;
+    win_rate?: number;
+    avg_forward_return?: number;
+    avg_max_drawdown?: number;
+    target_hit_rate?: number;
+    stop_hit_rate?: number;
+    target_before_stop_proxy?: number;
+    risk_reward_value?: number;
+    expected_value_r?: number;
+    noise_rate?: number;
+    money_pilot_eligible?: boolean;
+    money_pilot_min_risk_reward?: number;
+    money_pilot_min_win_rate?: number;
+    money_pilot_min_samples?: number;
+    probe_eligible?: boolean;
+    probe_min_risk_reward?: number;
+    probe_min_win_rate?: number;
+    probe_min_samples?: number;
+    verdict?: string;
+    note?: string;
+  };
+  probe_eligibility?: ProbeEligibility;
+  probe_risk_policy?: ProbeRiskPolicy;
+  probe_blockers?: string[];
   score_breakdown?: {
     trend_score: number;
     trigger_score: number;
@@ -282,11 +350,32 @@ type AiDecisionPayload = {
     hard_veto_applied: boolean;
     hard_veto_reasons: string[];
     guardrail_warnings?: string[];
+    entry_plan?: StockSignal["entry_plan"];
+    stop_plan?: StockSignal["stop_plan"];
+    target_plan?: StockSignal["target_plan"];
+    risk_reward_plan?: StockSignal["risk_reward_plan"];
+    ai_action_validation?: StockSignal["ai_action_validation"];
+    money_pilot_eligibility?: MoneyPilotEligibility;
+    probe_eligibility?: ProbeEligibility;
+    probe_risk_policy?: ProbeRiskPolicy;
+    probe_blockers?: string[];
+    ai_feature_packet_version?: string;
     ai_primary_engine_version?: string;
     read_only_research: boolean;
     broker_order_wiring_enabled: boolean;
     order_submission_enabled: boolean;
   };
+  ai_feature_packet?: Record<string, unknown>;
+  ai_feature_packet_version?: string;
+  entry_plan?: StockSignal["entry_plan"];
+  stop_plan?: StockSignal["stop_plan"];
+  target_plan?: StockSignal["target_plan"];
+  risk_reward_plan?: StockSignal["risk_reward_plan"];
+  ai_action_validation?: StockSignal["ai_action_validation"];
+  money_pilot_eligibility?: MoneyPilotEligibility;
+  probe_eligibility?: ProbeEligibility;
+  probe_risk_policy?: ProbeRiskPolicy;
+  probe_blockers?: string[];
   safety_policy: {
     read_only_research: boolean;
     ai_leads_decision_layer: boolean;
@@ -357,6 +446,11 @@ type AiDailyItem = {
   why_now: string[];
   risk_flags: string[];
   hard_veto_applied?: boolean;
+  ai_action_validation?: StockSignal["ai_action_validation"];
+  money_pilot_eligibility?: MoneyPilotEligibility;
+  probe_eligibility?: ProbeEligibility;
+  probe_risk_policy?: ProbeRiskPolicy;
+  probe_blockers?: string[];
 };
 
 type AiDailyAgentPayload = {
@@ -379,11 +473,13 @@ type AiDailyAgentPayload = {
   ai_context_candidate_count?: number;
   ai_report?: {
     top_buy_candidates: AiDailyItem[];
+    probe_candidates?: AiDailyItem[];
     watch_for_pullback: AiDailyItem[];
     avoid_or_risk_elevated: AiDailyItem[];
     mstr_cycle_update: string;
     data_quality_warnings: string[];
     daily_summary: string;
+    validation_by_ai_action?: Record<string, unknown>;
   };
   read_only_research: boolean;
   broker_order_wiring_enabled: boolean;
@@ -425,6 +521,55 @@ type MarketRegimePayload = {
   provider_error_count: number;
   provider_errors: string[];
   reasons: string[];
+};
+
+type MoneyPilotEligibility = {
+  version?: string;
+  action?: string;
+  eligible_for_review?: boolean;
+  ready_for_real_money?: boolean;
+  requires_journal?: boolean;
+  journal_saved?: boolean;
+  criteria?: Record<string, boolean>;
+  blockers?: string[];
+  minimum_risk_reward?: number;
+  minimum_win_rate?: number;
+  minimum_samples?: number;
+  risk_reward_value?: number;
+  historical_win_rate?: number;
+  sample_count?: number;
+  policy?: string;
+};
+
+type ProbeRiskPolicy = {
+  version?: string;
+  default_risk_pct_of_account?: number;
+  max_risk_pct_of_account?: number;
+  position_size_hint?: string;
+  no_averaging_down?: boolean;
+  requires_journal?: boolean;
+  manual_execution_only?: boolean;
+  policy?: string;
+};
+
+type ProbeEligibility = {
+  version?: string;
+  action?: string;
+  eligible_for_probe_review?: boolean;
+  ready_for_probe_trade?: boolean;
+  requires_journal?: boolean;
+  journal_saved?: boolean;
+  criteria?: Record<string, boolean>;
+  blockers?: string[];
+  minimum_risk_reward?: number;
+  minimum_win_rate?: number;
+  minimum_samples?: number;
+  risk_reward_value?: number;
+  historical_win_rate?: number;
+  sample_count?: number;
+  expected_value_r?: number;
+  risk_policy?: ProbeRiskPolicy;
+  policy?: string;
 };
 
 type MondayReadiness = {
@@ -998,6 +1143,28 @@ const copy = {
     searchOffline: "Search API offline. Local symbol index is still available.",
     noSearchMatch: "No match yet. Try ticker, company, layer, or Chinese theme.",
     analyzeFeedback: "Analyzing {symbol} with live candles and rule engine...",
+    stockDecisionTitle: "Can I buy this stock now?",
+    stockDecisionLoading: "Checking whether {symbol} is buyable now...",
+    directAnswer: "Direct answer",
+    marketSetup: "Market setup",
+    executionCheck: "Execution check",
+    waitFor: "Wait for",
+    chartEvidence: "Chart evidence",
+    noAutoOrder: "Research only / no automatic order",
+    systemStatusSummary: "Readiness, provider, AI, and first-day risk rules",
+    answerBuyCandidate: "Buy candidate for manual review",
+    answerPullbackBuy: "Pullback buy candidate",
+    answerProbeBuy: "Small-size probe candidate",
+    answerBreakoutWatch: "Breakout watch",
+    answerReversalWatch: "Reversal watch",
+    answerWait: "Wait",
+    answerAvoid: "Do not buy",
+    answerExitReview: "No fresh long / review existing position",
+    answerHoldTrail: "Hold / trail if already in position",
+    answerUnknown: "No clear answer yet",
+    answerDataMissing: "Cannot judge: live K-lines are unavailable",
+    answerAiThinking: "AI is generating the trading plan",
+    answerAiUnavailable: "AI unavailable; using rule and K-line evidence only",
     aiTradingCommand: "AI Trading Command",
     regenerateAiCommand: "Regenerate AI Command",
     aiCommandGenerating: "AI Command generating...",
@@ -1014,6 +1181,20 @@ const copy = {
     riskReward: "Risk / Reward",
     sizeHint: "Size Hint",
     bestProfile: "Best Profile",
+    strategyQuality: "Strategy Quality",
+    moneyPilot: "Money Pilot",
+    probeCandidate: "Probe Candidate",
+    probeCandidates: "Probe Candidates",
+    noProbeCandidate: "No small-size probe candidate yet.",
+    probeRisk: "Probe risk",
+    eligibleForProbe: "Eligible for probe review",
+    blockedForProbe: "Blocked for probe",
+    eligibleForReview: "Eligible for review",
+    blockedForPilot: "Blocked for pilot",
+    expectedR: "Expected R",
+    targetHit: "Target Hit",
+    stopHit: "Stop Hit",
+    sampleQuality: "Sample Quality",
     whyNow: "Why Now",
     invalidation: "Invalidation",
     humanChecklist: "Human Checklist",
@@ -1037,6 +1218,7 @@ const copy = {
     guarded: "guarded",
     topAiSignals: "Top AI Signals",
     noAiCandidate: "No hard-veto-clean AI buy candidate yet.",
+    topProbeSignals: "Probe Candidates",
     watchForPullback: "Watch for Pullback",
     noAiWatchlist: "No AI watchlist yet.",
     dataRiskWarnings: "Data / Risk Warnings",
@@ -1218,6 +1400,27 @@ const copy = {
     searchOffline: "搜索 API 离线，本地股票索引仍可使用。",
     noSearchMatch: "暂未匹配。可以输入 ticker、公司名、分类或中文主题。",
     analyzeFeedback: "正在用真实K线和规则引擎分析 {symbol}...",
+    stockDecisionTitle: "这只股票现在能不能买？",
+    stockDecisionLoading: "正在判断 {symbol} 现在是否可以买...",
+    directAnswer: "直接答案",
+    marketSetup: "行情判断",
+    executionCheck: "执行检查",
+    waitFor: "等待条件",
+    chartEvidence: "K线证据",
+    noAutoOrder: "仅研究信号 / 不自动下单",
+    systemStatusSummary: "准备度、数据源、AI 和第一天风控规则",
+    answerBuyCandidate: "可进入人工买入复核",
+    answerPullbackBuy: "回踩买入候选",
+    answerBreakoutWatch: "突破观察，等确认",
+    answerReversalWatch: "反转观察，等结构修复",
+    answerWait: "等待",
+    answerAvoid: "不要买",
+    answerExitReview: "不适合新开仓；如已持有需复核风险",
+    answerHoldTrail: "如已持有可跟踪止盈",
+    answerUnknown: "还没有明确答案",
+    answerDataMissing: "无法判断：实时 K 线不可用",
+    answerAiThinking: "AI 正在生成交易计划",
+    answerAiUnavailable: "AI 不可用；仅使用规则和 K 线证据",
     aiTradingCommand: "AI 交易指令",
     regenerateAiCommand: "重新生成 AI 指令",
     aiCommandGenerating: "AI 指令生成中...",
@@ -1234,6 +1437,14 @@ const copy = {
     riskReward: "盈亏比",
     sizeHint: "仓位提示",
     bestProfile: "最佳系统",
+    strategyQuality: "策略质量",
+    moneyPilot: "真钱复核",
+    eligibleForReview: "可进入人工复核",
+    blockedForPilot: "未达真钱门槛",
+    expectedR: "期望R",
+    targetHit: "触及目标",
+    stopHit: "触及止损",
+    sampleQuality: "样本质量",
     whyNow: "为什么现在",
     invalidation: "失效条件",
     humanChecklist: "人工检查清单",
@@ -1323,6 +1534,9 @@ const copy = {
   },
 } as const;
 const CHART_PRESETS: ChartPreset[] = [
+  { key: "today1m", label: "Today 1m", range: "1d", interval: "1m" },
+  { key: "today5m", label: "Today 5m", range: "1d", interval: "5m" },
+  { key: "5d15m", label: "5D 15m", range: "5d", interval: "15m" },
   { key: "1h", label: "1H", range: "5d", interval: "1h" },
   { key: "1d", label: "1D", range: "1y", interval: "1d" },
   { key: "1w", label: "1W", range: "5y", interval: "1wk" },
@@ -2043,6 +2257,17 @@ function App() {
   }, [selected.symbol, primaryPresetKey, confirmationPresetKey]);
 
   useEffect(() => {
+    if (view !== "stocks" || apiConnection !== "connected") return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void loadCandles(selected.symbol);
+      }
+    }, 30000);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, apiConnection, selected.symbol, primaryPresetKey, confirmationPresetKey]);
+
+  useEffect(() => {
     if (view === "mstr" && !mstrRadar && mstrState !== "loading") {
       void loadMstrRadar();
     }
@@ -2142,6 +2367,14 @@ function App() {
     }
   }
 
+  function submitStockSearch(query: string = searchText) {
+    const symbol = resolveSearchSymbol(query, activeSearchResults, selected.symbol);
+    setView("stocks");
+    setActiveWorkspace("stock");
+    setSearchOpen(false);
+    void analyzeSymbol(symbol);
+  }
+
   async function loadSignals(forceScan: boolean, layer?: string) {
     const nextUniverse = selectedUniverse;
     const scanLimit = nextUniverse === "all" ? 300 : nextUniverse === "ai_five_layer" ? 100 : 200;
@@ -2237,6 +2470,8 @@ function App() {
     const symbol = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
     if (!symbol) return;
     const requestId = ++analyzeRequestRef.current;
+    setView("stocks");
+    setActiveWorkspace("stock");
     setSelectedSymbol(symbol);
     setAnalysisState("loading");
     setAiDecision(null);
@@ -2557,7 +2792,7 @@ function App() {
           <Pill
             tone={apiConnection === "connected" ? "good" : "warn"}
             icon={<Activity size={14} />}
-            label={apiConnection === "connected" ? "Live" : "Offline"}
+            label={apiConnection === "connected" ? marketDataMiniLabel(apiHealth) : "Offline"}
           />
           <Pill
             tone={aiStatus?.status === "available" ? "good" : "warn"}
@@ -2578,7 +2813,7 @@ function App() {
             <Pill
               tone={apiConnection === "connected" ? "good" : "warn"}
               icon={<Activity size={14} />}
-              label={apiConnection === "connected" ? `Live: ${apiHealth?.backend ?? "API"}` : "Live API offline"}
+              label={apiConnection === "connected" ? `${marketDataMiniLabel(apiHealth)}: ${apiHealth?.backend ?? "API"}` : "Live API offline"}
             />
             <Pill
               tone={aiStatus?.status === "available" ? "good" : "warn"}
@@ -2704,7 +2939,7 @@ function App() {
           className="symbol-command symbol-command-large"
           onSubmit={(event) => {
             event.preventDefault();
-            void analyzeSymbol(resolveSearchSymbol(searchText, activeSearchResults, selected.symbol));
+            submitStockSearch();
           }}
         >
           <Search size={17} />
@@ -2720,7 +2955,7 @@ function App() {
               if (event.key === "ArrowDown") setSearchOpen(true);
               if (event.key === "Enter" && activeSearchResults[0]) {
                 event.preventDefault();
-                void analyzeSymbol(resolveSearchSymbol(searchText, activeSearchResults, selected.symbol));
+                submitStockSearch();
               }
             }}
             placeholder={text.searchPlaceholder}
@@ -2739,7 +2974,7 @@ function App() {
                 setSearchText(shortcut.query);
                 setSearchOpen(true);
                 if ("symbol" in shortcut) {
-                  void analyzeSymbol(shortcut.symbol);
+                  submitStockSearch(shortcut.symbol);
                 } else {
                   void loadSearchResults(shortcut.query);
                 }
@@ -2765,7 +3000,7 @@ function App() {
                   type="button"
                   className="command-result"
                   key={stock.symbol}
-                  onClick={() => void analyzeSymbol(stock.symbol)}
+                  onClick={() => submitStockSearch(stock.symbol)}
                 >
                   <strong>{stock.symbol}</strong>
                   <span>{stock.name}</span>
@@ -2782,7 +3017,7 @@ function App() {
       <section className="quick-search-row" aria-label="Recent symbol searches">
         <span>{text.recent}</span>
         {recentSymbols.map((symbol) => (
-          <button key={symbol} type="button" className={symbol === selected.symbol ? "symbol-chip active" : "symbol-chip"} onClick={() => void analyzeSymbol(symbol)}>
+          <button key={symbol} type="button" className={symbol === selected.symbol ? "symbol-chip active" : "symbol-chip"} onClick={() => submitStockSearch(symbol)}>
             {symbol}
           </button>
         ))}
@@ -2828,7 +3063,27 @@ function App() {
       ) : (
         <>
       <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
-      <MondayReadinessPanel readiness={mondayReadiness} text={text} />
+      <TerminalRadarPanel
+        run={run}
+        universe={universe}
+        selected={selected}
+        selectedMeta={selectedMeta}
+        aiDecision={aiDecision}
+        dailyMeta={dailyMeta}
+        hourlyMeta={hourlyMeta}
+        mondayReadiness={mondayReadiness}
+        lang={lang}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+        onOpenStock={() => openWorkspace("stock")}
+      />
+      <details className="system-status-details">
+        <summary>
+          <span>{text.systemStatus}</span>
+          <strong>{mondayReadiness.status}</strong>
+          <small>{text.systemStatusSummary}</small>
+        </summary>
+        <MondayReadinessPanel readiness={mondayReadiness} text={text} />
+      </details>
       <AiTradeDesk
         report={aiDailyReport}
         state={aiDailyState}
@@ -2918,6 +3173,18 @@ function App() {
               </div>
               <div className="selected-score">{selected.score}/100</div>
             </div>
+            <StockDecisionAnswerCard
+              selected={selected}
+              aiDecision={aiDecision}
+              aiDecisionState={aiDecisionState}
+              analysisState={analysisState}
+              dailyMeta={dailyMeta}
+              hourlyMeta={hourlyMeta}
+              text={text}
+              lang={lang}
+              onRegenerate={() => void requestAiDecision({ trigger: "manual", force: true })}
+              onOpenJournal={() => openWorkspace("journal")}
+            />
             <ManualTradingConclusion
               conclusion={selected.trade_conclusion}
               aiReview={aiReview}
@@ -3827,6 +4094,8 @@ function StockJournalPanel({
       <form className="journal-form stock-journal-form" onSubmit={handleSubmit}>
         <select value={status} onChange={(event) => setStatus(event.target.value)}>
           <option value="reviewed">reviewed</option>
+          <option value="probe">probe</option>
+          <option value="full_review">full review</option>
           <option value="watch">watch</option>
           <option value="skipped">skipped</option>
           <option value="paper-observed">paper-observed</option>
@@ -3997,6 +4266,201 @@ function DataReliabilityPanel({
   );
 }
 
+function TerminalRadarPanel({
+  run,
+  universe,
+  selected,
+  selectedMeta,
+  aiDecision,
+  dailyMeta,
+  hourlyMeta,
+  mondayReadiness,
+  lang,
+  onPick,
+  onOpenStock,
+}: {
+  run: SignalRun;
+  universe: UniverseStock[];
+  selected: StockSignal;
+  selectedMeta: UniverseStock;
+  aiDecision: AiDecisionPayload | null;
+  dailyMeta: CandleMeta;
+  hourlyMeta: CandleMeta;
+  mondayReadiness: MondayReadiness;
+  lang: Lang;
+  onPick: (symbol: string) => void;
+  onOpenStock: () => void;
+}) {
+  const zh = lang === "zh";
+  const currentAi = aiDecision?.ai_decision;
+  const selectedAction = currentAi?.action ?? selected.trade_conclusion?.action ?? selected.level;
+  const selectedLayer = signalLayer(selected, selectedMeta);
+  const selectedScore = Number(selected.score ?? 0);
+  const selectedWinRate =
+    selected.ai_action_validation?.win_rate ??
+    selected.historical_edge?.focus_win_rate ??
+    selected.historical_edge?.win_rate_5d ??
+    0;
+  const selectedExpectedR = selected.ai_action_validation?.expected_value_r ?? 0;
+  const rankedSignals = [...run.signals]
+    .sort((a, b) => {
+      const actionRank = (signal: StockSignal) => {
+        const action = signal.trade_conclusion?.action ?? signal.level;
+        if (String(action).includes("BUY")) return 4;
+        if (String(action).includes("WATCH")) return 3;
+        if (String(action).includes("WAIT")) return 2;
+        return 1;
+      };
+      return actionRank(b) - actionRank(a) || Number(b.score ?? 0) - Number(a.score ?? 0);
+    })
+    .slice(0, 12);
+
+  const layerNames = Array.from(new Set(universe.map((stock) => stock.layer || stock.primary_layer || "US Stock"))).slice(0, 12);
+  const layerTiles = layerNames.map((layer) => {
+    const layerSymbols = universe.filter((stock) => (stock.layer || stock.primary_layer) === layer);
+    const layerSignals = run.signals.filter((signal) => {
+      const meta = selectedMetaBySymbol(universe, signal.symbol);
+      return signal.primary_layer === layer || meta?.layer === layer;
+    });
+    const avgScore = layerSignals.length
+      ? layerSignals.reduce((sum, signal) => sum + Number(signal.score ?? 0), 0) / layerSignals.length
+      : 0;
+    const hotCount = layerSignals.filter((signal) => {
+      const action = String(signal.trade_conclusion?.action ?? signal.level);
+      return action.includes("BUY") || action.includes("WATCH");
+    }).length;
+    return {
+      layer,
+      count: layerSymbols.length,
+      avgScore,
+      hotCount,
+      symbols: layerSymbols.slice(0, 4).map((stock) => stock.symbol),
+    };
+  });
+
+  return (
+    <section className="terminal-radar-panel" aria-label={zh ? "KQUANT 交易终端总览" : "KQUANT terminal overview"}>
+      <div className="terminal-radar-header">
+        <div>
+          <span>{zh ? "实时交易雷达" : "Live Trading Radar"}</span>
+          <h2>{zh ? "KQUANT AI 股票雷达" : "KQUANT AI Stock Radar"}</h2>
+          <p>
+            {zh
+              ? "把 AI 今日机会、板块热度、当前股票结论和数据健康压缩到一屏，方便开盘后快速扫视。"
+              : "Compressed terminal view for AI opportunities, sector heat, selected stock decision, and data health."}
+          </p>
+        </div>
+        <div className="terminal-clock-stack">
+          <b>{mondayReadiness.status}</b>
+          <span>{zh ? "实盘准备度" : "Readiness"}</span>
+        </div>
+      </div>
+
+      <div className="terminal-radar-layout">
+        <div className="terminal-radar-left">
+          <div className="terminal-metric-grid">
+            <TerminalMiniMetric label={zh ? "买入候选" : "Buy"} value={String(run.counts.buy_setup)} tone="good" />
+            <TerminalMiniMetric label={zh ? "观察" : "Watch"} value={String(run.counts.watch)} tone="watch" />
+            <TerminalMiniMetric label={zh ? "小仓/探针" : "Probe"} value={String(run.review_counts?.high_priority ?? 0)} tone="probe" />
+            <TerminalMiniMetric label={zh ? "数据覆盖" : "Coverage"} value={`${run.provider_coverage?.available ?? 0}/${run.universe_total ?? universe.length}`} />
+            <TerminalMiniMetric label={zh ? "AI 模型" : "AI Model"} value={String(run.provider_error_count ? "Caution" : "Ready")} tone={run.provider_error_count ? "watch" : "good"} />
+            <TerminalMiniMetric label={zh ? "当前池" : "Universe"} value={`${run.scanned_count ?? run.counts.total}/${run.universe_total ?? universe.length}`} />
+          </div>
+
+          <div className="terminal-tape">
+            <div className="terminal-section-title">
+              <strong>{zh ? "AI 信号带" : "AI Signal Tape"}</strong>
+              <span>{run.profile.label ?? run.profile.name}</span>
+            </div>
+            {rankedSignals.length ? (
+              rankedSignals.map((signal) => (
+                <button
+                  type="button"
+                  key={`terminal-signal-${signal.symbol}`}
+                  className={`terminal-tape-row ${actionClass(signal.trade_conclusion?.action ?? signal.level)}`}
+                  onClick={() => onPick(signal.symbol)}
+                >
+                  <b>{signal.symbol}</b>
+                  <span>{signalLayer(signal, selectedMetaBySymbol(universe, signal.symbol) ?? selectedMeta)}</span>
+                  <em>{signal.trade_conclusion?.action ?? levelLabel(signal.level, lang)}</em>
+                  <strong>{formatNumber(signal.score)}</strong>
+                </button>
+              ))
+            ) : (
+              <p className="terminal-empty">{zh ? "暂无信号，先运行扫描或搜索股票。" : "No signals loaded. Run scan or search a symbol."}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="terminal-radar-center">
+          <div className="terminal-section-title">
+            <strong>{zh ? "AI 主题板块" : "AI Theme Heatmap"}</strong>
+            <span>{zh ? "按产业链分组" : "Grouped by market layer"}</span>
+          </div>
+          <div className="terminal-layer-grid">
+            {layerTiles.map((tile) => (
+              <button
+                type="button"
+                className={`terminal-layer-tile ${tile.avgScore >= 70 ? "hot" : tile.hotCount ? "warm" : ""}`}
+                key={`terminal-layer-${tile.layer}`}
+                onClick={() => tile.symbols[0] && onPick(tile.symbols[0])}
+              >
+                <div>
+                  <strong>{tile.layer}</strong>
+                  <span>{tile.count} {zh ? "只" : "stocks"}</span>
+                </div>
+                <b>{formatNumber(tile.avgScore)}</b>
+                <small>{tile.symbols.join(" / ") || "-"}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <aside className="terminal-radar-detail">
+          <div className="terminal-section-title">
+            <strong>{zh ? "当前股票" : "Selected Stock"}</strong>
+            <button type="button" onClick={onOpenStock}>{zh ? "打开详情" : "Open detail"}</button>
+          </div>
+          <div className="terminal-stock-head">
+            <span>{selectedMeta.name}</span>
+            <h3>{selected.symbol}</h3>
+            <b>{formatNumber(selectedScore)}/100</b>
+          </div>
+          <div className={`terminal-action-card ${actionClass(String(selectedAction))}`}>
+            <span>{zh ? "AI 判断" : "AI Decision"}</span>
+            <strong>{String(selectedAction)}</strong>
+            <small>{currentAi?.summary ?? selected.trade_conclusion?.decision_summary ?? selected.trigger_summary}</small>
+          </div>
+          <div className="terminal-detail-grid">
+            <Fact label={zh ? "层级" : "Layer"} value={selectedLayer} />
+            <Fact label={zh ? "日线" : "Daily"} value={`${dailyMeta.providerStatus} / ${dailyMeta.count}`} />
+            <Fact label={zh ? "确认线" : "Confirm"} value={`${hourlyMeta.providerStatus} / ${hourlyMeta.count}`} />
+            <Fact label={zh ? "胜率" : "Win Rate"} value={`${formatNumber(selectedWinRate)}%`} />
+            <Fact label="EV R" value={`${formatNumber(selectedExpectedR)}R`} />
+            <Fact label="ATR" value={`${formatNumber(selected.features.atr_pct)}%`} />
+            <Fact label="EMA20" value={formatNumber(selected.features.ema20)} />
+            <Fact label={zh ? "成交量" : "Volume"} value={`${formatNumber(selected.features.volume_ratio)}x`} />
+          </div>
+          <div className="terminal-plan-lines">
+            <p><b>{zh ? "入场" : "Entry"}</b>{currentAi?.entry_zone ?? selected.entry_plan?.zone ?? "-"}</p>
+            <p><b>{zh ? "止损" : "Stop"}</b>{currentAi?.stop_zone ?? selected.stop_plan?.zone ?? "-"}</p>
+            <p><b>{zh ? "目标" : "Target"}</b>{currentAi?.target_zone ?? selected.target_plan?.zone ?? "-"}</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function TerminalMiniMetric({ label, value, tone }: { label: string; value: string; tone?: "good" | "watch" | "probe" }) {
+  return (
+    <div className={`terminal-mini-metric ${tone ?? ""}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
 function AiTradeDesk({
   report,
   state,
@@ -4021,6 +4485,7 @@ function AiTradeDesk({
   const aiConnected = aiStatus?.status === "available";
   const aiReport = report?.ai_report;
   const top = aiReport?.top_buy_candidates ?? [];
+  const probe = aiReport?.probe_candidates ?? [];
   const watch = aiReport?.watch_for_pullback ?? [];
   const warnings = aiReport?.data_quality_warnings ?? [];
   return (
@@ -4055,6 +4520,12 @@ function AiTradeDesk({
       </div>
       <div className="ai-opportunity-grid">
         <AiOpportunityColumn title={text.topAiSignals} empty={text.noAiCandidate} items={top} onPick={onPick} />
+        <AiOpportunityColumn
+          title={lang === "zh" ? "小仓试错候选" : "Probe Candidates"}
+          empty={lang === "zh" ? "暂无小仓试错候选。" : "No small-size probe candidate yet."}
+          items={probe.slice(0, 6)}
+          onPick={onPick}
+        />
         <AiOpportunityColumn title={text.watchForPullback} empty={text.noAiWatchlist} items={watch.slice(0, 5)} onPick={onPick} />
         <AiOpportunityColumn
           title={text.dataRiskWarnings}
@@ -4111,13 +4582,39 @@ function AiOpportunityColumn({
             onClick={() => (!passive && item.symbol ? onPick(item.symbol) : undefined)}
             disabled={passive}
           >
+            {(() => {
+              const validation = item.ai_action_validation;
+              const moneyPilot = item.money_pilot_eligibility;
+              const probe = item.probe_eligibility;
+              return (
+                <>
             <div>
               <b>{item.symbol}</b>
               <span>{item.action} / {item.confidence}</span>
             </div>
             <small>{item.best_profile || "AI plan"} / R:R {item.risk_reward || "-"}</small>
+            <div className="opportunity-quality">
+              <span>EV {formatNumber(validation?.expected_value_r)}R</span>
+              <span>Win {formatNumber(validation?.win_rate)}%</span>
+              <span>
+                {moneyPilot?.eligible_for_review
+                  ? "Money review"
+                  : probe?.eligible_for_probe_review
+                    ? "Probe review"
+                    : "Review blocked"}
+              </span>
+            </div>
+            {item.action === "AI_PROBE_BUY" ? (
+              <small>
+                Probe risk {formatNumber(item.probe_risk_policy?.default_risk_pct_of_account ?? 0.15)}% / max{" "}
+                {formatNumber(item.probe_risk_policy?.max_risk_pct_of_account ?? 0.2)}%
+              </small>
+            ) : null}
             <p>{item.entry_zone || item.why_now?.[0] || "Open for details."}</p>
             {item.hard_veto_applied ? <em>Hard veto applied</em> : null}
+                </>
+              );
+            })()}
           </button>
         ))
       ) : (
@@ -4238,6 +4735,132 @@ function ManualTradeTicketPanel({
   );
 }
 
+function StockDecisionAnswerCard({
+  selected,
+  aiDecision,
+  aiDecisionState,
+  analysisState,
+  dailyMeta,
+  hourlyMeta,
+  text,
+  lang,
+  onRegenerate,
+  onOpenJournal,
+}: {
+  selected: StockSignal;
+  aiDecision: AiDecisionPayload | null;
+  aiDecisionState: "idle" | "loading" | "ready" | "error";
+  analysisState: "idle" | "loading" | "ready" | "error";
+  dailyMeta: CandleMeta;
+  hourlyMeta: CandleMeta;
+  text: (typeof copy)["en"] | (typeof copy)["zh"];
+  lang: Lang;
+  onRegenerate: () => void;
+  onOpenJournal: () => void;
+}) {
+  const decision = aiDecision?.ai_decision;
+  const rawAction = decision?.action ?? selected.trade_conclusion?.action ?? selected.level;
+  const liveDataReady = isLiveCandleMeta(dailyMeta) && isLiveCandleMeta(hourlyMeta);
+  const isLoading = analysisState === "loading";
+  const actionAnswer = actionAnswerCopy(rawAction, lang);
+  const headline = isLoading
+    ? text.stockDecisionLoading.replace("{symbol}", selected.symbol)
+    : !liveDataReady
+      ? text.answerDataMissing
+      : aiDecisionState === "loading"
+        ? text.answerAiThinking
+        : aiDecisionState === "error"
+          ? text.answerAiUnavailable
+          : actionAnswer.label;
+  const tone = isLoading || aiDecisionState === "loading" ? "watch" : !liveDataReady ? "pass" : actionClass(rawAction);
+  const summary =
+    decision?.summary ??
+    selected.trade_conclusion?.decision_summary ??
+    selected.trigger_summary ??
+    text.answerUnknown;
+  const whyItems = (
+    decision?.why_now?.length
+      ? decision.why_now
+      : selected.trade_conclusion?.why?.length
+        ? selected.trade_conclusion.why
+        : [selected.trend_summary, selected.trigger_summary]
+  ).filter(Boolean).slice(0, 4);
+  const waitItems = (
+    decision?.what_invalidates_this_setup?.length
+      ? decision.what_invalidates_this_setup
+      : selected.trade_conclusion?.invalidation?.length
+        ? selected.trade_conclusion.invalidation
+        : selected.exit_risk?.reasons ?? []
+  ).filter(Boolean).slice(0, 4);
+  const moneyPilot = decision?.money_pilot_eligibility ?? aiDecision?.money_pilot_eligibility;
+  const probe =
+    decision?.probe_eligibility ??
+    aiDecision?.probe_eligibility ??
+    selected.probe_eligibility;
+  const probePolicy =
+    decision?.probe_risk_policy ??
+    aiDecision?.probe_risk_policy ??
+    selected.probe_risk_policy ??
+    probe?.risk_policy;
+  const probeReviewLabel = lang === "zh" ? "小仓试错" : "Probe";
+  const probeEligibleLabel = lang === "zh" ? "可复核" : "eligible";
+  const probeBlockedLabel = lang === "zh" ? "未达门槛" : "blocked";
+  const probeRiskLabel = lang === "zh" ? "试错风险" : "Probe risk";
+  return (
+    <section className={`stock-answer-card ${tone}`}>
+      <div className="stock-answer-head">
+        <div>
+          <span className="eyebrow">{text.stockDecisionTitle}</span>
+          <h3>{headline}</h3>
+          <p>{summary}</p>
+        </div>
+        <div className={`answer-badge ${tone}`}>
+          <span>{text.directAnswer}</span>
+          <strong>{actionAnswer.shortLabel}</strong>
+        </div>
+      </div>
+      <div className="stock-answer-facts">
+        <Fact label={text.aiAction} value={String(rawAction)} />
+        <Fact label={text.confidence} value={decision?.confidence ?? selected.trade_conclusion?.confidence ?? "-"} />
+        <Fact label={text.entryZone} value={decision?.entry_zone ?? "-"} />
+        <Fact label={text.stopZone} value={decision?.stop_zone ?? "-"} />
+        <Fact label={text.targetZone} value={decision?.target_zone ?? "-"} />
+        <Fact label={text.riskReward} value={decision?.risk_reward ?? "-"} />
+      </div>
+      <div className="stock-answer-body">
+        <Narrative title={text.marketSetup} items={whyItems.length ? whyItems : [text.answerUnknown]} />
+        <Narrative title={text.waitFor} items={waitItems.length ? waitItems : [actionAnswer.nextStep]} />
+      </div>
+      <div className="stock-answer-strip">
+        <span>
+          {text.chartEvidence}: {dailyMeta.providerStatus}/{dailyMeta.count} + {hourlyMeta.providerStatus}/{hourlyMeta.count}
+        </span>
+        <span>
+          {text.hardVeto}: {aiDecision?.hard_veto?.active ? "active" : "clear"}
+        </span>
+        <span>
+          {text.moneyPilot}: {moneyPilot?.eligible_for_review ? text.eligibleForReview : text.blockedForPilot}
+        </span>
+        <span>
+          {probeReviewLabel}: {probe?.eligible_for_probe_review ? probeEligibleLabel : probeBlockedLabel}
+        </span>
+        <span>
+          {probeRiskLabel}: {formatNumber(probePolicy?.default_risk_pct_of_account ?? 0.15)}% / max {formatNumber(probePolicy?.max_risk_pct_of_account ?? 0.2)}%
+        </span>
+        <span>{text.noAutoOrder}</span>
+      </div>
+      <div className="stock-answer-actions">
+        <button type="button" onClick={onRegenerate} disabled={aiDecisionState === "loading"}>
+          {aiDecisionState === "loading" ? text.aiCommandGenerating : text.regenerateAiCommand}
+        </button>
+        <button type="button" className="secondary-action" onClick={onOpenJournal}>
+          {text.journalBeforeTrade}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function ManualTradingConclusion({
   conclusion,
   aiReview,
@@ -4260,6 +4883,15 @@ function ManualTradingConclusion({
   const action = conclusion?.action ?? "DO_NOT_BUY";
   const ai = aiReview?.ai_review;
   const decision = aiDecision?.ai_decision;
+  const actionValidation = decision?.ai_action_validation ?? aiDecision?.ai_action_validation ?? undefined;
+  const baselineRiskReward = decision?.risk_reward_plan ?? aiDecision?.risk_reward_plan ?? undefined;
+  const moneyPilot = decision?.money_pilot_eligibility ?? aiDecision?.money_pilot_eligibility ?? undefined;
+  const probeEligibility = decision?.probe_eligibility ?? aiDecision?.probe_eligibility ?? undefined;
+  const probePolicy =
+    decision?.probe_risk_policy ??
+    aiDecision?.probe_risk_policy ??
+    probeEligibility?.risk_policy ??
+    undefined;
   const displayAction = decision?.action ?? action;
   const displaySummary = decision?.summary ?? conclusion?.decision_summary ?? "No rule conclusion loaded yet.";
   const aiConnected = aiStatus?.status === "available";
@@ -4302,6 +4934,7 @@ function ManualTradingConclusion({
             <Fact label={text.aiAction} value={decision?.action ?? "-"} />
             <Fact label={text.confidence} value={decision?.confidence ?? "-"} />
             <Fact label={text.hardVeto} value={aiDecision.hard_veto?.active ? "active" : "clear"} />
+            <Fact label="Packet" value={decision?.ai_feature_packet_version ?? aiDecision.ai_feature_packet_version ?? "v2"} />
           </div>
           <div className="ai-plan-grid">
             <Fact label={text.entryZone} value={decision?.entry_zone ?? "-"} />
@@ -4310,7 +4943,57 @@ function ManualTradingConclusion({
             <Fact label={text.riskReward} value={decision?.risk_reward ?? "-"} />
             <Fact label={text.sizeHint} value={decision?.position_size_hint ?? "-"} />
             <Fact label={text.bestProfile} value={decision?.best_profile ?? "-"} />
+            <Fact label="Baseline R:R" value={baselineRiskReward?.risk_reward ?? "-"} />
+            <Fact label="Evidence" value={actionValidation?.evidence_quality ?? "-"} />
+            <Fact label="Samples" value={formatNumber(actionValidation?.sample_count)} />
+            <Fact label="Win Rate" value={`${formatNumber(actionValidation?.win_rate)}%`} />
+            <Fact label={text.expectedR} value={`${formatNumber(actionValidation?.expected_value_r)}R`} />
+            <Fact label={text.targetHit} value={`${formatNumber(actionValidation?.target_hit_rate)}%`} />
+            <Fact label={text.stopHit} value={`${formatNumber(actionValidation?.stop_hit_rate)}%`} />
+            <Fact label="Avg Return" value={`${formatNumber(actionValidation?.avg_forward_return)}%`} />
+            <Fact label="Avg Drawdown" value={`${formatNumber(actionValidation?.avg_max_drawdown)}%`} />
           </div>
+          <div className={`strategy-quality-panel ${moneyPilot?.eligible_for_review ? "eligible" : "blocked"}`}>
+            <div className="ai-review-head">
+              <strong>{text.strategyQuality}</strong>
+              <span>{moneyPilot?.eligible_for_review ? text.eligibleForReview : text.blockedForPilot}</span>
+            </div>
+            <div className="ai-review-facts">
+              <Fact label={text.moneyPilot} value={moneyPilot?.eligible_for_review ? text.eligibleForReview : text.blockedForPilot} />
+              <Fact label={text.riskReward} value={`${formatNumber(moneyPilot?.risk_reward_value)}R / min ${formatNumber(moneyPilot?.minimum_risk_reward)}R`} />
+              <Fact label="Win Rate" value={`${formatNumber(moneyPilot?.historical_win_rate)}% / min ${formatNumber(moneyPilot?.minimum_win_rate)}%`} />
+              <Fact label={text.sampleQuality} value={`${formatNumber(moneyPilot?.sample_count)} / min ${formatNumber(moneyPilot?.minimum_samples)}`} />
+            </div>
+            {moneyPilot?.blockers?.length ? (
+              <Narrative title={text.blockers} items={moneyPilot.blockers.slice(0, 6)} />
+            ) : (
+              <p className="secondary-note">{text.journalRequired}</p>
+            )}
+          </div>
+          <div className={`strategy-quality-panel ${probeEligibility?.eligible_for_probe_review ? "eligible probe" : "blocked"}`}>
+            <div className="ai-review-head">
+              <strong>AI Probe / 小仓试错</strong>
+              <span>{probeEligibility?.eligible_for_probe_review ? "eligible" : "blocked"}</span>
+            </div>
+            <div className="ai-review-facts">
+              <Fact label="Probe review" value={probeEligibility?.eligible_for_probe_review ? "starter review" : "blocked"} />
+              <Fact label={text.riskReward} value={`${formatNumber(probeEligibility?.risk_reward_value)}R / min ${formatNumber(probeEligibility?.minimum_risk_reward)}R`} />
+              <Fact label="Win Rate" value={`${formatNumber(probeEligibility?.historical_win_rate)}% / min ${formatNumber(probeEligibility?.minimum_win_rate)}%`} />
+              <Fact label={text.sampleQuality} value={`${formatNumber(probeEligibility?.sample_count)} / min ${formatNumber(probeEligibility?.minimum_samples)}`} />
+              <Fact label="Risk" value={`${formatNumber(probePolicy?.default_risk_pct_of_account ?? 0.15)}% default / ${formatNumber(probePolicy?.max_risk_pct_of_account ?? 0.2)}% max`} />
+              <Fact label="No averaging" value={probePolicy?.no_averaging_down ? "yes" : "required"} />
+            </div>
+            {probeEligibility?.blockers?.length ? (
+              <Narrative title={text.blockers} items={probeEligibility.blockers.slice(0, 6)} />
+            ) : (
+              <p className="secondary-note">Starter only: no full-size, no chase, no averaging down, journal required.</p>
+            )}
+          </div>
+          {actionValidation?.verdict ? (
+            <p className="secondary-note">
+              AI action validation: {actionValidation.verdict} / noise {formatNumber(actionValidation.noise_rate)}%. {actionValidation.note ?? ""}
+            </p>
+          ) : null}
           <Narrative title={text.whyNow} items={decision?.why_now?.length ? decision.why_now : ["No AI decision reasons."]} />
           <Narrative title={text.invalidation} items={decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : ["No AI invalidation."]} />
           <Narrative title={text.humanChecklist} items={decision?.human_checklist?.length ? decision.human_checklist : ["Save journal before acting manually."]} />
@@ -4576,7 +5259,14 @@ function ChartPanel({
         horzLines: { color: dark ? "#1e293b" : "#eef2f7" },
       },
       rightPriceScale: { borderColor: dark ? "#263241" : "#e5e7eb" },
-      timeScale: { borderColor: dark ? "#263241" : "#e5e7eb", timeVisible: true },
+      localization: {
+        timeFormatter: (time: Time) => formatChartTime(time, { withDate: true }),
+      },
+      timeScale: {
+        borderColor: dark ? "#263241" : "#e5e7eb",
+        timeVisible: true,
+        tickMarkFormatter: (time: Time) => formatChartTime(time, { withDate: false }),
+      },
       handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
       handleScale: { mouseWheel: false, pinch: true, axisPressedMouseMove: true },
     });
@@ -4617,7 +5307,7 @@ function ChartPanel({
         return;
       }
       setHover({
-        time: String(point.time),
+        time: formatChartTime(point.time, { withDate: true }),
         open: point.open,
         high: point.high,
         low: point.low,
@@ -5418,6 +6108,19 @@ function fixtureTimestamps(range: RangeValue, interval: IntervalValue): number[]
   if (interval === "1d") {
     return previousTradingDays(end, 252).map((day) => Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000);
   }
+  if (range === "1d" && (interval === "1m" || interval === "5m")) {
+    const day = previousTradingDays(end, 1)[0];
+    const start = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000;
+    const step = interval === "1m" ? 60 : 5 * 60;
+    const bars = interval === "1m" ? 390 : 78;
+    return Array.from({ length: bars }, (_, index) => start + index * step);
+  }
+  if (range === "5d" && interval === "15m") {
+    return previousTradingDays(end, 5).flatMap((day) => {
+      const start = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000;
+      return Array.from({ length: 26 }, (_, index) => start + index * 15 * 60);
+    });
+  }
   if (range === "5d" && interval === "1h") {
     return previousTradingDays(end, 5).flatMap((day) => {
       const start = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 13, 30) / 1000;
@@ -5598,7 +6301,23 @@ function levelClass(level: Level) {
 }
 
 function isLiveCandleMeta(meta: CandleMeta) {
-  return meta.count > 0 && meta.providerStatus === "available" && meta.sourceType.includes("live") && !meta.sourceType.includes("fixture");
+  return (
+    meta.count > 0
+    && meta.providerStatus === "available"
+    && (meta.sourceType === "longbridge_candles" || meta.sourceType.includes("live"))
+    && !meta.sourceType.includes("fixture")
+  );
+}
+
+function marketDataMiniLabel(apiHealth: ApiHealthPayload | null) {
+  const provider = apiHealth?.market_data?.provider ?? apiHealth?.market_data_provider ?? "live";
+  const status = apiHealth?.market_data?.status ?? apiHealth?.longbridge_status ?? "";
+  if (provider === "longbridge") {
+    if (status === "available") return "Longbridge Live";
+    if (status === "missing") return "Longbridge Missing";
+    return "Longbridge";
+  }
+  return "Yahoo prototype";
 }
 
 function parseRiskReward(value: string | undefined) {
@@ -5813,9 +6532,117 @@ function isManualPilotJournalReady(entry: StockJournalEntry, symbol: string) {
 
 function actionClass(action: TradeAction | string | undefined) {
   if (action === "BUY" || action === "HOLD_TRAIL" || action === "AI_BUY_CANDIDATE" || action === "AI_PULLBACK_BUY" || action === "AI_HOLD_TRAIL") return "buy";
+  if (action === "AI_PROBE_BUY") return "probe";
   if (action === "WAIT" || action === "AI_WAIT" || action === "AI_REVERSAL_WATCH" || action === "AI_BREAKOUT_WATCH") return "watch";
   if (action === "EXIT_REVIEW" || action === "AI_EXIT_REVIEW") return "exit";
   return "pass";
+}
+
+function actionAnswerCopy(action: TradeAction | AiAction | Level | string | undefined, lang: Lang) {
+  const zh = lang === "zh";
+  const normalized = String(action ?? "").toUpperCase();
+  if (normalized === "AI_PROBE_BUY") {
+    return {
+      label: zh ? "AI 小仓试错候选" : "AI small-size probe candidate",
+      shortLabel: zh ? "小仓试错" : "Probe",
+      nextStep: zh
+        ? "仅按 0.15% 默认风险人工复核，不追高，不摊平，必须保存 Journal。"
+        : "Review as a starter only: 0.15% default risk, no chase, no averaging down, journal required.",
+    };
+  }
+  if (normalized === "AI_PROBE_BUY") {
+    return {
+      label: zh ? "AI 小仓试错候选" : "AI small-size probe candidate",
+      shortLabel: zh ? "小仓试错" : "Probe",
+      nextStep: zh
+        ? "仅按 0.15% 默认风险人工复核，不追高，不摊平，必须保存 Journal。"
+        : "Review as a starter only: 0.15% default risk, no chase, no averaging down, journal required.",
+    };
+  }
+  const copyByAction: Record<string, { label: string; shortLabel: string; nextStep: string }> = {
+    BUY: {
+      label: zh ? "可以进入人工买入复核" : "Buy candidate for manual review",
+      shortLabel: zh ? "可复核" : "Review",
+      nextStep: zh ? "确认入场区、止损区、目标区和仓位。" : "Confirm entry, stop, target, and size.",
+    },
+    "BUY SETUP": {
+      label: zh ? "可以进入人工买入复核" : "Buy candidate for manual review",
+      shortLabel: zh ? "可复核" : "Review",
+      nextStep: zh ? "确认 AI 计划和 K 线后再考虑。" : "Confirm AI plan and chart evidence first.",
+    },
+    AI_BUY_CANDIDATE: {
+      label: zh ? "AI 认为可进入买入复核" : "AI buy candidate for manual review",
+      shortLabel: zh ? "AI买入候选" : "AI buy",
+      nextStep: zh ? "只在入场区内复核，不追高。" : "Review only inside the entry zone; do not chase.",
+    },
+    AI_PULLBACK_BUY: {
+      label: zh ? "AI 认为等回踩可买" : "AI pullback buy candidate",
+      shortLabel: zh ? "等回踩" : "Pullback",
+      nextStep: zh ? "等待价格回到 AI 入场区并守住止损条件。" : "Wait for the AI entry zone and keep the stop valid.",
+    },
+    AI_BREAKOUT_WATCH: {
+      label: zh ? "突破观察，暂不追" : "Breakout watch, no chase",
+      shortLabel: zh ? "看突破" : "Breakout",
+      nextStep: zh ? "等待突破确认和成交量确认。" : "Wait for breakout and volume confirmation.",
+    },
+    AI_REVERSAL_WATCH: {
+      label: zh ? "反转观察，等结构修复" : "Reversal watch, wait for repair",
+      shortLabel: zh ? "看反转" : "Reversal",
+      nextStep: zh ? "等待均线结构和动量修复。" : "Wait for trend and momentum repair.",
+    },
+    WAIT: {
+      label: zh ? "等待，不是买点" : "Wait, not a buy point",
+      shortLabel: zh ? "等待" : "Wait",
+      nextStep: zh ? "等待规则或 AI 条件转强。" : "Wait for stronger rule or AI conditions.",
+    },
+    AI_WAIT: {
+      label: zh ? "AI 建议等待" : "AI says wait",
+      shortLabel: zh ? "等待" : "Wait",
+      nextStep: zh ? "等待入场区、量能或结构改善。" : "Wait for entry zone, volume, or structure improvement.",
+    },
+    DO_NOT_BUY: {
+      label: zh ? "不要买" : "Do not buy",
+      shortLabel: zh ? "不买" : "Avoid",
+      nextStep: zh ? "等失效因素解除后再看。" : "Wait until blockers clear.",
+    },
+    AI_AVOID: {
+      label: zh ? "AI 建议不要买" : "AI says avoid",
+      shortLabel: zh ? "不买" : "Avoid",
+      nextStep: zh ? "不要开新仓，等待新结构。" : "Do not open a new position; wait for a new setup.",
+    },
+    EXIT_REVIEW: {
+      label: zh ? "不适合新开仓；如已持有需复核" : "No fresh long; review existing position",
+      shortLabel: zh ? "复核退出" : "Exit review",
+      nextStep: zh ? "如果已有仓位，检查止损和减仓计划。" : "If already holding, review stop and de-risk plan.",
+    },
+    AI_EXIT_REVIEW: {
+      label: zh ? "AI 不支持新买入；如已持有需复核风险" : "AI blocks fresh buy; review existing risk",
+      shortLabel: zh ? "退出复核" : "Exit review",
+      nextStep: zh ? "等待日线/1H 结构修复后再看。" : "Wait for daily/1H structure repair.",
+    },
+    HOLD_TRAIL: {
+      label: zh ? "如已持有可继续跟踪止盈" : "Hold and trail if already in",
+      shortLabel: zh ? "持有跟踪" : "Trail",
+      nextStep: zh ? "不新增仓位，按移动止损管理。" : "Do not add; manage with trailing stop.",
+    },
+    AI_HOLD_TRAIL: {
+      label: zh ? "AI 建议持有跟踪，不新增仓位" : "AI suggests hold/trail, no add",
+      shortLabel: zh ? "持有跟踪" : "Trail",
+      nextStep: zh ? "已有仓位按止盈/移动止损处理。" : "Manage existing position with target/trailing stop.",
+    },
+    PASS: {
+      label: zh ? "当前不是买点" : "Not a buy point now",
+      shortLabel: zh ? "跳过" : "Pass",
+      nextStep: zh ? "等待信号重新出现。" : "Wait for a new signal.",
+    },
+  };
+  return (
+    copyByAction[normalized] ?? {
+      label: zh ? "还没有明确答案" : "No clear answer yet",
+      shortLabel: zh ? "未知" : "Unknown",
+      nextStep: zh ? "先确认真实 K 线和 AI 计划是否加载。" : "Confirm live K-lines and AI plan first.",
+    }
+  );
 }
 
 function levelLabel(level: Level, lang: Lang) {
@@ -5877,10 +6704,49 @@ function money(value: number | null | undefined) {
 
 function formatCandleTime(candle: Candle | undefined) {
   if (!candle) return "";
-  if (candle.open_time) return candle.open_time.replace("T", " ").slice(0, 16);
+  if (candle.open_time) return formatDateTimeUtc8(candle.open_time);
   const seconds = Number(candle.time);
   if (!Number.isFinite(seconds)) return "";
-  return new Date(seconds * 1000).toISOString().replace("T", " ").slice(0, 16);
+  return formatDateTimeUtc8(seconds * 1000);
+}
+
+function chartTimeToDate(time: Time): Date | null {
+  if (typeof time === "number") return new Date(time * 1000);
+  if (typeof time === "string") {
+    const parsed = new Date(time);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  if (time && typeof time === "object" && "year" in time && "month" in time && "day" in time) {
+    return new Date(Date.UTC(Number(time.year), Number(time.month) - 1, Number(time.day)));
+  }
+  return null;
+}
+
+function formatChartTime(time: Time, options: { withDate: boolean }) {
+  const date = chartTimeToDate(time);
+  if (!date) return String(time);
+  return formatDateTimeUtc8(date, options);
+}
+
+function formatDateTimeUtc8(value: string | number | Date, options: { withDate?: boolean } = {}) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Shanghai",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+    .formatToParts(date)
+    .reduce<Record<string, string>>((acc, part) => {
+      if (part.type !== "literal") acc[part.type] = part.value;
+      return acc;
+    }, {});
+  const timeText = `${parts.hour ?? "00"}:${parts.minute ?? "00"}`;
+  if (!options.withDate) return timeText;
+  return `${parts.month ?? "--"}/${parts.day ?? "--"} ${timeText} UTC+8`;
 }
 
 export default App;
