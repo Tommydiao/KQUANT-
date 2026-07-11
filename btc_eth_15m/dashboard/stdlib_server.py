@@ -59,8 +59,10 @@ from kquant.stock_signals import (
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
     api_stock_market_regime,
+    api_stock_market_data_status,
     api_stock_monday_readiness_latest,
     api_stock_provider_health,
+    api_stock_quote,
     api_stock_research_chat,
     api_stock_search,
     api_stock_signal_journal,
@@ -936,6 +938,13 @@ class Handler(BaseHTTPRequestHandler):
                 source=source,
                 db_path=self.dashboard.stock_db_path,
             )
+        if path == "/api/stocks/quote":
+            return api_stock_quote(
+                symbol=query_value(query, "symbol", "SPY"),
+                db_path=self.dashboard.stock_db_path,
+            )
+        if path == "/api/stocks/market-data/status":
+            return api_stock_market_data_status(db_path=self.dashboard.stock_db_path)
         if path == "/api/stocks/signals":
             source = stock_live_only_source(query)
             return api_stock_signals(
@@ -1193,11 +1202,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def api_health(self) -> Dict[str, Any]:
         ai_status = api_stock_ai_review_status()
+        market_data_status = api_stock_market_data_status(db_path=self.dashboard.stock_db_path)
         return {
             "product": "KQUANT US Stock Signal Terminal",
             "status": "online",
             "backend": "stdlib_server",
             "live_data_enabled": True,
+            "market_data": market_data_status,
+            "market_data_provider": market_data_status["provider"],
+            "longbridge_status": market_data_status["status"],
             "stock_database": str(self.dashboard.stock_db_path),
             "frontend": str(self.dashboard.index_path),
             "ai_review_status": ai_status["status"],

@@ -78,9 +78,11 @@ from kquant.stock_signals import (
     api_stock_candles,
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
+    api_stock_market_data_status,
     api_stock_market_regime,
     api_stock_monday_readiness_latest,
     api_stock_provider_health,
+    api_stock_quote,
     api_stock_search,
     api_stock_signal_journal,
     api_stock_signal_journal_entry,
@@ -211,11 +213,15 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/health")
     def api_health() -> dict:
         ai_status = api_stock_ai_review_status()
+        market_data_status = api_stock_market_data_status(db_path=stock_db_path)
         return {
             "product": "KQUANT US Stock Signal Terminal",
             "status": "online",
             "backend": "fastapi",
             "live_data_enabled": True,
+            "market_data": market_data_status,
+            "market_data_provider": market_data_status["provider"],
+            "longbridge_status": market_data_status["status"],
             "stock_database": str(stock_db_path),
             "ai_review_status": ai_status["status"],
             "ai_models": ai_status["models"],
@@ -683,6 +689,14 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/stocks/provider-health")
     def stock_provider_health_endpoint() -> dict:
         return api_stock_provider_health(db_path=stock_db_path)
+
+    @app.get("/api/stocks/quote")
+    def stock_quote_endpoint(symbol: str = Query(default="SPY")) -> dict:
+        return api_stock_quote(symbol=symbol, db_path=stock_db_path)
+
+    @app.get("/api/stocks/market-data/status")
+    def stock_market_data_status_endpoint() -> dict:
+        return api_stock_market_data_status(db_path=stock_db_path)
 
     @app.get("/api/stocks/ai-review/status")
     def stock_ai_review_status_endpoint() -> dict:

@@ -15,7 +15,9 @@ from kquant.stock_signals import (
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_market_data_status,
     api_stock_monday_readiness_latest,
+    api_stock_quote,
     api_stock_research_chat,
     api_stock_search,
     api_stock_signal_journal_entry,
@@ -156,13 +158,17 @@ def test_fixture_intraday_candles_match_declared_timeframe(tmp_path: Path) -> No
     assert len(trading_dates) == 5
     assert five_day["candles"][0]["open_time"].endswith("13:30:00+00:00")
 
-    coerced = api_stock_candles("SPY", "5d", "15m", "fixture", db_path)
-    assert coerced["interval"] == "1h"
-    assert len(coerced["candles"]) == 35
+    fifteen_min = api_stock_candles("SPY", "5d", "15m", "fixture", db_path)
+    assert fifteen_min["interval"] == "15m"
+    assert len(fifteen_min["candles"]) == 130
 
     one_day = api_stock_candles("SPY", "1d", "5m", "fixture", db_path)
     assert one_day["interval"] == "5m"
     assert len(one_day["candles"]) == 78
+
+    one_min = api_stock_candles("SPY", "1d", "1m", "fixture", db_path)
+    assert one_min["interval"] == "1m"
+    assert len(one_min["candles"]) == 390
 
 
 def test_fixture_higher_timeframe_candles_match_declared_timeframe(tmp_path: Path) -> None:
@@ -184,6 +190,115 @@ def test_fixture_higher_timeframe_candles_match_declared_timeframe(tmp_path: Pat
 
     coerced = api_stock_candles("SPY", "5y", "1d", "fixture", db_path)
     assert coerced["interval"] == "1wk"
+
+
+def test_longbridge_market_data_status_is_read_only(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("KQUANT_MARKET_DATA_PROVIDER", "longbridge")
+    monkeypatch.setenv("LONGBRIDGE_APP_KEY", "test-app")
+    monkeypatch.setenv("LONGBRIDGE_APP_SECRET", "test-secret")
+    monkeypatch.setenv("LONGBRIDGE_ACCESS_TOKEN", "test-token")
+    payload = api_stock_market_data_status(db_path=tmp_path / "kquant_us.sqlite3")
+    assert payload["provider"] == "longbridge"
+    assert payload["longbridge_env"] == "configured"
+    assert payload["longbridge_market_data_only"] is True
+    assert payload["longbridge_account_enabled"] is False
+    assert payload["longbridge_trade_enabled"] is False
+    assert payload["real_money_requires_longbridge_live"] is True
+
+
+def test_stock_quote_without_longbridge_is_safe(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("KQUANT_MARKET_DATA_PROVIDER", raising=False)
+    payload = api_stock_quote("NVDA", db_path=tmp_path / "kquant_us.sqlite3")
+    assert payload["symbol"] == "NVDA"
+    assert payload["source_type"] == "no_longbridge_quote"
+    assert payload["read_only_market_data"] is True
+
+
+def test_longbridge_candles_are_preferred_when_configured(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("KQUANT_MARKET_DATA_PROVIDER", "longbridge")
+
+    def fake_longbridge(symbol: str, range_value: str, interval: str) -> dict:
+        return {
+            "instrument_type": "stock",
+            "symbol": symbol,
+            "range": range_value,
+            "interval": interval,
+            "source_type": "longbridge_candles",
+            "provider_status": "available",
+            "provider_errors": [],
+            "freshness": "live",
+            "candles": [
+                {
+                    "open_time": "2026-07-06T13:30:00+00:00",
+                    "time": 1783344600,
+                    "open": 100.0,
+                    "high": 101.0,
+                    "low": 99.0,
+                    "close": 100.5,
+                    "volume": 1200.0,
+                    "source": "longbridge_candles",
+                }
+            ],
+            "real_money_data_source": True,
+            "read_only_market_data": True,
+        }
+
+    monkeypatch.setattr("kquant.stock_signals.longbridge_candles", fake_longbridge)
+    payload = api_stock_candles("NVDA", "1d", "1m", "live", tmp_path / "kquant_us.sqlite3")
+    assert payload["source_type"] == "longbridge_candles"
+    assert payload["provider_status"] == "available"
+    assert payload["real_money_data_source"] is True
+
+
+def test_longbridge_failed_uses_stale_longbridge_cache_not_fixture(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("KQUANT_MARKET_DATA_PROVIDER", "longbridge")
+    db_path = tmp_path / "kquant_us.sqlite3"
+    cached = {
+        "instrument_type": "stock",
+        "symbol": "NVDA",
+        "range": "1d",
+        "interval": "1m",
+        "source_type": "longbridge_candles",
+        "provider_status": "available",
+        "provider_errors": [],
+        "freshness": "live",
+        "candles": [
+            {
+                "open_time": "2026-07-06T13:30:00+00:00",
+                "time": 1783344600,
+                "open": 100.0,
+                "high": 101.0,
+                "low": 99.0,
+                "close": 100.5,
+                "volume": 1200.0,
+                "source": "longbridge_candles",
+            }
+        ],
+    }
+    from kquant.stock_signals import persist_candles
+
+    persist_candles(db_path, cached)
+
+    def fake_failed(symbol: str, range_value: str, interval: str) -> dict:
+        return {
+            "instrument_type": "stock",
+            "symbol": symbol,
+            "range": range_value,
+            "interval": interval,
+            "source_type": "longbridge_candles",
+            "provider_status": "unavailable",
+            "provider_errors": ["mock longbridge failure"],
+            "freshness": "missing",
+            "candles": [],
+            "live_does_not_fallback_to_fixture": True,
+        }
+
+    monkeypatch.setattr("kquant.stock_signals.longbridge_candles", fake_failed)
+    payload = api_stock_candles("NVDA", "1d", "1m", "live", db_path)
+    assert payload["source_type"] == "stale_longbridge_cache"
+    assert payload["provider_status"] == "stale_cache"
+    assert payload["candles"][0]["source"] == "stale_longbridge_cache"
+    assert payload["live_does_not_fallback_to_fixture"] is True
 
 
 def test_fixture_stock_signal_run_writes_report(tmp_path: Path) -> None:
@@ -338,6 +453,25 @@ def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> 
     assert packet["data_quality"]["daily_candles"] > 0
     assert packet["rule_state"]["level"] == payload["signal"]["level"]
     assert packet["ai_policy"]["hard_veto_remains_active"] is True
+    packet_v2 = payload["signal"]["ai_feature_packet_v2"]
+    assert packet_v2["version"] == "ai_feature_packet_v2"
+    assert packet_v2["technical_state"]["daily"]["ema8"] > 0
+    assert packet_v2["technical_state"]["daily"]["ema9"] > 0
+    assert packet_v2["technical_state"]["daily"]["vwap20"] > 0
+    assert packet_v2["technical_state"]["confirmation"]["rsi14"] >= 0
+    assert packet_v2["market_and_data_guardrails"]["daily_provider_status"] == "fixture_read_only"
+    assert packet_v2["market_and_data_guardrails"]["data_clean"] is False
+    assert payload["signal"]["entry_plan"]["zone"]
+    assert payload["signal"]["stop_plan"]["zone"]
+    assert payload["signal"]["target_plan"]["zone"]
+    assert payload["signal"]["risk_reward_plan"]["minimum_for_money_pilot"] == 2.0
+    assert payload["signal"]["ai_action_validation"]["version"] == "ai_action_validation_v1"
+    assert "expected_value_r" in payload["signal"]["ai_action_validation"]
+    assert "target_hit_rate" in payload["signal"]["ai_action_validation"]
+    assert "stop_hit_rate" in payload["signal"]["ai_action_validation"]
+    assert payload["signal"]["money_pilot_eligibility"]["version"] == "money_pilot_gate_v1"
+    assert payload["signal"]["money_pilot_eligibility"]["minimum_risk_reward"] == 2.0
+    assert payload["signal"]["money_pilot_eligibility"]["minimum_win_rate"] == 50.0
     assert payload["primary_candles"]["candle_count"] > 0
     assert payload["confirmation_candles"]["candle_count"] > 0
     assert payload["broker_order_wiring_enabled"] is False
@@ -465,6 +599,9 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
         assert context["ai_feature_packet_v1"]["version"] == "ai_feature_packet_v1"
         assert context["ai_feature_packet_v1"]["price_structure"]["ema8"] > 0
         assert context["ai_feature_packet_v1"]["confirmation_structure"]["ema9"] > 0
+        assert context["ai_feature_packet_v2"]["version"] == "ai_feature_packet_v2"
+        assert context["ai_feature_packet_v2"]["technical_state"]["daily"]["vwap20"] > 0
+        assert context["rule_trade_plans"]["entry_plan"]["zone"]
         return Response()
 
     monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
@@ -482,6 +619,11 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
     assert payload["ai_decision"]["action"] != "AI_BUY_CANDIDATE"
     assert payload["ai_decision"]["hard_veto_applied"] is True
     assert payload["ai_decision"]["confidence"] != "HIGH"
+    assert payload["ai_feature_packet_version"] == "ai_feature_packet_v2"
+    assert payload["ai_decision"]["ai_action_validation"]["version"] == "ai_action_validation_v1"
+    assert payload["ai_decision"]["money_pilot_eligibility"]["version"] == "money_pilot_gate_v1"
+    assert payload["money_pilot_eligibility"]["eligible_for_review"] is False
+    assert payload["entry_plan"]["zone"]
 
 
 def test_ai_primary_v2_rule_exit_is_guardrail_not_hard_veto(tmp_path: Path, monkeypatch) -> None:
@@ -556,6 +698,143 @@ def test_ai_primary_v2_rule_exit_is_guardrail_not_hard_veto(tmp_path: Path, monk
     assert payload["ai_decision"]["confidence"] == "MEDIUM"
     assert payload["ai_decision"]["guardrail_warnings"]
     assert payload["ai_decision"]["ai_primary_engine_version"] == "ai_primary_v2"
+    assert payload["ai_decision"]["ai_feature_packet_version"] == "ai_feature_packet_v2"
+    assert payload["ai_decision"]["ai_action_validation"]["action"] == "AI_PULLBACK_BUY"
+    assert payload["ai_decision"]["money_pilot_eligibility"]["action"] == "AI_PULLBACK_BUY"
+    assert payload["risk_reward_plan"]["risk_reward_value"] >= 0
+
+
+def test_ai_probe_buy_is_separate_from_formal_money_gate(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    db = tmp_path / "kquant_us.sqlite3"
+    signal = api_stock_analyze("RKLB", source="fixture", profile="high_beta_growth_v1", db_path=db)["signal"]
+    signal["data_status"].update(
+        {
+            "data_quality": "clean",
+            "daily_provider_status": "available",
+            "hourly_provider_status": "available",
+            "daily_candles": 252,
+            "hourly_candles": 35,
+        }
+    )
+    signal["trade_conclusion"]["action"] = "WAIT"
+    signal["exit_risk"]["status"] = "PULLBACK RISK"
+    signal["historical_edge"]["focus_win_rate"] = 46.0
+    signal["historical_edge"]["focus_sample_count"] = 25
+    signal["historical_edge"]["focus_avg_return"] = 1.6
+    signal["historical_edge"]["sample_count"] = 25
+    signal["risk_reward_plan"]["risk_reward_value"] = 1.8
+    signal["risk_reward_plan"]["risk_reward"] = "1.8R"
+    market = {"regime": "RISK_ON", "label": "Risk On", "score": 80, "high_confidence_allowed": True, "reasons": []}
+    veto = ai_hard_veto(signal, market)
+    assert veto["active"] is False
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "action": "AI_PROBE_BUY",
+                        "confidence": "MEDIUM",
+                        "risk_bucket": "high_beta_risk",
+                        "entry_zone": "Starter only inside the planned pullback zone.",
+                        "stop_zone": "Below the planned structural stop.",
+                        "target_zone": "First target at the prior high; trail after confirmation.",
+                        "risk_reward": "1.8R",
+                        "position_size_hint": "Probe only: 0.15% account risk, no averaging down.",
+                        "why_now": ["High-beta pullback is constructive enough for a starter review."],
+                        "what_invalidates_this_setup": ["Loses the planned stop.", "Volume expands on downside."],
+                        "best_profile": "high_beta_growth_v1",
+                        "human_checklist": ["Confirm live K-line.", "Save probe journal."],
+                        "summary": "AI allows only a small starter probe, not a formal buy.",
+                    }
+                )
+            }
+
+    monkeypatch.setattr("kquant.stock_signals.api_stock_market_regime", lambda *args, **kwargs: market)
+    monkeypatch.setattr("kquant.stock_signals.requests.post", lambda *args, **kwargs: Response())
+    payload = api_stock_ai_decision(
+        {
+            "symbol": "RKLB",
+            "profile": "high_beta_growth_v1",
+            "signal_payload": signal,
+            "profile_comparison": [signal],
+            "model_tier": "review",
+        },
+        db_path=db,
+    )
+    assert payload["ai_decision"]["action"] == "AI_PROBE_BUY"
+    assert payload["ai_decision"]["probe_eligibility"]["eligible_for_probe_review"] is True
+    assert payload["probe_eligibility"]["eligible_for_probe_review"] is True
+    assert payload["probe_risk_policy"]["default_risk_pct_of_account"] == 0.15
+    assert payload["probe_risk_policy"]["max_risk_pct_of_account"] == 0.2
+    assert payload["ai_decision"]["money_pilot_eligibility"]["eligible_for_review"] is False
+    assert payload["money_pilot_eligibility"]["eligible_for_review"] is False
+
+
+def test_ai_probe_buy_is_blocked_by_hard_veto(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    db = tmp_path / "kquant_us.sqlite3"
+    signal = api_stock_analyze("RKLB", source="fixture", profile="high_beta_growth_v1", db_path=db)["signal"]
+    signal["data_status"].update(
+        {
+            "data_quality": "caution",
+            "daily_provider_status": "provider_failed",
+            "hourly_provider_status": "available",
+            "daily_candles": 0,
+            "hourly_candles": 35,
+        }
+    )
+    signal["historical_edge"]["focus_win_rate"] = 60.0
+    signal["historical_edge"]["focus_sample_count"] = 50
+    signal["historical_edge"]["focus_avg_return"] = 2.0
+    signal["risk_reward_plan"]["risk_reward_value"] = 2.2
+    market = {"regime": "RISK_ON", "label": "Risk On", "score": 80, "high_confidence_allowed": True, "reasons": []}
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "output_text": json.dumps(
+                    {
+                        "action": "AI_PROBE_BUY",
+                        "confidence": "HIGH",
+                        "risk_bucket": "high_beta_risk",
+                        "entry_zone": "Should be blocked by data.",
+                        "stop_zone": "Below support.",
+                        "target_zone": "Prior high.",
+                        "risk_reward": "2.2R",
+                        "position_size_hint": "Probe only.",
+                        "why_now": ["Model attempted probe."],
+                        "what_invalidates_this_setup": ["Data fails."],
+                        "best_profile": "high_beta_growth_v1",
+                        "human_checklist": ["Confirm live K-line."],
+                        "summary": "This should be vetoed.",
+                    }
+                )
+            }
+
+    monkeypatch.setattr("kquant.stock_signals.api_stock_market_regime", lambda *args, **kwargs: market)
+    monkeypatch.setattr("kquant.stock_signals.requests.post", lambda *args, **kwargs: Response())
+    payload = api_stock_ai_decision(
+        {
+            "symbol": "RKLB",
+            "profile": "high_beta_growth_v1",
+            "signal_payload": signal,
+            "profile_comparison": [signal],
+            "model_tier": "review",
+        },
+        db_path=db,
+    )
+    assert payload["hard_veto"]["active"] is True
+    assert payload["ai_decision"]["action"] != "AI_PROBE_BUY"
+    assert payload["ai_decision"]["probe_eligibility"]["eligible_for_probe_review"] is False
+    assert payload["probe_eligibility"]["eligible_for_probe_review"] is False
 
 
 def test_research_chat_without_key_returns_safe_unavailable(tmp_path: Path, monkeypatch) -> None:
@@ -708,6 +987,10 @@ def test_ai_daily_agent_without_key_writes_read_only_report(tmp_path: Path, monk
     assert payload["status"] == "ai_unavailable"
     assert payload["broker_order_wiring_enabled"] is False
     assert payload["ai_report"]["top_buy_candidates"] == []
+    assert payload["validation_by_ai_action"]
+    first_action_stats = next(iter(payload["validation_by_ai_action"].values()))
+    assert "avg_expected_value_r" in first_action_stats
+    assert "money_pilot_eligible_count" in first_action_stats
     assert (tmp_path / "outputs" / "ai-daily-opportunities.json").exists()
     latest = api_stock_ai_daily_report_latest(outputs_dir=tmp_path / "outputs")
     assert latest["run_id"] == payload["run_id"]

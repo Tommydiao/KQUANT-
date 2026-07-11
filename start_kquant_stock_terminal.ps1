@@ -29,6 +29,12 @@ function Import-LocalEnv {
 }
 
 Import-LocalEnv (Join-Path $Root ".env")
+if (-not $env:LONGBRIDGE_PRINT_QUOTE_PACKAGES) {
+  $env:LONGBRIDGE_PRINT_QUOTE_PACKAGES = "false"
+}
+if (-not $env:KQUANT_MARKET_DATA_PROVIDER -and $env:LONGBRIDGE_APP_KEY -and $env:LONGBRIDGE_APP_SECRET -and $env:LONGBRIDGE_ACCESS_TOKEN) {
+  $env:KQUANT_MARKET_DATA_PROVIDER = "longbridge"
+}
 
 function Test-PythonExecutable {
   param([string]$Executable)
@@ -131,6 +137,15 @@ if ($env:OPENAI_API_KEY) {
   Write-Host "Deep Research Chat: $researchModel" -ForegroundColor Green
 } else {
   Write-Host "AI Review: missing OPENAI_API_KEY (manual review button will show setup guidance)" -ForegroundColor Yellow
+}
+if ($env:KQUANT_MARKET_DATA_PROVIDER -eq "longbridge") {
+  if ($env:LONGBRIDGE_APP_KEY -and $env:LONGBRIDGE_APP_SECRET -and $env:LONGBRIDGE_ACCESS_TOKEN) {
+    Write-Host "Longbridge market data: available from backend environment" -ForegroundColor Green
+  } else {
+    Write-Host "Longbridge market data: missing one or more env vars" -ForegroundColor Yellow
+  }
+} else {
+  Write-Host "Market data provider: Yahoo public prototype (set KQUANT_MARKET_DATA_PROVIDER=longbridge for realtime)" -ForegroundColor Yellow
 }
 
 if (-not $NoBrowser) {

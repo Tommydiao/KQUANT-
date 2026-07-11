@@ -185,6 +185,33 @@ $env:KQUANT_AI_DEEP_MODEL="gpt-5.5"
 Do not put `OPENAI_API_KEY` in `web/`, GitHub, Vercel frontend variables,
 screenshots, reports, or committed config files.
 
+## Longbridge Read-Only Market Data
+
+KQUANT can prefer Longbridge realtime/near-realtime quote data for US stock
+research while keeping all account, position, and order APIs disabled. Put the
+tokens only in your local backend environment or local `.env` file:
+
+```powershell
+$env:LONGBRIDGE_APP_KEY="..."
+$env:LONGBRIDGE_APP_SECRET="..."
+$env:LONGBRIDGE_ACCESS_TOKEN="..."
+$env:KQUANT_MARKET_DATA_PROVIDER="longbridge"
+.\start_kquant_stock_terminal.ps1
+```
+
+The startup script only prints whether Longbridge market data is available; it
+never prints tokens. Health checks are available at:
+
+```bash
+curl -s http://127.0.0.1:8001/api/stocks/market-data/status
+curl -s "http://127.0.0.1:8001/api/stocks/quote?symbol=NVDA"
+curl -s "http://127.0.0.1:8001/api/stocks/candles?symbol=NVDA&range=1d&interval=1m&source=live"
+```
+
+If Longbridge is configured but unavailable, KQUANT may display Yahoo public
+fallback candles for reference, but those are marked as non-realtime fallback
+and cannot qualify an AI buy-class action for real-money review.
+
 Both expose the Agent Harness API routes under `/api/agent/...`. The fallback server still rejects non-Harness state-changing dashboard actions, but allows local Harness task and approval operations because they only write SQLite audit/task state and do not call exchange APIs.
 
 Options scan and chain responses also persist SQLite snapshots. Inspect the
