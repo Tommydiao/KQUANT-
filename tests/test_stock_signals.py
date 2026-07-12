@@ -461,6 +461,12 @@ def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> 
     assert packet_v2["technical_state"]["confirmation"]["rsi14"] >= 0
     assert packet_v2["market_and_data_guardrails"]["daily_provider_status"] == "fixture_read_only"
     assert packet_v2["market_and_data_guardrails"]["data_clean"] is False
+    packet_v3 = payload["signal"]["ai_feature_packet_v3"]
+    assert packet_v3["version"] == "ai_feature_packet_v3"
+    assert packet_v3["base_packet_version"] == "ai_feature_packet_v2"
+    assert packet_v3["realtime_market_state"]["provider_status"] == "not_requested"
+    assert packet_v3["model_refresh_policy"]["quote_updates_alone_do_not_call_the_model"] is True
+    assert len(packet_v3["trigger_fingerprint"]) == 20
     assert payload["signal"]["entry_plan"]["zone"]
     assert payload["signal"]["stop_plan"]["zone"]
     assert payload["signal"]["target_plan"]["zone"]
@@ -601,6 +607,8 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
         assert context["ai_feature_packet_v1"]["confirmation_structure"]["ema9"] > 0
         assert context["ai_feature_packet_v2"]["version"] == "ai_feature_packet_v2"
         assert context["ai_feature_packet_v2"]["technical_state"]["daily"]["vwap20"] > 0
+        assert context["ai_feature_packet_v3"]["version"] == "ai_feature_packet_v3"
+        assert context["ai_feature_packet_v3"]["realtime_market_state"]["forming_bars_are_not_closed_signals"] is True
         assert context["rule_trade_plans"]["entry_plan"]["zone"]
         return Response()
 
@@ -619,7 +627,7 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
     assert payload["ai_decision"]["action"] != "AI_BUY_CANDIDATE"
     assert payload["ai_decision"]["hard_veto_applied"] is True
     assert payload["ai_decision"]["confidence"] != "HIGH"
-    assert payload["ai_feature_packet_version"] == "ai_feature_packet_v2"
+    assert payload["ai_feature_packet_version"] == "ai_feature_packet_v3"
     assert payload["ai_decision"]["ai_action_validation"]["version"] == "ai_action_validation_v1"
     assert payload["ai_decision"]["money_pilot_eligibility"]["version"] == "money_pilot_gate_v1"
     assert payload["money_pilot_eligibility"]["eligible_for_review"] is False
@@ -697,8 +705,8 @@ def test_ai_primary_v2_rule_exit_is_guardrail_not_hard_veto(tmp_path: Path, monk
     assert payload["ai_decision"]["action"] == "AI_PULLBACK_BUY"
     assert payload["ai_decision"]["confidence"] == "MEDIUM"
     assert payload["ai_decision"]["guardrail_warnings"]
-    assert payload["ai_decision"]["ai_primary_engine_version"] == "ai_primary_v2"
-    assert payload["ai_decision"]["ai_feature_packet_version"] == "ai_feature_packet_v2"
+    assert payload["ai_decision"]["ai_primary_engine_version"] == "ai_primary_v3"
+    assert payload["ai_decision"]["ai_feature_packet_version"] == "ai_feature_packet_v3"
     assert payload["ai_decision"]["ai_action_validation"]["action"] == "AI_PULLBACK_BUY"
     assert payload["ai_decision"]["money_pilot_eligibility"]["action"] == "AI_PULLBACK_BUY"
     assert payload["risk_reward_plan"]["risk_reward_value"] >= 0

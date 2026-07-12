@@ -93,6 +93,56 @@ CREATE TABLE IF NOT EXISTS stock_backtest_runs (
   pass_count INTEGER NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS ai_action_events (
+  event_key TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  action TEXT NOT NULL,
+  signal_time TEXT NOT NULL,
+  decision_price REAL NOT NULL,
+  entry_price REAL,
+  stop_price REAL,
+  target_price REAL,
+  risk_reward REAL NOT NULL DEFAULT 0,
+  market_regime TEXT NOT NULL DEFAULT '',
+  data_source TEXT NOT NULL DEFAULT '',
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ai_action_events_symbol_time
+ON ai_action_events(symbol, signal_time DESC);
+CREATE TABLE IF NOT EXISTS ai_action_outcomes (
+  event_key TEXT NOT NULL,
+  horizon_bars INTEGER NOT NULL,
+  entry_time TEXT,
+  entry_price REAL,
+  exit_time TEXT,
+  exit_price REAL,
+  outcome TEXT NOT NULL,
+  realized_r REAL NOT NULL DEFAULT 0,
+  max_drawdown_pct REAL NOT NULL DEFAULT 0,
+  max_runup_pct REAL NOT NULL DEFAULT 0,
+  target_first INTEGER NOT NULL DEFAULT 0,
+  stop_first INTEGER NOT NULL DEFAULT 0,
+  completed INTEGER NOT NULL DEFAULT 0,
+  evaluated_at TEXT NOT NULL,
+  PRIMARY KEY (event_key, horizon_bars)
+);
+CREATE TABLE IF NOT EXISTS strategy_validation_runs (
+  run_id TEXT PRIMARY KEY,
+  profile TEXT NOT NULL,
+  action TEXT NOT NULL,
+  split_name TEXT NOT NULL,
+  sample_count INTEGER NOT NULL,
+  win_rate REAL NOT NULL,
+  average_r REAL NOT NULL,
+  profit_factor REAL NOT NULL,
+  max_drawdown_r REAL NOT NULL,
+  confidence_low REAL NOT NULL,
+  confidence_high REAL NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS stock_signal_journal (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   run_id TEXT NOT NULL,

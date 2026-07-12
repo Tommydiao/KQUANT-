@@ -83,11 +83,13 @@ from kquant.stock_signals import (
     api_stock_monday_readiness_latest,
     api_stock_provider_health,
     api_stock_quote,
+    api_stock_realtime_snapshot,
     api_stock_search,
     api_stock_signal_journal,
     api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
+    api_stock_strategy_validation,
     api_stock_universe,
 )
 from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
@@ -694,9 +696,17 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     def stock_quote_endpoint(symbol: str = Query(default="SPY")) -> dict:
         return api_stock_quote(symbol=symbol, db_path=stock_db_path)
 
+    @app.get("/api/stocks/realtime-snapshot")
+    def stock_realtime_snapshot_endpoint(symbol: str = Query(default="SPY")) -> dict:
+        return api_stock_realtime_snapshot(symbol=symbol, db_path=stock_db_path)
+
     @app.get("/api/stocks/market-data/status")
     def stock_market_data_status_endpoint() -> dict:
         return api_stock_market_data_status(db_path=stock_db_path)
+
+    @app.get("/api/stocks/strategy-validation")
+    def stock_strategy_validation_endpoint(profile: str = Query(default="")) -> dict:
+        return api_stock_strategy_validation(db_path=stock_db_path, profile=profile or None)
 
     @app.get("/api/stocks/ai-review/status")
     def stock_ai_review_status_endpoint() -> dict:

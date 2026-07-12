@@ -63,12 +63,14 @@ from kquant.stock_signals import (
     api_stock_monday_readiness_latest,
     api_stock_provider_health,
     api_stock_quote,
+    api_stock_realtime_snapshot,
     api_stock_research_chat,
     api_stock_search,
     api_stock_signal_journal,
     api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
+    api_stock_strategy_validation,
     api_stock_universe,
 )
 from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
@@ -943,8 +945,18 @@ class Handler(BaseHTTPRequestHandler):
                 symbol=query_value(query, "symbol", "SPY"),
                 db_path=self.dashboard.stock_db_path,
             )
+        if path == "/api/stocks/realtime-snapshot":
+            return api_stock_realtime_snapshot(
+                symbol=query_value(query, "symbol", "SPY"),
+                db_path=self.dashboard.stock_db_path,
+            )
         if path == "/api/stocks/market-data/status":
             return api_stock_market_data_status(db_path=self.dashboard.stock_db_path)
+        if path == "/api/stocks/strategy-validation":
+            return api_stock_strategy_validation(
+                db_path=self.dashboard.stock_db_path,
+                profile=query_value(query, "profile", "") or None,
+            )
         if path == "/api/stocks/signals":
             source = stock_live_only_source(query)
             return api_stock_signals(

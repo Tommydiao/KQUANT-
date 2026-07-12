@@ -73,6 +73,8 @@ type Candle = {
   low: number;
   close: number;
   volume: number;
+  bar_state?: "forming_candle" | "closed_candle" | "unknown" | string;
+  quote_merged?: boolean;
 };
 
 type ChartPreset = {
@@ -94,6 +96,39 @@ type CandleMeta = {
   first: string;
   last: string;
   errors: string[];
+  session?: string;
+  quoteTime?: string;
+  exchangeTimezone?: string;
+  displayTimezone?: string;
+};
+
+type RealtimeQuote = {
+  symbol: string;
+  provider: string;
+  source_type: string;
+  provider_status: string;
+  last?: number | null;
+  bid?: number | null;
+  ask?: number | null;
+  quote_time?: string | null;
+  freshness_seconds?: number | null;
+  session?: string;
+};
+
+type RealtimeSnapshotPayload = {
+  symbol: string;
+  provider: string;
+  provider_status: string;
+  source_type: string;
+  quote: RealtimeQuote;
+  candles_1m: Candle[];
+  candles_5m: Candle[];
+  quote_fresh: boolean;
+  session: string;
+  exchange_timezone: string;
+  display_timezone: string;
+  buy_actions_allowed_by_data: boolean;
+  real_money_data_source: boolean;
 };
 
 type ApiHealthPayload = {
@@ -2071,6 +2106,8 @@ function App() {
   const confirmationPreset = chartPresetByKey(confirmationPresetKey);
   const [dailyCandles, setDailyCandles] = useState<Candle[]>([]);
   const [hourlyCandles, setHourlyCandles] = useState<Candle[]>([]);
+  const [realtimeSnapshot, setRealtimeSnapshot] = useState<RealtimeSnapshotPayload | null>(null);
+  const [realtimeState, setRealtimeState] = useState<"idle" | "loading" | "live" | "stale" | "offline">("idle");
   const [dailyMeta, setDailyMeta] = useState<CandleMeta>(() => failedMeta("NVDA", chartPresetByKey("1d")));
   const [hourlyMeta, setHourlyMeta] = useState<CandleMeta>(() => failedMeta("NVDA", chartPresetByKey("1h")));
   const [apiState, setApiState] = useState<"api" | "fallback">("fallback");
@@ -2103,6 +2140,8 @@ function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const analyzeRequestRef = useRef(0);
   const candleRequestRef = useRef(0);
+  const quoteRequestRef = useRef(0);
+  const lastCandleRefreshRef = useRef(0);
   const aiDecisionRequestRef = useRef(0);
   const researchChatRequestRef = useRef(0);
   const aiDecisionCacheRef = useRef<Record<string, AiDecisionPayload>>({});
@@ -2258,11 +2297,17 @@ function App() {
 
   useEffect(() => {
     if (view !== "stocks" || apiConnection !== "connected") return;
+    void loadRealtimeSnapshot(selected.symbol);
+    lastCandleRefreshRef.current = Date.now();
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") {
-        void loadCandles(selected.symbol);
+        void loadRealtimeQuote(selected.symbol);
+        if (Date.now() - lastCandleRefreshRef.current >= 15_000) {
+          lastCandleRefreshRef.current = Date.now();
+          void loadCandles(selected.symbol, { silent: true });
+        }
       }
-    }, 30000);
+    }, 5_000);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, apiConnection, selected.symbol, primaryPresetKey, confirmationPresetKey]);
@@ -2693,12 +2738,14 @@ function App() {
     }
   }
 
-  async function loadCandles(symbol: string) {
+  async function loadCandles(symbol: string, options: { silent?: boolean } = {}) {
     const requestId = ++candleRequestRef.current;
-    setDailyCandles([]);
-    setHourlyCandles([]);
-    setDailyMeta(refreshingMeta(symbol, primaryPreset));
-    setHourlyMeta(refreshingMeta(symbol, confirmationPreset));
+    if (!options.silent) {
+      setDailyCandles([]);
+      setHourlyCandles([]);
+      setDailyMeta(refreshingMeta(symbol, primaryPreset));
+      setHourlyMeta(refreshingMeta(symbol, confirmationPreset));
+    }
     try {
       const [dailyResponse, hourlyResponse] = await Promise.all([
         apiFetch(`/api/stocks/candles?symbol=${symbol}&range=${primaryPreset.range}&interval=${primaryPreset.interval}&source=live`),
@@ -2717,12 +2764,71 @@ function App() {
       setApiState("api");
     } catch {
       if (requestId !== candleRequestRef.current) return;
+      if (options.silent) return;
       setDailyCandles([]);
       setHourlyCandles([]);
       setDailyMeta(failedMeta(symbol, primaryPreset));
       setHourlyMeta(failedMeta(symbol, confirmationPreset));
       setApiConnection((current) => (current === "connected" ? current : "offline"));
     }
+  }
+
+  async function loadRealtimeSnapshot(symbol: string) {
+    const requestId = ++quoteRequestRef.current;
+    try {
+      setRealtimeState((current) => (current === "live" ? current : "loading"));
+      const response = await apiFetch(`/api/stocks/realtime-snapshot?symbol=${encodeURIComponent(symbol)}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as RealtimeSnapshotPayload;
+      if (requestId !== quoteRequestRef.current || payload.symbol !== selectedSymbol) return;
+      setRealtimeSnapshot(payload);
+      setRealtimeState(payload.provider_status === "available" && payload.quote_fresh ? "live" : "stale");
+      const realtimeOneMinute = normalizeCandles(payload.candles_1m, []);
+      const realtimeFiveMinute = normalizeCandles(payload.candles_5m, []);
+      if (primaryPreset.range === "1d" && primaryPreset.interval === "1m" && realtimeOneMinute.length) {
+        setDailyCandles(realtimeOneMinute);
+        setDailyMeta(metaFromRealtimeSnapshot(payload, primaryPreset, realtimeOneMinute));
+      } else if (primaryPreset.range === "1d" && primaryPreset.interval === "5m" && realtimeFiveMinute.length) {
+        setDailyCandles(realtimeFiveMinute);
+        setDailyMeta(metaFromRealtimeSnapshot(payload, primaryPreset, realtimeFiveMinute));
+      }
+      if (confirmationPreset.range === "1d" && confirmationPreset.interval === "1m" && realtimeOneMinute.length) {
+        setHourlyCandles(realtimeOneMinute);
+        setHourlyMeta(metaFromRealtimeSnapshot(payload, confirmationPreset, realtimeOneMinute));
+      } else if (confirmationPreset.range === "1d" && confirmationPreset.interval === "5m" && realtimeFiveMinute.length) {
+        setHourlyCandles(realtimeFiveMinute);
+        setHourlyMeta(metaFromRealtimeSnapshot(payload, confirmationPreset, realtimeFiveMinute));
+      }
+      applyRealtimeQuote(payload.quote, symbol);
+    } catch {
+      if (requestId !== quoteRequestRef.current) return;
+      setRealtimeState("offline");
+    }
+  }
+
+  async function loadRealtimeQuote(symbol: string) {
+    const requestId = ++quoteRequestRef.current;
+    try {
+      const response = await apiFetch(`/api/stocks/quote?symbol=${encodeURIComponent(symbol)}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const quote = (await response.json()) as RealtimeQuote;
+      if (requestId !== quoteRequestRef.current || quote.symbol !== selectedSymbol) return;
+      setRealtimeSnapshot((current) => (current ? { ...current, quote, quote_fresh: Number(quote.freshness_seconds ?? 999) <= 15 } : current));
+      setRealtimeState(quote.provider_status === "available" && Number(quote.freshness_seconds ?? 999) <= 15 ? "live" : "stale");
+      applyRealtimeQuote(quote, symbol);
+    } catch {
+      if (requestId !== quoteRequestRef.current) return;
+      setRealtimeState("offline");
+    }
+  }
+
+  function applyRealtimeQuote(quote: RealtimeQuote, symbol: string) {
+    if (symbol !== selectedSymbol || quote.provider_status !== "available" || quote.last == null || !quote.quote_time) return;
+    const quoteTime = quote.quote_time;
+    setDailyCandles((current) => mergeRealtimeQuote(current, quote, primaryPreset.interval));
+    setHourlyCandles((current) => mergeRealtimeQuote(current, quote, confirmationPreset.interval));
+    setDailyMeta((current) => ({ ...current, quoteTime: formatDateTimeUtc8(quoteTime, { withDate: true }), session: quote.session }));
+    setHourlyMeta((current) => ({ ...current, quoteTime: formatDateTimeUtc8(quoteTime, { withDate: true }), session: quote.session }));
   }
 
   async function loadMstrRadar() {
@@ -3180,6 +3286,8 @@ function App() {
               analysisState={analysisState}
               dailyMeta={dailyMeta}
               hourlyMeta={hourlyMeta}
+              realtimeSnapshot={realtimeSnapshot}
+              realtimeState={realtimeState}
               text={text}
               lang={lang}
               onRegenerate={() => void requestAiDecision({ trigger: "manual", force: true })}
@@ -4742,6 +4850,8 @@ function StockDecisionAnswerCard({
   analysisState,
   dailyMeta,
   hourlyMeta,
+  realtimeSnapshot,
+  realtimeState,
   text,
   lang,
   onRegenerate,
@@ -4753,6 +4863,8 @@ function StockDecisionAnswerCard({
   analysisState: "idle" | "loading" | "ready" | "error";
   dailyMeta: CandleMeta;
   hourlyMeta: CandleMeta;
+  realtimeSnapshot: RealtimeSnapshotPayload | null;
+  realtimeState: "idle" | "loading" | "live" | "stale" | "offline";
   text: (typeof copy)["en"] | (typeof copy)["zh"];
   lang: Lang;
   onRegenerate: () => void;
@@ -4820,6 +4932,9 @@ function StockDecisionAnswerCard({
         </div>
       </div>
       <div className="stock-answer-facts">
+        <Fact label={lang === "zh" ? "实时价格" : "Live Price"} value={realtimeSnapshot?.quote?.last == null ? "-" : formatNumber(realtimeSnapshot.quote.last)} />
+        <Fact label={lang === "zh" ? "行情时间" : "Quote Time"} value={realtimeSnapshot?.quote?.quote_time ? formatDateTimeUtc8(realtimeSnapshot.quote.quote_time, { withDate: true }) : "-"} />
+        <Fact label={lang === "zh" ? "实时状态" : "Realtime"} value={`${realtimeState} / ${realtimeSnapshot?.session ?? "-"}`} />
         <Fact label={text.aiAction} value={String(rawAction)} />
         <Fact label={text.confidence} value={decision?.confidence ?? selected.trade_conclusion?.confidence ?? "-"} />
         <Fact label={text.entryZone} value={decision?.entry_zone ?? "-"} />
@@ -5498,6 +5613,10 @@ function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, 
     first: formatCandleTime(candles[0]),
     last: formatCandleTime(candles[candles.length - 1]),
     errors: Array.isArray(payload.provider_errors) ? payload.provider_errors.map(String) : [],
+    session: String(payload.session ?? ""),
+    quoteTime: payload.quote_time ? formatDateTimeUtc8(String(payload.quote_time), { withDate: true }) : undefined,
+    exchangeTimezone: String(payload.exchange_timezone ?? "America/New_York"),
+    displayTimezone: String(payload.display_timezone ?? "Asia/Shanghai"),
   };
 }
 
@@ -6194,6 +6313,8 @@ function normalizeCandles(input: unknown, fallback: Candle[]): Candle[] {
         low: Number(item.low ?? 0),
         close: Number(item.close ?? 0),
         volume: Number(item.volume ?? 0),
+        bar_state: String(item.bar_state ?? "unknown"),
+        quote_merged: Boolean(item.quote_merged),
       };
     })
     .filter((bar) => Number.isFinite(bar.open) && Number.isFinite(bar.time) && bar.time);
@@ -6304,9 +6425,72 @@ function isLiveCandleMeta(meta: CandleMeta) {
   return (
     meta.count > 0
     && meta.providerStatus === "available"
-    && (meta.sourceType === "longbridge_candles" || meta.sourceType.includes("live"))
+    && (meta.sourceType.startsWith("longbridge_") || meta.sourceType.includes("live"))
     && !meta.sourceType.includes("fixture")
   );
+}
+
+function metaFromRealtimeSnapshot(
+  payload: RealtimeSnapshotPayload,
+  preset: ChartPreset,
+  candles: Candle[],
+): CandleMeta {
+  const quoteAge = Number(payload.quote?.freshness_seconds ?? 0);
+  return {
+    symbol: payload.symbol,
+    range: preset.range,
+    interval: preset.interval,
+    sourceType: "longbridge_realtime_snapshot",
+    providerStatus: payload.provider_status,
+    freshness: payload.quote_fresh ? "live_quote" : "stale_quote",
+    staleAge: Number.isFinite(quoteAge) ? formatStaleAge(quoteAge, payload.quote_fresh ? "live" : "stale") : "unknown",
+    count: candles.length,
+    first: formatCandleTime(candles[0]),
+    last: formatCandleTime(candles[candles.length - 1]),
+    errors: [],
+    session: payload.session,
+    quoteTime: payload.quote?.quote_time ? formatDateTimeUtc8(payload.quote.quote_time, { withDate: true }) : undefined,
+    exchangeTimezone: payload.exchange_timezone,
+    displayTimezone: payload.display_timezone,
+  };
+}
+
+function chartIntervalSeconds(interval: string): number {
+  return ({ "1m": 60, "5m": 300, "15m": 900, "1h": 3600 } as Record<string, number>)[interval] ?? 0;
+}
+
+function mergeRealtimeQuote(candles: Candle[], quote: RealtimeQuote, interval: string): Candle[] {
+  const duration = chartIntervalSeconds(interval);
+  const price = Number(quote.last);
+  const quoteMs = quote.quote_time ? new Date(quote.quote_time).getTime() : Number.NaN;
+  if (!duration || !candles.length || !Number.isFinite(price) || !Number.isFinite(quoteMs)) return candles;
+  const next = candles.map((candle) => ({ ...candle }));
+  const latest = next[next.length - 1];
+  const latestMs = latest.open_time ? new Date(latest.open_time).getTime() : Number(latest.time) * 1000;
+  if (!Number.isFinite(latestMs) || quoteMs < latestMs) return candles;
+  const durationMs = duration * 1000;
+  if (quoteMs < latestMs + durationMs) {
+    latest.high = Math.max(latest.high, price);
+    latest.low = Math.min(latest.low, price);
+    latest.close = price;
+    latest.bar_state = "forming_candle";
+    latest.quote_merged = true;
+    return next;
+  }
+  const elapsedBuckets = Math.max(1, Math.floor((quoteMs - latestMs) / durationMs));
+  const openMs = latestMs + elapsedBuckets * durationMs;
+  next.push({
+    time: Math.floor(openMs / 1000) as Time,
+    open_time: new Date(openMs).toISOString(),
+    open: price,
+    high: price,
+    low: price,
+    close: price,
+    volume: 0,
+    bar_state: "forming_candle",
+    quote_merged: true,
+  });
+  return next;
 }
 
 function marketDataMiniLabel(apiHealth: ApiHealthPayload | null) {

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import os
 import sqlite3
-import subprocess
-import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -15,6 +13,9 @@ from urllib.parse import urlencode
 
 import requests
 
+from .longbridge_provider import longbridge_runtime
+from .market_clock import NEW_YORK, active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
+from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
 
@@ -48,9 +49,6 @@ LONG_BRIDGE_STALE_SOURCE = "stale_longbridge_cache"
 YAHOO_FALLBACK_SOURCE = "yahoo_public_fallback"
 REAL_MONEY_CANDLE_SOURCE = LONG_BRIDGE_CANDLE_SOURCE
 LONG_BRIDGE_TIMEOUT_SECONDS = int(os.getenv("KQUANT_LONGBRIDGE_TIMEOUT_SECONDS", "12"))
-MARKET_OPEN_UTC_HOUR = 13
-MARKET_OPEN_UTC_MINUTE = 30
-MARKET_CLOSE_UTC_HOUR = 20
 PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
     "swing_long_v1": {
         "name": "swing_long_v1",
@@ -507,8 +505,7 @@ def _parse_market_time(value: Any) -> datetime | None:
         return None
     if isinstance(value, datetime):
         if value.tzinfo is None:
-            local_tz = datetime.now().astimezone().tzinfo
-            return value.replace(tzinfo=local_tz).astimezone(UTC)
+            return value.replace(tzinfo=NEW_YORK).astimezone(UTC)
         return value.astimezone(UTC)
     if isinstance(value, (int, float)):
         seconds = float(value) / 1000 if float(value) > 10_000_000_000 else float(value)
@@ -519,26 +516,14 @@ def _parse_market_time(value: Any) -> datetime | None:
     try:
         parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
         if parsed.tzinfo is None:
-            local_tz = datetime.now().astimezone().tzinfo
-            return parsed.replace(tzinfo=local_tz).astimezone(UTC)
+            return parsed.replace(tzinfo=NEW_YORK).astimezone(UTC)
         return parsed.astimezone(UTC)
     except ValueError:
         return None
 
 
 def _current_us_regular_session_start(now: datetime | None = None) -> datetime:
-    current = (now or datetime.now(UTC)).astimezone(UTC)
-    candidate = current.replace(
-        hour=MARKET_OPEN_UTC_HOUR,
-        minute=MARKET_OPEN_UTC_MINUTE,
-        second=0,
-        microsecond=0,
-    )
-    if current < candidate:
-        candidate -= timedelta(days=1)
-    while candidate.weekday() >= 5:
-        candidate -= timedelta(days=1)
-    return candidate
+    return active_regular_session_start(now)
 
 
 def _filter_today_intraday_candles(
@@ -555,6 +540,111 @@ def _filter_today_intraday_candles(
         if (parsed := _parse_market_time(candle.get("open_time"))) is not None and parsed >= session_start
     ]
     return filtered or candles
+
+
+def interval_seconds(interval: str) -> int:
+    return {
+        "1m": 60,
+        "5m": 300,
+        "15m": 900,
+        "1h": 3600,
+        "1d": 86400,
+        "1wk": 604800,
+        "1mo": 2_592_000,
+    }.get(interval, 60)
+
+
+def candle_bar_state(open_time: Any, interval: str, now: datetime | None = None) -> str:
+    parsed = _parse_market_time(open_time)
+    if parsed is None:
+        return "unknown"
+    current = (now or datetime.now(UTC)).astimezone(UTC)
+    return "closed_candle" if current >= parsed + timedelta(seconds=interval_seconds(interval)) else "forming_candle"
+
+
+def annotate_candle_states(
+    candles: list[dict[str, Any]],
+    interval: str,
+    now: datetime | None = None,
+) -> list[dict[str, Any]]:
+    return [
+        {**candle, "bar_state": candle_bar_state(candle.get("open_time"), interval, now)}
+        for candle in candles
+    ]
+
+
+def _bucket_open(value: datetime, interval: str) -> datetime:
+    seconds = interval_seconds(interval)
+    epoch = int(value.astimezone(UTC).timestamp())
+    return datetime.fromtimestamp(epoch - (epoch % seconds), UTC)
+
+
+def merge_quote_into_candles(
+    candles: list[dict[str, Any]],
+    quote: dict[str, Any],
+    interval: str = "1m",
+) -> list[dict[str, Any]]:
+    last = _decimal_float(quote.get("last"))
+    quote_time = _parse_market_time(quote.get("quote_time"))
+    if last is None or quote_time is None:
+        return annotate_candle_states(candles, interval)
+    bucket = _bucket_open(quote_time, interval)
+    merged = [dict(candle) for candle in candles]
+    if merged and _parse_market_time(merged[-1].get("open_time")) == bucket:
+        current = merged[-1]
+        current["high"] = round(max(float(current["high"]), last), 4)
+        current["low"] = round(min(float(current["low"]), last), 4)
+        current["close"] = round(last, 4)
+        current["quote_merged"] = True
+    elif not merged or (_parse_market_time(merged[-1].get("open_time")) or datetime.min.replace(tzinfo=UTC)) < bucket:
+        merged.append(
+            {
+                "open_time": bucket.isoformat(),
+                "time": int(bucket.timestamp()),
+                "open": round(last, 4),
+                "high": round(last, 4),
+                "low": round(last, 4),
+                "close": round(last, 4),
+                "volume": 0.0,
+                "source": LONG_BRIDGE_CANDLE_SOURCE,
+                "quote_merged": True,
+            }
+        )
+    return annotate_candle_states(merged, interval, quote_time)
+
+
+def aggregate_intraday_candles(
+    candles: list[dict[str, Any]],
+    target_interval: str,
+    now: datetime | None = None,
+) -> list[dict[str, Any]]:
+    if target_interval not in {"5m", "15m", "1h"}:
+        raise ValueError(f"Unsupported intraday aggregation interval: {target_interval}")
+    grouped: dict[int, list[dict[str, Any]]] = {}
+    for candle in candles:
+        parsed = _parse_market_time(candle.get("open_time"))
+        if parsed is None:
+            continue
+        bucket = _bucket_open(parsed, target_interval)
+        grouped.setdefault(int(bucket.timestamp()), []).append(candle)
+    aggregated: list[dict[str, Any]] = []
+    for timestamp in sorted(grouped):
+        rows = sorted(grouped[timestamp], key=lambda item: int(item.get("time") or 0))
+        bucket = datetime.fromtimestamp(timestamp, UTC)
+        aggregated.append(
+            {
+                "open_time": bucket.isoformat(),
+                "time": timestamp,
+                "open": float(rows[0]["open"]),
+                "high": max(float(row["high"]) for row in rows),
+                "low": min(float(row["low"]) for row in rows),
+                "close": float(rows[-1]["close"]),
+                "volume": sum(float(row.get("volume") or 0) for row in rows),
+                "source": LONG_BRIDGE_CANDLE_SOURCE,
+                "component_count": len(rows),
+            }
+        )
+    return annotate_candle_states(aggregated, target_interval, now)
 
 
 def _longbridge_period(interval: str) -> Any:
@@ -796,6 +886,8 @@ def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
         "latest_longbridge_cache": latest_longbridge_cache,
         "yahoo_public_fallback": True,
         "real_money_requires_longbridge_live": True,
+        "runtime": longbridge_runtime().health(),
+        "market_clock": market_clock().as_dict(),
     }
 
 
@@ -821,12 +913,15 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
     try:
         lb_symbol = longbridge_symbol(symbol)
         count = int(candle_spec(range_value, interval)["bars"])
-        result = _run_longbridge_subprocess(
-            "candles",
-            {"symbol": lb_symbol, "period": _longbridge_period_name(interval), "count": count},
+        rows = longbridge_runtime().candlesticks(
+            lb_symbol,
+            _longbridge_period(interval),
+            count,
+            _longbridge_adjust_type(),
+            LONG_BRIDGE_TIMEOUT_SECONDS,
         )
         candles: list[dict[str, Any]] = []
-        for row in list(result.get("candles") or []):
+        for row in list(rows or []):
             open_time = _parse_market_time(
                 _pick_attr(row, ("timestamp", "time", "open_time", "date", "datetime"))
             )
@@ -859,7 +954,13 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
                 "Longbridge returned 0 candles.",
                 source_type=LONG_BRIDGE_CANDLE_SOURCE,
             )
-        latest_age = max(0, int((datetime.now(UTC) - datetime.fromisoformat(candles[-1]["open_time"])).total_seconds()))
+        current = datetime.now(UTC)
+        candles = annotate_candle_states(candles, interval, current)
+        latest_open = datetime.fromisoformat(candles[-1]["open_time"])
+        bar_open_age = max(0, int((current - latest_open).total_seconds()))
+        latest_close = latest_open + timedelta(seconds=interval_seconds(interval))
+        freshness_seconds = max(0, int((current - latest_close).total_seconds()))
+        clock = market_clock(current)
         return {
             "instrument_type": "stock",
             "symbol": symbol,
@@ -870,9 +971,14 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "provider_status": "available",
             "provider_errors": [],
             "provider": "longbridge",
-            "freshness": "live",
-            "freshness_seconds": latest_age,
-            "session": market_session_now(),
+            "freshness": "live" if clock.session == "regular" else "market_closed",
+            "freshness_seconds": freshness_seconds,
+            "bar_open_age_seconds": bar_open_age,
+            "latest_bar_state": candles[-1]["bar_state"],
+            "session": clock.session,
+            "market_clock": clock.as_dict(),
+            "exchange_timezone": clock.exchange_timezone,
+            "display_timezone": clock.display_timezone,
             "candle_time": candles[-1]["open_time"],
             "candles": candles[-count:],
             "real_money_data_source": True,
@@ -912,11 +1018,17 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         import longbridge.openapi  # type: ignore  # noqa: F401
 
         lb_symbol = longbridge_symbol(symbol)
-        quote = _run_longbridge_subprocess("quote", {"symbol": lb_symbol})
-        quote_time = _parse_market_time(quote.get("quote_time"))
-        last = _decimal_float(quote.get("last"))
-        bid = _decimal_float(quote.get("bid"))
-        ask = _decimal_float(quote.get("ask"))
+        rows = longbridge_runtime().quote(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+        quote = list(rows or [None])[0]
+        if quote is None:
+            raise RuntimeError("Longbridge returned no quote.")
+        quote_time = _parse_market_time(
+            _pick_attr(quote, ("timestamp", "time", "quote_time", "trade_time"))
+        )
+        last = _decimal_float(_pick_attr(quote, ("last_done", "last", "price", "current_price", "close")))
+        bid = _decimal_float(_pick_attr(quote, ("bid", "bid_price")))
+        ask = _decimal_float(_pick_attr(quote, ("ask", "ask_price")))
+        clock = market_clock()
         return {
             "symbol": symbol,
             "provider_symbol": lb_symbol,
@@ -927,7 +1039,10 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             "bid": bid,
             "ask": ask,
             "quote_time": quote_time.isoformat() if quote_time else None,
-            "session": market_session_now(),
+            "session": clock.session,
+            "market_clock": clock.as_dict(),
+            "exchange_timezone": clock.exchange_timezone,
+            "display_timezone": clock.display_timezone,
             "freshness_seconds": max(0, int((datetime.now(UTC) - quote_time).total_seconds())) if quote_time else None,
             "read_only_market_data": True,
         }
@@ -943,17 +1058,72 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         }
 
 
+def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
+    symbol = normalize_symbol(symbol)
+    clock = market_clock()
+    quote = api_stock_quote(symbol=symbol, db_path=db_path)
+    minute_payload = api_stock_candles(
+        symbol=symbol,
+        range_value="1d",
+        interval="1m",
+        source="live",
+        db_path=db_path,
+    )
+    minute_candles = list(minute_payload.get("candles") or [])
+    snapshot_time = _parse_market_time(quote.get("quote_time")) or datetime.now(UTC)
+    if quote.get("provider_status") == "available":
+        minute_candles = merge_quote_into_candles(minute_candles, quote, "1m")
+    else:
+        minute_candles = annotate_candle_states(minute_candles, "1m", snapshot_time)
+    five_minute_candles = (
+        aggregate_intraday_candles(minute_candles, "5m", snapshot_time)
+        if minute_candles
+        else []
+    )
+    quote_age = quote.get("freshness_seconds")
+    quote_fresh = isinstance(quote_age, (int, float)) and quote_age <= 15
+    longbridge_candles_live = (
+        minute_payload.get("provider_status") == "available"
+        and minute_payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE
+    )
+    provider_status = (
+        "available"
+        if quote.get("provider_status") == "available" and longbridge_candles_live
+        else "degraded"
+    )
+    provider_errors = list(quote.get("provider_errors") or []) + list(minute_payload.get("provider_errors") or [])
+    return {
+        "symbol": symbol,
+        "provider": "longbridge",
+        "provider_status": provider_status,
+        "provider_errors": provider_errors,
+        "source_type": "longbridge_realtime_snapshot",
+        "quote": quote,
+        "candles_1m": minute_candles,
+        "candles_5m": five_minute_candles,
+        "current_1m_bar": minute_candles[-1] if minute_candles else None,
+        "current_5m_bar": five_minute_candles[-1] if five_minute_candles else None,
+        "quote_fresh": quote_fresh,
+        "session": clock.session,
+        "market_clock": clock.as_dict(),
+        "exchange_timezone": clock.exchange_timezone,
+        "display_timezone": clock.display_timezone,
+        "buy_actions_allowed_by_data": bool(
+            clock.session == "regular"
+            and quote_fresh
+            and longbridge_candles_live
+            and provider_status == "available"
+        ),
+        "real_money_data_source": longbridge_candles_live,
+        "read_only_market_data": True,
+        "account_access_enabled": False,
+        "trade_context_enabled": False,
+        "order_submission_enabled": False,
+    }
+
+
 def market_session_now(now: datetime | None = None) -> str:
-    current = (now or datetime.now(UTC)).astimezone(UTC)
-    if current.weekday() >= 5:
-        return "closed"
-    open_time = current.replace(hour=MARKET_OPEN_UTC_HOUR, minute=MARKET_OPEN_UTC_MINUTE, second=0, microsecond=0)
-    close_time = current.replace(hour=MARKET_CLOSE_UTC_HOUR, minute=0, second=0, microsecond=0)
-    if open_time <= current <= close_time:
-        return "regular"
-    if current < open_time:
-        return "pre_market"
-    return "after_hours"
+    return market_clock(now).session
 
 
 def api_stock_candles(
@@ -1531,6 +1701,7 @@ def api_stock_analyze(
     source: str = "live",
     profile: str = "swing_long_v1",
     db_path: Path | None = None,
+    include_realtime: bool = True,
 ) -> dict[str, Any]:
     db = db_path or default_db_path()
     active_profile = profile_config(profile)
@@ -1565,6 +1736,32 @@ def api_stock_analyze(
     signal["downgraded_reasons"] = downgraded_reasons(signal)
     signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
     signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
+    quote = (
+        api_stock_quote(normalized_symbol, db)
+        if include_realtime and source == "live" and preferred_market_data_provider() == "longbridge"
+        else {
+            "symbol": normalized_symbol,
+            "provider_status": "not_requested",
+            "source_type": "realtime_quote_not_requested",
+        }
+    )
+    quote_age = quote.get("freshness_seconds")
+    quote_fresh = bool(
+        quote.get("provider_status") == "available"
+        and isinstance(quote_age, (int, float))
+        and quote_age <= 15
+    )
+    signal["data_status"].update(
+        {
+            "realtime_quote_provider_status": quote.get("provider_status"),
+            "realtime_quote_source_type": quote.get("source_type"),
+            "realtime_quote_time": quote.get("quote_time"),
+            "realtime_quote_age_seconds": quote_age,
+            "realtime_quote_fresh": quote_fresh,
+            "market_session": quote.get("session") or market_regime.get("session") or market_session_now(),
+        }
+    )
+    signal["ai_feature_packet_v3"] = build_ai_feature_packet_v3(signal, quote, market_regime)
     return {
         "product": "KQUANT US Stock Signal Terminal",
         "symbol": normalized_symbol,
@@ -1596,6 +1793,7 @@ def api_stock_analyze(
         "confirmation_candles": candle_payload_meta(confirmation),
         "signal": signal,
         "market_regime": market_regime,
+        "realtime_quote": quote,
         "journal_summary": api_stock_signal_journal(db_path=db, symbol=normalized_symbol, limit=10)["summary"],
         "fixture_user_visible": False,
         "broker_order_wiring_enabled": False,
@@ -1686,7 +1884,13 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
     profile_comparison = payload.get("profile_comparison") if isinstance(payload.get("profile_comparison"), list) else []
     if not profile_comparison:
         profile_comparison = [
-            api_stock_analyze(symbol=symbol, source="live", profile=profile_key, db_path=db)["signal"]
+            api_stock_analyze(
+                symbol=symbol,
+                source="live",
+                profile=profile_key,
+                db_path=db,
+                include_realtime=False,
+            )["signal"]
             for profile_key in visible_strategy_profile_keys()
         ]
     journal_limit = int(payload.get("journal_context_limit") or 5)
@@ -1700,7 +1904,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not api_key:
         decision = unavailable_ai_decision(signal_payload, veto, "OPENAI_API_KEY is not configured.")
-        return {
+        result = {
             "product": "KQUANT AI Trading Agent",
             "status": "ai_unavailable",
             "reason": "OPENAI_API_KEY is not configured.",
@@ -1709,8 +1913,8 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
             "input_summary": context["input_summary"],
             "rule_conclusion": signal_payload.get("trade_conclusion", {}),
             "ai_decision": decision,
-            "ai_feature_packet": signal_payload.get("ai_feature_packet_v2", {}),
-            "ai_feature_packet_version": "ai_feature_packet_v2",
+            "ai_feature_packet": signal_payload.get("ai_feature_packet_v3") or signal_payload.get("ai_feature_packet_v2", {}),
+            "ai_feature_packet_version": "ai_feature_packet_v3" if signal_payload.get("ai_feature_packet_v3") else "ai_feature_packet_v2",
             "entry_plan": decision.get("entry_plan", signal_payload.get("entry_plan", {})),
             "stop_plan": decision.get("stop_plan", signal_payload.get("stop_plan", {})),
             "target_plan": decision.get("target_plan", signal_payload.get("target_plan", {})),
@@ -1723,6 +1927,15 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
             "hard_veto": veto,
             "safety_policy": safety,
         }
+        result["action_event_key"] = persist_ai_action_event(
+            db,
+            symbol=symbol,
+            profile=profile,
+            signal=signal_payload,
+            decision=decision,
+            market_regime=market_regime,
+        )
+        return result
     try:
         response = requests.post(
             "https://api.openai.com/v1/responses",
@@ -1743,7 +1956,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         decision = unavailable_ai_decision(signal_payload, veto, f"AI decision request failed: {type(exc).__name__}")
         status = "ai_unavailable"
         reason = str(exc)[:240]
-    return {
+    result = {
         "product": "KQUANT AI Trading Agent",
         "status": status,
         "reason": reason,
@@ -1752,8 +1965,8 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         "input_summary": context["input_summary"],
         "rule_conclusion": signal_payload.get("trade_conclusion", {}),
         "ai_decision": decision,
-        "ai_feature_packet": signal_payload.get("ai_feature_packet_v2", {}),
-        "ai_feature_packet_version": "ai_feature_packet_v2",
+        "ai_feature_packet": signal_payload.get("ai_feature_packet_v3") or signal_payload.get("ai_feature_packet_v2", {}),
+        "ai_feature_packet_version": "ai_feature_packet_v3" if signal_payload.get("ai_feature_packet_v3") else "ai_feature_packet_v2",
         "entry_plan": decision.get("entry_plan", signal_payload.get("entry_plan", {})),
         "stop_plan": decision.get("stop_plan", signal_payload.get("stop_plan", {})),
         "target_plan": decision.get("target_plan", signal_payload.get("target_plan", {})),
@@ -1766,6 +1979,15 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         "hard_veto": veto,
         "safety_policy": safety,
     }
+    result["action_event_key"] = persist_ai_action_event(
+        db,
+        symbol=symbol,
+        profile=profile,
+        signal=signal_payload,
+        decision=decision,
+        market_regime=market_regime,
+    )
+    return result
 
 
 def api_stock_research_chat(payload: dict[str, Any], db_path: Path | None = None) -> dict[str, Any]:
@@ -2551,6 +2773,11 @@ def build_signal(
         "daily_source_type": daily_source,
         "confirmation_source_type": hourly_source,
         "freshness": daily_payload["freshness"],
+        "session": daily_payload.get("session"),
+        "daily_candle_time": daily_payload.get("candle_time"),
+        "confirmation_candle_time": hourly_payload.get("candle_time"),
+        "daily_bar_state": daily_payload.get("latest_bar_state"),
+        "confirmation_bar_state": hourly_payload.get("latest_bar_state"),
         "longbridge_required_for_buy": longbridge_required,
         "longbridge_live_data_clean": bool(
             daily_status == "available"
@@ -2898,6 +3125,140 @@ def build_ai_feature_packet_v2(
             "no_broker_or_order_path": True,
         },
         "evidence_stack": evidence_stack,
+    }
+
+
+def build_ai_feature_packet_v3(
+    signal: dict[str, Any],
+    quote: dict[str, Any] | None,
+    market_regime: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Add realtime and validation evidence without changing deterministic features."""
+
+    packet_v2 = signal.get("ai_feature_packet_v2") or {}
+    technical = packet_v2.get("technical_state") or {}
+    daily = technical.get("daily") or {}
+    confirmation = technical.get("confirmation") or {}
+    data_status = signal.get("data_status") or {}
+    realtime = quote or {}
+    regime = market_regime or {}
+    components = regime.get("components") or {}
+
+    last = _decimal_float(realtime.get("last"))
+    bid = _decimal_float(realtime.get("bid"))
+    ask = _decimal_float(realtime.get("ask"))
+    midpoint = ((bid or 0) + (ask or 0)) / 2 if bid and ask else 0.0
+    spread_bps = ((ask - bid) / midpoint * 10_000) if midpoint and ask >= bid else None
+    quote_age = realtime.get("freshness_seconds")
+    clock = realtime.get("market_clock") or {}
+    session = str(realtime.get("session") or data_status.get("session") or clock.get("session") or "unknown")
+    quote_is_fresh = bool(
+        realtime.get("provider_status") == "available"
+        and isinstance(quote_age, (int, float))
+        and quote_age <= 15
+    )
+
+    daily_close = float(daily.get("close") or 0)
+    confirmation_close = float(confirmation.get("close") or 0)
+    ema8 = float(daily.get("ema8") or 0)
+    ema9 = float(daily.get("ema9") or 0)
+    confirmation_ema8 = float(confirmation.get("ema8") or 0)
+    confirmation_ema9 = float(confirmation.get("ema9") or 0)
+    confirmation_vwap = float(confirmation.get("vwap20") or 0)
+    live_price = float(last or daily_close or 0)
+    trigger_state = {
+        "price_above_daily_ema8": bool(live_price and ema8 and live_price >= ema8),
+        "price_above_daily_ema9": bool(live_price and ema9 and live_price >= ema9),
+        "confirmation_above_ema8": bool(confirmation_close and confirmation_ema8 and confirmation_close >= confirmation_ema8),
+        "confirmation_above_ema9": bool(confirmation_close and confirmation_ema9 and confirmation_close >= confirmation_ema9),
+        "confirmation_vwap_reclaim": bool(confirmation_close and confirmation_vwap and confirmation_close >= confirmation_vwap),
+        "ema8_9_reclaim": bool(
+            live_price
+            and ema8
+            and ema9
+            and live_price >= max(ema8, ema9)
+            and confirmation_close >= max(confirmation_ema8, confirmation_ema9)
+        ),
+    }
+
+    spy = components.get("SPY") or {}
+    qqq = components.get("QQQ") or {}
+    validation = signal.get("ai_action_validation") or {}
+    fingerprint_payload = {
+        "symbol": signal.get("symbol"),
+        "profile": signal.get("profile_name"),
+        "quote_time": realtime.get("quote_time"),
+        "last": round(live_price, 4) if live_price else None,
+        "daily_candle_time": data_status.get("daily_candle_time"),
+        "confirmation_candle_time": data_status.get("confirmation_candle_time"),
+        "setup": trigger_state,
+        "hard_data_clean": data_status.get("data_quality") == "clean",
+        "market_regime": regime.get("regime"),
+    }
+    trigger_fingerprint = hashlib.sha256(
+        json.dumps(fingerprint_payload, sort_keys=True, ensure_ascii=True).encode("utf-8")
+    ).hexdigest()[:20]
+
+    return {
+        "version": "ai_feature_packet_v3",
+        "symbol": signal.get("symbol"),
+        "profile": packet_v2.get("profile") or {
+            "name": signal.get("profile_name"),
+            "label": signal.get("strategy_label"),
+            "holding_period": signal.get("holding_period"),
+        },
+        "base_packet_version": packet_v2.get("version", "ai_feature_packet_v2"),
+        "timeframe_summaries": packet_v2.get("timeframe_summaries", {}),
+        "technical_state": technical,
+        "realtime_market_state": {
+            "provider": realtime.get("provider"),
+            "source_type": realtime.get("source_type"),
+            "provider_status": realtime.get("provider_status", "not_requested"),
+            "last": round(live_price, 4) if live_price else None,
+            "bid": round(float(bid), 4) if bid is not None else None,
+            "ask": round(float(ask), 4) if ask is not None else None,
+            "spread_bps": round(float(spread_bps), 2) if spread_bps is not None else None,
+            "quote_time_utc": realtime.get("quote_time"),
+            "quote_age_seconds": quote_age,
+            "quote_is_fresh": quote_is_fresh,
+            "session": session,
+            "exchange_timezone": realtime.get("exchange_timezone", "America/New_York"),
+            "display_timezone": realtime.get("display_timezone", "Asia/Shanghai"),
+            "daily_bar_state": data_status.get("daily_bar_state"),
+            "confirmation_bar_state": data_status.get("confirmation_bar_state"),
+            "forming_bars_are_not_closed_signals": True,
+        },
+        "trigger_state": trigger_state,
+        "relative_strength_context": {
+            "stock_trend_return_5d_pct": daily.get("trend_return_5d_pct"),
+            "spy_return_20d_pct": spy.get("return_20d_pct"),
+            "qqq_return_20d_pct": qqq.get("return_20d_pct"),
+            "comparison_note": "Stock 5D momentum and benchmark 20D regime returns are separate context windows, not a direct ratio.",
+        },
+        "market_regime": {
+            "regime": regime.get("regime"),
+            "label": regime.get("label"),
+            "score": regime.get("score"),
+            "high_confidence_allowed": regime.get("high_confidence_allowed"),
+            "provider_status": regime.get("provider_status"),
+        },
+        "historical_action_validation": validation,
+        "rule_guardrails": packet_v2.get("rule_guardrails", {}),
+        "market_and_data_guardrails": packet_v2.get("market_and_data_guardrails", {}),
+        "rule_trade_plans": {
+            "entry_plan": signal.get("entry_plan", {}),
+            "stop_plan": signal.get("stop_plan", {}),
+            "target_plan": signal.get("target_plan", {}),
+            "risk_reward_plan": signal.get("risk_reward_plan", {}),
+        },
+        "evidence_stack": packet_v2.get("evidence_stack", []),
+        "trigger_fingerprint": trigger_fingerprint,
+        "model_refresh_policy": {
+            "minimum_cooldown_seconds": 900,
+            "refresh_only_on_material_change": True,
+            "material_changes": ["AI action", "entry zone", "hard veto", "closed confirmation bar"],
+            "quote_updates_alone_do_not_call_the_model": True,
+        },
     }
 
 
@@ -3758,23 +4119,14 @@ def fixture_market_timestamps(range_value: str, interval: str, end: datetime) ->
     spec = candle_spec(range_value, interval)
     bars = int(spec["bars"])
     if interval == "1d":
-        return [
-            datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
-            for day in previous_trading_days(end, bars)
-        ]
+        return [session_bounds_utc(day.date())[0] for day in previous_trading_days(end, bars)]
     if interval == "1wk":
-        return [
-            datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
-            for day in previous_weekly_trading_days(end, bars)
-        ]
+        return [session_bounds_utc(day.date())[0] for day in previous_weekly_trading_days(end, bars)]
     if interval == "1mo":
-        return [
-            datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
-            for day in previous_monthly_trading_days(end, bars)
-        ]
+        return [session_bounds_utc(day.date())[0] for day in previous_monthly_trading_days(end, bars)]
     if range_value == "1d" and interval in {"1m", "5m"}:
         day = previous_trading_days(end, 1)[-1]
-        start = datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+        start = session_bounds_utc(day.date())[0]
         step_minutes = 1 if interval == "1m" else 5
         bars = 390 if interval == "1m" else 78
         return [start + timedelta(minutes=step_minutes * index) for index in range(bars)]
@@ -3783,7 +4135,7 @@ def fixture_market_timestamps(range_value: str, interval: str, end: datetime) ->
         step = timedelta(minutes=15) if interval == "15m" else timedelta(hours=1)
         bars_per_day = 26 if interval == "15m" else 7
         for day in previous_trading_days(end, 5):
-            start = datetime(day.year, day.month, day.day, MARKET_OPEN_UTC_HOUR, MARKET_OPEN_UTC_MINUTE, tzinfo=UTC)
+            start = session_bounds_utc(day.date())[0]
             timestamps.extend(start + step * index for index in range(bars_per_day))
         return timestamps
     step = spec["step"]
@@ -3795,7 +4147,7 @@ def previous_trading_days(end: datetime, count: int) -> list[datetime]:
     day = datetime(end.year, end.month, end.day, tzinfo=UTC)
     days: list[datetime] = []
     while len(days) < count:
-        if day.weekday() < 5:
+        if is_trading_day(day.date()):
             days.append(day)
         day -= timedelta(days=1)
     return list(reversed(days))
@@ -3806,7 +4158,7 @@ def previous_weekly_trading_days(end: datetime, count: int) -> list[datetime]:
     days: list[datetime] = []
     cursor = anchor
     while len(days) < count:
-        if cursor.weekday() < 5:
+        if is_trading_day(cursor.date()):
             days.append(cursor)
         cursor -= timedelta(days=7)
     return list(reversed(days))
@@ -3819,7 +4171,7 @@ def previous_monthly_trading_days(end: datetime, count: int) -> list[datetime]:
     while len(months) < count:
         first = datetime(year, month, 1, tzinfo=UTC)
         cursor = first
-        while cursor.weekday() >= 5:
+        while not is_trading_day(cursor.date()):
             cursor += timedelta(days=1)
         if cursor <= end:
             months.append(cursor)
@@ -4004,6 +4356,292 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
             ("stock_signal_run", json.dumps({"run_id": payload["run_id"], "counts": payload["counts"]}), now),
         )
         conn.commit()
+
+
+def _plan_number(container: dict[str, Any], *keys: str) -> float | None:
+    for key in keys:
+        value = _decimal_float(container.get(key))
+        if value is not None and value > 0:
+            return value
+    return None
+
+
+def persist_ai_action_event(
+    db_path: Path,
+    *,
+    symbol: str,
+    profile: str,
+    signal: dict[str, Any],
+    decision: dict[str, Any],
+    market_regime: dict[str, Any],
+) -> str:
+    action = str(decision.get("action") or "AI_WAIT")
+    packet_v3 = signal.get("ai_feature_packet_v3") or {}
+    data_guardrails = packet_v3.get("market_and_data_guardrails") or (
+        (signal.get("ai_feature_packet_v2") or {}).get("market_and_data_guardrails") or {}
+    )
+    data_status = signal.get("data_status") or {}
+    signal_time = str(
+        data_status.get("confirmation_candle_time")
+        or data_guardrails.get("confirmation_candle_time")
+        or data_status.get("daily_candle_time")
+        or data_guardrails.get("daily_candle_time")
+        or iso_now()
+    )
+    event_material = f"{normalize_symbol(symbol)}|{profile}|{action}|{signal_time}"
+    event_key = hashlib.sha256(event_material.encode("utf-8")).hexdigest()[:32]
+    entry_plan = signal.get("entry_plan") or {}
+    stop_plan = signal.get("stop_plan") or {}
+    target_plan = signal.get("target_plan") or {}
+    risk_plan = signal.get("risk_reward_plan") or {}
+    entry_low = _plan_number(entry_plan, "entry_low", "low")
+    entry_high = _plan_number(entry_plan, "entry_high", "high")
+    entry_price = (
+        (entry_low + entry_high) / 2
+        if entry_low is not None and entry_high is not None
+        else entry_low or entry_high
+    )
+    stop_price = _plan_number(stop_plan, "stop", "stop_price")
+    target_price = _plan_number(target_plan, "target_low", "target", "target_price")
+    decision_price = float((signal.get("features") or {}).get("close") or entry_price or 0)
+    payload = {
+        "signal": signal,
+        "decision": decision,
+        "market_regime": market_regime,
+        "recording_policy": "prospective_ai_action_event_v1",
+    }
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO ai_action_events(
+              event_key, symbol, profile, action, signal_time, decision_price,
+              entry_price, stop_price, target_price, risk_reward, market_regime,
+              data_source, payload_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                event_key,
+                normalize_symbol(symbol),
+                profile,
+                action,
+                signal_time,
+                decision_price,
+                entry_price,
+                stop_price,
+                target_price,
+                float(risk_plan.get("risk_reward_value") or 0),
+                str(market_regime.get("regime") or "unknown"),
+                str((signal.get("data_status") or {}).get("source") or "unknown"),
+                json.dumps(payload, ensure_ascii=False),
+                iso_now(),
+            ),
+        )
+        conn.commit()
+    return event_key
+
+
+def evaluate_pending_ai_action_events(db_path: Path) -> int:
+    evaluated = 0
+    with connect(db_path) as conn:
+        events = conn.execute(
+            """
+            SELECT e.* FROM ai_action_events e
+            LEFT JOIN ai_action_outcomes o ON o.event_key = e.event_key
+            WHERE o.event_key IS NULL
+            ORDER BY e.signal_time ASC
+            """
+        ).fetchall()
+        for event in events:
+            active_profile = profile_config(event["profile"])
+            horizon = int(active_profile.get("focus_horizon_bars") or 5)
+            rows = conn.execute(
+                """
+                SELECT open_time, open, high, low, close, volume
+                FROM stock_candles
+                WHERE symbol = ? AND interval = '1d' AND open_time > ?
+                  AND source IN (?, 'live_yahoo_chart')
+                ORDER BY open_time ASC
+                LIMIT ?
+                """,
+                (event["symbol"], event["signal_time"], LONG_BRIDGE_CANDLE_SOURCE, horizon),
+            ).fetchall()
+            if len(rows) < horizon:
+                continue
+            decision_price = float(event["decision_price"] or 0)
+            stop_price = float(event["stop_price"] or decision_price * (1 - float(active_profile.get("stop_loss_pct") or 5) / 100))
+            target_price = float(event["target_price"] or decision_price * (1 + float(active_profile.get("target_return_pct") or 2) / 100))
+            candles = [
+                {
+                    "open_time": event["signal_time"],
+                    "open": decision_price,
+                    "high": decision_price,
+                    "low": decision_price,
+                    "close": decision_price,
+                    "volume": 0,
+                },
+                *[dict(row) for row in rows],
+            ]
+            outcome = evaluate_long_trade(
+                candles,
+                signal_index=0,
+                stop_price=stop_price,
+                target_price=target_price,
+                horizon_bars=horizon,
+                config=BacktestConfig(),
+            )
+            if not outcome.get("completed"):
+                continue
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO ai_action_outcomes(
+                  event_key, horizon_bars, entry_time, entry_price, exit_time, exit_price,
+                  outcome, realized_r, max_drawdown_pct, max_runup_pct, target_first,
+                  stop_first, completed, evaluated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event["event_key"],
+                    horizon,
+                    outcome.get("entry_time"),
+                    outcome.get("entry_price"),
+                    outcome.get("exit_time"),
+                    outcome.get("exit_price"),
+                    outcome.get("outcome"),
+                    outcome.get("realized_r"),
+                    outcome.get("max_drawdown_pct"),
+                    outcome.get("max_runup_pct"),
+                    int(bool(outcome.get("target_first"))),
+                    int(bool(outcome.get("stop_first"))),
+                    int(bool(outcome.get("completed"))),
+                    iso_now(),
+                ),
+            )
+            evaluated += 1
+        conn.commit()
+    return evaluated
+
+
+def api_stock_strategy_validation(
+    db_path: Path | None = None,
+    profile: str | None = None,
+    outputs_dir: Path | None = None,
+) -> dict[str, Any]:
+    db = db_path or default_db_path()
+    evaluated_now = evaluate_pending_ai_action_events(db)
+    query = """
+        SELECT e.symbol, e.profile, e.action, e.signal_time, e.market_regime,
+               o.completed, o.outcome, o.realized_r, o.max_drawdown_pct,
+               o.max_runup_pct, o.target_first, o.stop_first
+        FROM ai_action_events e
+        JOIN ai_action_outcomes o ON o.event_key = e.event_key
+    """
+    params: tuple[Any, ...] = ()
+    if profile:
+        query += " WHERE e.profile = ?"
+        params = (profile,)
+    query += " ORDER BY e.signal_time ASC"
+    with connect(db) as conn:
+        rows = [dict(row) for row in conn.execute(query, params).fetchall()]
+        pending = conn.execute(
+            "SELECT COUNT(*) AS count FROM ai_action_events e LEFT JOIN ai_action_outcomes o ON o.event_key=e.event_key WHERE o.event_key IS NULL"
+        ).fetchone()["count"]
+    splits = walk_forward_split(rows)
+    payload = {
+        "product": "KQUANT Strategy Validation v2",
+        "profile": profile or "all",
+        "generated_at": iso_now(),
+        "evaluated_now": evaluated_now,
+        "completed_event_count": len(rows),
+        "pending_event_count": int(pending),
+        "overall": summarize_outcomes(rows),
+        "walk_forward": {name: summarize_outcomes(items) for name, items in splits.items()},
+        "by_profile_action_regime": summarize_by_dimensions(rows),
+        "methodology": {
+            "entry": "next_bar_open",
+            "same_bar_policy": "stop_first",
+            "commission_bps_per_side": 1.0,
+            "slippage_bps_per_side": 5.0,
+            "no_future_data_leakage": True,
+            "evidence_robust_at_samples": 100,
+        },
+        "read_only_research": True,
+    }
+    run_id = f"strategy-validation-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
+    with connect(db) as conn:
+        for split_name, summary in {"overall": payload["overall"], **payload["walk_forward"]}.items():
+            confidence = list(summary.get("confidence_interval_95") or [0.0, 0.0])
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO strategy_validation_runs(
+                  run_id, profile, action, split_name, sample_count, win_rate,
+                  average_r, profit_factor, max_drawdown_r, confidence_low,
+                  confidence_high, payload_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    f"{run_id}-{split_name}",
+                    profile or "all",
+                    "all",
+                    split_name,
+                    int(summary.get("sample_count") or 0),
+                    float(summary.get("win_rate") or 0),
+                    float(summary.get("average_r") or 0),
+                    float(summary.get("profit_factor") or 0),
+                    float(summary.get("max_drawdown_r") or 0),
+                    float(confidence[0] if confidence else 0),
+                    float(confidence[1] if len(confidence) > 1 else 0),
+                    json.dumps(summary, ensure_ascii=False),
+                    iso_now(),
+                ),
+            )
+        conn.commit()
+    write_ai_action_validation_report(outputs_dir or Path("outputs"), payload)
+    return payload
+
+
+def write_ai_action_validation_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    (outputs_dir / "ai-action-validation.json").write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    overall = payload.get("overall") or {}
+    lines = [
+        "# KQUANT AI Action Validation",
+        "",
+        f"- Generated: `{payload.get('generated_at')}`",
+        f"- Profile: `{payload.get('profile')}`",
+        f"- Completed / pending: `{payload.get('completed_event_count', 0)}` / `{payload.get('pending_event_count', 0)}`",
+        f"- Evidence: `{overall.get('evidence_quality', 'insufficient')}`",
+        f"- Win rate: `{overall.get('win_rate', 0)}%`",
+        f"- Average R: `{overall.get('average_r', 0)}`",
+        f"- Profit factor: `{overall.get('profit_factor', 0)}`",
+        f"- Max drawdown: `{overall.get('max_drawdown_r', 0)}R`",
+        f"- 95% confidence interval: `{overall.get('confidence_interval_95', [0, 0])}`",
+        "",
+        "## Validation By Profile / Action / Regime",
+        "",
+    ]
+    for key, summary in (payload.get("by_profile_action_regime") or {}).items():
+        lines.append(
+            f"- `{key}`: samples `{summary.get('sample_count', 0)}`, win `{summary.get('win_rate', 0)}%`, "
+            f"average `{summary.get('average_r', 0)}R`, PF `{summary.get('profit_factor', 0)}`, "
+            f"evidence `{summary.get('evidence_quality', 'insufficient')}`"
+        )
+    lines.extend(
+        [
+            "",
+            "## Methodology",
+            "",
+            "- Signal is generated after a completed bar; entry uses the next bar open.",
+            "- Same-bar stop/target conflicts are conservatively counted as stop first.",
+            "- Commission, slippage and gap risk are included.",
+            "- Insufficient samples are never presented as reliable edge.",
+            "",
+            "Read-only research only. No broker, account, position or order path is connected.",
+        ]
+    )
+    (outputs_dir / "ai-action-validation.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
@@ -4748,6 +5386,7 @@ def ai_review_context(
         "data_status": signal.get("data_status"),
         "risk_warnings": signal.get("risk_warnings", [])[:8],
         "ai_feature_packet_v2": signal.get("ai_feature_packet_v2"),
+        "ai_feature_packet_v3": signal.get("ai_feature_packet_v3"),
         "entry_plan": signal.get("entry_plan"),
         "stop_plan": signal.get("stop_plan"),
         "target_plan": signal.get("target_plan"),
@@ -4859,6 +5498,12 @@ def ai_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[
         reasons.append(f"provider daily={daily_status or 'missing'} hourly={hourly_status or 'missing'}")
     if int(data_status.get("daily_candles") or 0) <= 0 or int(data_status.get("hourly_candles") or 0) <= 0:
         reasons.append("missing live candles")
+    market_session = str(data_status.get("market_session") or data_status.get("session") or "unknown")
+    if data_status.get("longbridge_required_for_buy") and market_session == "regular":
+        quote_status = str(data_status.get("realtime_quote_provider_status") or "missing")
+        quote_age = data_status.get("realtime_quote_age_seconds")
+        if quote_status != "available" or not data_status.get("realtime_quote_fresh"):
+            reasons.append(f"realtime_quote={quote_status} age={quote_age}")
     market_state = str(market_regime.get("regime", "DATA_CAUTION"))
     if market_state in {"RISK_OFF", "DATA_CAUTION"}:
         reasons.append(f"market_regime={market_state}")
@@ -4878,7 +5523,7 @@ def ai_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[
         "reasons": reasons[:8],
         "guardrail_warnings": guardrail_warnings[:8],
         "can_ai_buy": not reasons,
-        "veto_version": "ai_primary_v2",
+        "veto_version": "ai_primary_v3",
         "policy": (
             "AI leads opportunity recognition. Hard veto blocks only non-negotiable data/market safety failures; "
             "rule action, exit-risk structure, and historical edge are guardrails the AI must explain and size around."
@@ -4918,6 +5563,11 @@ def ai_decision_context(
         "features": signal.get("features", {}),
         "data_status": signal.get("data_status", {}),
     }
+    base["ai_feature_packet_v3"] = signal.get("ai_feature_packet_v3") or build_ai_feature_packet_v3(
+        signal,
+        {"provider_status": "not_requested", "source_type": "realtime_quote_not_requested"},
+        market_regime,
+    )
     base["rule_trade_plans"] = {
         "entry_plan": signal.get("entry_plan", {}),
         "stop_plan": signal.get("stop_plan", {}),
@@ -4986,9 +5636,10 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
         ],
     }
     system = (
-        "You are KQUANT AI Primary Trade Engine v2. You lead opportunity recognition and manual trade planning, "
-        "while remaining strictly read-only. Treat ai_feature_packet_v2 as the primary structured trading input, "
-        "including 1D/1H summaries, EMA8/9/20/50/200, VWAP, RSI14, volume, ATR, historical edge, and market context. "
+        "You are KQUANT AI Primary Trade Engine v3. You lead opportunity recognition and manual trade planning, "
+        "while remaining strictly read-only. Treat ai_feature_packet_v3 as the primary structured trading input, "
+        "including realtime quote freshness, closed/forming bars, 1D/1H summaries, EMA8/9/20/50/200, VWAP, RSI14, "
+        "volume, ATR, relative-strength context, action validation, and market regime. Never treat a forming bar as a closed signal. "
         "Use rule_trade_plans as the deterministic baseline, but improve or reject the plan if the evidence demands it. "
         "The rule conclusion is a guardrail input, not the final decision. If hard_veto.active is true, do not output "
         "AI_BUY_CANDIDATE, AI_PULLBACK_BUY, or AI_PROBE_BUY. AI_PROBE_BUY means a starter-position research candidate, "
@@ -5107,8 +5758,8 @@ def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto:
         "probe_eligibility": probe_check,
         "probe_risk_policy": probe_risk_policy(),
         "probe_blockers": probe_check["blockers"],
-        "ai_feature_packet_version": "ai_feature_packet_v2",
-        "ai_primary_engine_version": "ai_primary_v2",
+        "ai_feature_packet_version": "ai_feature_packet_v3" if signal.get("ai_feature_packet_v3") else "ai_feature_packet_v2",
+        "ai_primary_engine_version": "ai_primary_v3",
         "read_only_research": True,
         "broker_order_wiring_enabled": False,
         "order_submission_enabled": False,
@@ -5179,8 +5830,8 @@ def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason
         "probe_eligibility": probe_check,
         "probe_risk_policy": probe_risk_policy(),
         "probe_blockers": probe_check["blockers"],
-        "ai_feature_packet_version": "ai_feature_packet_v2",
-        "ai_primary_engine_version": "ai_primary_v2",
+        "ai_feature_packet_version": "ai_feature_packet_v3" if signal.get("ai_feature_packet_v3") else "ai_feature_packet_v2",
+        "ai_primary_engine_version": "ai_primary_v3",
         "read_only_research": True,
         "broker_order_wiring_enabled": False,
         "order_submission_enabled": False,
@@ -5366,6 +6017,11 @@ def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
 
 def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
     veto = ai_hard_veto(signal, market_regime)
+    feature_packet_v3 = signal.get("ai_feature_packet_v3") or build_ai_feature_packet_v3(
+        signal,
+        {"provider_status": "not_requested", "source_type": "daily_agent_quote_not_requested"},
+        market_regime,
+    )
     research_summary: dict[str, Any] = {
         "status": "disabled",
         "evidence_count": 0,
@@ -5394,6 +6050,7 @@ def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, 
         "data_status": signal.get("data_status"),
         "ai_feature_packet_v1": signal.get("ai_feature_packet_v1"),
         "ai_feature_packet_v2": signal.get("ai_feature_packet_v2"),
+        "ai_feature_packet_v3": feature_packet_v3,
         "rule_trade_plans": {
             "entry_plan": signal.get("entry_plan", {}),
             "stop_plan": signal.get("stop_plan", {}),
@@ -5476,8 +6133,8 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
         ],
     }
     system = (
-        "You are KQUANT Daily Opportunity Agent running AI Primary Trade Engine v2. Rank a small set of manual trading opportunities. "
-        "Use ai_feature_packet_v2 as the primary structured technical-data packet for each candidate. "
+        "You are KQUANT Daily Opportunity Agent running AI Primary Trade Engine v3. Rank a small set of manual trading opportunities. "
+        "Use ai_feature_packet_v3 as the primary structured technical-data packet for each candidate. "
         "Use rule_trade_plans and ai_action_validation_baseline as deterministic baselines for entry, stop, target, R/R, and evidence quality. "
         "Respect hard_veto: candidates with hard_veto.active cannot be top_buy_candidates or probe_candidates. "
         "Rule PASS/EXIT_REVIEW, exit-risk warnings, and weak historical edge are guardrails, not final conclusions; "
@@ -5587,7 +6244,7 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
                     "probe_eligibility": probe_check,
                     "probe_risk_policy": probe_risk_policy(),
                     "probe_blockers": probe_check["blockers"],
-                    "ai_feature_packet_version": "ai_feature_packet_v2",
+                    "ai_feature_packet_version": "ai_feature_packet_v3",
                 }
             )
         return sanitized
@@ -5717,7 +6374,7 @@ def unavailable_daily_ai_report(candidates: list[dict[str, Any]], reason: str) -
             "probe_eligibility": candidate.get("probe_eligibility_baseline", {}),
             "probe_risk_policy": probe_risk_policy(),
             "probe_blockers": (candidate.get("probe_eligibility_baseline") or {}).get("blockers", ["AI unavailable"]),
-            "ai_feature_packet_version": "ai_feature_packet_v2",
+            "ai_feature_packet_version": "ai_feature_packet_v3",
         }
         if item["action"] == "AI_WAIT":
             watch.append(item)
