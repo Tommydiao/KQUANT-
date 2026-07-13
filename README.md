@@ -46,7 +46,8 @@ Near-term local mode:
 
 - local Python API at `http://127.0.0.1:8001/`;
 - SQLite database at `work/kquant_us.sqlite3`;
-- Yahoo/public chart data as a prototype provider;
+- Longbridge read-only market data for intraday US quote and candle research;
+- Yahoo/public candles as a clearly marked reference fallback only;
 - OpenAI key stored only in the local backend environment.
 
 Future SaaS target:
@@ -134,10 +135,11 @@ First-time AI Review setup:
 This stores `OPENAI_API_KEY` in your Windows user environment, not in GitHub or
 the frontend. Rotate the key if it has ever appeared in screenshots or chat.
 
-Manual startup remains available:
+Manual startup remains available. Use `-KillExisting` after a code, model-key,
+or Longbridge configuration change:
 
 ```powershell
-.\start_kquant_stock_terminal.ps1
+.\start_kquant_stock_terminal.ps1 -KillExisting
 ```
 
 Open `http://127.0.0.1:8001/`.
@@ -234,6 +236,10 @@ The Vercel deployment is a static React frontend. Real K-Lines require a
 reachable Python backend. For a private deployed workflow, keep the backend on
 this PC and expose it through Cloudflare Tunnel protected by Cloudflare Access:
 
+> The Vercel URL is a display surface only. It must show `Live API offline`
+> when the protected backend is unreachable, and cannot replace the local
+> Longbridge backend for real-money research.
+
 1. Create a named Cloudflare Tunnel and publish a hostname such as
    `kquant-api.example.com`.
 2. Protect that hostname with a Cloudflare Access self-hosted application that
@@ -278,6 +284,7 @@ The local Python dashboard exposes:
 - `GET /api/stocks/ai-daily-report/latest`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
+- `GET /api/stocks/market-data/self-check?symbol=NVDA`
 - `GET /api/stocks/live-data-health?universes=default,ai_five_layer&limit=20`
 - `GET /api/stocks/live-data-health/latest`
 - `GET /api/mstr/cycle-radar?source=live`

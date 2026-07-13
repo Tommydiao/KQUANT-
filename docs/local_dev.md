@@ -200,10 +200,13 @@ $env:KQUANT_MARKET_DATA_PROVIDER="longbridge"
 ```
 
 The startup script only prints whether Longbridge market data is available; it
-never prints tokens. Health checks are available at:
+never prints tokens. It reuses one quote context and subscribes to the current
+stock's quote/candles when possible, falling back to a direct candle pull for
+the initial chart load. Health checks are available at:
 
 ```bash
 curl -s http://127.0.0.1:8001/api/stocks/market-data/status
+curl -s "http://127.0.0.1:8001/api/stocks/market-data/self-check?symbol=NVDA"
 curl -s "http://127.0.0.1:8001/api/stocks/quote?symbol=NVDA"
 curl -s "http://127.0.0.1:8001/api/stocks/candles?symbol=NVDA&range=1d&interval=1m&source=live"
 ```
@@ -211,6 +214,12 @@ curl -s "http://127.0.0.1:8001/api/stocks/candles?symbol=NVDA&range=1d&interval=
 If Longbridge is configured but unavailable, KQUANT may display Yahoo public
 fallback candles for reference, but those are marked as non-realtime fallback
 and cannot qualify an AI buy-class action for real-money review.
+
+Longbridge times are normalized to UTC ISO-8601 in API responses. The terminal
+can display chart times in China time (`UTC+8`) or New York exchange time
+(`ET`). During US daylight saving, 09:30 ET equals 21:30 China time; during
+standard time it equals 22:30 China time. Outside US regular trading hours,
+`market_closed` is expected and buy-class actions remain blocked.
 
 Both expose the Agent Harness API routes under `/api/agent/...`. The fallback server still rejects non-Harness state-changing dashboard actions, but allows local Harness task and approval operations because they only write SQLite audit/task state and do not call exchange APIs.
 
