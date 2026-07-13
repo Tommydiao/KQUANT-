@@ -28,6 +28,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
+type DisplayTimezone = "Asia/Shanghai" | "America/New_York";
 type Source = "fixture" | "live";
 type Level = "BUY SETUP" | "WATCH" | "PASS";
 type TradeAction = "BUY" | "WAIT" | "DO_NOT_BUY" | "HOLD_TRAIL" | "EXIT_REVIEW";
@@ -2091,6 +2092,7 @@ function aiDecisionCacheKey(signal: StockSignal, profile: StrategyProfileName): 
 function App() {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", initialLanguage());
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
+  const [chartTimezone, setChartTimezone] = useStoredState<DisplayTimezone>("kquant-stock:chart-timezone:v1", "Asia/Shanghai");
   const [view, setView] = useStoredState<AppView>("kquant-stock:view:v1", "stocks");
   const source: Source = "live";
   const [selectedUniverse, setSelectedUniverse] = useStoredState<UniverseName>("kquant-stock:universe:v2", "default");
@@ -3390,6 +3392,8 @@ function App() {
               presetKey={primaryPresetKey}
               onPresetChange={(value) => setPrimaryPresetKey(value as ChartPresetKey)}
               onReload={() => void analyzeSymbol(selected.symbol, { keepSearch: true })}
+              displayTimezone={chartTimezone}
+              onDisplayTimezoneChange={setChartTimezone}
               labels={{
                 source: text.chartSource,
                 status: text.chartStatus,
@@ -3410,6 +3414,8 @@ function App() {
               presetKey={confirmationPresetKey}
               onPresetChange={(value) => setConfirmationPresetKey(value as ChartPresetKey)}
               onReload={() => void analyzeSymbol(selected.symbol, { keepSearch: true })}
+              displayTimezone={chartTimezone}
+              onDisplayTimezoneChange={setChartTimezone}
               labels={{
                 source: text.chartSource,
                 status: text.chartStatus,
@@ -5319,6 +5325,8 @@ function ChartPanel({
   presetKey,
   onPresetChange,
   onReload,
+  displayTimezone = "Asia/Shanghai",
+  onDisplayTimezoneChange,
   labels,
 }: {
   title: string;
@@ -5332,6 +5340,8 @@ function ChartPanel({
   presetKey: ChartPresetKey;
   onPresetChange: (value: string) => void;
   onReload?: () => void;
+  displayTimezone?: DisplayTimezone;
+  onDisplayTimezoneChange?: (timezone: DisplayTimezone) => void;
   labels: {
     source: string;
     status: string;
@@ -5375,12 +5385,12 @@ function ChartPanel({
       },
       rightPriceScale: { borderColor: dark ? "#263241" : "#e5e7eb" },
       localization: {
-        timeFormatter: (time: Time) => formatChartTime(time, { withDate: true }),
+        timeFormatter: (time: Time) => formatChartTime(time, { withDate: true, timeZone: displayTimezone }),
       },
       timeScale: {
         borderColor: dark ? "#263241" : "#e5e7eb",
         timeVisible: true,
-        tickMarkFormatter: (time: Time) => formatChartTime(time, { withDate: false }),
+        tickMarkFormatter: (time: Time) => formatChartTime(time, { withDate: false, timeZone: displayTimezone }),
       },
       handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
       handleScale: { mouseWheel: false, pinch: true, axisPressedMouseMove: true },
@@ -5422,7 +5432,7 @@ function ChartPanel({
         return;
       }
       setHover({
-        time: formatChartTime(point.time, { withDate: true }),
+        time: formatChartTime(point.time, { withDate: true, timeZone: displayTimezone }),
         open: point.open,
         high: point.high,
         low: point.low,
@@ -5430,7 +5440,11 @@ function ChartPanel({
       });
     });
     return () => chart.remove();
-  }, [candles, indicators.ema20, indicators.ema50, indicators.ema200, indicators.vwap, theme]);
+  }, [candles, displayTimezone, indicators.ema20, indicators.ema50, indicators.ema200, indicators.vwap, theme]);
+
+  const firstLabel = candles.length ? formatCandleTime(candles[0], displayTimezone) : meta.first;
+  const lastLabel = candles.length ? formatCandleTime(candles[candles.length - 1], displayTimezone) : meta.last;
+  const timezoneLabel = displayTimezone === "Asia/Shanghai" ? "China UTC+8" : "New York ET";
 
   return (
     <section className="panel chart-panel" ref={panelRef}>
@@ -5441,6 +5455,13 @@ function ChartPanel({
         </div>
         <div className="chart-tools">
           <Segmented value={presetKey} options={presets.map((preset) => [preset.key, preset.label])} onChange={onPresetChange} />
+          {onDisplayTimezoneChange ? (
+            <Segmented
+              value={displayTimezone}
+              options={[["Asia/Shanghai", "CN +8"], ["America/New_York", "ET"]]}
+              onChange={(value) => onDisplayTimezoneChange(value as DisplayTimezone)}
+            />
+          ) : null}
           <button className="chart-reload" type="button" onClick={onReload}>
             Reload Real Data
           </button>
@@ -5478,8 +5499,16 @@ function ChartPanel({
           {labels.candles}: <b>{meta.count}</b>
         </span>
         <span>
-          {labels.firstLast}: <b>{meta.first || "-"} / {meta.last || "-"}</b>
+          {labels.firstLast}: <b>{firstLabel || "-"} / {lastLabel || "-"}</b>
         </span>
+        <span>
+          Display: <b>{timezoneLabel}</b>
+        </span>
+        {meta.exchangeTimezone ? (
+          <span>
+            Exchange: <b>{meta.exchangeTimezone}</b>
+          </span>
+        ) : null}
         {meta.errors.length ? (
           <span>
             Errors: <b>{meta.errors.join("; ").slice(0, 120)}</b>
@@ -6886,12 +6915,12 @@ function money(value: number | null | undefined) {
   return `$${value.toFixed(value > 100 ? 0 : 2)}`;
 }
 
-function formatCandleTime(candle: Candle | undefined) {
+function formatCandleTime(candle: Candle | undefined, timeZone: DisplayTimezone = "Asia/Shanghai") {
   if (!candle) return "";
-  if (candle.open_time) return formatDateTimeUtc8(candle.open_time);
+  if (candle.open_time) return formatDateTimeUtc8(candle.open_time, { timeZone });
   const seconds = Number(candle.time);
   if (!Number.isFinite(seconds)) return "";
-  return formatDateTimeUtc8(seconds * 1000);
+  return formatDateTimeUtc8(seconds * 1000, { timeZone });
 }
 
 function chartTimeToDate(time: Time): Date | null {
@@ -6906,17 +6935,21 @@ function chartTimeToDate(time: Time): Date | null {
   return null;
 }
 
-function formatChartTime(time: Time, options: { withDate: boolean }) {
+function formatChartTime(time: Time, options: { withDate: boolean; timeZone?: DisplayTimezone }) {
   const date = chartTimeToDate(time);
   if (!date) return String(time);
   return formatDateTimeUtc8(date, options);
 }
 
-function formatDateTimeUtc8(value: string | number | Date, options: { withDate?: boolean } = {}) {
+function formatDateTimeUtc8(
+  value: string | number | Date,
+  options: { withDate?: boolean; timeZone?: DisplayTimezone } = {},
+) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
+  const timeZone = options.timeZone ?? "Asia/Shanghai";
   const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Shanghai",
+    timeZone,
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -6930,7 +6963,8 @@ function formatDateTimeUtc8(value: string | number | Date, options: { withDate?:
     }, {});
   const timeText = `${parts.hour ?? "00"}:${parts.minute ?? "00"}`;
   if (!options.withDate) return timeText;
-  return `${parts.month ?? "--"}/${parts.day ?? "--"} ${timeText} UTC+8`;
+  const timezoneSuffix = timeZone === "Asia/Shanghai" ? "UTC+8" : "ET";
+  return `${parts.month ?? "--"}/${parts.day ?? "--"} ${timeText} ${timezoneSuffix}`;
 }
 
 export default App;
