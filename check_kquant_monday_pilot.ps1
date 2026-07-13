@@ -168,6 +168,23 @@ try {
 }
 
 try {
+  $marketData = Invoke-KquantJson "/api/stocks/market-data/self-check?symbol=$($Symbols[0])"
+  $quoteCheck = @($marketData.checks | Where-Object { $_.name -eq "quote_entitlement" } | Select-Object -First 1)[0]
+  Add-Check "longbridge_market_data" ($marketData.status -in @("ready", "caution")) "status=$($marketData.status); provider=$($marketData.quote.provider); quote_status=$($marketData.quote.provider_status)" $true
+  Add-Check "longbridge_quote_entitlement" ($quoteCheck.status -eq "pass") "status=$($quoteCheck.status); quote_time=$($quoteCheck.quote_time)" $true
+  Add-Check "no_longbridge_trade_context" ([bool]$marketData.no_account_or_order_path) "no_account_or_order_path=$($marketData.no_account_or_order_path)" $true
+  if ($marketData.market_clock.session -ne "regular") {
+    Add-Check "regular_session_live_trigger" $false "US regular session is $($marketData.market_clock.session); realtime entry triggers are disabled outside the regular session." $false
+  } elseif (-not [bool]$marketData.realtime_buy_data_ready) {
+    Add-Check "regular_session_live_trigger" $false "Quote is not fresh enough for a real-money entry trigger." $true
+  } else {
+    Add-Check "regular_session_live_trigger" $true "Longbridge quote is fresh during the US regular session." $true
+  }
+} catch {
+  Add-Check "longbridge_market_data" $false $_.Exception.Message $true
+}
+
+try {
   $ai = Invoke-KquantJson "/api/stocks/ai-review/status"
   Add-Check "ai_available" ($ai.status -eq "available") "status=$($ai.status); model=$($ai.models.review)" $true
   Add-Check "ai_cannot_order" (-not [bool]$ai.ai_can_place_orders -and -not [bool]$ai.order_submission_enabled) "ai_can_place_orders=$($ai.ai_can_place_orders)" $true
