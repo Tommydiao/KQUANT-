@@ -31,17 +31,21 @@ function Get-TailscaleCli {
 }
 
 try {
-  $journalResponse = Invoke-WebRequest -UseBasicParsing "$DashboardUrl/api/options/pilot-journal" -TimeoutSec 5
-  $journal = $journalResponse.Content | ConvertFrom-Json
-  Add-Check "dashboard_online" ($journalResponse.StatusCode -eq 200) "$DashboardUrl responded with $($journalResponse.StatusCode)"
-  Add-Check "signal_auto_order_disabled" (-not [bool]$journal.safety.order_submission_wired) "pilot journal safety.order_submission_wired=$($journal.safety.order_submission_wired)"
-  Add-Check "live_order_disabled" (-not [bool]$journal.safety.live_order_submission_enabled) "pilot journal safety.live_order_submission_enabled=$($journal.safety.live_order_submission_enabled)"
-  Add-Check "paper_order_manual_confirm" ([bool]$journal.safety.paper_order_requires_manual_confirmation) "pilot journal safety.paper_order_requires_manual_confirmation=$($journal.safety.paper_order_requires_manual_confirmation)"
+  $healthResponse = Invoke-WebRequest -UseBasicParsing "$DashboardUrl/api/health" -TimeoutSec 5
+  $health = $healthResponse.Content | ConvertFrom-Json
+  Add-Check "dashboard_online" ($healthResponse.StatusCode -eq 200 -and $health.status -eq "online") "$DashboardUrl responded with $($healthResponse.StatusCode), status=$($health.status)"
+  Add-Check "read_only_research" ([bool]$health.read_only_research) "read_only_research=$($health.read_only_research)"
+  Add-Check "fixture_hidden" (-not [bool]$health.fixture_user_visible) "fixture_user_visible=$($health.fixture_user_visible)"
+  Add-Check "broker_order_disabled" (-not [bool]$health.broker_order_wiring_enabled -and -not [bool]$health.order_submission_enabled) "broker_order_wiring_enabled=$($health.broker_order_wiring_enabled), order_submission_enabled=$($health.order_submission_enabled)"
+  Add-Check "account_access_disabled" (-not [bool]$health.account_access_enabled) "account_access_enabled=$($health.account_access_enabled)"
+  Add-Check "longbridge_configured" ($health.market_data.provider -eq "longbridge" -and $health.market_data.status -eq "available") "provider=$($health.market_data.provider), status=$($health.market_data.status)"
 } catch {
   Add-Check "dashboard_online" $false $_.Exception.Message
-  Add-Check "signal_auto_order_disabled" $false "Could not read pilot journal safety payload."
-  Add-Check "live_order_disabled" $false "Could not read pilot journal safety payload."
-  Add-Check "paper_order_manual_confirm" $false "Could not read pilot journal safety payload."
+  Add-Check "read_only_research" $false "Could not read KQUANT health payload."
+  Add-Check "fixture_hidden" $false "Could not read KQUANT health payload."
+  Add-Check "broker_order_disabled" $false "Could not read KQUANT health payload."
+  Add-Check "account_access_disabled" $false "Could not read KQUANT health payload."
+  Add-Check "longbridge_configured" $false "Could not read KQUANT health payload."
 }
 
 try {

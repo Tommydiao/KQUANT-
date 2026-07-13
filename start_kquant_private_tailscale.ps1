@@ -8,10 +8,30 @@ $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Python = Join-Path $Root ".venv-win\Scripts\python.exe"
 $DashboardUrl = "http://127.0.0.1:$Port"
 
+function Import-LocalEnv {
+  param([string]$Path)
+  if (-not (Test-Path $Path)) {
+    return
+  }
+  Get-Content $Path | ForEach-Object {
+    $line = $_.Trim()
+    if (-not $line -or $line.StartsWith("#") -or -not $line.Contains("=")) {
+      return
+    }
+    $name, $value = $line.Split("=", 2)
+    $name = $name.Trim()
+    $value = $value.Trim().Trim('"').Trim("'")
+    if ($name -and $value -and -not [Environment]::GetEnvironmentVariable($name, "Process")) {
+      [Environment]::SetEnvironmentVariable($name, $value, "Process")
+    }
+  }
+}
+
 function Test-LocalDashboard {
   try {
-    $response = Invoke-WebRequest -UseBasicParsing "$DashboardUrl/api/options/pilot-journal" -TimeoutSec 5
-    return $response.StatusCode -eq 200
+    $response = Invoke-WebRequest -UseBasicParsing "$DashboardUrl/api/health" -TimeoutSec 5
+    $health = $response.Content | ConvertFrom-Json
+    return $response.StatusCode -eq 200 -and $health.status -eq "online"
   } catch {
     return $false
   }
@@ -35,6 +55,8 @@ if (-not (Test-Path $Python)) {
   throw "Python runtime not found: $Python"
 }
 
+Import-LocalEnv (Join-Path $Root ".env")
+
 if (-not (Test-LocalDashboard)) {
   Start-Process -FilePath $Python `
     -ArgumentList @("-m", "btc_eth_15m.dashboard.stdlib_server", "--host", "127.0.0.1", "--port", "$Port") `
@@ -44,7 +66,7 @@ if (-not (Test-LocalDashboard)) {
 }
 
 if (-not (Test-LocalDashboard)) {
-  throw "kquant dashboard did not respond at $DashboardUrl"
+  throw "KQUANT stock terminal did not respond at $DashboardUrl/api/health"
 }
 
 $Tailscale = Get-TailscaleCli
@@ -77,4 +99,10 @@ if ($dnsName) {
   Write-Host "Tailscale DNS name was not available from tailscale status."
 }
 Write-Host "Private mode: Tailscale Serve only. Do not enable 'tailscale funnel' for this dashboard."
-Write-Host "Safety: Live orders remain disabled; Alpaca Paper requires env keys and manual confirmation."
+try {
+  $marketData = (Invoke-WebRequest -UseBasicParsing "$DashboardUrl/api/stocks/market-data/status" -TimeoutSec 5).Content | ConvertFrom-Json
+  Write-Host "Market data: $($marketData.provider) / $($marketData.status)" -ForegroundColor Cyan
+} catch {
+  Write-Host "Market data: unable to read provider status" -ForegroundColor Yellow
+}
+Write-Host "Safety: read-only research; no account, position, or order submission path." -ForegroundColor Green
