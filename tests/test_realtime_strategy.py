@@ -6,8 +6,10 @@ from pathlib import Path
 import kquant.stock_signals as stock_signals
 from kquant.market_clock import MarketClock, market_clock, session_bounds_utc
 from kquant.stock_signals import (
+    _parse_market_time,
     aggregate_intraday_candles,
     ai_hard_veto,
+    api_stock_market_data_self_check,
     api_stock_strategy_validation,
     merge_quote_into_candles,
 )
@@ -40,6 +42,14 @@ def test_market_clock_handles_us_summer_and_winter_time() -> None:
     assert winter.session == "regular"
     assert winter.regular_open_utc == "2026-01-05T14:30:00+00:00"
     assert winter.regular_close_utc == "2026-01-05T21:00:00+00:00"
+
+
+def test_longbridge_naive_datetime_contract_is_utc() -> None:
+    # Longbridge documents API timestamps as UTC.  A naive SDK datetime must
+    # never be reinterpreted as America/New_York during summer time.
+    parsed = _parse_market_time(datetime(2026, 7, 9, 13, 30))
+    assert parsed is not None
+    assert parsed.isoformat() == "2026-07-09T13:30:00+00:00"
 
 
 def test_market_clock_handles_holiday_and_early_close() -> None:
@@ -249,3 +259,41 @@ def test_strategy_validation_persists_walk_forward_report(tmp_path: Path) -> Non
     assert (outputs / "ai-action-validation.md").exists()
     with connect(db) as conn:
         assert conn.execute("SELECT COUNT(*) AS count FROM strategy_validation_runs").fetchone()["count"] == 4
+
+
+def test_market_data_self_check_records_local_readiness(monkeypatch, tmp_path: Path) -> None:
+    clock = MarketClock(
+        session="closed",
+        market_date="2026-07-12",
+        exchange_timezone="America/New_York",
+        display_timezone="Asia/Shanghai",
+        regular_open_utc=None,
+        regular_close_utc=None,
+        is_trading_day=False,
+        is_early_close=False,
+    )
+    monkeypatch.setattr(stock_signals, "market_clock", lambda *args, **kwargs: clock)
+    monkeypatch.setattr(
+        stock_signals,
+        "api_stock_market_data_status",
+        lambda **kwargs: {
+            "provider": "longbridge",
+            "status": "available",
+            "longbridge_env": "configured",
+            "longbridge_sdk": "installed",
+            "longbridge_market_data_only": True,
+            "longbridge_account_enabled": False,
+            "longbridge_trade_enabled": False,
+        },
+    )
+    monkeypatch.setattr(
+        stock_signals,
+        "api_stock_quote",
+        lambda **kwargs: {"provider_status": "available", "quote_time": "2026-07-11T20:00:00+00:00", "freshness_seconds": 1},
+    )
+    payload = api_stock_market_data_self_check(symbol="NVDA", db_path=tmp_path / "kquant.sqlite3")
+    assert payload["status"] == "ready"
+    assert payload["realtime_buy_data_ready"] is False
+    assert payload["no_account_or_order_path"] is True
+    with connect(tmp_path / "kquant.sqlite3") as conn:
+        assert conn.execute("SELECT COUNT(*) AS count FROM audit_events").fetchone()["count"] == 1

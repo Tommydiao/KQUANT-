@@ -14,7 +14,7 @@ from urllib.parse import urlencode
 import requests
 
 from .longbridge_provider import longbridge_runtime
-from .market_clock import NEW_YORK, active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
+from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
@@ -501,11 +501,18 @@ def _pick_attr(item: Any, names: tuple[str, ...]) -> Any:
 
 
 def _parse_market_time(value: Any) -> datetime | None:
+    """Normalize provider timestamps to UTC.
+
+    Longbridge documents every API response timestamp as UTC Unix time.  Some
+    SDK objects expose a naive ``datetime``; treating that value as New York
+    time shifts every candle by four or five hours, so naive provider values are
+    deliberately interpreted as UTC here.
+    """
     if value is None:
         return None
     if isinstance(value, datetime):
         if value.tzinfo is None:
-            return value.replace(tzinfo=NEW_YORK).astimezone(UTC)
+            return value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
     if isinstance(value, (int, float)):
         seconds = float(value) / 1000 if float(value) > 10_000_000_000 else float(value)
@@ -516,7 +523,7 @@ def _parse_market_time(value: Any) -> datetime | None:
     try:
         parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
         if parsed.tzinfo is None:
-            return parsed.replace(tzinfo=NEW_YORK).astimezone(UTC)
+            return parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC)
     except ValueError:
         return None
@@ -680,164 +687,6 @@ def _longbridge_period_name(interval: str) -> str:
     }.get(interval, "Day")
 
 
-def _run_longbridge_subprocess(action: str, payload: dict[str, Any], timeout_seconds: int | None = None) -> dict[str, Any]:
-    timeout = timeout_seconds or LONG_BRIDGE_TIMEOUT_SECONDS
-    code = r'''
-import json
-import os
-from datetime import datetime, timezone
-
-from longbridge.openapi import AdjustType, Config, Period, QuoteContext
-
-request = json.loads(__import__("sys").stdin.read())
-action = request["action"]
-payload = request["payload"]
-
-def pick(obj, names):
-    for name in names:
-        if hasattr(obj, name):
-            value = getattr(obj, name)
-            if value is not None:
-                return value
-        if isinstance(obj, dict) and obj.get(name) is not None:
-            return obj.get(name)
-    return None
-
-def decimal_float(value, default=None):
-    if value is None:
-        return default
-    try:
-        return float(value)
-    except Exception:
-        try:
-            return float(str(value))
-        except Exception:
-            return default
-
-def market_time(value):
-    if value is None:
-        return None
-    if hasattr(value, "timestamp"):
-        dt = value
-    else:
-        text = str(value)
-        if text.isdigit():
-            number = int(text)
-            if number > 10_000_000_000:
-                number = number / 1000
-            return datetime.fromtimestamp(number, tz=timezone.utc).isoformat()
-        try:
-            dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
-        except Exception:
-            return text
-    if getattr(dt, "tzinfo", None) is None:
-        dt = dt.replace(tzinfo=datetime.now().astimezone().tzinfo)
-    return dt.astimezone(timezone.utc).isoformat()
-
-config = Config.from_apikey(
-    os.environ.get("LONGBRIDGE_APP_KEY"),
-    os.environ.get("LONGBRIDGE_APP_SECRET"),
-    os.environ.get("LONGBRIDGE_ACCESS_TOKEN"),
-    enable_print_quote_packages=False,
-)
-ctx = QuoteContext(config)
-symbol = payload["symbol"]
-
-if action == "quote":
-    rows = ctx.quote([symbol])
-    quote = list(rows or [None])[0]
-    if quote is None:
-        raise RuntimeError("Longbridge returned no quote.")
-    quote_time = market_time(pick(quote, ["timestamp", "time", "quote_time", "trade_time"]))
-    print(json.dumps({
-        "quote_time": quote_time,
-        "last": decimal_float(pick(quote, ["last_done", "last", "price", "current_price", "close"])),
-        "bid": decimal_float(pick(quote, ["bid", "bid_price"])),
-        "ask": decimal_float(pick(quote, ["ask", "ask_price"])),
-    }, ensure_ascii=False))
-elif action == "candles":
-    period = getattr(Period, payload["period"])
-    adjust = getattr(AdjustType, "NoAdjust")
-    rows = ctx.candlesticks(symbol, period, int(payload["count"]), adjust)
-    candles = []
-    for row in list(rows or []):
-        open_time = market_time(pick(row, ["timestamp", "time", "open_time", "date", "datetime"]))
-        open_ = decimal_float(pick(row, ["open", "open_price"]))
-        high = decimal_float(pick(row, ["high", "high_price"]))
-        low = decimal_float(pick(row, ["low", "low_price"]))
-        close = decimal_float(pick(row, ["close", "close_price"]))
-        volume = decimal_float(pick(row, ["volume", "turnover", "trade_volume"]), 0.0)
-        if open_time is None or None in (open_, high, low, close):
-            continue
-        candles.append({
-            "open_time": open_time,
-            "open": round(float(open_), 4),
-            "high": round(float(high), 4),
-            "low": round(float(low), 4),
-            "close": round(float(close), 4),
-            "volume": float(volume or 0.0),
-        })
-    print(json.dumps({"candles": candles}, ensure_ascii=False))
-else:
-    raise RuntimeError(f"Unsupported Longbridge action: {action}")
-'''
-    env = os.environ.copy()
-    env["LONGBRIDGE_PRINT_QUOTE_PACKAGES"] = "false"
-    request = json.dumps({"action": action, "payload": payload})
-    try:
-        proc = subprocess.run(
-            [sys.executable, "-c", code],
-            input=request,
-            text=True,
-            capture_output=True,
-            timeout=timeout,
-            env=env,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise TimeoutError(f"Longbridge {action} timed out after {timeout}s") from exc
-    if proc.returncode != 0:
-        message = (proc.stderr or proc.stdout or f"Longbridge {action} failed").strip()
-        raise RuntimeError(message)
-    lines = [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
-    for line in reversed(lines):
-        try:
-            return json.loads(line)
-        except json.JSONDecodeError:
-            continue
-    raise RuntimeError(f"Longbridge {action} returned no JSON payload")
-
-
-def _longbridge_config() -> Any:
-    try:
-        from longbridge.openapi import Config  # type: ignore
-    except Exception as exc:  # pragma: no cover - optional SDK
-        raise RuntimeError("longbridge Python SDK is not installed") from exc
-    if hasattr(Config, "from_apikey"):
-        return Config.from_apikey(
-            os.getenv("LONGBRIDGE_APP_KEY"),
-            os.getenv("LONGBRIDGE_APP_SECRET"),
-            os.getenv("LONGBRIDGE_ACCESS_TOKEN"),
-            enable_print_quote_packages=False,
-        )
-    if hasattr(Config, "from_apikey_env"):
-        os.environ.setdefault("LONGBRIDGE_PRINT_QUOTE_PACKAGES", "false")
-        return Config.from_apikey_env()
-    raise RuntimeError("longbridge SDK does not expose API-key configuration")
-
-
-def _run_longbridge_call(label: str, fn: Any, timeout_seconds: int | None = None) -> Any:
-    timeout = timeout_seconds or LONG_BRIDGE_TIMEOUT_SECONDS
-    executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="kquant-longbridge")
-    future = executor.submit(fn)
-    try:
-        return future.result(timeout=timeout)
-    except FutureTimeoutError as exc:
-        future.cancel()
-        raise TimeoutError(f"Longbridge {label} timed out after {timeout}s") from exc
-    finally:
-        executor.shutdown(wait=False, cancel_futures=True)
-
-
 def _longbridge_adjust_type() -> Any:
     try:
         from longbridge.openapi import AdjustType  # type: ignore
@@ -891,6 +740,83 @@ def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
     }
 
 
+def api_stock_market_data_self_check(
+    symbol: str = "SPY",
+    db_path: Path | None = None,
+) -> dict[str, Any]:
+    """Run an explicit, read-only market-data readiness check.
+
+    A configured token is not enough evidence for real-money research.  This
+    check verifies the local SDK, quote entitlement, database write path, and
+    the absence of account/trade contexts.  It is deliberately manual so page
+    loads never create extra quote traffic.
+    """
+
+    path = db_path or default_db_path()
+    market_data = api_stock_market_data_status(db_path=path)
+    checks: list[dict[str, Any]] = [
+        {"name": "longbridge_credentials", "status": market_data["longbridge_env"]},
+        {"name": "longbridge_sdk", "status": market_data["longbridge_sdk"]},
+        {"name": "market_data_only", "status": "pass" if market_data["longbridge_market_data_only"] else "fail"},
+        {"name": "account_context", "status": "disabled" if not market_data["longbridge_account_enabled"] else "fail"},
+        {"name": "trade_context", "status": "disabled" if not market_data["longbridge_trade_enabled"] else "fail"},
+    ]
+    db_ok = False
+    try:
+        with connect(path) as conn:
+            conn.execute(
+                "INSERT INTO audit_events(event_type, payload_json, created_at) VALUES (?, ?, ?)",
+                (
+                    "market_data_self_check",
+                    json.dumps({"symbol": normalize_symbol(symbol), "provider": market_data["provider"]}),
+                    iso_now(),
+                ),
+            )
+            conn.commit()
+            db_ok = True
+    except (OSError, sqlite3.Error) as exc:
+        checks.append({"name": "database_write", "status": "fail", "reason": str(exc)})
+    else:
+        checks.append({"name": "database_write", "status": "pass"})
+
+    quote = api_stock_quote(symbol=normalize_symbol(symbol), db_path=path)
+    quote_status = str(quote.get("provider_status", "unknown"))
+    checks.append(
+        {
+            "name": "quote_entitlement",
+            "status": "pass" if quote_status == "available" else "fail",
+            "quote_time": quote.get("quote_time"),
+            "freshness_seconds": quote.get("freshness_seconds"),
+            "reason": "; ".join(quote.get("provider_errors", [])) if quote_status != "available" else None,
+        }
+    )
+    clock = market_clock()
+    regular_quote_fresh = bool(
+        quote_status == "available"
+        and isinstance(quote.get("freshness_seconds"), (int, float))
+        and quote["freshness_seconds"] <= 15
+    )
+    ready_for_realtime = bool(
+        db_ok
+        and market_data["status"] == "available"
+        and quote_status == "available"
+        and (clock.session != "regular" or regular_quote_fresh)
+    )
+    return {
+        "status": "ready" if ready_for_realtime else "caution",
+        "symbol": normalize_symbol(symbol),
+        "checked_at": iso_now(),
+        "market_clock": clock.as_dict(),
+        "quote": quote,
+        "checks": checks,
+        "realtime_buy_data_ready": bool(clock.session == "regular" and ready_for_realtime),
+        "market_closed_note": "US regular session is closed; a recent quote cannot be treated as a live trade trigger."
+        if clock.session != "regular"
+        else None,
+        "no_account_or_order_path": True,
+    }
+
+
 def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str, Any]:
     if not longbridge_env_ready():
         return unavailable_candles(
@@ -913,7 +839,7 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
     try:
         lb_symbol = longbridge_symbol(symbol)
         count = int(candle_spec(range_value, interval)["bars"])
-        rows = longbridge_runtime().candlesticks(
+        rows, delivery_mode = longbridge_runtime().realtime_candlesticks(
             lb_symbol,
             _longbridge_period(interval),
             count,
@@ -961,20 +887,29 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
         latest_close = latest_open + timedelta(seconds=interval_seconds(interval))
         freshness_seconds = max(0, int((current - latest_close).total_seconds()))
         clock = market_clock(current)
+        realtime_lag_seconds = max(interval_seconds(interval) * 2, 180)
+        stale_during_regular = clock.session == "regular" and freshness_seconds > realtime_lag_seconds
+        source_type = LONG_BRIDGE_STALE_SOURCE if stale_during_regular else LONG_BRIDGE_CANDLE_SOURCE
+        provider_status = "stale_cache" if stale_during_regular else "available"
+        freshness = "stale_longbridge_cache" if stale_during_regular else (
+            "live" if clock.session == "regular" else "market_closed"
+        )
         return {
             "instrument_type": "stock",
             "symbol": symbol,
             "provider_symbol": lb_symbol,
             "range": range_value,
             "interval": interval,
-            "source_type": LONG_BRIDGE_CANDLE_SOURCE,
-            "provider_status": "available",
+            "source_type": source_type,
+            "provider_status": provider_status,
             "provider_errors": [],
             "provider": "longbridge",
-            "freshness": "live" if clock.session == "regular" else "market_closed",
+            "freshness": freshness,
             "freshness_seconds": freshness_seconds,
             "bar_open_age_seconds": bar_open_age,
             "latest_bar_state": candles[-1]["bar_state"],
+            "delivery_mode": delivery_mode,
+            "timestamp_contract": "utc_iso8601",
             "session": clock.session,
             "market_clock": clock.as_dict(),
             "exchange_timezone": clock.exchange_timezone,

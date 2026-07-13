@@ -60,6 +60,7 @@ from kquant.stock_signals import (
     api_stock_live_data_health_latest,
     api_stock_market_regime,
     api_stock_market_data_status,
+    api_stock_market_data_self_check,
     api_stock_monday_readiness_latest,
     api_stock_provider_health,
     api_stock_quote,
@@ -952,6 +953,11 @@ class Handler(BaseHTTPRequestHandler):
             )
         if path == "/api/stocks/market-data/status":
             return api_stock_market_data_status(db_path=self.dashboard.stock_db_path)
+        if path == "/api/stocks/market-data/self-check":
+            return api_stock_market_data_self_check(
+                symbol=query_value(query, "symbol", "SPY"),
+                db_path=self.dashboard.stock_db_path,
+            )
         if path == "/api/stocks/strategy-validation":
             return api_stock_strategy_validation(
                 db_path=self.dashboard.stock_db_path,

@@ -79,6 +79,7 @@ from kquant.stock_signals import (
     api_stock_live_data_health,
     api_stock_live_data_health_latest,
     api_stock_market_data_status,
+    api_stock_market_data_self_check,
     api_stock_market_regime,
     api_stock_monday_readiness_latest,
     api_stock_provider_health,
@@ -703,6 +704,10 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
     @app.get("/api/stocks/market-data/status")
     def stock_market_data_status_endpoint() -> dict:
         return api_stock_market_data_status(db_path=stock_db_path)
+
+    @app.get("/api/stocks/market-data/self-check")
+    def stock_market_data_self_check_endpoint(symbol: str = Query(default="SPY")) -> dict:
+        return api_stock_market_data_self_check(symbol=symbol, db_path=stock_db_path)
 
     @app.get("/api/stocks/strategy-validation")
     def stock_strategy_validation_endpoint(profile: str = Query(default="")) -> dict:
