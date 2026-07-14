@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from calendar import monthrange
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, time, timedelta, timezone
+from functools import lru_cache
 from zoneinfo import ZoneInfo
+
+import exchange_calendars as xcals
+import pandas as pd
 
 
 UTC = timezone.utc
@@ -22,68 +25,23 @@ class MarketClock:
     regular_close_utc: str | None
     is_trading_day: bool
     is_early_close: bool
+    calendar_source: str = "exchange_calendars:XNYS"
 
     def as_dict(self) -> dict[str, object]:
         return asdict(self)
 
 
-def _observed(day: date) -> date:
-    if day.weekday() == 5:
-        return day - timedelta(days=1)
-    if day.weekday() == 6:
-        return day + timedelta(days=1)
-    return day
+@lru_cache(maxsize=1)
+def _calendar():
+    return xcals.get_calendar("XNYS")
 
 
-def _nth_weekday(year: int, month: int, weekday: int, occurrence: int) -> date:
-    first = date(year, month, 1)
-    offset = (weekday - first.weekday()) % 7
-    return first + timedelta(days=offset + (occurrence - 1) * 7)
-
-
-def _last_weekday(year: int, month: int, weekday: int) -> date:
-    last = date(year, month, monthrange(year, month)[1])
-    return last - timedelta(days=(last.weekday() - weekday) % 7)
-
-
-def _easter_sunday(year: int) -> date:
-    # Anonymous Gregorian algorithm.
-    a = year % 19
-    b = year // 100
-    c = year % 100
-    d = b // 4
-    e = b % 4
-    f = (b + 8) // 25
-    g = (b - f + 1) // 3
-    h = (19 * a + b - d - g + 15) % 30
-    i = c // 4
-    k = c % 4
-    l = (32 + 2 * e + 2 * i - h - k) % 7
-    m = (a + 11 * h + 22 * l) // 451
-    month = (h + l - 7 * m + 114) // 31
-    day = ((h + l - 7 * m + 114) % 31) + 1
-    return date(year, month, day)
-
-
-def nyse_holidays(year: int) -> set[date]:
-    holidays = {
-        _observed(date(year, 1, 1)),
-        _nth_weekday(year, 1, 0, 3),  # Martin Luther King Jr. Day
-        _nth_weekday(year, 2, 0, 3),  # Presidents Day
-        _easter_sunday(year) - timedelta(days=2),  # Good Friday
-        _last_weekday(year, 5, 0),  # Memorial Day
-        _observed(date(year, 7, 4)),
-        _nth_weekday(year, 9, 0, 1),  # Labor Day
-        _nth_weekday(year, 11, 3, 4),  # Thanksgiving
-        _observed(date(year, 12, 25)),
-    }
-    if year >= 2022:
-        holidays.add(_observed(date(year, 6, 19)))
-    return holidays
+def _session_label(day: date) -> pd.Timestamp:
+    return pd.Timestamp(day.isoformat())
 
 
 def is_trading_day(day: date) -> bool:
-    return day.weekday() < 5 and day not in nyse_holidays(day.year)
+    return bool(_calendar().is_session(_session_label(day)))
 
 
 def previous_trading_day(day: date) -> date:
@@ -100,23 +58,20 @@ def next_trading_day(day: date) -> date:
     return candidate
 
 
+def session_bounds_utc(day: date) -> tuple[datetime, datetime]:
+    if not is_trading_day(day):
+        raise ValueError(f"{day.isoformat()} is not an XNYS trading session")
+    label = _session_label(day)
+    market_open = _calendar().session_open(label).to_pydatetime().astimezone(UTC)
+    market_close = _calendar().session_close(label).to_pydatetime().astimezone(UTC)
+    return market_open, market_close
+
+
 def is_early_close(day: date) -> bool:
     if not is_trading_day(day):
         return False
-    thanksgiving = _nth_weekday(day.year, 11, 3, 4)
-    day_after_thanksgiving = thanksgiving + timedelta(days=1)
-    return day in {
-        day_after_thanksgiving,
-        date(day.year, 7, 3),
-        date(day.year, 12, 24),
-    }
-
-
-def session_bounds_utc(day: date) -> tuple[datetime, datetime]:
-    close_hour = 13 if is_early_close(day) else 16
-    market_open = datetime.combine(day, time(9, 30), tzinfo=NEW_YORK)
-    market_close = datetime.combine(day, time(close_hour, 0), tzinfo=NEW_YORK)
-    return market_open.astimezone(UTC), market_close.astimezone(UTC)
+    _, market_close = session_bounds_utc(day)
+    return market_close.astimezone(NEW_YORK).time() < time(16, 0)
 
 
 def active_regular_session_start(now: datetime | None = None) -> datetime:
@@ -147,7 +102,6 @@ def market_clock(now: datetime | None = None) -> MarketClock:
             is_trading_day=False,
             is_early_close=False,
         )
-
     market_open, market_close = session_bounds_utc(local_day)
     pre_open = datetime.combine(local_day, time(4, 0), tzinfo=NEW_YORK).astimezone(UTC)
     after_close = datetime.combine(local_day, time(20, 0), tzinfo=NEW_YORK).astimezone(UTC)
