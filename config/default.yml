@@ -27,10 +27,6 @@ start: "2021-01-01"
 db_path: work/kquant_us.sqlite3
 runs_dir: work/runs
 outputs_dir: outputs
-live_enabled: false
-broker_order_wiring_enabled: false
-llm_signal_core_enabled: false
-
 stock_signal:
   universe: default
   profile: swing_long_v1
@@ -38,12 +34,6 @@ stock_signal:
   buy_setup_threshold: 82
   watch_threshold: 65
   data_source: yahoo_public_chart
-  fixture_enabled: true
   live_scan_limit: 100
   provider_timeout_seconds: 5
   no_silent_fixture_fallback_in_live: true
-
-options:
-  enabled_as_primary: false
-  phase: later_expression_layer
-  only_after_stock_buy_setup: true

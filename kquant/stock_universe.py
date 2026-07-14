@@ -96,7 +96,7 @@ _RAW_STOCKS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("LRCX", "Lam Research", "Technology", "Semis / Foundry / Tools", ("semi_equipment", "ai_semis")),
     ("KLAC", "KLA", "Technology", "Semis / Foundry / Tools", ("semi_equipment", "ai_semis")),
     ("ADI", "Analog Devices", "Technology", "Semis / Foundry / Tools", ("analog_semis", "quality")),
-    ("MSTR", "MicroStrategy", "Technology", "Crypto / Fintech Beta", ("crypto_beta", "high_beta")),
+    ("MSTR", "MicroStrategy", "Technology", "Technology", ("high_beta",)),
     ("HOOD", "Robinhood", "Financials", "Crypto / Fintech Beta", ("fintech", "high_beta")),
     ("PYPL", "PayPal", "Financials", "Payments", ("payments", "turnaround")),
     ("SQ", "Block", "Financials", "Crypto / Fintech Beta", ("fintech", "payments")),
@@ -541,6 +541,4 @@ def stock_universe_payload(universe: str = "default") -> dict[str, object]:
             "Space Exploration",
             "Space / Robotics",
         ],
-        "btc_eth_removed_from_main_path": True,
-        "options_are_secondary": True,
     }

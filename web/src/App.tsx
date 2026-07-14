@@ -43,7 +43,7 @@ type AiAction =
   | "AI_HOLD_TRAIL"
   | "AI_EXIT_REVIEW";
 type UniverseName = "default" | "ai_five_layer" | "physical_ai" | "all";
-type AppView = "stocks" | "mstr";
+type AppView = "stocks";
 type WorkspaceName =
   | "today"
   | "search"
@@ -52,7 +52,6 @@ type WorkspaceName =
   | "charts"
   | "aiPlan"
   | "chat"
-  | "mstr"
   | "journal"
   | "settings";
 type StrategyProfileName =
@@ -512,7 +511,6 @@ type AiDailyAgentPayload = {
     probe_candidates?: AiDailyItem[];
     watch_for_pullback: AiDailyItem[];
     avoid_or_risk_elevated: AiDailyItem[];
-    mstr_cycle_update: string;
     data_quality_warnings: string[];
     daily_summary: string;
     validation_by_ai_action?: Record<string, unknown>;
@@ -800,245 +798,6 @@ type LiveHealthPayload = {
   universes_detail: HealthUniverse[];
 };
 
-type MstrCycleLevel = "CYCLE ACCUMULATION" | "BOTTOM WATCH" | "WAIT" | "DISTRIBUTION RISK";
-
-type MstrComponent = {
-  status: string;
-  score: number;
-  metrics?: Record<string, number>;
-  reasons?: string[];
-  risk_warnings?: string[];
-  premium_to_btc_nav?: number | null;
-  reason?: string;
-};
-
-type MonteCarloHorizon = {
-  weeks: number;
-  p10_return_pct: number;
-  p50_return_pct: number;
-  p90_return_pct: number;
-  median_return_pct: number;
-  p10_max_drawdown_pct: number;
-  median_max_drawdown_pct: number;
-  probability_2x_pct: number;
-  probability_5x_pct: number;
-  probability_10x_pct: number;
-};
-
-type MonteCarloPayload = {
-  status: string;
-  method: string;
-  paths: number;
-  beta_to_btc?: number;
-  regime_adjustment_weekly_pct?: number;
-  horizons: Record<string, MonteCarloHorizon>;
-  reason?: string;
-  limitations?: string[];
-};
-
-type BayesianEvidence = {
-  name: string;
-  likelihood_ratio: number;
-  reason: string;
-};
-
-type BayesianBottomPayload = {
-  status: string;
-  method: string;
-  prior_probability: number;
-  bottom_probability: number;
-  confidence: number;
-  confidence_band: { low: number; high: number };
-  positive_evidence: BayesianEvidence[];
-  negative_evidence: BayesianEvidence[];
-  does_not_override_level: boolean;
-  limitations?: string[];
-};
-
-type CycleDashboardItem = {
-  label: string;
-  current: number | string;
-  target: number | string;
-  status: string;
-  why: string;
-};
-
-type CycleUpgradeTrigger = {
-  level: string;
-  status: string;
-  requirements: string[];
-};
-
-type TenXPath = {
-  status: string;
-  current_mstr_price?: number | null;
-  target_mstr_price_10x?: number | null;
-  current_btc_price?: number | null;
-  current_premium_to_nav?: number | null;
-  target_market_cap?: number | null;
-  required_btc_prices: { premium_to_nav: number; required_btc_price?: number | null; btc_multiple_from_current?: number | null }[];
-  monte_carlo_24m_probability_10x_pct?: number | null;
-  monte_carlo_24m_p90_return_pct?: number | null;
-  assumptions: string[];
-};
-
-type CycleDashboardPayload = {
-  summary: string;
-  wait_reasons: CycleDashboardItem[];
-  upgrade_triggers: CycleUpgradeTrigger[];
-  ten_x_path: TenXPath;
-  review_bias: string;
-  read_only: boolean;
-  does_not_issue_trade_instruction: boolean;
-  score_gaps: Record<string, number>;
-};
-
-type TriggerMonitorCondition = {
-  level: string;
-  name: string;
-  current: number | string;
-  target: number | string;
-  comparator: string;
-  met: boolean;
-};
-
-type TriggerMonitorPayload = {
-  status: string;
-  level: string;
-  next_state: string;
-  gaps: Record<string, number>;
-  conditions: TriggerMonitorCondition[];
-  read_only: boolean;
-};
-
-type PathStressRow = {
-  dilution_rate_pct: number;
-  premium_to_nav: number;
-  required_btc_price?: number | null;
-  btc_multiple_from_current?: number | null;
-  adjusted_target_market_cap?: number | null;
-};
-
-type PathStressPayload = {
-  status: string;
-  question?: string;
-  reason?: string;
-  rows: PathStressRow[];
-  assumptions?: string[];
-  read_only: boolean;
-};
-
-type MstrMetricValue = string | number | boolean | null | undefined | string[];
-
-type MstrMetricBlock = {
-  status?: string;
-  source_type?: string;
-  calculation_method?: string;
-  [key: string]: MstrMetricValue;
-};
-
-type MstrStrategyTrackerMetrics = {
-  status: string;
-  source_type?: string;
-  tracker_provider_status: string;
-  tracker_source?: string;
-  freshness?: string;
-  as_of_date?: string | null;
-  calculation_policy?: string;
-  availability?: Record<string, boolean>;
-  missing_tracker_fields?: string[];
-  treasury_snapshot?: MstrMetricBlock;
-  premium_nav_metrics?: MstrMetricBlock;
-  cost_basis_metrics?: MstrMetricBlock;
-  btc_yield_metrics?: MstrMetricBlock;
-  share_metrics?: MstrMetricBlock;
-  debt_financing_metrics?: MstrMetricBlock;
-  liquidity_metrics?: MstrMetricBlock;
-  benchmark_metrics?: MstrMetricBlock;
-};
-
-type CycleHistorySummary = {
-  run_count: number;
-  latest_level: string;
-  previous_level?: string;
-  latest_completed_at?: string | null;
-  first_completed_at?: string | null;
-  latest_bottom_score?: number;
-  score_change: number;
-  latest_bottom_probability?: number;
-  probability_change: number;
-  latest_premium_to_nav?: number | null;
-  latest_mc_24m_probability_10x?: number | null;
-  trend: string;
-};
-
-type MstrJournalEntry = {
-  id: number;
-  run_id: string;
-  status: string;
-  notes: string;
-  outcome: string;
-  reviewed_at: string;
-  level: string;
-  bottom_score: number;
-  bayesian_bottom_probability: number;
-  manual_checklist?: TriggerMonitorCondition[];
-};
-
-type MstrJournalPayload = {
-  status: string;
-  limit: number;
-  entries: MstrJournalEntry[];
-  counts: Record<string, number>;
-  read_only_research: boolean;
-};
-
-type MstrCyclePayload = {
-  run_id: string;
-  level: MstrCycleLevel;
-  bottom_score: number;
-  distribution_risk_score: number;
-  provider_status: string;
-  provider_error_count: number;
-  provider_errors: string[];
-  btc_reference_only: boolean;
-  fixture_user_visible: boolean;
-  llm_signal_core_enabled: boolean;
-  broker_order_wiring_enabled: boolean;
-  positioning_note: string;
-  components: {
-    btc_cycle: MstrComponent;
-    mstr_bottom: MstrComponent;
-    relative_btc: MstrComponent;
-    premium_proxy: MstrComponent;
-    financing_risk: MstrComponent;
-    distribution_risk: MstrComponent;
-  };
-  monte_carlo: MonteCarloPayload;
-  bayesian_bottom: BayesianBottomPayload;
-  cycle_dashboard: CycleDashboardPayload;
-  trigger_monitor: TriggerMonitorPayload;
-  path_stress_test: PathStressPayload;
-  strategy_tracker_metrics?: MstrStrategyTrackerMetrics;
-  treasury_snapshot?: MstrMetricBlock;
-  premium_nav_metrics?: MstrMetricBlock;
-  cost_basis_metrics?: MstrMetricBlock;
-  btc_yield_metrics?: MstrMetricBlock;
-  share_metrics?: MstrMetricBlock;
-  debt_financing_metrics?: MstrMetricBlock;
-  liquidity_metrics?: MstrMetricBlock;
-  benchmark_metrics?: MstrMetricBlock;
-  tracker_provider_status?: string;
-  cycle_history_summary: CycleHistorySummary;
-  manual_journal?: MstrJournalPayload;
-  scenario_horizon: string[];
-  model_limitations: string[];
-  reasons: string[];
-  blockers: string[];
-  manual_checklist: string[];
-  charts: Record<string, Record<string, unknown>>;
-};
-
 type UniverseStock = {
   symbol: string;
   name: string;
@@ -1064,14 +823,12 @@ type OhlcState = {
 const copy = {
   en: {
     title: "KQUANT US Stock Signal Terminal",
-    subtitle: "Long-only stock setups first. Options return later as expression tools.",
+    subtitle: "Realtime stock research, deterministic validation, and manual review.",
     stockView: "Stock Terminal",
-    mstrView: "MSTR Cycle Radar",
     source: "Source",
     fixture: "Fixture",
     live: "Live",
     refresh: "Run Stock Scan",
-    refreshMstr: "Refresh MSTR Radar",
     readOnly: "Read-only research",
     llmLocked: "AI-led / hard veto",
     db: "New DB",
@@ -1095,7 +852,6 @@ const copy = {
     checklist: "Manual Checklist",
     layers: "Market Layers",
     data: "Data Status",
-    optionsLater: "Options module is parked until the stock signal is stable.",
     noBroker: "No broker, no account read, no paper/live/testnet order path.",
     dailyHint: "Daily trend: EMA20 / EMA50 / EMA200",
     hourlyHint: "1h confirmation: momentum and entry timing",
@@ -1115,24 +871,7 @@ const copy = {
     english: "EN",
     light: "Light",
     dark: "Dark",
-    mstrCycleTitle: "MSTR Cycle Bottom Radar",
-    mstrCycleSubtitle: "Cross-cycle MSTR accumulation research. BTC is reference-only; no BTC trading module is restored.",
-    bottomScore: "Bottom Score",
-    distributionRisk: "Distribution Risk",
-    btcCycle: "BTC Cycle",
-    mstrBottom: "MSTR Bottom",
-    relativeBtc: "MSTR/BTC Relative",
-    premiumProxy: "Premium Proxy",
-    financingRisk: "Financing Risk",
     blockers: "Blockers",
-    monteCarlo: "Monte Carlo Distribution",
-    bayesianBottom: "Bayesian Bottom Probability",
-    cycleDashboard: "Cycle Dashboard",
-    whyWait: "Why Not Yet",
-    upgradeTriggers: "Upgrade Triggers",
-    tenXPath: "10x Path Map",
-    modelLimitations: "Model Limitations",
-    probability: "Probability",
     confidence: "Confidence",
     currentPage: "Current",
     systemStatus: "System",
@@ -1161,8 +900,6 @@ const copy = {
     evidenceSub: "Sources",
     reportsNav: "Reports",
     reportsSub: "Exports",
-    mstrNav: "MSTR",
-    mstrSub: "Radar",
     journalNav: "Journal",
     journalSub: "Notes",
     settingsNav: "Settings",
@@ -1323,12 +1060,10 @@ const copy = {
     title: "KQUANT 美股 AI 交易研究台",
     subtitle: "AI 主动筛选美股机会，系统只读，不接券商，不自动下单。",
     stockView: "美股终端",
-    mstrView: "MSTR 周期雷达",
     source: "数据源",
     fixture: "演示数据",
     live: "实时",
     refresh: "运行股票扫描",
-    refreshMstr: "刷新 MSTR 雷达",
     readOnly: "只读研究",
     llmLocked: "AI 主导 / 硬风控",
     db: "新数据库",
@@ -1352,7 +1087,6 @@ const copy = {
     checklist: "人工复核清单",
     layers: "市场分类",
     data: "数据状态",
-    optionsLater: "期权模块暂时后置，等正股信号稳定后再接回。",
     noBroker: "无券商、无账户读取、无模拟/实盘/测试网下单路径。",
     dailyHint: "日线趋势：EMA20 / EMA50 / EMA200",
     hourlyHint: "1H 确认：动量与入场节奏",
@@ -1372,24 +1106,7 @@ const copy = {
     english: "EN",
     light: "浅色",
     dark: "深色",
-    mstrCycleTitle: "MSTR 周期抄底雷达",
-    mstrCycleSubtitle: "跨周期 MSTR 建仓研究。BTC 仅作为参考因子，不恢复 BTC 交易模块。",
-    bottomScore: "底部评分",
-    distributionRisk: "顶部/派发风险",
-    btcCycle: "BTC 周期",
-    mstrBottom: "MSTR 底部",
-    relativeBtc: "MSTR/BTC 相对强弱",
-    premiumProxy: "溢价代理",
-    financingRisk: "融资风险",
     blockers: "阻断因素",
-    monteCarlo: "蒙特卡洛分布",
-    bayesianBottom: "贝叶斯底部概率",
-    cycleDashboard: "周期仪表盘",
-    whyWait: "为什么还不能买",
-    upgradeTriggers: "升级触发条件",
-    tenXPath: "10倍路径图",
-    modelLimitations: "模型限制",
-    probability: "概率",
     confidence: "置信度",
     currentPage: "当前",
     systemStatus: "系统状态",
@@ -1418,8 +1135,6 @@ const copy = {
     evidenceSub: "材料",
     reportsNav: "报告",
     reportsSub: "导出",
-    mstrNav: "MSTR",
-    mstrSub: "雷达",
     journalNav: "复盘",
     journalSub: "笔记",
     settingsNav: "设置",
@@ -1659,7 +1374,7 @@ const STOCKS: UniverseStock[] = [
   "LRCX:Lam Research:Technology:Semis / Foundry / Tools",
   "KLAC:KLA:Technology:Semis / Foundry / Tools",
   "ADI:Analog Devices:Technology:Semis / Foundry / Tools",
-  "MSTR:MicroStrategy:Technology:Crypto / Fintech Beta",
+  "MSTR:MicroStrategy:Technology:Technology",
   "HOOD:Robinhood:Financials:Crypto / Fintech Beta",
   "PYPL:PayPal:Financials:Payments",
   "SQ:Block:Financials:Crypto / Fintech Beta",
@@ -1999,7 +1714,6 @@ const SEARCH_QUERY_ALIASES: Record<string, string[]> = {
   氮化镓: ["gan", "power semis", "ai power", "nvts"],
   能源: ["energy", "power", "nuclear", "grid"],
   核电: ["nuclear", "uranium", "power", "ai energy"],
-  比特币: ["bitcoin", "btc", "crypto", "mstr", "coin"],
 };
 
 const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
@@ -2008,7 +1722,7 @@ const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
   GOOGL: ["谷歌", "google", "gemini"],
   AMZN: ["亚马逊", "aws"],
   TSLA: ["特斯拉", "robotaxi", "autonomy"],
-  MSTR: ["microstrategy", "strategy", "比特币", "bitcoin", "btc"],
+  MSTR: ["microstrategy", "strategy"],
   RKLB: ["rocket lab", "火箭", "太空", "space"],
   ASTS: ["satellite", "space mobile", "太空", "卫星"],
   LUNR: ["moon", "lunar", "space", "太空"],
@@ -2118,9 +1832,6 @@ function App() {
   const [aiStatus, setAiStatus] = useState<AiReviewStatusPayload | null>(null);
   const [marketRegime, setMarketRegime] = useState<MarketRegimePayload | null>(null);
   const [stockJournal, setStockJournal] = useState<StockJournalPayload | null>(null);
-  const [mstrRadar, setMstrRadar] = useState<MstrCyclePayload | null>(null);
-  const [mstrJournal, setMstrJournal] = useState<MstrJournalPayload | null>(null);
-  const [mstrState, setMstrState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [fixtureBlocked, setFixtureBlocked] = useState(() => urlRequestedFixture());
   const [analysisState, setAnalysisState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [profileCompare, setProfileCompare] = useState<StockSignal[]>([]);
@@ -2313,13 +2024,6 @@ function App() {
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, apiConnection, selected.symbol, primaryPresetKey, confirmationPresetKey]);
-
-  useEffect(() => {
-    if (view === "mstr" && !mstrRadar && mstrState !== "loading") {
-      void loadMstrRadar();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
 
   async function loadApiHealth() {
     try {
@@ -2651,7 +2355,7 @@ function App() {
         body: JSON.stringify({
           symbol: signal.symbol,
           profile: selectedProfile,
-          model_tier: signal.profile_name === "cycle_1_3y_v1" || signal.symbol === "MSTR" ? "deep" : "review",
+          model_tier: signal.profile_name === "cycle_1_3y_v1" ? "deep" : "review",
           signal_payload: signal,
           profile_comparison: profileCompare,
           trigger: options.trigger ?? "manual",
@@ -2660,6 +2364,7 @@ function App() {
             note: "External research layer has been removed. Use KQUANT live K-lines, rule guardrails, historical edge, and journal context.",
           },
           journal_context_limit: 5,
+          force_regenerate: Boolean(options.force),
         }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2833,52 +2538,8 @@ function App() {
     setHourlyMeta((current) => ({ ...current, quoteTime: formatDateTimeUtc8(quoteTime, { withDate: true }), session: quote.session }));
   }
 
-  async function loadMstrRadar() {
-    try {
-      setMstrState("loading");
-      const response = await apiFetch("/api/mstr/cycle-radar?source=live");
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = (await response.json()) as MstrCyclePayload;
-      setMstrRadar(payload);
-      setMstrJournal(payload.manual_journal ?? null);
-      void loadMstrJournal();
-      setMstrState("ready");
-      setApiState("api");
-    } catch {
-      setMstrRadar(null);
-      setMstrState("error");
-      setApiState("fallback");
-    }
-  }
-
-  async function loadMstrJournal() {
-    try {
-      const response = await apiFetch("/api/mstr/cycle-journal?limit=20");
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      setMstrJournal((await response.json()) as MstrJournalPayload);
-    } catch {
-      // Journal is local review state; keep the latest loaded radar if this read fails.
-    }
-  }
-
-  async function saveMstrJournal(entry: { status: string; notes: string; outcome: string }) {
-    if (!mstrRadar?.run_id) return;
-    const response = await apiFetch("/api/mstr/cycle-journal/entry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...entry, run_id: mstrRadar.run_id }),
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
-    setMstrJournal(payload.journal as MstrJournalPayload);
-  }
-
   function openWorkspace(workspace: WorkspaceName) {
     setActiveWorkspace(workspace);
-    if (workspace === "mstr") {
-      setView("mstr");
-      return;
-    }
     if (view !== "stocks") setView("stocks");
   }
 
@@ -2894,7 +2555,7 @@ function App() {
         </div>
         <div className="top-context">
           <span>{text.currentPage}</span>
-          <strong>{view === "mstr" ? text.mstrCycleTitle : `${selected.symbol} / ${text.aiTradingCommand}`}</strong>
+          <strong>{selected.symbol} / {text.aiTradingCommand}</strong>
         </div>
         <div className="top-status-mini" aria-label={text.systemStatus}>
           <Pill
@@ -2948,7 +2609,6 @@ function App() {
               ["charts", text.chartsNav, text.chartsSub],
               ["aiPlan", text.aiPlanNav, text.aiPlanSub],
               ["chat", text.chatNav, text.chatSub],
-              ["mstr", text.mstrNav, text.mstrSub],
               ["journal", text.journalNav, text.journalSub],
               ["settings", text.settingsNav, text.settingsSub],
             ].map(([key, short, label]) => (
@@ -3004,9 +2664,9 @@ function App() {
               <RefreshCw size={14} />
               {text.refreshAiToday}
             </button>
-            <button className="sidebar-action-button" type="button" onClick={() => (view === "mstr" ? void loadMstrRadar() : void loadSignals(true))}>
+            <button className="sidebar-action-button" type="button" onClick={() => void loadSignals(true)}>
               <RefreshCw size={14} />
-              {view === "mstr" ? text.refreshMstr : text.refresh}
+              {text.refresh}
             </button>
           </div>
 
@@ -3029,14 +2689,6 @@ function App() {
               ]}
               onChange={(value) => setTheme(value as Theme)}
               icon={theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
-            />
-            <Segmented
-              value={view}
-              options={[
-                ["stocks", text.stockView],
-                ["mstr", text.mstrView],
-              ]}
-              onChange={(value) => setView(value as AppView)}
             />
           </div>
         </aside>
@@ -3155,21 +2807,7 @@ function App() {
         />
       </section>
 
-      {view === "mstr" ? (
-        <div id="mstr-radar-workspace">
-        <MstrCycleRadar
-          payload={mstrRadar}
-          state={mstrState}
-          theme={theme}
-          lang={lang}
-          text={text}
-          onRefresh={() => void loadMstrRadar()}
-          journal={mstrJournal}
-          onSaveJournal={saveMstrJournal}
-        />
-        </div>
-      ) : (
-        <>
+      <>
       <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
       <TerminalRadarPanel
         run={run}
@@ -3359,7 +2997,6 @@ function App() {
               </div>
               {compareState === "error" ? <p className="compare-error">Profile comparison unavailable. Live provider may be degraded.</p> : null}
             </div>
-            <p className="secondary-note">{text.optionsLater}</p>
           </section>
           ) : null}
 
@@ -3536,7 +3173,6 @@ function App() {
       />
       ) : null}
         </>
-      )}
         </div>
       </section>
     </main>
@@ -3667,485 +3303,6 @@ function ResearchChatAnswerCard({ payload, text }: { payload: AiResearchChatPayl
       <Narrative title={text.followUps} items={answer.follow_up_questions} />
       <p className="secondary-note">{answer.safety_note}</p>
     </div>
-  );
-}
-
-function MstrCycleRadar({
-  payload,
-  state,
-  theme,
-  lang,
-  text,
-  onRefresh,
-  journal,
-  onSaveJournal,
-}: {
-  payload: MstrCyclePayload | null;
-  state: "idle" | "loading" | "ready" | "error";
-  theme: Theme;
-  lang: Lang;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  onRefresh: () => void;
-  journal: MstrJournalPayload | null;
-  onSaveJournal: (entry: { status: string; notes: string; outcome: string }) => Promise<void>;
-}) {
-  const mstrWeeklyPayload = chartPayload(payload, "mstr_weekly");
-  const mstrMonthlyPayload = chartPayload(payload, "mstr_monthly");
-  const btcWeeklyPayload = chartPayload(payload, "btc_weekly");
-  const relativePayload = chartPayload(payload, "mstr_btc_weekly");
-  const mstrWeekly = normalizeCandles(mstrWeeklyPayload.candles, []);
-  const mstrMonthly = normalizeCandles(mstrMonthlyPayload.candles, []);
-  const btcWeekly = normalizeCandles(btcWeeklyPayload.candles, []);
-  const relativeWeekly = normalizeCandles(relativePayload.candles, []);
-  const level = payload?.level ?? "WAIT";
-  const components = payload?.components;
-
-  return (
-    <section className="mstr-radar">
-      <section className="panel mstr-hero">
-        <div>
-          <span className="eyebrow">{text.mstrView}</span>
-          <h2>{text.mstrCycleTitle}</h2>
-          <p>{text.mstrCycleSubtitle}</p>
-        </div>
-        <div className="mstr-actions">
-          <span className={`level ${mstrLevelClass(level)}`}>{level}</span>
-          <button className="primary-action" type="button" onClick={onRefresh}>
-            <RefreshCw size={15} />
-            {text.refreshMstr}
-          </button>
-        </div>
-      </section>
-
-      <section className="metrics-grid">
-        <Metric label={text.bottomScore} value={payload ? `${formatNumber(payload.bottom_score)}/100` : stateLabel(state)} tone={payload?.bottom_score && payload.bottom_score >= 72 ? "good" : "watch"} />
-        <Metric label={text.distributionRisk} value={payload ? `${formatNumber(payload.distribution_risk_score)}/100` : "-"} tone={payload?.distribution_risk_score && payload.distribution_risk_score >= 55 ? "warn" : "good"} />
-        <Metric label={text.provider} value={payload ? `${payload.provider_status} / ${payload.provider_error_count}` : stateLabel(state)} tone={payload?.provider_error_count ? "warn" : "good"} />
-        <Metric label={text.premiumProxy} value={formatPremium(components?.premium_proxy)} tone={components?.premium_proxy?.status === "available" ? "good" : "warn"} />
-        <Metric label={text.financingRisk} value={components?.financing_risk?.status ?? "-"} tone={components?.financing_risk?.status === "available" ? "good" : "warn"} />
-        <Metric label="BTC Ref" value={payload?.btc_reference_only ? "reference-only" : "-"} />
-      </section>
-
-      <StrategyTrackerMetricsPanel payload={payload?.strategy_tracker_metrics} />
-
-      <CycleDashboardPanel
-        title={text.cycleDashboard}
-        whyTitle={text.whyWait}
-        triggerTitle={text.upgradeTriggers}
-        tenXPathTitle={text.tenXPath}
-        payload={payload?.cycle_dashboard}
-      />
-
-      <section className="mstr-ops-grid">
-        <TriggerMonitorPanel payload={payload?.trigger_monitor} />
-        <HistoryTrendPanel payload={payload?.cycle_history_summary} />
-        <PathStressPanel payload={payload?.path_stress_test} />
-        <MstrJournalPanel runId={payload?.run_id} journal={journal} onSave={onSaveJournal} />
-      </section>
-
-      <section className="panel mstr-component-grid">
-        <ComponentBox title={text.btcCycle} component={components?.btc_cycle} />
-        <ComponentBox title={text.mstrBottom} component={components?.mstr_bottom} />
-        <ComponentBox title={text.relativeBtc} component={components?.relative_btc} />
-        <ComponentBox title={text.premiumProxy} component={components?.premium_proxy} />
-        <ComponentBox title={text.financingRisk} component={components?.financing_risk} />
-        <ComponentBox title={text.distributionRisk} component={components?.distribution_risk} />
-      </section>
-
-      <section className="probability-grid">
-        <MonteCarloPanel title={text.monteCarlo} payload={payload?.monte_carlo} />
-        <BayesianPanel title={text.bayesianBottom} probabilityLabel={text.probability} confidenceLabel={text.confidence} payload={payload?.bayesian_bottom} />
-      </section>
-
-      <section className="chart-grid mstr-chart-grid">
-        <ChartPanel
-          title="MSTR Weekly"
-          subtitle="MSTR / 5Y / 1W"
-          candles={mstrWeekly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(mstrWeeklyPayload, chartPresetByKey("1w"), mstrWeekly)}
-          presets={[chartPresetByKey("1w")]}
-          presetKey="1w"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-        <ChartPanel
-          title="MSTR Monthly"
-          subtitle="MSTR / 10Y / 1M"
-          candles={mstrMonthly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(mstrMonthlyPayload, chartPresetByKey("1m"), mstrMonthly)}
-          presets={[chartPresetByKey("1m")]}
-          presetKey="1m"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-        <ChartPanel
-          title="BTC Weekly"
-          subtitle="BTC-USD / 5Y / 1W / reference only"
-          candles={btcWeekly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(btcWeeklyPayload, chartPresetByKey("1w"), btcWeekly)}
-          presets={[chartPresetByKey("1w")]}
-          presetKey="1w"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-        <ChartPanel
-          title="MSTR/BTC Weekly"
-          subtitle="Relative strength / derived from live candles"
-          candles={relativeWeekly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(relativePayload, chartPresetByKey("1w"), relativeWeekly)}
-          presets={[chartPresetByKey("1w")]}
-          presetKey="1w"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-      </section>
-
-      <section className="panel detail-grid mstr-detail-grid">
-        <Narrative title={text.reasons} items={payload?.reasons ?? [state === "loading" ? "Loading live MSTR cycle data." : "No MSTR cycle report yet."]} />
-        <Narrative title={text.blockers} items={payload?.blockers ?? ["Refresh the radar to generate blockers."]} />
-        <Narrative title={text.modelLimitations} items={payload?.model_limitations ?? ["Probability layers load after the live MSTR radar refresh."]} />
-        <Narrative title={text.checklist} items={payload?.manual_checklist ?? ["Refresh live MSTR/BTC cycle data."]} />
-        <div className="data-box">
-          <h3>{text.data}</h3>
-          <Fact label="Run" value={payload?.run_id ?? stateLabel(state)} />
-          <Fact label="Policy" value={payload?.fixture_user_visible === false ? "live-only / no fixture" : "-"} />
-          <Fact label="Broker" value={payload?.broker_order_wiring_enabled === false ? "disabled" : "-"} />
-          <Fact label="LLM Core" value={payload?.llm_signal_core_enabled === false ? "locked" : "-"} />
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function StrategyTrackerMetricsPanel({ payload }: { payload?: MstrStrategyTrackerMetrics }) {
-  const treasury = payload?.treasury_snapshot;
-  const premium = payload?.premium_nav_metrics;
-  const yieldMetrics = payload?.btc_yield_metrics;
-  const shares = payload?.share_metrics;
-  const debt = payload?.debt_financing_metrics;
-  const liquidity = payload?.liquidity_metrics;
-  const benchmarks = payload?.benchmark_metrics;
-  const cost = payload?.cost_basis_metrics;
-  const missing = payload?.missing_tracker_fields ?? [];
-  return (
-    <section className="panel tracker-metrics-panel">
-      <PanelTitle title="StrategyTracker Metrics" detail={`${payload?.tracker_provider_status ?? "not loaded"} / ${payload?.freshness ?? "unknown"}`} />
-      <div className="tracker-summary">
-        <Fact label="BTC Holdings" value={metricValue(treasury?.btc_holdings)} />
-        <Fact label="NAV Premium" value={metricPct(premium?.nav_premium)} />
-        <Fact label="Basic mNAV" value={metricMultiple(premium?.basic_mnav)} />
-        <Fact label="Avg Cost/BTC" value={metricMoney(cost?.avg_cost_per_btc)} />
-        <Fact label="Sats/Share" value={metricValue(shares?.sats_per_diluted_share)} />
-        <Fact label="Debt/BTC NAV" value={metricPctFromRatio(debt?.debt_to_btc_nav)} />
-      </div>
-      <p className="tracker-policy">
-        {payload?.calculation_policy ?? "SaylorTracker-style metrics load after refreshing MSTR Radar."}
-      </p>
-      {missing.length ? <p className="tracker-missing">Missing tracker fields: {missing.slice(0, 8).join(", ")}{missing.length > 8 ? "..." : ""}</p> : null}
-      <div className="tracker-grid">
-        <MetricBlock
-          title="Treasury"
-          block={treasury}
-          rows={[
-            ["BTC Holdings Value", "btc_holdings_value", "money"],
-            ["Market Cap", "market_cap", "money"],
-            ["Enterprise Value", "enterprise_value", "money"],
-            ["BTC Price", "btc_price", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="Premium / NAV"
-          block={premium}
-          rows={[
-            ["Market Cap / BTC NAV", "market_cap_to_btc_nav", "multiple"],
-            ["EV / BTC NAV", "ev_to_btc_nav", "multiple"],
-            ["NAV / Basic Share", "nav_per_basic_share", "money"],
-            ["NAV / Diluted Share", "nav_per_diluted_share", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="BTC Yield / Gain"
-          block={yieldMetrics}
-          rows={[
-            ["BTC Yield YTD", "btc_yield_ytd", "pct"],
-            ["BTC Yield QTD", "btc_yield_qtd", "pct"],
-            ["BTC Gain YTD", "btc_gain_ytd", "number"],
-            ["BTC $ Gain YTD", "btc_dollar_gain_ytd", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="Shares"
-          block={shares}
-          rows={[
-            ["Basic Shares", "basic_shares_outstanding", "number"],
-            ["Diluted Shares", "assumed_diluted_shares_outstanding", "number"],
-            ["BTC / Basic Share", "btc_per_basic_share", "number"],
-            ["Share Dilution", "share_dilution_pct", "pct"],
-          ]}
-        />
-        <MetricBlock
-          title="Debt / Financing"
-          block={debt}
-          rows={[
-            ["Total Debt", "total_debt", "money"],
-            ["Preferred Stock", "preferred_stock", "money"],
-            ["Net Obligations / NAV", "net_obligations_to_btc_nav", "ratioPct"],
-            ["ATM Raises", "common_equity_raises_atm", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="Liquidity"
-          block={liquidity}
-          rows={[
-            ["Latest Volume", "latest_volume", "number"],
-            ["20D Avg Volume", "avg_volume_20d", "number"],
-            ["Relative Volume", "relative_volume", "multiple"],
-            ["Days to Cover mNAV", "days_to_cover_mnav", "number"],
-          ]}
-        />
-        <MetricBlock
-          title="Benchmarks"
-          block={benchmarks}
-          rows={[
-            ["MSTR 3M", "mstr_return_3m_pct", "pct"],
-            ["MSTR 1Y", "mstr_return_1y_pct", "pct"],
-            ["BTC 1Y", "btc_return_1y_pct", "pct"],
-            ["MSTR - BTC 1Y", "mstr_minus_btc_1y_pct", "pct"],
-          ]}
-        />
-      </div>
-    </section>
-  );
-}
-
-function MetricBlock({
-  title,
-  block,
-  rows,
-}: {
-  title: string;
-  block?: MstrMetricBlock;
-  rows: [string, string, "number" | "money" | "pct" | "ratioPct" | "multiple"][];
-}) {
-  return (
-    <div className="tracker-block">
-      <div className="tracker-block-head">
-        <strong>{title}</strong>
-        <span>{block?.status ?? "not loaded"}</span>
-      </div>
-      {rows.map(([label, key, kind]) => (
-        <div className="tracker-row" key={`${title}-${key}`}>
-          <span>{label}</span>
-          <b>{formatTrackerMetric(block?.[key], kind)}</b>
-        </div>
-      ))}
-      <small>{String(block?.source_type ?? "unavailable")} / {String(block?.calculation_method ?? "Refresh MSTR Radar.")}</small>
-    </div>
-  );
-}
-
-function ComponentBox({ title, component }: { title: string; component?: MstrComponent }) {
-  const reasons = component?.reasons ?? component?.risk_warnings ?? (component?.reason ? [component.reason] : []);
-  return (
-    <div className="component-box">
-      <div className="component-head">
-        <strong>{title}</strong>
-        <span>{formatNumber(component?.score)}/100</span>
-      </div>
-      <p>{component?.status ?? "not loaded"}</p>
-      {component?.metrics ? (
-        <div className="component-metrics">
-          {Object.entries(component.metrics)
-            .slice(0, 4)
-            .map(([key, value]) => (
-              <span key={key}>
-                {key.replace(/_/g, " ")} <b>{formatNumber(value)}</b>
-              </span>
-            ))}
-        </div>
-      ) : null}
-      {reasons.slice(0, 2).map((reason) => (
-        <small key={reason}>{reason}</small>
-      ))}
-    </div>
-  );
-}
-
-function CycleDashboardPanel({
-  title,
-  whyTitle,
-  triggerTitle,
-  tenXPathTitle,
-  payload,
-}: {
-  title: string;
-  whyTitle: string;
-  triggerTitle: string;
-  tenXPathTitle: string;
-  payload?: CycleDashboardPayload;
-}) {
-  const tenXPath = payload?.ten_x_path;
-  return (
-    <section className="panel cycle-dashboard-panel">
-      <PanelTitle title={title} detail={payload?.review_bias ?? "not loaded"} />
-      <p className="cycle-summary">{payload?.summary ?? "Refresh MSTR Radar to generate cycle dashboard."}</p>
-      <div className="cycle-dashboard-grid">
-        <div className="cycle-card">
-          <h3>{whyTitle}</h3>
-          {(payload?.wait_reasons ?? []).slice(0, 5).map((item) => (
-            <div className="cycle-row" key={item.label}>
-              <span className={`status-dot ${item.status}`}>{item.status}</span>
-              <strong>{item.label}</strong>
-              <small>
-                {`${String(item.current)} -> ${String(item.target)}`}
-              </small>
-              <p>{item.why}</p>
-            </div>
-          ))}
-        </div>
-        <div className="cycle-card">
-          <h3>{triggerTitle}</h3>
-          {(payload?.upgrade_triggers ?? []).map((trigger) => (
-            <div className="trigger-block" key={trigger.level}>
-              <div>
-                <strong>{trigger.level}</strong>
-                <span>{trigger.status}</span>
-              </div>
-              {trigger.requirements.slice(0, 3).map((requirement) => (
-                <p key={requirement}>{requirement}</p>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="cycle-card tenx-card">
-          <h3>{tenXPathTitle}</h3>
-          <div className="tenx-facts">
-            <Fact label="MSTR now" value={money(tenXPath?.current_mstr_price)} />
-            <Fact label="10x target" value={money(tenXPath?.target_mstr_price_10x)} />
-            <Fact label="P(10x) 24m" value={`${formatNumber(tenXPath?.monte_carlo_24m_probability_10x_pct)}%`} />
-          </div>
-          <div className="tenx-table">
-            <div className="tenx-row head">
-              <span>Premium</span>
-              <span>BTC needed</span>
-              <span>Multiple</span>
-            </div>
-            {(tenXPath?.required_btc_prices ?? []).map((row) => (
-              <div className="tenx-row" key={row.premium_to_nav}>
-                <span>{row.premium_to_nav}x</span>
-                <span>{money(row.required_btc_price)}</span>
-                <span>{formatNumber(row.btc_multiple_from_current)}x</span>
-              </div>
-            ))}
-          </div>
-          <p>{tenXPath?.assumptions?.[0] ?? "10x path loads after live radar refresh."}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TriggerMonitorPanel({ payload }: { payload?: TriggerMonitorPayload }) {
-  const grouped = ["BOTTOM WATCH", "CYCLE ACCUMULATION", "DISTRIBUTION RISK"].map((level) => ({
-    level,
-    conditions: (payload?.conditions ?? []).filter((condition) => condition.level === level),
-  }));
-  return (
-    <section className="panel compact-panel">
-      <PanelTitle title="MSTR Trigger Monitor" detail={payload?.next_state ?? "not loaded"} />
-      <div className="compact-body">
-        <div className="mini-fact-grid">
-          <Fact label="Bottom Watch Gap" value={formatNumber(payload?.gaps?.bottom_watch_score_gap)} />
-          <Fact label="Accumulation Gap" value={formatNumber(payload?.gaps?.cycle_accumulation_score_gap)} />
-          <Fact label="Distribution Gap" value={formatNumber(payload?.gaps?.distribution_risk_score_gap)} />
-        </div>
-        {grouped.map((group) => (
-          <div className="condition-group" key={group.level}>
-            <strong>{group.level}</strong>
-            {(group.conditions.length ? group.conditions : [{ name: "Refresh radar to calculate conditions", met: false, current: "-", target: "-", comparator: "" } as TriggerMonitorCondition]).map(
-              (condition) => (
-                <div className="condition-row" key={`${group.level}-${condition.name}`}>
-                  <span className={condition.met ? "check-dot met" : "check-dot"}>{condition.met ? "OK" : "..."}</span>
-                  <p>{condition.name}</p>
-                  <small>
-                    {String(condition.current)} {condition.comparator} {String(condition.target)}
-                  </small>
-                </div>
-              ),
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function HistoryTrendPanel({ payload }: { payload?: CycleHistorySummary }) {
-  return (
-    <section className="panel compact-panel">
-      <PanelTitle title="Historical Trend" detail={payload?.trend ?? "not scanned"} />
-      <div className="compact-body">
-        <div className="mini-fact-grid">
-          <Fact label="Runs" value={String(payload?.run_count ?? 0)} />
-          <Fact label="Latest Level" value={payload?.latest_level ?? "-"} />
-          <Fact label="Score Change" value={formatSigned(payload?.score_change)} />
-          <Fact label="Bayes Change" value={`${formatSigned(payload?.probability_change)}%`} />
-          <Fact label="Premium" value={`${formatNumber(payload?.latest_premium_to_nav)}x`} />
-          <Fact label="P(10x) 24m" value={`${formatNumber(payload?.latest_mc_24m_probability_10x)}%`} />
-        </div>
-        <p className="probability-note">
-          Latest: {payload?.latest_completed_at ?? "-"} / first stored: {payload?.first_completed_at ?? "-"}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function PathStressPanel({ payload }: { payload?: PathStressPayload }) {
-  const rows = payload?.rows ?? [];
-  return (
-    <section className="panel compact-panel stress-panel">
-      <PanelTitle title="10x Stress Test" detail={payload?.status ?? "not loaded"} />
-      <p className="probability-note">{payload?.question ?? payload?.reason ?? "Refresh MSTR Radar to calculate dilution and premium stress."}</p>
-      <div className="stress-table">
-        <div className="stress-row head">
-          <span>Dilution</span>
-          <span>Premium</span>
-          <span>BTC Needed</span>
-          <span>Multiple</span>
-        </div>
-        {rows.length ? (
-          rows.slice(0, 12).map((row) => (
-            <div className="stress-row" key={`${row.dilution_rate_pct}-${row.premium_to_nav}`}>
-              <span>{formatNumber(row.dilution_rate_pct)}%</span>
-              <span>{row.premium_to_nav}x</span>
-              <span>{money(row.required_btc_price)}</span>
-              <span>{formatNumber(row.btc_multiple_from_current)}x</span>
-            </div>
-          ))
-        ) : (
-          <div className="stress-row">
-            <span>-</span>
-            <span>-</span>
-            <span>-</span>
-            <span>-</span>
-          </div>
-        )}
-      </div>
-      {payload?.assumptions?.length ? <p className="probability-note">{payload.assumptions[0]}</p> : null}
-    </section>
   );
 }
 
@@ -5155,164 +4312,6 @@ function ManualTradingConclusion({
   );
 }
 
-function MstrJournalPanel({
-  runId,
-  journal,
-  onSave,
-}: {
-  runId?: string;
-  journal: MstrJournalPayload | null;
-  onSave: (entry: { status: string; notes: string; outcome: string }) => Promise<void>;
-}) {
-  const [status, setStatus] = useState("reviewed");
-  const [notes, setNotes] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!runId) return;
-    try {
-      setSaveState("saving");
-      await onSave({ status, notes, outcome });
-      setNotes("");
-      setOutcome("");
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  }
-
-  return (
-    <section className="panel compact-panel journal-panel">
-      <PanelTitle title="MSTR Cycle Journal" detail={`${journal?.entries.length ?? 0} entries`} />
-      <form className="journal-form" onSubmit={handleSubmit}>
-        <select value={status} onChange={(event) => setStatus(event.target.value)} disabled={!runId}>
-          <option value="reviewed">reviewed</option>
-          <option value="wait">wait</option>
-          <option value="staged-watch">staged-watch</option>
-          <option value="invalidated">invalidated</option>
-        </select>
-        <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Manual review note: BTC weekly, MSTR weekly, premium, blockers..." disabled={!runId} />
-        <input value={outcome} onChange={(event) => setOutcome(event.target.value)} placeholder="Outcome / follow-up" disabled={!runId} />
-        <button className="primary-action" type="submit" disabled={!runId || saveState === "saving"}>
-          {saveState === "saving" ? "Saving..." : "Save Journal"}
-        </button>
-        {saveState === "saved" ? <small>Saved locally.</small> : null}
-        {saveState === "error" ? <small>Save failed. Run radar first and try again.</small> : null}
-      </form>
-      <div className="journal-list">
-        {(journal?.entries ?? []).slice(0, 5).map((entry) => (
-          <div className="journal-entry" key={entry.id}>
-            <strong>{entry.status}</strong>
-            <span>{entry.reviewed_at}</span>
-            <p>{entry.notes || entry.outcome || "No note"}</p>
-            <small>
-              {entry.level} / score {formatNumber(entry.bottom_score)} / Bayes {formatNumber(entry.bayesian_bottom_probability)}%
-            </small>
-          </div>
-        ))}
-        {journal && journal.entries.length === 0 ? <p className="probability-note">No manual MSTR cycle review entries yet.</p> : null}
-      </div>
-    </section>
-  );
-}
-
-function MonteCarloPanel({ title, payload }: { title: string; payload?: MonteCarloPayload }) {
-  const horizons = Object.entries(payload?.horizons ?? {});
-  return (
-    <section className="panel probability-panel">
-      <PanelTitle
-        title={title}
-        detail={payload?.status === "available" ? `${payload.paths} paths / beta ${formatNumber(payload.beta_to_btc)}` : (payload?.status ?? "not loaded")}
-      />
-      {payload?.status === "available" && horizons.length ? (
-        <div className="scenario-table">
-          <div className="scenario-row head">
-            <span>Horizon</span>
-            <span>P10</span>
-            <span>Median</span>
-            <span>P90</span>
-            <span>Max DD</span>
-            <span>2x</span>
-            <span>5x</span>
-            <span>10x</span>
-          </div>
-          {horizons.map(([label, stats]) => (
-            <div className="scenario-row" key={label}>
-              <span>{label}</span>
-              <span>{formatNumber(stats.p10_return_pct)}%</span>
-              <span>{formatNumber(stats.median_return_pct)}%</span>
-              <span>{formatNumber(stats.p90_return_pct)}%</span>
-              <span>{formatNumber(stats.median_max_drawdown_pct)}%</span>
-              <span>{formatNumber(stats.probability_2x_pct)}%</span>
-              <span>{formatNumber(stats.probability_5x_pct)}%</span>
-              <span>{formatNumber(stats.probability_10x_pct)}%</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="probability-empty">{payload?.reason ?? "Run the radar to generate scenario distribution."}</div>
-      )}
-      {payload?.limitations?.length ? <p className="probability-note">{payload.limitations[0]}</p> : null}
-    </section>
-  );
-}
-
-function BayesianPanel({
-  title,
-  probabilityLabel,
-  confidenceLabel,
-  payload,
-}: {
-  title: string;
-  probabilityLabel: string;
-  confidenceLabel: string;
-  payload?: BayesianBottomPayload;
-}) {
-  return (
-    <section className="panel probability-panel">
-      <PanelTitle title={title} detail={payload?.method ?? "not loaded"} />
-      <div className="bayes-summary">
-        <Fact label={probabilityLabel} value={`${formatNumber(payload?.bottom_probability)}%`} />
-        <Fact label={confidenceLabel} value={`${formatNumber(payload?.confidence)}%`} />
-        <Fact
-          label="Band"
-          value={
-            payload?.confidence_band
-              ? `${formatNumber(payload.confidence_band.low)}% - ${formatNumber(payload.confidence_band.high)}%`
-              : "-"
-          }
-        />
-      </div>
-      <div className="evidence-grid">
-        <EvidenceList title="Positive Evidence" items={payload?.positive_evidence ?? []} />
-        <EvidenceList title="Negative Evidence" items={payload?.negative_evidence ?? []} />
-      </div>
-      {payload?.limitations?.length ? <p className="probability-note">{payload.limitations[0]}</p> : null}
-    </section>
-  );
-}
-
-function EvidenceList({ title, items }: { title: string; items: BayesianEvidence[] }) {
-  return (
-    <div className="evidence-list">
-      <h3>{title}</h3>
-      {items.length ? (
-        items.slice(0, 5).map((item) => (
-          <p key={`${item.name}-${item.likelihood_ratio}`}>
-            <strong>{item.name}</strong>
-            <span>LR {item.likelihood_ratio}</span>
-            {item.reason}
-          </p>
-        ))
-      ) : (
-        <p>No evidence yet.</p>
-      )}
-    </div>
-  );
-}
-
 function ChartPanel({
   title,
   subtitle,
@@ -5647,82 +4646,6 @@ function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, 
     exchangeTimezone: String(payload.exchange_timezone ?? "America/New_York"),
     displayTimezone: String(payload.display_timezone ?? "Asia/Shanghai"),
   };
-}
-
-function chartPayload(payload: MstrCyclePayload | null, key: string): Record<string, unknown> {
-  return ((payload?.charts?.[key] ?? {}) as Record<string, unknown>) || {};
-}
-
-function chartLabels(text: (typeof copy)["en"] | (typeof copy)["zh"]) {
-  return {
-    source: text.chartSource,
-    status: text.chartStatus,
-    range: text.chartRange,
-    candles: text.candles,
-    firstLast: text.firstLast,
-  };
-}
-
-function formatPremium(component: MstrComponent | undefined): string {
-  if (!component) return "-";
-  if (typeof component.premium_to_btc_nav === "number") return `${component.premium_to_btc_nav.toFixed(2)}x`;
-  return component.status ?? "-";
-}
-
-function metricNumber(value: MstrMetricValue): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
-  return null;
-}
-
-function metricValue(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  if (number !== null) return formatNumber(number);
-  if (typeof value === "boolean") return value ? "yes" : "no";
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "string" && value) return value;
-  return "-";
-}
-
-function metricMoney(value: MstrMetricValue): string {
-  return money(metricNumber(value));
-}
-
-function metricPct(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  return number === null ? "-" : `${formatSigned(number)}%`;
-}
-
-function metricPctFromRatio(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  return number === null ? "-" : `${formatNumber(number * 100)}%`;
-}
-
-function metricMultiple(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  return number === null ? "-" : `${formatNumber(number)}x`;
-}
-
-function formatTrackerMetric(value: MstrMetricValue, kind: "number" | "money" | "pct" | "ratioPct" | "multiple"): string {
-  if (kind === "money") return metricMoney(value);
-  if (kind === "pct") return metricPct(value);
-  if (kind === "ratioPct") return metricPctFromRatio(value);
-  if (kind === "multiple") return metricMultiple(value);
-  return metricValue(value);
-}
-
-function stateLabel(state: "idle" | "loading" | "ready" | "error"): string {
-  if (state === "loading") return "loading";
-  if (state === "error") return "unavailable";
-  if (state === "ready") return "ready";
-  return "not loaded";
-}
-
-function mstrLevelClass(level: MstrCycleLevel) {
-  if (level === "CYCLE ACCUMULATION") return "buy";
-  if (level === "BOTTOM WATCH") return "watch";
-  if (level === "DISTRIBUTION RISK") return "pass";
-  return "neutral";
 }
 
 function fixtureMeta(symbol: string, preset: ChartPreset, candles: Candle[]): CandleMeta {
@@ -6147,7 +5070,6 @@ function buildLocalSignal(stock: UniverseStock): StockSignal {
       "Review daily trend and EMA20/50/200 alignment.",
       "Confirm 1h entry structure and avoid chasing extended candles.",
       "Check volume expansion and ATR risk before any manual trade.",
-      "Only after a stock BUY SETUP should ATM options be considered.",
     ],
     data_status: {
       daily_provider_status: "fixture_read_only",

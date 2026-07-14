@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import random
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any, Iterable
@@ -129,16 +130,41 @@ def wilson_interval(wins: int, samples: int, z: float = 1.96) -> tuple[float, fl
     return max(0.0, center - margin), min(1.0, center + margin)
 
 
-def walk_forward_split(items: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+def walk_forward_split(
+    items: list[dict[str, Any]],
+    embargo_bars: int = 0,
+) -> dict[str, list[dict[str, Any]]]:
     ordered = sorted(items, key=lambda item: str(item.get("signal_time") or item.get("created_at") or ""))
     total = len(ordered)
     train_end = int(total * 0.6)
     validation_end = int(total * 0.8)
+    embargo = max(0, int(embargo_bars))
     return {
-        "train": ordered[:train_end],
-        "validation": ordered[train_end:validation_end],
-        "test": ordered[validation_end:],
+        "train": ordered[: max(0, train_end - embargo)],
+        "validation": ordered[min(total, train_end + embargo) : max(train_end, validation_end - embargo)],
+        "test": ordered[min(total, validation_end + embargo) :],
     }
+
+
+def bootstrap_mean_interval(
+    values: Iterable[float],
+    *,
+    samples: int = 2_000,
+    seed: int = 20260713,
+) -> tuple[float, float]:
+    data = [float(value) for value in values]
+    if not data:
+        return 0.0, 0.0
+    if len(data) == 1:
+        return data[0], data[0]
+    rng = random.Random(seed)
+    means = sorted(
+        sum(rng.choice(data) for _ in data) / len(data)
+        for _ in range(max(100, samples))
+    )
+    low_index = int((len(means) - 1) * 0.025)
+    high_index = int((len(means) - 1) * 0.975)
+    return means[low_index], means[high_index]
 
 
 def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
@@ -157,6 +183,7 @@ def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
         peak = max(peak, cumulative)
         max_drawdown_r = min(max_drawdown_r, cumulative - peak)
     low, high = wilson_interval(wins, samples)
+    expected_low, expected_high = bootstrap_mean_interval(values)
     evidence = "robust" if samples >= 100 else "limited" if samples >= 30 else "insufficient"
     return {
         "sample_count": samples,
@@ -171,6 +198,7 @@ def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "target_first_rate": round(sum(bool(item.get("target_first")) for item in completed) / samples * 100, 2) if samples else 0.0,
         "stop_first_rate": round(sum(bool(item.get("stop_first")) for item in completed) / samples * 100, 2) if samples else 0.0,
         "confidence_interval_95": [round(low * 100, 2), round(high * 100, 2)],
+        "expected_r_interval_95": [round(expected_low, 4), round(expected_high, 4)],
         "evidence_quality": evidence,
         "limited_evidence": samples < 100,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -178,14 +206,21 @@ def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
 
 
 def summarize_by_dimensions(events: list[dict[str, Any]]) -> dict[str, Any]:
+    dimensions = (
+        "profile",
+        "action",
+        "market_regime",
+        "sector",
+        "stock_layer",
+        "volatility_bucket",
+        "data_source",
+        "split_name",
+    )
     result: dict[str, Any] = {}
-    for item in events:
-        key = "|".join(
-            [
-                str(item.get("profile") or "unknown"),
-                str(item.get("action") or "unknown"),
-                str(item.get("market_regime") or "unknown"),
-            ]
-        )
-        result.setdefault(key, []).append(item)
-    return {key: summarize_outcomes(items) for key, items in sorted(result.items())}
+    for dimension in dimensions:
+        buckets: dict[str, list[dict[str, Any]]] = {}
+        for item in events:
+            key = str(item.get(dimension) or "unknown")
+            buckets.setdefault(key, []).append(item)
+        result[dimension] = {key: summarize_outcomes(rows) for key, rows in sorted(buckets.items())}
+    return result

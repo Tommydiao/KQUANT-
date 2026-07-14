@@ -18,5 +18,4 @@ web/dist/
 tests/
 docs/
 config/
-btc_eth_15m/
 *.ps1

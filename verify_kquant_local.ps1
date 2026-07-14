@@ -149,7 +149,7 @@ if ($SkipPytest) {
     Show-PythonSetupGuidance
   } else {
     try {
-      & $python -m pytest tests/test_stock_signals.py tests/test_mstr_cycle.py tests/test_agent_harness.py tests/test_realtime_strategy.py -q
+      & $python -m pytest tests/test_stock_signals.py tests/test_dashboard.py tests/test_realtime_strategy.py tests/test_strategy_validation_v3.py -q
       if ($LASTEXITCODE -eq 0) {
         Add-Result "python_pytest" "passed" "pytest passed with $python."
       } else {
