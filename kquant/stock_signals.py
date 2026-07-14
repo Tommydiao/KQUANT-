@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -49,6 +50,63 @@ LONG_BRIDGE_STALE_SOURCE = "stale_longbridge_cache"
 YAHOO_FALLBACK_SOURCE = "yahoo_public_fallback"
 REAL_MONEY_CANDLE_SOURCE = LONG_BRIDGE_CANDLE_SOURCE
 LONG_BRIDGE_TIMEOUT_SECONDS = int(os.getenv("KQUANT_LONGBRIDGE_TIMEOUT_SECONDS", "12"))
+LONG_BRIDGE_QUOTE_FRESH_SECONDS = 15
+LONG_BRIDGE_MAX_BAR_LAG_SECONDS = 180
+
+
+class OpenAIRateLimitError(RuntimeError):
+    """A bounded AI Daily retry sequence exhausted OpenAI's rate limit."""
+
+    def __init__(self, attempts: int, retry_after_seconds: float) -> None:
+        super().__init__(f"OpenAI rate limit after {attempts} attempts.")
+        self.attempts = attempts
+        self.retry_after_seconds = retry_after_seconds
+
+
+def _openai_daily_retry_settings() -> tuple[int, float]:
+    try:
+        attempts = int(os.getenv("KQUANT_AI_DAILY_MAX_ATTEMPTS", "2"))
+    except ValueError:
+        attempts = 2
+    try:
+        delay_seconds = float(os.getenv("KQUANT_AI_DAILY_RETRY_DELAY_SECONDS", "2"))
+    except ValueError:
+        delay_seconds = 2.0
+    return min(max(attempts, 1), 3), min(max(delay_seconds, 0.0), 15.0)
+
+
+def _openai_retry_after_seconds(response: Any, fallback_seconds: float) -> float:
+    headers = getattr(response, "headers", {}) or {}
+    raw = headers.get("retry-after") or headers.get("Retry-After")
+    try:
+        return min(max(float(raw), 0.0), 15.0)
+    except (TypeError, ValueError):
+        return fallback_seconds
+
+
+def post_openai_daily_agent(api_key: str, request_payload: dict[str, Any], timeout: int = 90) -> tuple[Any, int]:
+    """Call the Daily Agent with a short, bounded retry on HTTP 429 only."""
+
+    max_attempts, fallback_delay = _openai_daily_retry_settings()
+    for attempt in range(1, max_attempts + 1):
+        response = requests.post(
+            "https://api.openai.com/v1/responses",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=request_payload,
+            timeout=timeout,
+        )
+        if getattr(response, "status_code", None) == 429:
+            retry_after = _openai_retry_after_seconds(response, fallback_delay)
+            if attempt < max_attempts:
+                time.sleep(retry_after)
+                continue
+            raise OpenAIRateLimitError(attempt, retry_after)
+        response.raise_for_status()
+        return response, attempt
+    raise RuntimeError("Daily Agent request did not run.")
 PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
     "swing_long_v1": {
         "name": "swing_long_v1",
@@ -537,16 +595,28 @@ def _filter_today_intraday_candles(
     candles: list[dict[str, Any]],
     range_value: str,
     interval: str,
+    now: datetime | None = None,
 ) -> list[dict[str, Any]]:
     if range_value != "1d" or interval not in {"1m", "5m"}:
         return candles
-    session_start = _current_us_regular_session_start()
-    filtered = [
+    session_start = _current_us_regular_session_start(now)
+    return [
         candle
         for candle in candles
         if (parsed := _parse_market_time(candle.get("open_time"))) is not None and parsed >= session_start
     ]
-    return filtered or candles
+
+
+def _timestamp_age_seconds(value: Any, now: datetime | None = None) -> tuple[int | None, str]:
+    """Return a UTC timestamp age without treating future provider data as fresh."""
+    parsed = _parse_market_time(value)
+    if parsed is None:
+        return None, "missing_timestamp"
+    current = (now or datetime.now(UTC)).astimezone(UTC)
+    raw_age = int((current - parsed).total_seconds())
+    if raw_age < -60:
+        return None, "future_timestamp"
+    return max(0, raw_age), "valid"
 
 
 def interval_seconds(interval: str) -> int:
@@ -871,28 +941,38 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
                 }
             )
         candles.sort(key=lambda candle: int(candle["time"]))
-        candles = _filter_today_intraday_candles(candles, range_value, interval)
+        current = datetime.now(UTC)
+        clock = market_clock(current)
+        candles = _filter_today_intraday_candles(candles, range_value, interval, current)
         if not candles:
             return unavailable_candles(
                 symbol,
                 range_value,
                 interval,
-                "Longbridge returned 0 candles.",
+                "Longbridge returned no candles for the current US regular-session reference. Older bars are not shown as live data.",
                 source_type=LONG_BRIDGE_CANDLE_SOURCE,
             )
-        current = datetime.now(UTC)
         candles = annotate_candle_states(candles, interval, current)
         latest_open = datetime.fromisoformat(candles[-1]["open_time"])
-        bar_open_age = max(0, int((current - latest_open).total_seconds()))
+        bar_open_age, timestamp_integrity = _timestamp_age_seconds(latest_open, current)
+        if timestamp_integrity != "valid":
+            return unavailable_candles(
+                symbol,
+                range_value,
+                interval,
+                f"Longbridge latest candle timestamp is {timestamp_integrity}; it cannot be treated as realtime.",
+                source_type=LONG_BRIDGE_CANDLE_SOURCE,
+            )
         latest_close = latest_open + timedelta(seconds=interval_seconds(interval))
-        freshness_seconds = max(0, int((current - latest_close).total_seconds()))
-        clock = market_clock(current)
-        realtime_lag_seconds = max(interval_seconds(interval) * 2, 180)
+        freshness_seconds, close_integrity = _timestamp_age_seconds(latest_close, current)
+        if close_integrity == "future_timestamp":
+            freshness_seconds = 0
+        realtime_lag_seconds = max(interval_seconds(interval) * 2, LONG_BRIDGE_MAX_BAR_LAG_SECONDS)
         stale_during_regular = clock.session == "regular" and freshness_seconds > realtime_lag_seconds
         source_type = LONG_BRIDGE_STALE_SOURCE if stale_during_regular else LONG_BRIDGE_CANDLE_SOURCE
         provider_status = "stale_cache" if stale_during_regular else "available"
         freshness = "stale_longbridge_cache" if stale_during_regular else (
-            "live" if clock.session == "regular" else "market_closed"
+            "live" if clock.session == "regular" else "reference_outside_regular_session"
         )
         return {
             "instrument_type": "stock",
@@ -907,6 +987,7 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "freshness": freshness,
             "freshness_seconds": freshness_seconds,
             "bar_open_age_seconds": bar_open_age,
+            "timestamp_integrity": timestamp_integrity,
             "latest_bar_state": candles[-1]["bar_state"],
             "delivery_mode": delivery_mode,
             "timestamp_contract": "utc_iso8601",
@@ -916,7 +997,8 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "display_timezone": clock.display_timezone,
             "candle_time": candles[-1]["open_time"],
             "candles": candles[-count:],
-            "real_money_data_source": True,
+            "real_money_data_source": bool(clock.session == "regular" and not stale_during_regular),
+            "realtime_trigger_eligible": bool(clock.session == "regular" and not stale_during_regular),
             "read_only_market_data": True,
         }
     except Exception as exc:  # pragma: no cover - depends on provider/network
@@ -964,6 +1046,9 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         bid = _decimal_float(_pick_attr(quote, ("bid", "bid_price")))
         ask = _decimal_float(_pick_attr(quote, ("ask", "ask_price")))
         clock = market_clock()
+        freshness_seconds, timestamp_integrity = _timestamp_age_seconds(quote_time)
+        if timestamp_integrity != "valid":
+            raise RuntimeError(f"Longbridge quote timestamp is {timestamp_integrity}.")
         return {
             "symbol": symbol,
             "provider_symbol": lb_symbol,
@@ -978,7 +1063,8 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             "market_clock": clock.as_dict(),
             "exchange_timezone": clock.exchange_timezone,
             "display_timezone": clock.display_timezone,
-            "freshness_seconds": max(0, int((datetime.now(UTC) - quote_time).total_seconds())) if quote_time else None,
+            "freshness_seconds": freshness_seconds,
+            "timestamp_integrity": timestamp_integrity,
             "read_only_market_data": True,
         }
     except Exception as exc:  # pragma: no cover - optional SDK/provider
@@ -1016,17 +1102,32 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         else []
     )
     quote_age = quote.get("freshness_seconds")
-    quote_fresh = isinstance(quote_age, (int, float)) and quote_age <= 15
+    quote_fresh = isinstance(quote_age, (int, float)) and quote_age <= LONG_BRIDGE_QUOTE_FRESH_SECONDS
     longbridge_candles_live = (
         minute_payload.get("provider_status") == "available"
         and minute_payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE
+        and minute_payload.get("realtime_trigger_eligible") is True
     )
-    provider_status = (
-        "available"
-        if quote.get("provider_status") == "available" and longbridge_candles_live
-        else "degraded"
+    realtime_trigger_eligible = bool(
+        clock.session == "regular"
+        and quote.get("provider_status") == "available"
+        and quote_fresh
+        and longbridge_candles_live
+    )
+    provider_status = "available" if realtime_trigger_eligible else (
+        "stale" if quote.get("provider_status") == "available" and longbridge_candles_live else "degraded"
     )
     provider_errors = list(quote.get("provider_errors") or []) + list(minute_payload.get("provider_errors") or [])
+    if clock.session != "regular":
+        trust_reason = "US regular session is closed; Longbridge values are reference-only until the next regular session."
+    elif quote.get("provider_status") != "available":
+        trust_reason = "Longbridge live quote is unavailable."
+    elif not quote_fresh:
+        trust_reason = f"Longbridge quote is {quote_age}s old; realtime trigger limit is {LONG_BRIDGE_QUOTE_FRESH_SECONDS}s."
+    elif not longbridge_candles_live:
+        trust_reason = "Longbridge current-session 1m candles are unavailable or stale."
+    else:
+        trust_reason = "Fresh Longbridge quote and current-session 1m candles are available."
     return {
         "symbol": symbol,
         "provider": "longbridge",
@@ -1043,13 +1144,18 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         "market_clock": clock.as_dict(),
         "exchange_timezone": clock.exchange_timezone,
         "display_timezone": clock.display_timezone,
-        "buy_actions_allowed_by_data": bool(
-            clock.session == "regular"
-            and quote_fresh
-            and longbridge_candles_live
-            and provider_status == "available"
-        ),
-        "real_money_data_source": longbridge_candles_live,
+        "buy_actions_allowed_by_data": realtime_trigger_eligible,
+        "real_money_data_source": realtime_trigger_eligible,
+        "data_trust": {
+            "state": "live_trade_eligible" if realtime_trigger_eligible else (
+                "reference_only" if clock.session != "regular" else "delayed_or_incomplete"
+            ),
+            "reason": trust_reason,
+            "quote_age_seconds": quote_age,
+            "candle_age_seconds": minute_payload.get("freshness_seconds"),
+            "current_bar_state": (minute_candles[-1] or {}).get("bar_state") if minute_candles else "missing",
+            "requires_longbridge": True,
+        },
         "read_only_market_data": True,
         "account_access_enabled": False,
         "trade_context_enabled": False,
@@ -2119,15 +2225,17 @@ def api_stock_ai_daily_agent(
         ai_report = unavailable_daily_ai_report(candidate_context, "OPENAI_API_KEY is not configured.")
         status = "ai_unavailable"
         reason = "OPENAI_API_KEY is not configured."
+        ai_generation = {
+            "status": "missing_key",
+            "attempts": 0,
+            "retryable": False,
+            "retry_after_seconds": None,
+        }
     else:
         try:
-            response = requests.post(
-                "https://api.openai.com/v1/responses",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=openai_daily_agent_request(model, {
+            response, attempts = post_openai_daily_agent(
+                api_key,
+                openai_daily_agent_request(model, {
                     "run_id": run_id,
                     "universe": universe,
                     "profiles": profiles,
@@ -2135,18 +2243,38 @@ def api_stock_ai_daily_agent(
                     "candidates": candidate_context,
                     "provider_errors": provider_errors[:20],
                 }),
-                timeout=90,
             )
-            response.raise_for_status()
             raw = response.json()
             text = extract_openai_text(raw)
             ai_report = sanitize_daily_ai_report(json.loads(text), candidates, market_regime)
             status = "available"
             reason = "ok"
+            ai_generation = {
+                "status": "available",
+                "attempts": attempts,
+                "retryable": False,
+                "retry_after_seconds": None,
+            }
+        except OpenAIRateLimitError as exc:
+            reason = str(exc)
+            ai_report = unavailable_daily_ai_report(candidate_context, reason)
+            status = "ai_degraded"
+            ai_generation = {
+                "status": "rate_limited",
+                "attempts": exc.attempts,
+                "retryable": True,
+                "retry_after_seconds": exc.retry_after_seconds,
+            }
         except Exception as exc:
             ai_report = unavailable_daily_ai_report(candidate_context, f"AI daily agent failed: {type(exc).__name__}")
-            status = "ai_unavailable"
+            status = "ai_degraded"
             reason = str(exc)[:240]
+            ai_generation = {
+                "status": "request_failed",
+                "attempts": 1,
+                "retryable": True,
+                "retry_after_seconds": None,
+            }
     payload_out = {
         "product": "KQUANT AI Daily Opportunity Agent",
         "run_id": run_id,
@@ -2161,6 +2289,7 @@ def api_stock_ai_daily_agent(
         "age_seconds": 0,
         "auto_run_recommended": False,
         "last_error": None if status == "available" else reason,
+        "ai_generation": ai_generation,
         "source": source,
         "universe": universe,
         "profiles": profiles,
@@ -2221,29 +2350,35 @@ def ai_market_date(now: datetime | None = None) -> str:
     reports generated after China midnight attached to the US trading session.
     """
 
-    eastern = timezone(timedelta(hours=-4))
+    eastern = ZoneInfo("America/New_York")
     return (now or datetime.now(UTC)).astimezone(eastern).date().isoformat()
 
 
-def enrich_ai_daily_report_freshness(payload: dict[str, Any], max_age_seconds: int = 21600) -> dict[str, Any]:
+def enrich_ai_daily_report_freshness(
+    payload: dict[str, Any],
+    max_age_seconds: int = 21600,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     generated_at = str(payload.get("generated_at") or "")
     age_seconds: int | None = None
     try:
         generated = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
-        age_seconds = max(0, int((datetime.now(UTC) - generated.astimezone(UTC)).total_seconds()))
+        age_seconds = max(0, int(((now or datetime.now(UTC)) - generated.astimezone(UTC)).total_seconds()))
     except ValueError:
         age_seconds = None
     market_date = str(payload.get("market_date") or ai_market_date())
-    today = ai_market_date()
-    is_stale = market_date != today or age_seconds is None or age_seconds > max_age_seconds
+    today = ai_market_date(now)
     status = str(payload.get("status") or "unknown")
+    ai_generation = payload.get("ai_generation") if isinstance(payload.get("ai_generation"), dict) else {}
+    generation_failed = status != "available" or ai_generation.get("status") not in (None, "available")
+    is_stale = market_date != today or age_seconds is None or age_seconds > max_age_seconds or generation_failed
     last_error = payload.get("last_error") or (payload.get("reason") if status not in ("available", "not_scanned") else None)
     return {
         **payload,
         "market_date": market_date,
         "is_stale": is_stale,
         "age_seconds": age_seconds,
-        "auto_run_recommended": is_stale,
+        "auto_run_recommended": is_stale or bool(ai_generation.get("retryable")),
         "last_error": last_error,
     }
 

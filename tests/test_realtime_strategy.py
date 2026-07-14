@@ -6,6 +6,7 @@ from pathlib import Path
 import kquant.stock_signals as stock_signals
 from kquant.market_clock import MarketClock, market_clock, session_bounds_utc
 from kquant.stock_signals import (
+    _filter_today_intraday_candles,
     _parse_market_time,
     aggregate_intraday_candles,
     ai_hard_veto,
@@ -146,6 +147,14 @@ def test_regular_session_stale_longbridge_quote_hard_vetoes_buy_actions() -> Non
     assert any("realtime_quote=available age=61" in reason for reason in veto["reasons"])
 
 
+def test_today_intraday_filter_never_reuses_an_older_session(monkeypatch) -> None:
+    today_open = datetime(2026, 7, 14, 13, 30, tzinfo=UTC)
+    previous_session_bar = candle(datetime(2026, 7, 13, 13, 30, tzinfo=UTC), 100)
+    monkeypatch.setattr(stock_signals, "_current_us_regular_session_start", lambda now=None: today_open)
+
+    assert _filter_today_intraday_candles([previous_session_bar], "1d", "1m", today_open) == []
+
+
 def test_realtime_snapshot_combines_quote_and_longbridge_bars(monkeypatch) -> None:
     start = datetime(2026, 7, 9, 13, 30, tzinfo=UTC)
     clock = MarketClock(
@@ -181,6 +190,7 @@ def test_realtime_snapshot_combines_quote_and_longbridge_bars(monkeypatch) -> No
             "provider_status": "available",
             "source_type": "longbridge_candles",
             "provider_errors": [],
+            "realtime_trigger_eligible": True,
             "candles": [candle(start, 100)],
         },
     )
@@ -188,11 +198,58 @@ def test_realtime_snapshot_combines_quote_and_longbridge_bars(monkeypatch) -> No
     assert payload["provider_status"] == "available"
     assert payload["quote_fresh"] is True
     assert payload["buy_actions_allowed_by_data"] is True
+    assert payload["data_trust"]["state"] == "live_trade_eligible"
     assert payload["current_1m_bar"]["close"] == 101.5
     assert payload["current_1m_bar"]["bar_state"] == "forming_candle"
     assert payload["current_5m_bar"]["bar_state"] == "forming_candle"
     assert payload["trade_context_enabled"] is False
     assert payload["order_submission_enabled"] is False
+
+
+def test_realtime_snapshot_marks_outside_regular_session_as_reference_only(monkeypatch) -> None:
+    start = datetime(2026, 7, 9, 13, 30, tzinfo=UTC)
+    clock = MarketClock(
+        session="after_hours",
+        market_date="2026-07-09",
+        exchange_timezone="America/New_York",
+        display_timezone="Asia/Shanghai",
+        regular_open_utc=start.isoformat(),
+        regular_close_utc=datetime(2026, 7, 9, 20, 0, tzinfo=UTC).isoformat(),
+        is_trading_day=True,
+        is_early_close=False,
+    )
+    monkeypatch.setattr(stock_signals, "market_clock", lambda *args, **kwargs: clock)
+    monkeypatch.setattr(
+        stock_signals,
+        "api_stock_quote",
+        lambda *args, **kwargs: {
+            "symbol": "NVDA",
+            "provider": "longbridge",
+            "source_type": "longbridge_quote",
+            "provider_status": "available",
+            "last": 101.5,
+            "quote_time": (start + timedelta(minutes=1)).isoformat(),
+            "freshness_seconds": 2,
+            "session": "after_hours",
+        },
+    )
+    monkeypatch.setattr(
+        stock_signals,
+        "api_stock_candles",
+        lambda *args, **kwargs: {
+            "symbol": "NVDA",
+            "provider_status": "available",
+            "source_type": "longbridge_candles",
+            "provider_errors": [],
+            "realtime_trigger_eligible": False,
+            "candles": [candle(start, 100)],
+        },
+    )
+
+    payload = stock_signals.api_stock_realtime_snapshot("NVDA")
+    assert payload["buy_actions_allowed_by_data"] is False
+    assert payload["real_money_data_source"] is False
+    assert payload["data_trust"]["state"] == "reference_only"
 
 
 def test_strategy_validation_persists_walk_forward_report(tmp_path: Path) -> None:

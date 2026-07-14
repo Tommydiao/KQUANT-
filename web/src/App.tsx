@@ -130,6 +130,14 @@ type RealtimeSnapshotPayload = {
   display_timezone: string;
   buy_actions_allowed_by_data: boolean;
   real_money_data_source: boolean;
+  data_trust?: {
+    state?: "live_trade_eligible" | "reference_only" | "delayed_or_incomplete" | string;
+    reason?: string;
+    quote_age_seconds?: number | null;
+    candle_age_seconds?: number | null;
+    current_bar_state?: string;
+    requires_longbridge?: boolean;
+  };
 };
 
 type ApiHealthPayload = {
@@ -2784,7 +2792,7 @@ function App() {
       const payload = (await response.json()) as RealtimeSnapshotPayload;
       if (requestId !== quoteRequestRef.current || payload.symbol !== selectedSymbol) return;
       setRealtimeSnapshot(payload);
-      setRealtimeState(payload.provider_status === "available" && payload.quote_fresh ? "live" : "stale");
+      setRealtimeState(payload.data_trust?.state === "live_trade_eligible" ? "live" : "stale");
       const realtimeOneMinute = normalizeCandles(payload.candles_1m, []);
       const realtimeFiveMinute = normalizeCandles(payload.candles_5m, []);
       if (primaryPreset.range === "1d" && primaryPreset.interval === "1m" && realtimeOneMinute.length) {
@@ -2815,8 +2823,11 @@ function App() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const quote = (await response.json()) as RealtimeQuote;
       if (requestId !== quoteRequestRef.current || quote.symbol !== selectedSymbol) return;
-      setRealtimeSnapshot((current) => (current ? { ...current, quote, quote_fresh: Number(quote.freshness_seconds ?? 999) <= 15 } : current));
-      setRealtimeState(quote.provider_status === "available" && Number(quote.freshness_seconds ?? 999) <= 15 ? "live" : "stale");
+      const quoteIsFresh = quote.provider_status === "available" && Number(quote.freshness_seconds ?? 999) <= 15;
+      setRealtimeSnapshot((current) => (current ? { ...current, quote, quote_fresh: quoteIsFresh } : current));
+      // Only a full snapshot may promote a symbol to trading-grade realtime.
+      // A fresh quote alone is not enough without a current-session Longbridge bar.
+      setRealtimeState((current) => (quoteIsFresh && current === "live" ? "live" : "stale"));
       applyRealtimeQuote(quote, symbol);
     } catch {
       if (requestId !== quoteRequestRef.current) return;
@@ -5442,8 +5453,8 @@ function ChartPanel({
     return () => chart.remove();
   }, [candles, displayTimezone, indicators.ema20, indicators.ema50, indicators.ema200, indicators.vwap, theme]);
 
-  const firstLabel = candles.length ? formatCandleTime(candles[0], displayTimezone) : meta.first;
-  const lastLabel = candles.length ? formatCandleTime(candles[candles.length - 1], displayTimezone) : meta.last;
+  const firstLabel = candles.length ? formatCandleTime(candles[0], displayTimezone, true) : meta.first;
+  const lastLabel = candles.length ? formatCandleTime(candles[candles.length - 1], displayTimezone, true) : meta.last;
   const timezoneLabel = displayTimezone === "Asia/Shanghai" ? "China UTC+8" : "New York ET";
 
   return (
@@ -5639,8 +5650,8 @@ function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, 
     freshness: String(payload.freshness ?? "unknown"),
     staleAge: formatStaleAge(payload.freshness_seconds, payload.freshness),
     count: candles.length,
-    first: formatCandleTime(candles[0]),
-    last: formatCandleTime(candles[candles.length - 1]),
+    first: formatCandleTime(candles[0], "Asia/Shanghai", true),
+    last: formatCandleTime(candles[candles.length - 1], "Asia/Shanghai", true),
     errors: Array.isArray(payload.provider_errors) ? payload.provider_errors.map(String) : [],
     session: String(payload.session ?? ""),
     quoteTime: payload.quote_time ? formatDateTimeUtc8(String(payload.quote_time), { withDate: true }) : undefined,
@@ -5735,8 +5746,8 @@ function fixtureMeta(symbol: string, preset: ChartPreset, candles: Candle[]): Ca
     freshness: "fixture",
     staleAge: "none",
     count: candles.length,
-    first: formatCandleTime(candles[0]),
-    last: formatCandleTime(candles[candles.length - 1]),
+    first: formatCandleTime(candles[0], "Asia/Shanghai", true),
+    last: formatCandleTime(candles[candles.length - 1], "Asia/Shanghai", true),
     errors: [],
   };
 }
@@ -6465,18 +6476,20 @@ function metaFromRealtimeSnapshot(
   candles: Candle[],
 ): CandleMeta {
   const quoteAge = Number(payload.quote?.freshness_seconds ?? 0);
+  const trust = payload.data_trust;
+  const tradingGrade = trust?.state === "live_trade_eligible";
   return {
     symbol: payload.symbol,
     range: preset.range,
     interval: preset.interval,
     sourceType: "longbridge_realtime_snapshot",
     providerStatus: payload.provider_status,
-    freshness: payload.quote_fresh ? "live_quote" : "stale_quote",
-    staleAge: Number.isFinite(quoteAge) ? formatStaleAge(quoteAge, payload.quote_fresh ? "live" : "stale") : "unknown",
+    freshness: trust?.state ?? (payload.quote_fresh ? "live_quote" : "stale_quote"),
+    staleAge: Number.isFinite(quoteAge) ? formatStaleAge(quoteAge, tradingGrade ? "live" : "stale") : "unknown",
     count: candles.length,
-    first: formatCandleTime(candles[0]),
-    last: formatCandleTime(candles[candles.length - 1]),
-    errors: [],
+    first: formatCandleTime(candles[0], "Asia/Shanghai", true),
+    last: formatCandleTime(candles[candles.length - 1], "Asia/Shanghai", true),
+    errors: trust && !tradingGrade && trust.reason ? [trust.reason] : [],
     session: payload.session,
     quoteTime: payload.quote?.quote_time ? formatDateTimeUtc8(payload.quote.quote_time, { withDate: true }) : undefined,
     exchangeTimezone: payload.exchange_timezone,
@@ -6915,12 +6928,16 @@ function money(value: number | null | undefined) {
   return `$${value.toFixed(value > 100 ? 0 : 2)}`;
 }
 
-function formatCandleTime(candle: Candle | undefined, timeZone: DisplayTimezone = "Asia/Shanghai") {
+function formatCandleTime(
+  candle: Candle | undefined,
+  timeZone: DisplayTimezone = "Asia/Shanghai",
+  withDate = false,
+) {
   if (!candle) return "";
-  if (candle.open_time) return formatDateTimeUtc8(candle.open_time, { timeZone });
+  if (candle.open_time) return formatDateTimeUtc8(candle.open_time, { timeZone, withDate });
   const seconds = Number(candle.time);
   if (!Number.isFinite(seconds)) return "";
-  return formatDateTimeUtc8(seconds * 1000, { timeZone });
+  return formatDateTimeUtc8(seconds * 1000, { timeZone, withDate });
 }
 
 function chartTimeToDate(time: Time): Date | null {

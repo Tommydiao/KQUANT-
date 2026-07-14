@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -24,6 +24,7 @@ from kquant.stock_signals import (
     api_stock_signals,
     api_stock_signals_latest,
     ai_hard_veto,
+    enrich_ai_daily_report_freshness,
 )
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
@@ -1002,6 +1003,62 @@ def test_ai_daily_agent_without_key_writes_read_only_report(tmp_path: Path, monk
     assert (tmp_path / "outputs" / "ai-daily-opportunities.json").exists()
     latest = api_stock_ai_daily_report_latest(outputs_dir=tmp_path / "outputs")
     assert latest["run_id"] == payload["run_id"]
+
+
+def test_ai_daily_agent_rate_limit_retries_then_preserves_rule_watchlist(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("KQUANT_AI_DAILY_MAX_ATTEMPTS", "2")
+    monkeypatch.setenv("KQUANT_AI_DAILY_RETRY_DELAY_SECONDS", "0")
+    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
+    calls: list[int] = []
+
+    class RateLimitedResponse:
+        status_code = 429
+        headers = {"Retry-After": "0"}
+
+        def raise_for_status(self) -> None:
+            raise AssertionError("429 must be handled before raise_for_status")
+
+    monkeypatch.setattr(
+        "kquant.stock_signals.api_stock_signals",
+        lambda *args, **kwargs: {"signals": [signal], "provider_errors": []},
+    )
+    monkeypatch.setattr(
+        "kquant.stock_signals.api_stock_market_regime",
+        lambda *args, **kwargs: {"regime": "RISK_ON", "score": 70, "high_confidence_allowed": True, "reasons": []},
+    )
+
+    def fake_post(*args, **kwargs):
+        calls.append(1)
+        return RateLimitedResponse()
+
+    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
+    payload = api_stock_ai_daily_agent(
+        {"universe": "default", "limit": 5, "top_n": 3, "profiles": ["tactical_1w_v1"]},
+        db_path=tmp_path / "kquant_us.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+    )
+    assert len(calls) == 2
+    assert payload["status"] == "ai_degraded"
+    assert payload["ai_generation"]["status"] == "rate_limited"
+    assert payload["ai_generation"]["retryable"] is True
+    assert payload["ai_report"]["top_buy_candidates"] == []
+    assert payload["ai_report"]["watch_for_pullback"] or payload["ai_report"]["avoid_or_risk_elevated"]
+
+
+def test_ai_daily_report_from_prior_market_day_is_stale() -> None:
+    now = datetime(2026, 7, 14, 15, 0, tzinfo=timezone.utc)
+    latest = enrich_ai_daily_report_freshness(
+        {
+            "status": "available",
+            "market_date": "2026-07-13",
+            "generated_at": "2026-07-14T14:55:00+00:00",
+            "ai_generation": {"status": "available", "retryable": False},
+        },
+        now=now,
+    )
+    assert latest["is_stale"] is True
+    assert latest["auto_run_recommended"] is True
 
 
 def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: Path, monkeypatch) -> None:
