@@ -152,4 +152,4 @@ if (-not $NoBrowser) {
   Start-Process $Url
 }
 
-& $Python -m btc_eth_15m.dashboard.stdlib_server --host $HostName --port $Port
+& $Python -m kquant.dashboard --host $HostName --port $Port

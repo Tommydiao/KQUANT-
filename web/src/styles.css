@@ -2612,54 +2612,11 @@ p {
   margin-top: 12px;
 }
 
-.mstr-radar {
-  display: grid;
-  gap: 12px;
-}
-
-.mstr-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px;
-}
-
-.mstr-hero h2 {
-  margin-top: 4px;
-  color: var(--strong);
-  font-size: 24px;
-  letter-spacing: 0;
-}
-
-.mstr-hero p {
-  max-width: 780px;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
 .eyebrow {
   color: var(--muted);
   font-size: 12px;
   font-weight: 820;
   text-transform: uppercase;
-}
-
-.mstr-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.mstr-component-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  padding: 14px;
 }
 
 .tracker-metrics-panel {
@@ -2931,23 +2888,9 @@ p {
   white-space: nowrap;
 }
 
-.mstr-chart-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.mstr-detail-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .probability-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: 12px;
-}
-
-.mstr-ops-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 12px;
 }
 
@@ -3611,11 +3554,7 @@ p {
 
   .research-section-grid,
   .research-columns,
-  .mstr-component-grid,
-  .mstr-chart-grid,
-  .mstr-detail-grid,
   .cycle-dashboard-grid,
-  .mstr-ops-grid,
   .probability-grid,
   .evidence-grid {
     grid-template-columns: 1fr;
@@ -3816,6 +3755,20 @@ p {
   .after-close-review {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .chart-tools,
+  .indicator-tags {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .chart-tools > .segmented {
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
   }
 
   .answer-badge {
