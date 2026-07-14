@@ -19,7 +19,11 @@ class LongbridgeReadOnlyRuntime:
         self._context: Any | None = None
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="kquant-longbridge-quote")
         self._quote_subscriptions: set[str] = set()
+        self._depth_subscriptions: set[str] = set()
         self._candle_subscriptions: set[tuple[str, str]] = set()
+        self._candle_periods: dict[tuple[str, str], Any] = {}
+        self._active_symbol: str | None = None
+        self._max_subscription_symbols = 1
 
     def _build_context(self) -> Any:
         from longbridge.openapi import Config, QuoteContext  # type: ignore
@@ -43,7 +47,10 @@ class LongbridgeReadOnlyRuntime:
             context = self._context
             self._context = None
             self._quote_subscriptions.clear()
+            self._depth_subscriptions.clear()
             self._candle_subscriptions.clear()
+            self._candle_periods.clear()
+            self._active_symbol = None
         close = getattr(context, "close", None)
         if callable(close):
             try:
@@ -63,8 +70,33 @@ class LongbridgeReadOnlyRuntime:
             self._reset()
             raise
 
+    def _activate_symbol(self, context: Any, symbol: str) -> None:
+        if self._active_symbol == symbol:
+            return
+        previous = self._active_symbol
+        if previous:
+            try:
+                from longbridge.openapi import SubType  # type: ignore
+
+                context.unsubscribe([previous], [SubType.Quote, SubType.Depth])
+            except Exception:
+                pass
+            for subscribed_symbol, period_key in tuple(self._candle_subscriptions):
+                if subscribed_symbol != previous:
+                    continue
+                try:
+                    context.unsubscribe_candlesticks(previous, self._candle_periods.get((previous, period_key), period_key))
+                except Exception:
+                    pass
+                self._candle_subscriptions.discard((subscribed_symbol, period_key))
+                self._candle_periods.pop((subscribed_symbol, period_key), None)
+            self._quote_subscriptions.discard(previous)
+            self._depth_subscriptions.discard(previous)
+        self._active_symbol = symbol
+
     def quote(self, symbol: str, timeout_seconds: int) -> Any:
         def operation(context: Any) -> Any:
+            self._activate_symbol(context, symbol)
             # Subscribe once so the SDK maintains a websocket-backed quote cache.
             # The pull call remains the authoritative response for this request.
             if symbol not in self._quote_subscriptions:
@@ -80,6 +112,27 @@ class LongbridgeReadOnlyRuntime:
             return context.quote([symbol])
 
         return self.call("quote", operation, timeout_seconds)
+
+    def depth(self, symbol: str, timeout_seconds: int) -> tuple[Any, str]:
+        def operation(context: Any) -> tuple[Any, str]:
+            self._activate_symbol(context, symbol)
+            try:
+                from longbridge.openapi import SubType  # type: ignore
+
+                if symbol not in self._depth_subscriptions:
+                    context.subscribe([symbol], [SubType.Depth])
+                    self._depth_subscriptions.add(symbol)
+                try:
+                    cached = context.realtime_depth(symbol)
+                except Exception:
+                    cached = None
+                if cached is not None:
+                    return cached, "subscription_cache"
+            except Exception:
+                pass
+            return context.depth(symbol), "pull"
+
+        return self.call("depth", operation, timeout_seconds)
 
     def candlesticks(
         self,
@@ -114,17 +167,20 @@ class LongbridgeReadOnlyRuntime:
         period_key = str(period)
 
         def operation(context: Any) -> tuple[Any, str]:
+            self._activate_symbol(context, symbol)
             subscription_key = (symbol, period_key)
             initial_rows: Any = []
             if subscription_key not in self._candle_subscriptions:
                 try:
                     initial_rows = context.subscribe_candlesticks(symbol, period)
                     self._candle_subscriptions.add(subscription_key)
+                    self._candle_periods[subscription_key] = period
                 except TypeError:
                     # Older SDK builds require the optional trade-session arg.
                     try:
                         initial_rows = context.subscribe_candlesticks(symbol, period, None)
                         self._candle_subscriptions.add(subscription_key)
+                        self._candle_periods[subscription_key] = period
                     except Exception:
                         initial_rows = []
                 except Exception:
@@ -145,12 +201,25 @@ class LongbridgeReadOnlyRuntime:
 
         return self.call("realtime_candlesticks", operation, timeout_seconds)
 
+    def trading_sessions(self, timeout_seconds: int) -> Any:
+        return self.call("trading_session", lambda context: context.trading_session(), timeout_seconds)
+
+    def trading_days(self, market: Any, begin: Any, end: Any, timeout_seconds: int) -> Any:
+        return self.call(
+            "trading_days",
+            lambda context: context.trading_days(market, begin, end),
+            timeout_seconds,
+        )
+
     def health(self) -> dict[str, Any]:
         return {
             "runtime": "persistent_quote_context",
             "context_initialized": self._context is not None,
             "quote_subscription_count": len(self._quote_subscriptions),
+            "depth_subscription_count": len(self._depth_subscriptions),
             "candle_subscription_count": len(self._candle_subscriptions),
+            "active_symbol": self._active_symbol,
+            "max_subscription_symbols": self._max_subscription_symbols,
             "market_data_only": True,
             "account_context_enabled": False,
             "trade_context_enabled": False,

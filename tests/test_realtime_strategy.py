@@ -168,6 +168,9 @@ def test_realtime_snapshot_combines_quote_and_longbridge_bars(monkeypatch) -> No
             "source_type": "longbridge_quote",
             "provider_status": "available",
             "last": 101.5,
+            "bid": 101.4,
+            "ask": 101.6,
+            "depth_status": "available",
             "quote_time": (start + timedelta(minutes=1, seconds=20)).isoformat(),
             "freshness_seconds": 2,
             "session": "regular",
@@ -289,7 +292,13 @@ def test_market_data_self_check_records_local_readiness(monkeypatch, tmp_path: P
     monkeypatch.setattr(
         stock_signals,
         "api_stock_quote",
-        lambda **kwargs: {"provider_status": "available", "quote_time": "2026-07-11T20:00:00+00:00", "freshness_seconds": 1},
+        lambda **kwargs: {
+            "provider_status": "available",
+            "quote_time": "2026-07-11T20:00:00+00:00",
+            "freshness_seconds": 1,
+            "depth_status": "available",
+            "depth_mode": "subscription_cache",
+        },
     )
     payload = api_stock_market_data_self_check(symbol="NVDA", db_path=tmp_path / "kquant.sqlite3")
     assert payload["status"] == "ready"

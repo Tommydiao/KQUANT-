@@ -10,10 +10,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import requests
 
 from .longbridge_provider import longbridge_runtime
+from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
@@ -35,6 +37,9 @@ RANGE_INTERVAL_SPECS = {
     ("5d", "15m"): {"bars": 130, "step": timedelta(minutes=15), "interval": "15m"},
     ("5d", "1h"): {"bars": 35, "step": timedelta(hours=1), "interval": "1h"},
     ("1y", "1d"): {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
+    ("2y", "1d"): {"bars": 504, "step": timedelta(days=1), "interval": "1d"},
+    ("2y", "1h"): {"bars": 3500, "step": timedelta(hours=1), "interval": "1h"},
+    ("5y", "1d"): {"bars": 1000, "step": timedelta(days=1), "interval": "1d"},
     ("5y", "1wk"): {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
     ("10y", "1mo"): {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
@@ -304,7 +309,6 @@ SEARCH_QUERY_ALIASES: dict[str, tuple[str, ...]] = {
     "网络安全": ("security", "cybersecurity", "ai security"),
     "能源": ("energy", "power", "nuclear", "grid"),
     "核电": ("nuclear", "uranium", "power", "ai energy"),
-    "比特币": ("bitcoin", "btc", "crypto", "mstr", "coin"),
 }
 
 STOCK_SEARCH_ALIASES: dict[str, tuple[str, ...]] = {
@@ -313,7 +317,7 @@ STOCK_SEARCH_ALIASES: dict[str, tuple[str, ...]] = {
     "GOOGL": ("谷歌", "google", "alphabet", "gemini"),
     "AMZN": ("亚马逊", "amazon", "aws"),
     "TSLA": ("特斯拉", "tesla", "robotaxi", "autonomy"),
-    "MSTR": ("microstrategy", "strategy", "比特币", "bitcoin", "btc"),
+    "MSTR": ("microstrategy", "strategy"),
     "RKLB": ("rocket lab", "火箭", "太空", "space"),
     "ASTS": ("satellite", "space mobile", "太空", "卫星"),
     "LUNR": ("moon", "lunar", "space", "太空"),
@@ -791,6 +795,28 @@ def api_stock_market_data_self_check(
         }
     )
     clock = market_clock()
+    depth_ready = quote.get("depth_status") == "available"
+    checks.append(
+        {
+            "name": "depth_entitlement",
+            "status": "pass" if depth_ready else "fail",
+            "delivery_mode": quote.get("depth_mode"),
+            "reason": "; ".join(quote.get("depth_errors", [])) if not depth_ready else None,
+        }
+    )
+    calendar = market_schedule(
+        datetime.fromisoformat(clock.market_date).date(),
+        path,
+        timeout_seconds=min(LONG_BRIDGE_TIMEOUT_SECONDS, 5),
+    )
+    checks.append(
+        {
+            "name": "market_calendar",
+            "status": "pass" if calendar.get("calendar_source") else "fail",
+            "source": calendar.get("calendar_source"),
+            "market_date": calendar.get("market_date"),
+        }
+    )
     regular_quote_fresh = bool(
         quote_status == "available"
         and isinstance(quote.get("freshness_seconds"), (int, float))
@@ -800,6 +826,7 @@ def api_stock_market_data_self_check(
         db_ok
         and market_data["status"] == "available"
         and quote_status == "available"
+        and depth_ready
         and (clock.session != "regular" or regular_quote_fresh)
     )
     return {
@@ -807,6 +834,7 @@ def api_stock_market_data_self_check(
         "symbol": normalize_symbol(symbol),
         "checked_at": iso_now(),
         "market_clock": clock.as_dict(),
+        "calendar": calendar,
         "quote": quote,
         "checks": checks,
         "realtime_buy_data_ready": bool(clock.session == "regular" and ready_for_realtime),
@@ -963,6 +991,23 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         last = _decimal_float(_pick_attr(quote, ("last_done", "last", "price", "current_price", "close")))
         bid = _decimal_float(_pick_attr(quote, ("bid", "bid_price")))
         ask = _decimal_float(_pick_attr(quote, ("ask", "ask_price")))
+        bid_size = ask_size = None
+        depth_mode = "quote_fields"
+        depth_errors: list[str] = []
+        try:
+            depth, depth_mode = longbridge_runtime().depth(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+            bids = list(_pick_attr(depth, ("bids", "bid")) or [])
+            asks = list(_pick_attr(depth, ("asks", "ask")) or [])
+            if bids:
+                bid = _decimal_float(_pick_attr(bids[0], ("price", "bid_price")), bid)
+                bid_size = _decimal_float(_pick_attr(bids[0], ("volume", "size", "quantity")), 0.0)
+            if asks:
+                ask = _decimal_float(_pick_attr(asks[0], ("price", "ask_price")), ask)
+                ask_size = _decimal_float(_pick_attr(asks[0], ("volume", "size", "quantity")), 0.0)
+        except Exception as exc:
+            depth_errors.append(str(exc))
+        spread = ask - bid if bid is not None and ask is not None and ask >= bid else None
+        spread_pct = spread / ((ask + bid) / 2) * 100 if spread is not None and ask and bid else None
         clock = market_clock()
         return {
             "symbol": symbol,
@@ -973,6 +1018,13 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             "last": last,
             "bid": bid,
             "ask": ask,
+            "bid_size": bid_size,
+            "ask_size": ask_size,
+            "spread": round(spread, 6) if spread is not None else None,
+            "spread_pct": round(spread_pct, 6) if spread_pct is not None else None,
+            "depth_mode": depth_mode,
+            "depth_status": "available" if bid is not None and ask is not None else "unavailable",
+            "depth_errors": depth_errors,
             "quote_time": quote_time.isoformat() if quote_time else None,
             "session": clock.session,
             "market_clock": clock.as_dict(),
@@ -1027,6 +1079,24 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         else "degraded"
     )
     provider_errors = list(quote.get("provider_errors") or []) + list(minute_payload.get("provider_errors") or [])
+    current_1m = minute_candles[-1] if minute_candles else None
+    current_5m = five_minute_candles[-1] if five_minute_candles else None
+    current_1m_time = _parse_market_time((current_1m or {}).get("open_time"))
+    current_5m_time = _parse_market_time((current_5m or {}).get("open_time"))
+    source_type = str(minute_payload.get("source_type") or "")
+    if quote_fresh and longbridge_candles_live and quote.get("provider_status") == "available":
+        trust_state = "live_quote"
+    elif source_type == LONG_BRIDGE_STALE_SOURCE:
+        trust_state = "stale_longbridge_cache"
+    elif source_type == YAHOO_FALLBACK_SOURCE or minute_payload.get("provider") == "yahoo_public":
+        trust_state = "yahoo_reference_only"
+    else:
+        trust_state = "unavailable"
+    calendar = market_schedule(
+        datetime.fromisoformat(clock.market_date).date(),
+        db_path or default_db_path(),
+        timeout_seconds=min(LONG_BRIDGE_TIMEOUT_SECONDS, 5),
+    )
     return {
         "symbol": symbol,
         "provider": "longbridge",
@@ -1036,9 +1106,19 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         "quote": quote,
         "candles_1m": minute_candles,
         "candles_5m": five_minute_candles,
-        "current_1m_bar": minute_candles[-1] if minute_candles else None,
-        "current_5m_bar": five_minute_candles[-1] if five_minute_candles else None,
+        "current_1m_bar": current_1m,
+        "current_5m_bar": current_5m,
+        "bar_age_seconds": {
+            "1m": max(0, int((snapshot_time - current_1m_time).total_seconds())) if current_1m_time else None,
+            "5m": max(0, int((snapshot_time - current_5m_time).total_seconds())) if current_5m_time else None,
+        },
+        "component_count": {
+            "1m": int((current_1m or {}).get("component_count") or 1) if current_1m else 0,
+            "5m": int((current_5m or {}).get("component_count") or 0) if current_5m else 0,
+        },
         "quote_fresh": quote_fresh,
+        "trust": trust_state,
+        "calendar": calendar,
         "session": clock.session,
         "market_clock": clock.as_dict(),
         "exchange_timezone": clock.exchange_timezone,
@@ -1048,6 +1128,8 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
             and quote_fresh
             and longbridge_candles_live
             and provider_status == "available"
+            and trust_state == "live_quote"
+            and quote.get("depth_status") == "available"
         ),
         "real_money_data_source": longbridge_candles_live,
         "read_only_market_data": True,
@@ -1599,8 +1681,6 @@ def api_stock_signals(
             "total": len(signals),
         },
         "signals": signals,
-        "btc_eth_removed_from_main_path": True,
-        "options_are_secondary": True,
         "llm_signal_core_enabled": False,
         "broker_order_wiring_enabled": False,
         "_label_samples_by_symbol": label_samples_by_symbol,
@@ -1803,6 +1883,71 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
     }
 
 
+AI_DECISION_COOLDOWN_SECONDS = 900
+
+
+def _ai_material_state_hash(signal: dict[str, Any], veto: dict[str, Any]) -> str:
+    packet = signal.get("ai_feature_packet_v3") or {}
+    payload = {
+        "packet": packet.get("material_state_hash") or packet.get("trigger_fingerprint"),
+        "veto_active": bool(veto.get("active")),
+        "veto_reasons": sorted(str(item) for item in veto.get("reasons", [])),
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()[:24]
+
+
+def _load_ai_decision_cache(
+    db_path: Path,
+    *,
+    symbol: str,
+    profile: str,
+    model: str,
+    material_state_hash: str,
+) -> tuple[dict[str, Any] | None, int | None]:
+    with connect(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT response_json, created_at FROM ai_decision_cache
+            WHERE symbol=? AND profile=? AND model=? AND material_state_hash=?
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (symbol, profile, model, material_state_hash),
+        ).fetchone()
+    if not row:
+        return None, None
+    try:
+        created = datetime.fromisoformat(str(row["created_at"]).replace("Z", "+00:00")).astimezone(UTC)
+        age = max(0, int((datetime.now(UTC) - created).total_seconds()))
+        return json.loads(row["response_json"]), age
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return None, None
+
+
+def _store_ai_decision_cache(
+    db_path: Path,
+    *,
+    symbol: str,
+    profile: str,
+    model: str,
+    material_state_hash: str,
+    response: dict[str, Any],
+) -> None:
+    created_at = iso_now()
+    cache_key = hashlib.sha256(
+        f"{symbol}|{profile}|{model}|{material_state_hash}|{created_at}".encode("utf-8")
+    ).hexdigest()[:32]
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO ai_decision_cache(
+              cache_key, symbol, profile, model, material_state_hash, response_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (cache_key, symbol, profile, model, material_state_hash, json.dumps(response), created_at),
+        )
+        conn.commit()
+
+
 def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) -> dict[str, Any]:
     """AI-led stock decision with deterministic guardrail vetoes.
 
@@ -1836,7 +1981,28 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
     context = ai_decision_context(symbol, profile, signal_payload, profile_comparison, journal, market_regime, research_context)
     veto = ai_hard_veto(signal_payload, market_regime)
     safety = ai_agent_safety_policy(veto)
+    material_state_hash = _ai_material_state_hash(signal_payload, veto)
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    force_regenerate = bool(payload.get("force_regenerate"))
+    if api_key and not force_regenerate:
+        cached, cache_age = _load_ai_decision_cache(
+            db,
+            symbol=symbol,
+            profile=profile,
+            model=model,
+            material_state_hash=material_state_hash,
+        )
+        if cached is not None and cache_age is not None and cache_age < AI_DECISION_COOLDOWN_SECONDS:
+            return {
+                **cached,
+                "cache": {
+                    "hit": True,
+                    "age_seconds": cache_age,
+                    "cooldown_seconds": AI_DECISION_COOLDOWN_SECONDS,
+                    "material_state_hash": material_state_hash,
+                    "manual_regenerate_available": True,
+                },
+            }
     if not api_key:
         decision = unavailable_ai_decision(signal_payload, veto, "OPENAI_API_KEY is not configured.")
         result = {
@@ -1922,6 +2088,22 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         decision=decision,
         market_regime=market_regime,
     )
+    result["cache"] = {
+        "hit": False,
+        "age_seconds": 0,
+        "cooldown_seconds": AI_DECISION_COOLDOWN_SECONDS,
+        "material_state_hash": material_state_hash,
+        "manual_regenerate": force_regenerate,
+    }
+    if status == "available":
+        _store_ai_decision_cache(
+            db,
+            symbol=symbol,
+            profile=profile,
+            model=model,
+            material_state_hash=material_state_hash,
+            response=result,
+        )
     return result
 
 
@@ -2107,6 +2289,10 @@ def api_stock_ai_daily_agent(
         for signal in run.get("signals", []):
             if not isinstance(signal, dict):
                 continue
+            if ai_hard_veto(signal, market_regime).get("active"):
+                continue
+            if ai_opportunity_rank(signal)["data_quality_factor"] <= 0:
+                continue
             existing = candidate_map.get(signal["symbol"])
             if existing is None or ai_candidate_sort_key(signal) > ai_candidate_sort_key(existing):
                 candidate_map[signal["symbol"]] = signal
@@ -2221,8 +2407,7 @@ def ai_market_date(now: datetime | None = None) -> str:
     reports generated after China midnight attached to the US trading session.
     """
 
-    eastern = timezone(timedelta(hours=-4))
-    return (now or datetime.now(UTC)).astimezone(eastern).date().isoformat()
+    return (now or datetime.now(UTC)).astimezone(ZoneInfo("America/New_York")).date().isoformat()
 
 
 def enrich_ai_daily_report_freshness(payload: dict[str, Any], max_age_seconds: int = 21600) -> dict[str, Any]:
@@ -2447,8 +2632,6 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "high_priority_policy": "BUY SETUP requires clean live data, positive profile-specific historical edge, clear exit risk, and market-regime approval",
         "counts": {"buy_setup": 0, "watch": 0, "pass": 0, "total": 0},
         "signals": [],
-        "btc_eth_removed_from_main_path": True,
-        "options_are_secondary": True,
         "llm_signal_core_enabled": False,
         "broker_order_wiring_enabled": False,
     }
@@ -2472,8 +2655,8 @@ def build_signal(
     profile: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     active_profile = profile or PROFILE
-    daily = daily_payload["candles"]
-    hourly = hourly_payload["candles"]
+    daily = [item for item in daily_payload["candles"] if item.get("bar_state") != "forming_candle"]
+    hourly = [item for item in hourly_payload["candles"] if item.get("bar_state") != "forming_candle"]
     if len(daily) < 60 or len(hourly) < 20:
         return empty_signal(symbol, daily_payload, hourly_payload, active_profile)
     daily_close = [bar["close"] for bar in daily]
@@ -2491,6 +2674,7 @@ def build_signal(
     close = daily_close[-1]
     previous = daily_close[-6] if len(daily_close) > 6 else daily_close[0]
     trend_return = pct(close, previous)
+    return_20d = pct(close, daily_close[-21] if len(daily_close) > 21 else daily_close[0])
     volume_ratio = daily_volume[-1] / max(sum(daily_volume[-21:-1]) / max(len(daily_volume[-21:-1]), 1), 1)
     atr_pct = average_true_range_pct(daily[-20:])
     extension_pct = pct(close, ema20)
@@ -2513,6 +2697,7 @@ def build_signal(
         "hourly_ema20": round(h_ema20, 2),
         "hourly_ema50": round(h_ema50, 2),
         "trend_return_5d_pct": round(trend_return, 2),
+        "return_20d_pct": round(return_20d, 2),
         "one_hour_momentum_pct": round(one_hour_momentum, 2),
         "volume_ratio": round(volume_ratio, 2),
         "atr_pct": round(atr_pct, 2),
@@ -3119,14 +3304,30 @@ def build_ai_feature_packet_v3(
     spy = components.get("SPY") or {}
     qqq = components.get("QQQ") or {}
     validation = signal.get("ai_action_validation") or {}
+    features = signal.get("features") or {}
+    entry_plan = signal.get("entry_plan") or {}
+    stop_plan = signal.get("stop_plan") or {}
+    target_plan = signal.get("target_plan") or {}
+    entry_low = _decimal_float(entry_plan.get("entry_low"))
+    entry_high = _decimal_float(entry_plan.get("entry_high"))
+    stop_price = _decimal_float(stop_plan.get("stop"))
+    target_low = _decimal_float(target_plan.get("target_low"))
+    target_high = _decimal_float(target_plan.get("target_high"))
+    price_state = {
+        "inside_entry_zone": bool(live_price and entry_low and entry_high and entry_low <= live_price <= entry_high),
+        "below_stop": bool(live_price and stop_price and live_price <= stop_price),
+        "above_target_low": bool(live_price and target_low and live_price >= target_low),
+        "above_target_high": bool(live_price and target_high and live_price >= target_high),
+    }
     fingerprint_payload = {
         "symbol": signal.get("symbol"),
         "profile": signal.get("profile_name"),
-        "quote_time": realtime.get("quote_time"),
-        "last": round(live_price, 4) if live_price else None,
-        "daily_candle_time": data_status.get("daily_candle_time"),
+        "eligibility": (signal.get("money_pilot_eligibility") or {}).get("eligible_for_review"),
+        "level": signal.get("level"),
+        "exit_risk": (signal.get("exit_risk") or {}).get("status"),
         "confirmation_candle_time": data_status.get("confirmation_candle_time"),
         "setup": trigger_state,
+        "price_state": price_state,
         "hard_data_clean": data_status.get("data_quality") == "clean",
         "market_regime": regime.get("regime"),
     }
@@ -3135,7 +3336,7 @@ def build_ai_feature_packet_v3(
     ).hexdigest()[:20]
 
     return {
-        "version": "ai_feature_packet_v3",
+        "version": "ai_feature_packet_v3_1",
         "symbol": signal.get("symbol"),
         "profile": packet_v2.get("profile") or {
             "name": signal.get("profile_name"),
@@ -3155,6 +3356,7 @@ def build_ai_feature_packet_v3(
             "spread_bps": round(float(spread_bps), 2) if spread_bps is not None else None,
             "quote_time_utc": realtime.get("quote_time"),
             "quote_age_seconds": quote_age,
+            "bar_age_seconds": data_status.get("confirmation_bar_age_seconds"),
             "quote_is_fresh": quote_is_fresh,
             "session": session,
             "exchange_timezone": realtime.get("exchange_timezone", "America/New_York"),
@@ -3164,11 +3366,14 @@ def build_ai_feature_packet_v3(
             "forming_bars_are_not_closed_signals": True,
         },
         "trigger_state": trigger_state,
+        "price_state": price_state,
         "relative_strength_context": {
-            "stock_trend_return_5d_pct": daily.get("trend_return_5d_pct"),
+            "window_days": 20,
+            "stock_return_20d_pct": features.get("return_20d_pct"),
             "spy_return_20d_pct": spy.get("return_20d_pct"),
             "qqq_return_20d_pct": qqq.get("return_20d_pct"),
-            "comparison_note": "Stock 5D momentum and benchmark 20D regime returns are separate context windows, not a direct ratio.",
+            "stock_minus_spy_pct": round(float(features.get("return_20d_pct") or 0) - float(spy.get("return_20d_pct") or 0), 2),
+            "stock_minus_qqq_pct": round(float(features.get("return_20d_pct") or 0) - float(qqq.get("return_20d_pct") or 0), 2),
         },
         "market_regime": {
             "regime": regime.get("regime"),
@@ -3188,6 +3393,7 @@ def build_ai_feature_packet_v3(
         },
         "evidence_stack": packet_v2.get("evidence_stack", []),
         "trigger_fingerprint": trigger_fingerprint,
+        "material_state_hash": trigger_fingerprint,
         "model_refresh_policy": {
             "minimum_cooldown_seconds": 900,
             "refresh_only_on_material_change": True,
@@ -4797,11 +5003,6 @@ def write_ai_daily_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
         lines.append(f"- `{item.get('symbol')}` {item.get('action')}: {'; '.join(item.get('risk_flags', []))}")
     lines.extend(
         [
-            "",
-            "## MSTR Cycle Update",
-            "",
-            str(ai_report.get("mstr_cycle_update") or "No MSTR update."),
-            "",
             "## Data Quality Warnings",
             "",
         ]
@@ -5940,14 +6141,37 @@ def unavailable_research_chat_answer(question: str) -> dict[str, Any]:
 
 
 def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
-    action = (signal.get("trade_conclusion") or {}).get("action", "")
-    action_bonus = {"BUY": 30, "WAIT": 16, "HOLD_TRAIL": 10, "EXIT_REVIEW": 4, "DO_NOT_BUY": 0}.get(action, 0)
-    edge = signal.get("historical_edge", {})
+    rank = ai_opportunity_rank(signal)
     return (
-        float(signal.get("score", 0) or 0) + action_bonus,
-        float(edge.get("focus_avg_return", edge.get("avg_forward_return_5d", 0)) or 0),
-        float(edge.get("focus_win_rate", edge.get("win_rate_5d", 0)) or 0),
+        rank["composite_score"],
+        rank["shrunken_expected_r"],
+        float(signal.get("score", 0) or 0),
     )
+
+
+def ai_opportunity_rank(signal: dict[str, Any]) -> dict[str, float]:
+    validation = signal.get("ai_action_validation") or {}
+    edge = signal.get("historical_edge") or {}
+    data = signal.get("data_status") or {}
+    expected_r = float(validation.get("expected_value_r") or 0)
+    sample_count = int(validation.get("sample_count") or edge.get("focus_sample_count") or 0)
+    shrinkage = sample_count / (sample_count + 30) if sample_count > 0 else 0.0
+    shrunken_expected_r = expected_r * shrinkage
+    sources = {str(data.get("daily_source_type") or data.get("source") or ""), str(data.get("confirmation_source_type") or "")}
+    realtime_sources = {LONG_BRIDGE_CANDLE_SOURCE, ""}
+    data_quality_factor = 1.0 if data.get("data_quality") == "clean" and sources <= realtime_sources else 0.0
+    trigger_quality_factor = max(0.0, min(float(signal.get("score") or 0) / 100, 1.0))
+    if data.get("confirmation_bar_state") == "forming_candle":
+        trigger_quality_factor = 0.0
+    return {
+        "expected_r": round(expected_r, 4),
+        "sample_count": float(sample_count),
+        "shrinkage_factor": round(shrinkage, 4),
+        "shrunken_expected_r": round(shrunken_expected_r, 4),
+        "data_quality_factor": data_quality_factor,
+        "trigger_quality_factor": round(trigger_quality_factor, 4),
+        "composite_score": round(shrunken_expected_r * data_quality_factor * trigger_quality_factor, 6),
+    }
 
 
 def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
@@ -5971,6 +6195,7 @@ def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, 
         "layer": signal.get("primary_layer"),
         "level": signal.get("level"),
         "score": signal.get("score"),
+        "opportunity_rank": ai_opportunity_rank(signal),
         "rule_action": (signal.get("trade_conclusion") or {}).get("action"),
         "risk_bucket": (signal.get("trade_conclusion") or {}).get("risk_bucket"),
         "trend_summary": signal.get("trend_summary"),
@@ -6053,7 +6278,6 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
             "probe_candidates": {"type": "array", "items": item_schema, "maxItems": 6},
             "watch_for_pullback": {"type": "array", "items": item_schema, "maxItems": 8},
             "avoid_or_risk_elevated": {"type": "array", "items": item_schema, "maxItems": 8},
-            "mstr_cycle_update": {"type": "string"},
             "data_quality_warnings": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 8},
             "daily_summary": {"type": "string"},
         },
@@ -6062,7 +6286,6 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
             "probe_candidates",
             "watch_for_pullback",
             "avoid_or_risk_elevated",
-            "mstr_cycle_update",
             "data_quality_warnings",
             "daily_summary",
         ],
@@ -6098,10 +6321,10 @@ def ai_daily_item_sort_key(item: dict[str, Any]) -> tuple[float, float, float, f
     validation = item.get("ai_action_validation") if isinstance(item.get("ai_action_validation"), dict) else {}
     money = item.get("money_pilot_eligibility") if isinstance(item.get("money_pilot_eligibility"), dict) else {}
     return (
+        float((item.get("opportunity_rank") or {}).get("composite_score") or 0),
         1.0 if money.get("eligible_for_review") else 0.0,
         float(validation.get("expected_value_r") or 0),
         float(validation.get("risk_reward_value") or 0),
-        float(validation.get("win_rate") or 0),
     )
 
 
@@ -6180,6 +6403,7 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
                     "probe_risk_policy": probe_risk_policy(),
                     "probe_blockers": probe_check["blockers"],
                     "ai_feature_packet_version": "ai_feature_packet_v3",
+                    "opportunity_rank": ai_opportunity_rank(signal or {}),
                 }
             )
         return sanitized
@@ -6279,7 +6503,6 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
         "probe_candidates": probe_items,
         "watch_for_pullback": watch_items,
         "avoid_or_risk_elevated": avoid_items,
-        "mstr_cycle_update": str(report.get("mstr_cycle_update") or "MSTR cycle update not generated.")[:500],
         "data_quality_warnings": safe_string_list(report.get("data_quality_warnings"), 8),
         "daily_summary": str(report.get("daily_summary") or "AI daily opportunity report generated for manual review only.")[:700],
     }
@@ -6320,7 +6543,6 @@ def unavailable_daily_ai_report(candidates: list[dict[str, Any]], reason: str) -
         "probe_candidates": [],
         "watch_for_pullback": watch,
         "avoid_or_risk_elevated": avoid,
-        "mstr_cycle_update": "AI unavailable; review MSTR Cycle Radar manually.",
         "data_quality_warnings": [reason],
         "daily_summary": "AI Daily Agent is unavailable. Rule shortlist is shown without AI-led ranking.",
     }

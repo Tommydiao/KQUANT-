@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytest
 
-from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
+from kquant.dashboard.app import stock_live_only_source
 from kquant.stock_signals import (
     api_stock_ai_daily_agent,
     api_stock_ai_daily_report_latest,
@@ -189,7 +189,8 @@ def test_fixture_higher_timeframe_candles_match_declared_timeframe(tmp_path: Pat
     assert len(monthly_dates) == 120
 
     coerced = api_stock_candles("SPY", "5y", "1d", "fixture", db_path)
-    assert coerced["interval"] == "1wk"
+    assert coerced["interval"] == "1d"
+    assert len(coerced["candles"]) == 1000
 
 
 def test_longbridge_market_data_status_is_read_only(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -462,7 +463,7 @@ def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> 
     assert packet_v2["market_and_data_guardrails"]["daily_provider_status"] == "fixture_read_only"
     assert packet_v2["market_and_data_guardrails"]["data_clean"] is False
     packet_v3 = payload["signal"]["ai_feature_packet_v3"]
-    assert packet_v3["version"] == "ai_feature_packet_v3"
+    assert packet_v3["version"] == "ai_feature_packet_v3_1"
     assert packet_v3["base_packet_version"] == "ai_feature_packet_v2"
     assert packet_v3["realtime_market_state"]["provider_status"] == "not_requested"
     assert packet_v3["model_refresh_policy"]["quote_updates_alone_do_not_call_the_model"] is True
@@ -607,7 +608,7 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
         assert context["ai_feature_packet_v1"]["confirmation_structure"]["ema9"] > 0
         assert context["ai_feature_packet_v2"]["version"] == "ai_feature_packet_v2"
         assert context["ai_feature_packet_v2"]["technical_state"]["daily"]["vwap20"] > 0
-        assert context["ai_feature_packet_v3"]["version"] == "ai_feature_packet_v3"
+        assert context["ai_feature_packet_v3"]["version"] == "ai_feature_packet_v3_1"
         assert context["ai_feature_packet_v3"]["realtime_market_state"]["forming_bars_are_not_closed_signals"] is True
         assert context["rule_trade_plans"]["entry_plan"]["zone"]
         return Response()
@@ -995,10 +996,8 @@ def test_ai_daily_agent_without_key_writes_read_only_report(tmp_path: Path, monk
     assert payload["status"] == "ai_unavailable"
     assert payload["broker_order_wiring_enabled"] is False
     assert payload["ai_report"]["top_buy_candidates"] == []
-    assert payload["validation_by_ai_action"]
-    first_action_stats = next(iter(payload["validation_by_ai_action"].values()))
-    assert "avg_expected_value_r" in first_action_stats
-    assert "money_pilot_eligible_count" in first_action_stats
+    assert payload["ai_context_candidate_count"] == 0
+    assert payload["validation_by_ai_action"] == {}
     assert (tmp_path / "outputs" / "ai-daily-opportunities.json").exists()
     latest = api_stock_ai_daily_report_latest(outputs_dir=tmp_path / "outputs")
     assert latest["run_id"] == payload["run_id"]
