@@ -49,7 +49,7 @@ Set-Location $Root
 
 if (-not $NoDashboardStart -and -not (Test-LocalDashboard)) {
   Start-Process -FilePath $Python `
-    -ArgumentList @("-m", "btc_eth_15m.dashboard.stdlib_server", "--host", "127.0.0.1", "--port", "$Port") `
+    -ArgumentList @("-m", "kquant.dashboard", "--host", "127.0.0.1", "--port", "$Port") `
     -WorkingDirectory $Root `
     -WindowStyle Hidden
   Start-Sleep -Seconds 3
