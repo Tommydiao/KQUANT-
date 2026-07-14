@@ -4,9 +4,9 @@ import argparse
 import json
 from pathlib import Path
 
-from .mstr_cycle import api_mstr_cycle_radar
 from .stock_signals import api_stock_live_data_health, api_stock_signals
 from .stock_store import default_db_path
+from .validation_service import run_strategy_validation
 
 
 def main() -> None:
@@ -26,10 +26,14 @@ def main() -> None:
     health.add_argument("--outputs-dir", default="outputs")
     health.add_argument("--limit", type=int, default=None)
     health.add_argument("--scan-pause-seconds", type=float, default=0.0)
-    mstr = sub.add_parser("mstr-cycle", help="Run the MSTR cycle bottom radar.")
-    mstr.add_argument("--source", choices=["live"], default="live")
-    mstr.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
-    mstr.add_argument("--outputs-dir", default="outputs")
+    validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
+    validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
+    validation.add_argument("--universe", default="default")
+    validation.add_argument("--symbols", default="")
+    validation.add_argument("--start", default="")
+    validation.add_argument("--end", default="")
+    validation.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    validation.add_argument("--outputs-dir", default="outputs")
     args = parser.parse_args()
     if args.command == "stock-scan":
         payload = api_stock_signals(
@@ -51,9 +55,13 @@ def main() -> None:
             scan_pause_seconds=args.scan_pause_seconds,
         )
         print(json.dumps({"run_id": payload["run_id"], "summary": payload["summary"]}, indent=2))
-    if args.command == "mstr-cycle":
-        payload = api_mstr_cycle_radar(
-            source=args.source,
+    if args.command == "validate-strategies":
+        payload = run_strategy_validation(
+            profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],
+            start=args.start or None,
+            end=args.end or None,
+            universe=args.universe,
+            symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
             db_path=Path(args.db_path),
             outputs_dir=Path(args.outputs_dir),
         )
@@ -61,10 +69,8 @@ def main() -> None:
             json.dumps(
                 {
                     "run_id": payload["run_id"],
-                    "level": payload["level"],
-                    "bottom_score": payload["bottom_score"],
-                    "distribution_risk_score": payload["distribution_risk_score"],
-                    "provider_status": payload["provider_status"],
+                    "dataset_id": payload["dataset_id"],
+                    "summary": payload["summary"],
                 },
                 indent=2,
             )

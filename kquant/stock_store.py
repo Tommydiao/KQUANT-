@@ -128,6 +128,17 @@ CREATE TABLE IF NOT EXISTS ai_action_outcomes (
   evaluated_at TEXT NOT NULL,
   PRIMARY KEY (event_key, horizon_bars)
 );
+CREATE TABLE IF NOT EXISTS ai_decision_cache (
+  cache_key TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  model TEXT NOT NULL,
+  material_state_hash TEXT NOT NULL,
+  response_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ai_decision_cache_lookup
+ON ai_decision_cache(symbol, profile, model, material_state_hash, created_at DESC);
 CREATE TABLE IF NOT EXISTS strategy_validation_runs (
   run_id TEXT PRIMARY KEY,
   profile TEXT NOT NULL,
@@ -143,6 +154,44 @@ CREATE TABLE IF NOT EXISTS strategy_validation_runs (
   payload_json TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS strategy_validation_datasets (
+  dataset_id TEXT PRIMARY KEY,
+  evidence_source TEXT NOT NULL,
+  policy_version TEXT NOT NULL,
+  universe TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  symbols_json TEXT NOT NULL,
+  config_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS strategy_validation_trades (
+  trade_id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL,
+  dataset_id TEXT NOT NULL,
+  evidence_source TEXT NOT NULL,
+  policy_version TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  action TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  signal_time TEXT NOT NULL,
+  entry_time TEXT,
+  exit_time TEXT,
+  split_name TEXT NOT NULL,
+  market_regime TEXT NOT NULL,
+  sector TEXT NOT NULL,
+  stock_layer TEXT NOT NULL,
+  volatility_bucket TEXT NOT NULL,
+  data_source TEXT NOT NULL,
+  outcome TEXT NOT NULL,
+  realized_r REAL NOT NULL,
+  target_first INTEGER NOT NULL,
+  stop_first INTEGER NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_strategy_validation_trades_action
+ON strategy_validation_trades(evidence_source, profile, action, signal_time);
 CREATE TABLE IF NOT EXISTS stock_signal_journal (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   run_id TEXT NOT NULL,
@@ -170,6 +219,15 @@ CREATE TABLE IF NOT EXISTS provider_events (
   message TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS market_calendar_cache (
+  market_date TEXT PRIMARY KEY,
+  is_trading_day INTEGER NOT NULL,
+  is_half_day INTEGER NOT NULL,
+  source TEXT NOT NULL,
+  regular_open_utc TEXT,
+  regular_close_utc TEXT,
+  updated_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_type TEXT NOT NULL,
@@ -196,6 +254,16 @@ def connect(db_path: Path) -> sqlite3.Connection:
             "strategy_profile": "TEXT NOT NULL DEFAULT ''",
             "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
             "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
+    _ensure_columns(
+        conn,
+        "strategy_validation_runs",
+        {
+            "dataset_id": "TEXT NOT NULL DEFAULT ''",
+            "evidence_source": "TEXT NOT NULL DEFAULT 'prospective_llm_actions'",
+            "policy_version": "TEXT NOT NULL DEFAULT ''",
+            "config_version": "TEXT NOT NULL DEFAULT ''",
         },
     )
     return conn
