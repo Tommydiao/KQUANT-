@@ -2,6 +2,7 @@ param(
   [int]$Port = 8001,
   [string]$HostName = "127.0.0.1",
   [switch]$KillExisting,
+  [switch]$RequireLongbridge,
   [switch]$NoBrowser
 )
 
@@ -28,11 +29,53 @@ function Import-LocalEnv {
   }
 }
 
+function Import-UserEnv {
+  param([string[]]$Names)
+  foreach ($name in $Names) {
+    if ([Environment]::GetEnvironmentVariable($name, "Process")) {
+      continue
+    }
+    $value = [Environment]::GetEnvironmentVariable($name, "User")
+    if ($value) {
+      [Environment]::SetEnvironmentVariable($name, $value, "Process")
+    }
+  }
+}
+
+Import-UserEnv @(
+  "OPENAI_API_KEY",
+  "KQUANT_AI_REVIEW_MODEL",
+  "KQUANT_AI_BATCH_MODEL",
+  "KQUANT_AI_DEEP_MODEL",
+  "KQUANT_AI_RESEARCH_MODEL",
+  "KQUANT_MARKET_DATA_PROVIDER",
+  "LONGBRIDGE_APP_KEY",
+  "LONGBRIDGE_APP_SECRET",
+  "LONGBRIDGE_ACCESS_TOKEN",
+  "LONGBRIDGE_PRINT_QUOTE_PACKAGES",
+  "KQUANT_LONGBRIDGE_TIMEOUT_SECONDS"
+)
 Import-LocalEnv (Join-Path $Root ".env")
 if (-not $env:LONGBRIDGE_PRINT_QUOTE_PACKAGES) {
   $env:LONGBRIDGE_PRINT_QUOTE_PACKAGES = "false"
 }
 if (-not $env:KQUANT_MARKET_DATA_PROVIDER -and $env:LONGBRIDGE_APP_KEY -and $env:LONGBRIDGE_APP_SECRET -and $env:LONGBRIDGE_ACCESS_TOKEN) {
+  $env:KQUANT_MARKET_DATA_PROVIDER = "longbridge"
+}
+
+$missingLongbridge = @(
+  "LONGBRIDGE_APP_KEY",
+  "LONGBRIDGE_APP_SECRET",
+  "LONGBRIDGE_ACCESS_TOKEN"
+) | Where-Object { -not [Environment]::GetEnvironmentVariable($_, "Process") }
+
+if ($RequireLongbridge) {
+  if ($missingLongbridge.Count -gt 0) {
+    Write-Host "KQUANT realtime startup requires Longbridge credentials." -ForegroundColor Red
+    Write-Host "Missing: $($missingLongbridge -join ', ')" -ForegroundColor Yellow
+    Write-Host "Run .\KQUANT_SETUP_LONGBRIDGE.cmd, then start KQUANT again." -ForegroundColor Green
+    throw "KQUANT realtime startup blocked: Longbridge credentials are missing."
+  }
   $env:KQUANT_MARKET_DATA_PROVIDER = "longbridge"
 }
 
@@ -143,9 +186,15 @@ if ($env:KQUANT_MARKET_DATA_PROVIDER -eq "longbridge") {
     Write-Host "Longbridge market data: available from backend environment" -ForegroundColor Green
   } else {
     Write-Host "Longbridge market data: missing one or more env vars" -ForegroundColor Yellow
+    if ($RequireLongbridge) {
+      throw "KQUANT realtime startup blocked: Longbridge credentials are incomplete."
+    }
   }
 } else {
   Write-Host "Market data provider: Yahoo public prototype (set KQUANT_MARKET_DATA_PROVIDER=longbridge for realtime)" -ForegroundColor Yellow
+  if ($RequireLongbridge) {
+    throw "KQUANT realtime startup blocked: Longbridge is not the active provider."
+  }
 }
 
 if (-not $NoBrowser) {

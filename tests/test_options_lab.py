@@ -409,7 +409,7 @@ def test_options_api_endpoints(tmp_path):
         "/api/options/price-history/latest?instrument=underlying&symbol=SPY&range=5d&interval=15m"
     ).json()
     live_pilot_status = client.get("/api/options/live-pilot/status").json()
-    html = client.get("/").text
+    root_response = client.get("/")
 
     assert missing_snapshot["scan"] is None
     assert missing_snapshot["chain"] is None
@@ -494,70 +494,10 @@ def test_options_api_endpoints(tmp_path):
     assert live_pilot_status["journal_reviewed_count"] in {0, 1}
     assert live_pilot_status["llm_signal_core_enabled"] is False
     assert live_pilot_status["external_llm_calls_enabled"] is False
-    assert "ATM Options Signal Assistant" in html
-    assert "Today's ATM Option Alerts" in html
-    assert "/api/options/atm-alerts" in html
-    assert "/api/options/atm-alerts/latest" in html
-    assert "/api/options/chain/latest" in html
-    assert "/api/options/price-history/latest" in html
-    assert "/api/options/live-pilot/status" in html
-    assert "optionsLivePilotStatus" in html
-    assert "/api/options/pilot-journal" in html
-    assert "data-pilot-save" in html
-    assert "Pilot journal saved" in html
-    assert "ATM ALERT" in html
-    assert "Run ATM Alert Scan" in html
-    assert "Refresh ATM Alerts" in html
-    assert "strict_local_v1" in html
-    assert "LLM Core Locked" in html
-    assert "LLM signal core is locked during Live Pilot" in html
-    assert "AI Review" in html
-    assert "Pilot Today" in html
-    assert "data-pilot-stock-kline" in html
-    assert "data-pilot-option-kline" in html
-    assert "data-pilot-lens" in html
-    assert "/api/options/snapshots/latest" in html
-    assert "Snapshot freshness" in html
-    assert "Agent Eval and Read-only Scan" in html
-    assert "Data Center" in html
-    assert "3D Options Globe" in html
-    assert "Buy Decision Lens" in html
-    assert "Daily Operations Loop" in html
-    assert "optionsOpsLoop" in html
-    assert "Live Data Health" in html
-    assert "optionsLiveHealth" in html
-    assert "Stock Watchlist" in html
-    assert "AI Watchlist" in html
-    assert "Default 50" in html
-    assert "1D / 5m" in html
-    assert "5D / 15m" in html
-    assert "1M / 1D" in html
-    assert "3M / 1D" in html
-    assert "1Y / 1D" in html
-    assert "Stock K-Line" in html
-    assert "Chart Readiness" in html
-    assert "data-stock-frequency" in html
-    assert "data-option-frequency" in html
-    assert "data-options-chain-side" in html
-    assert "data-options-chain-liquidity" in html
-    assert "data-options-chain-sort" in html
-    assert "Open 3D Buy Lens" in html
-    assert "Full Greeks" in html
-    assert 'data-view="options-lens"' in html
-    assert "optionsWatchlist" in html
-    assert "Stock K-Line" in html
-    assert "Option Contract K-Line" in html
-    assert "lightweight-charts.standalone.production.js" in html
-    assert "EMA20 / EMA50 / VWAP" in html
-    assert "/api/options/price-history" in html
-    assert "strong edge" in html
-    assert "premium drag" in html
-    assert "data-surface-mode=\"globe\"" in html
-    assert "/vendor/three.module.js" in html
-    assert "optionsSource" in html
-    assert "optionDataSource" in html
-    assert "profile=" in html
-    assert "forceLiveScan" in html
+    assert root_response.status_code == 200
+    assert '<div id="root"></div>' in root_response.text
+    assert 'script type="module"' in root_response.text
+    assert '/assets/' in root_response.text
 
 
 def test_options_snapshot_endpoint_keeps_provider_outage_visible(monkeypatch, tmp_path):

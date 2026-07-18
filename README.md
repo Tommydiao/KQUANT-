@@ -18,7 +18,16 @@ conditions, and every order/broker path.
 
 ## Current Phase
 
-The current implementation starts Phase 0-2 of the roadmap:
+KQUANT was formally rebaselined to **Day 1 of the 84-day validation program**
+on 2026-07-18. Product features are ahead of the evidence chain, so UI or AI
+feature completeness does not count as a validated strategy or production
+release.
+
+- Canonical execution plan: [`docs/KQUANT_84_DAY_CODEX_PLAN.md`](docs/KQUANT_84_DAY_CODEX_PLAN.md)
+- Current evidence-based audit: [`docs/current_system_audit.md`](docs/current_system_audit.md)
+- Daily engineering logs: [`docs/daily/`](docs/daily/)
+
+The current implementation inventory includes:
 
 - new package namespace: `kquant`;
 - new database: `work/kquant_us.sqlite3`;
@@ -34,7 +43,10 @@ The current implementation starts Phase 0-2 of the roadmap:
   K-Line -> AI Plan -> Journal`, with a consumer-style left navigation and
   explicit data reliability panel.
 
-Options are intentionally secondary until the stock signal workflow is stable.
+For the active 84-day program, only `swing_long_v1` is validated. Other
+profiles, options, MSTR expansion, crypto, additional agents, and unrelated UI
+expansion are frozen. They remain in the codebase but do not count as completed
+roadmap work until their prerequisites pass.
 
 ## Product Direction: Consumer SaaS Preview
 
@@ -124,7 +136,29 @@ Daily startup:
 ```
 
 The launcher restarts any stale `8001` backend, opens
-`http://127.0.0.1:8001/`, and keeps the terminal window open for logs.
+`http://127.0.0.1:8001/`, and keeps the terminal window open for logs. The
+daily launcher requires Longbridge, so it cannot silently fall back to Yahoo
+reference data.
+
+First-time Longbridge setup:
+
+```powershell
+.\KQUANT_SETUP_LONGBRIDGE.cmd
+```
+
+The setup securely prompts for the three Longbridge values, stores them in the
+Windows user environment, and starts the dashboard with Longbridge required.
+It never prints credentials. Revoke and replace any credential that has ever
+appeared in a screenshot.
+
+Realtime market-data check:
+
+```powershell
+.\KQUANT_REALTIME_CHECK.cmd
+```
+
+This checks the active provider, SDK, quote entitlement, current session,
+realtime snapshot trust state, and the absence of account/order wiring.
 
 First-time AI Review setup:
 
@@ -139,7 +173,7 @@ Manual startup remains available. Use `-KillExisting` after a code, model-key,
 or Longbridge configuration change:
 
 ```powershell
-.\start_kquant_stock_terminal.ps1 -KillExisting
+.\start_kquant_stock_terminal.ps1 -KillExisting -RequireLongbridge
 ```
 
 Open `http://127.0.0.1:8001/`.
@@ -275,6 +309,11 @@ The local Python dashboard exposes:
 - `GET /api/health`
 - `GET /api/stocks/search?q=robot&universe=all`
 - `GET /api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=live`
+- `GET /api/stocks/quote?symbol=NVDA`
+- `GET /api/stocks/realtime-snapshot?symbol=NVDA`
+- `GET /api/stocks/market-data/status`
+- `GET /api/stocks/market-data/self-check?symbol=NVDA`
+- `GET /api/stocks/strategy-validation`
 - `GET /api/stocks/signals?source=live&universe=ai_five_layer&profile=swing_long_v1`
 - `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=tactical_1w_v1`
 - `POST /api/stocks/ai-review` (legacy review/commentary endpoint)
@@ -284,7 +323,6 @@ The local Python dashboard exposes:
 - `GET /api/stocks/ai-daily-report/latest`
 - `GET /api/stocks/signals/latest`
 - `GET /api/stocks/provider-health`
-- `GET /api/stocks/market-data/self-check?symbol=NVDA`
 - `GET /api/stocks/live-data-health?universes=default,ai_five_layer&limit=20`
 - `GET /api/stocks/live-data-health/latest`
 - `GET /api/mstr/cycle-radar?source=live`

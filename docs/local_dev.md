@@ -191,12 +191,22 @@ KQUANT can prefer Longbridge realtime/near-realtime quote data for US stock
 research while keeping all account, position, and order APIs disabled. Put the
 tokens only in your local backend environment or local `.env` file:
 
+Recommended first-time Windows setup:
+
+```powershell
+.\KQUANT_SETUP_LONGBRIDGE.cmd
+```
+
+This uses secure prompts, stores the values in the Windows user environment,
+and starts KQUANT with Longbridge required. Revoke any credential that has
+appeared in a screenshot before entering its replacement.
+
 ```powershell
 $env:LONGBRIDGE_APP_KEY="..."
 $env:LONGBRIDGE_APP_SECRET="..."
 $env:LONGBRIDGE_ACCESS_TOKEN="..."
 $env:KQUANT_MARKET_DATA_PROVIDER="longbridge"
-.\start_kquant_stock_terminal.ps1
+.\start_kquant_stock_terminal.ps1 -RequireLongbridge
 ```
 
 The startup script only prints whether Longbridge market data is available; it
@@ -209,6 +219,12 @@ curl -s http://127.0.0.1:8001/api/stocks/market-data/status
 curl -s "http://127.0.0.1:8001/api/stocks/market-data/self-check?symbol=NVDA"
 curl -s "http://127.0.0.1:8001/api/stocks/quote?symbol=NVDA"
 curl -s "http://127.0.0.1:8001/api/stocks/candles?symbol=NVDA&range=1d&interval=1m&source=live"
+```
+
+Or use the consolidated check:
+
+```powershell
+.\KQUANT_REALTIME_CHECK.cmd
 ```
 
 If Longbridge is configured but unavailable, KQUANT may display Yahoo public
