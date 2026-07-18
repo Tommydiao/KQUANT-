@@ -133,7 +133,10 @@ def latest_orders(db_path: Path, limit: int = 50) -> list[dict]:
                        quantity, entry_price, stop_price, target_price, status,
                        source_draft_id, created_at, updated_at
                 FROM dashboard_orders
-                ORDER BY created_at DESC
+                -- `created_at` has second-level precision, so an open and
+                -- immediate close can share a timestamp. Rowid preserves the
+                -- insertion order for that tied case.
+                ORDER BY created_at DESC, rowid DESC
                 LIMIT ?
                 """,
                 (limit,),

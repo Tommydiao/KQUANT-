@@ -6,7 +6,7 @@ The active product path is:
 
 1. scan a curated Core 200 US stock/ETF universe;
 2. judge long-only stock setups with five holding-period/risk profiles;
-3. output `BUY SETUP`, `WATCH`, or `PASS`, plus an AI research signal plan;
+3. generate a read-only research plan with explicit data lineage and hard-veto reasons;
 4. review 1H / 1D / 1W / 1M K-Lines before any manual decision;
 5. add options later only as an expression layer for high-quality stock setups.
 
@@ -33,7 +33,7 @@ The current implementation inventory includes:
 - new database: `work/kquant_us.sqlite3`;
 - Core 200 default universe plus AI Five-Layer universe;
 - Space / Robotics research layer available in `All` and search;
-- five long-only strategy profiles for 1W, 1-2M, 6M, 1-3Y, and High-Beta Growth modes;
+- one active validation strategy, `swing_long_v1`; additional profiles remain frozen legacy research modules;
 - rule-based Action Conclusion Layer: `BUY`, `WAIT`, `DO_NOT_BUY`,
   `HOLD_TRAIL`, `EXIT_REVIEW`;
 - AI Research Signal layer that ranks candidates and proposes entry, stop,
@@ -89,8 +89,9 @@ npm install
 
 ## Run a Stock Signal Scan
 
-The user-facing stock terminal is live-only. It uses public Yahoo chart data
-and must be treated as provider-limited:
+The active 84-day validation path uses Longbridge as its primary read-only
+market-data source. Yahoo public chart data is reference-only and can never
+support a real-money BUY decision:
 
 ```powershell
 python -m kquant stock-scan --source live --universe default --limit 20

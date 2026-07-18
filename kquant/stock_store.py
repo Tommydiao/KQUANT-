@@ -16,6 +16,15 @@ CREATE TABLE IF NOT EXISTS stock_universe (
   active INTEGER NOT NULL DEFAULT 1,
   updated_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS strategy_versions (
+  profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  config_hash TEXT NOT NULL,
+  lifecycle TEXT NOT NULL,
+  config_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (profile, strategy_version, config_hash)
+);
 CREATE TABLE IF NOT EXISTS stock_candles (
   symbol TEXT NOT NULL,
   interval TEXT NOT NULL,
@@ -198,6 +207,20 @@ def connect(db_path: Path) -> sqlite3.Connection:
             "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
         },
     )
+    version_columns = {
+        "strategy_version": "TEXT NOT NULL DEFAULT ''",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    }
+    for table in (
+        "stock_signal_runs",
+        "stock_signals",
+        "stock_features",
+        "stock_labels",
+        "stock_backtest_runs",
+        "ai_action_events",
+        "strategy_validation_runs",
+    ):
+        _ensure_columns(conn, table, version_columns)
     return conn
 
 

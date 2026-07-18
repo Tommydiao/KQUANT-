@@ -2,6 +2,8 @@ param(
   [int]$Port = 8001,
   [switch]$SkipBuild,
   [switch]$SkipPytest,
+  [switch]$SkipReadiness,
+  [switch]$SkipSecretScan,
   [switch]$Strict
 )
 
@@ -102,6 +104,30 @@ function Invoke-NpmBuildWithRetry {
   $script:LastNpmBuildExitCode = $exitCode
 }
 
+function Find-PlaintextSecrets {
+  # Prefer Git's view of tracked and non-ignored project files. Virtual
+  # environments contain SDK examples that can resemble real token formats and
+  # must never be treated as repository-owned source.
+  $relativePaths = @(& git -C $Root ls-files --cached --others --exclude-standard 2>$null)
+  if ($LASTEXITCODE -eq 0 -and $relativePaths.Count -gt 0) {
+    $files = @($relativePaths |
+      Where-Object { $_ -notmatch '(^|/)\.env' } |
+      ForEach-Object { Join-Path $Root $_ } |
+      Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+  } else {
+    $excluded = @(".git", "node_modules", "dist", "work", "outputs", ".pytest_cache")
+    $files = Get-ChildItem -Path $Root -File -Recurse | Where-Object {
+      $pathParts = $_.FullName.Substring($Root.Length).TrimStart("\\") -split "\\"
+      -not ($pathParts | Where-Object { $excluded -contains $_ -or $_ -like ".venv*" }) -and
+      $_.Name -notmatch "^\.env"
+    } | Select-Object -ExpandProperty FullName
+  }
+  $pattern = '(?i)(sk-(?:proj|live|test)-[A-Za-z0-9_-]{20,}|ap_[A-Za-z0-9._~-]{20,})'
+  return @($files | ForEach-Object {
+    Select-String -LiteralPath $_ -Pattern $pattern -ErrorAction SilentlyContinue
+  })
+}
+
 Write-Host "KQUANT local verification" -ForegroundColor Cyan
 Write-Host "Root: $Root" -ForegroundColor DarkGray
 Write-Host "Backend target: http://127.0.0.1:$Port/" -ForegroundColor DarkGray
@@ -127,17 +153,37 @@ if ($SkipBuild) {
   }
 }
 
-try {
-  & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "check_kquant_monday_pilot.ps1") -Port $Port
-  if ($LASTEXITCODE -eq 0) {
-    Add-Result "monday_readiness" "passed" "Critical live/AI/safety checks passed."
-  } elseif ($LASTEXITCODE -eq 2) {
-    Add-Result "monday_readiness" "warning" "Critical checks passed with warnings." $false
-  } else {
-    Add-Result "monday_readiness" "failed" "Readiness check exited with code $LASTEXITCODE."
+if ($SkipSecretScan) {
+  Add-Result "plaintext_secret_scan" "skipped" "Skipped by -SkipSecretScan." $false
+} else {
+  try {
+    $secretMatches = Find-PlaintextSecrets
+    if ($secretMatches.Count -eq 0) {
+      Add-Result "plaintext_secret_scan" "passed" "No plaintext credential assignment patterns found."
+    } else {
+      $locations = @($secretMatches | Select-Object -First 5 | ForEach-Object { "$($_.Path):$($_.LineNumber)" }) -join ", "
+      Add-Result "plaintext_secret_scan" "failed" "Potential plaintext credential pattern(s) found at $locations. Values are intentionally not printed."
+    }
+  } catch {
+    Add-Result "plaintext_secret_scan" "failed" $_.Exception.Message
   }
-} catch {
-  Add-Result "monday_readiness" "failed" $_.Exception.Message
+}
+
+if ($SkipReadiness) {
+  Add-Result "monday_readiness" "skipped" "Skipped by -SkipReadiness." $false
+} else {
+  try {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "check_kquant_monday_pilot.ps1") -Port $Port
+    if ($LASTEXITCODE -eq 0) {
+      Add-Result "monday_readiness" "passed" "Critical live/AI/safety checks passed."
+    } elseif ($LASTEXITCODE -eq 2) {
+      Add-Result "monday_readiness" "warning" "Critical checks passed with warnings." $false
+    } else {
+      Add-Result "monday_readiness" "failed" "Readiness check exited with code $LASTEXITCODE."
+    }
+  } catch {
+    Add-Result "monday_readiness" "failed" $_.Exception.Message
+  }
 }
 
 if ($SkipPytest) {
@@ -149,7 +195,7 @@ if ($SkipPytest) {
     Show-PythonSetupGuidance
   } else {
     try {
-      & $python -m pytest tests/test_stock_signals.py tests/test_mstr_cycle.py tests/test_agent_harness.py tests/test_realtime_strategy.py -q
+      & $python -m pytest -q
       if ($LASTEXITCODE -eq 0) {
         Add-Result "python_pytest" "passed" "pytest passed with $python."
       } else {
@@ -179,5 +225,5 @@ if ($warnings.Count -gt 0) {
   exit 2
 }
 
-Write-Host "READY: build, readiness, and pytest checks passed." -ForegroundColor Green
+Write-Host "READY: build, credential scan, readiness, and pytest checks passed." -ForegroundColor Green
 exit 0
