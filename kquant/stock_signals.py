@@ -20,6 +20,7 @@ from .market_clock import active_regular_session_start, is_trading_day, market_c
 from .data_quality import assess_candle_payload, assess_realtime_market_data
 from .entry_confirmation import analyze_hourly_confirmation
 from .hard_veto import HARD_VETO_POLICY_VERSION, evaluate_hard_veto
+from .historical_replay import replay_metadata, slice_completed_candles_as_of
 from .market_store import persist_canonical_candles
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .strategy_registry import definition_for_profile, register_strategy_version
@@ -1885,6 +1886,39 @@ def api_stock_analyze(
         "fixture_user_visible": False,
         "broker_order_wiring_enabled": False,
         "llm_signal_core_enabled": False,
+    }
+
+
+def reconstruct_signal(
+    symbol: str,
+    historical_timestamp: str,
+    strategy_version: str,
+    *,
+    daily_payload: dict[str, Any],
+    hourly_payload: dict[str, Any],
+    profile: str = CANONICAL_STRATEGY_PROFILE,
+) -> dict[str, Any]:
+    """Rebuild a historical signal strictly from candles available at `historical_timestamp`."""
+    active_profile = profile_config(profile)
+    definition = definition_for_profile(str(active_profile["name"]), active_profile)
+    if strategy_version != definition.strategy_version:
+        raise ValueError(
+            f"Requested {strategy_version}, but the supplied profile resolves to {definition.strategy_version}. "
+            "Use the matching immutable strategy definition for historical replay."
+        )
+    daily = slice_completed_candles_as_of(list(daily_payload.get("candles") or []), historical_timestamp)
+    hourly = slice_completed_candles_as_of(list(hourly_payload.get("candles") or []), historical_timestamp)
+    sliced_daily = {**daily_payload, "symbol": normalize_symbol(symbol), "candles": daily}
+    sliced_hourly = {**hourly_payload, "symbol": normalize_symbol(symbol), "candles": hourly}
+    signal = build_signal(normalize_symbol(symbol), sliced_daily, sliced_hourly, active_profile)
+    signal["strategy_version"] = definition.strategy_version
+    signal["strategy_config_hash"] = definition.config_hash
+    return {
+        "symbol": normalize_symbol(symbol),
+        "strategy_version": definition.strategy_version,
+        "strategy_config_hash": definition.config_hash,
+        "reconstruction": replay_metadata(as_of=historical_timestamp, daily=daily, hourly=hourly),
+        "signal": signal,
     }
 
 
