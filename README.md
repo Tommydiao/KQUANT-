@@ -49,7 +49,7 @@ using realtime mode if it has appeared in a screenshot, log, or shared file.
 
 - `GET /api/health`
 - `GET /api/stocks/realtime-snapshot?symbol=NVDA`
-- `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=tactical_1w_v1`
+- `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=swing_long_v1`
 - `POST /api/stocks/ai-decision`
 - `POST /api/stocks/strategy-validation/runs`
 - `GET /api/stocks/strategy-validation/latest`
@@ -62,7 +62,10 @@ forming and closed 1m/5m bars, exchange-calendar state, and a trust label.
 
 Historical validation uses a deterministic, versioned action policy. Actual AI
 outputs are tracked prospectively in a separate evidence chain and are never
-mixed into historical statistics.
+mixed into historical statistics. The active research strategy is
+`swing_long_v1.0.0`; the current replay CLI still operates legacy comparison
+profiles, so it must not be represented as completed validation for the
+canonical strategy until its policy binding is aligned.
 
 ```powershell
 python -m kquant validate-strategies `
@@ -91,3 +94,6 @@ Or use the Windows verification entry point after the environment is installed:
 ```
 
 GitHub Actions runs the same checks on Windows without real credentials.
+
+The full frozen scope and current day-by-day progress are tracked in
+[`docs/KQUANT_84_DAY_CODEX_PLAN.md`](docs/KQUANT_84_DAY_CODEX_PLAN.md).
