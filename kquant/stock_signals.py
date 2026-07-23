@@ -17,6 +17,7 @@ import requests
 from .longbridge_provider import longbridge_runtime
 from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
+from .data_quality import assess_candle_payload, assess_realtime_market_data
 from .market_store import persist_canonical_candles
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
@@ -1119,6 +1120,13 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         db_path or default_db_path(),
         timeout_seconds=min(LONG_BRIDGE_TIMEOUT_SECONDS, 5),
     )
+    candle_quality = dict(minute_payload.get("data_quality") or assess_candle_payload(minute_payload, db_path=db_path))
+    realtime_quality = assess_realtime_market_data(
+        candle_quality=candle_quality,
+        quote=quote,
+        session=clock.session,
+        trust=trust_state,
+    )
     return {
         "symbol": symbol,
         "provider": "longbridge",
@@ -1140,19 +1148,13 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         },
         "quote_fresh": quote_fresh,
         "trust": trust_state,
+        "data_quality": realtime_quality,
         "calendar": calendar,
         "session": clock.session,
         "market_clock": clock.as_dict(),
         "exchange_timezone": clock.exchange_timezone,
         "display_timezone": clock.display_timezone,
-        "buy_actions_allowed_by_data": bool(
-            clock.session == "regular"
-            and quote_fresh
-            and longbridge_candles_live
-            and provider_status == "available"
-            and trust_state == "live_quote"
-            and quote.get("depth_status") == "available"
-        ),
+        "buy_actions_allowed_by_data": realtime_quality["buy_data_eligible"],
         "real_money_data_source": longbridge_candles_live,
         "read_only_market_data": True,
         "account_access_enabled": False,
@@ -1172,6 +1174,10 @@ def api_stock_candles(
     source: str = "live",
     db_path: Path | None = None,
 ) -> dict[str, Any]:
+    def with_data_quality(result: dict[str, Any]) -> dict[str, Any]:
+        result["data_quality"] = assess_candle_payload(result, db_path=db_path)
+        return result
+
     symbol = normalize_symbol(symbol)
     range_value, interval = normalize_range_interval(range_value, interval)
     if source == "live":
@@ -1198,7 +1204,7 @@ def api_stock_candles(
                 source_types=(LONG_BRIDGE_CANDLE_SOURCE,) if provider == "longbridge" else ("live_yahoo_chart",),
             )
             if cached:
-                return cached
+                return with_data_quality(cached)
             if provider == "longbridge":
                 fallback = yahoo_candles(symbol, range_value, interval)
                 if fallback["provider_status"] == "available":
@@ -1220,7 +1226,7 @@ def api_stock_candles(
             payload["cache_write_status"] = "ok"
         except (OSError, sqlite3.Error) as exc:
             annotate_cache_write_failure(payload, exc)
-    return payload
+    return with_data_quality(payload)
 
 
 def api_stock_provider_health(db_path: Path | None = None) -> dict[str, Any]:

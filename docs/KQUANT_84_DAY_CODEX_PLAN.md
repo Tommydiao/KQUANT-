@@ -30,8 +30,8 @@ and manual-risk criteria to pass.
 | 10 | Market clock | Substantially complete | XNYS/DST/early-close implementation and tests exist; keep regression coverage green |
 | 11 | Corporate actions | Partial | Conservative split/reverse-split detection and adjustment-mode lineage are stored; authorised action-feed ingestion and validation blocking remain pending. |
 | 12 | Point-in-time universe | Partial | Runtime membership snapshots, content hashes, coverage metadata, and survivorship labels are implemented; authorised historical membership import remains pending. |
-| 13 | Daily data-quality report | Partial | Health reports exist; formal contract metrics and report version are pending |
-| 14 | Fault injection | Partial | Fallback/stale tests exist; complete timeout/future-bar/database failure matrix |
+| 13 | Daily data-quality report | Substantially complete | Versioned machine-readable candle and realtime quality gate, integrity metrics, and hard vetoes are implemented; scheduled daily aggregate reporting remains pending. |
+| 14 | Fault injection | Complete | Deterministic timeout, Longbridge-to-Yahoo fallback, future-candle, and SQLite cache-write failure matrix added, with a dedicated local test runner. |
 | 15-21 | Strategy stabilization | Partial | Features, risk and veto logic exist; consolidate to canonical profile and add 20 golden scenarios |
 | 22-28 | Reproducible backtest engine | Partial | Validation v3 has next-bar/cost/split foundations; canonical `swing_long_v1.0.0` replay, portfolio and benchmark work are pending |
 | 29-35 | Overfit controls and evidence freeze | Not started | Walk-forward exists in v3; sensitivity, regime/concentration checks and v1.0.0 freeze remain |
