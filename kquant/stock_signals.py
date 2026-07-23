@@ -18,6 +18,7 @@ from .longbridge_provider import longbridge_runtime
 from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
 from .data_quality import assess_candle_payload, assess_realtime_market_data
+from .entry_confirmation import analyze_hourly_confirmation
 from .market_store import persist_canonical_candles
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
@@ -2735,6 +2736,11 @@ def build_signal(
     daily_feature_values = daily_feature_snapshot["values"]
     hourly_feature_values = hourly_feature_snapshot["values"]
     daily_trend = analyze_daily_trend(daily, daily_feature_snapshot)
+    hourly_confirmation = analyze_hourly_confirmation(
+        hourly,
+        hourly_feature_snapshot,
+        minimum_momentum_pct=float(active_profile.get("confirmation_momentum_min", 0.6)),
+    )
     ema8 = float(daily_feature_values["ema_8"])
     ema9 = float(daily_feature_values["ema_9"])
     ema20 = float(daily_feature_values["ema_20"])
@@ -2788,6 +2794,10 @@ def build_signal(
         "daily_trend_strength": daily_trend["strength"],
         "daily_extension_risk": daily_trend.get("extension_risk"),
         "daily_higher_timeframe_risks": list(daily_trend.get("higher_timeframe_risks") or []),
+        "hourly_confirmation_mode": hourly_confirmation.get("setup_mode"),
+        "hourly_breakout": bool(hourly_confirmation.get("breakout")),
+        "hourly_pullback_reclaim": bool(hourly_confirmation.get("pullback_reclaim")),
+        "hourly_volume_confirmation": bool(hourly_confirmation.get("volume_confirmation")),
     }
     score_breakdown = {
         "trend_score": round(trend_score, 1),
@@ -2804,7 +2814,7 @@ def build_signal(
     historical_edge = profile_historical_edge(historical_edge, label_samples, active_profile)
     high_beta_growth = bool(active_profile.get("high_beta_growth"))
     trend_aligned = bool((daily_trend.get("ema_alignment") or {}).get("bullish"))
-    trigger_confirmed = hourly_close[-1] > h_ema20 > h_ema50 and one_hour_momentum >= float(active_profile.get("confirmation_momentum_min", 0.6))
+    trigger_confirmed = bool(hourly_confirmation.get("strict_confirmation"))
     volume_confirmed = volume_ratio >= float(active_profile.get("volume_ratio_min", 1.2))
     risk_window_ok = -2.5 <= extension_pct <= float(active_profile.get("max_extension_pct", 5.5)) and atr_pct <= float(active_profile.get("max_atr_pct", 5.0))
     if high_beta_growth:
