@@ -20,6 +20,7 @@ from .market_clock import active_regular_session_start, is_trading_day, market_c
 from .data_quality import assess_candle_payload, assess_realtime_market_data
 from .entry_confirmation import analyze_hourly_confirmation
 from .market_store import persist_canonical_candles
+from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
@@ -87,6 +88,7 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
         "focus_win_rate_min": 55.0,
         "focus_avg_return_min": 0.4,
         "stop_loss_pct": 3.5,
+        "scoring": CANONICAL_SCORING_CONFIG,
         "formula": "daily trend + 1h trigger + volume confirmation + short risk window",
     },
     "tactical_1w_v1": {
@@ -2759,11 +2761,26 @@ def build_signal(
     atr_pct = float(daily_feature_values["atr_pct"])
     extension_pct = pct(close, ema20)
     one_hour_momentum = float(hourly_feature_values["momentum_pct"])
-    trend_score = score_trend(close, ema20, ema50, ema200, trend_return)
-    trigger_score = score_trigger(hourly_close[-1], h_ema20, h_ema50, one_hour_momentum)
-    volume_score = clamp((volume_ratio - 0.75) * 18, 0, 18)
-    risk_score = score_risk(atr_pct, extension_pct)
-    score = round(clamp(trend_score + trigger_score + volume_score + risk_score, 0, 100), 1)
+    scoring = calculate_score_components(
+        dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+        close=close,
+        ema20=ema20,
+        ema50=ema50,
+        ema200=ema200,
+        hourly_close=hourly_close[-1],
+        hourly_ema20=h_ema20,
+        hourly_ema50=h_ema50,
+        trend_return_pct=trend_return,
+        hourly_momentum_pct=one_hour_momentum,
+        volume_ratio=volume_ratio,
+        atr_pct=atr_pct,
+        extension_pct=extension_pct,
+    )
+    trend_score = float(scoring["trend_score"])
+    trigger_score = float(scoring["trigger_score"])
+    volume_score = float(scoring["volume_score"])
+    risk_score = float(scoring["risk_score"])
+    score = float(scoring["total_score"])
     features = {
         "close": round(close, 2),
         "ema8": round(ema8, 2),
@@ -2809,6 +2826,9 @@ def build_signal(
         "buy_setup_threshold": active_profile["strict_buy_gate_score"],
         "watch_threshold": active_profile["watch_threshold"],
         "formula": active_profile.get("formula", "trend + trigger + volume confirmation + risk window"),
+        "scoring_config_version": scoring["scoring_config_version"],
+        "factors": scoring["factors"],
+        "deductions": scoring["deductions"],
     }
     label_samples = build_historical_label_samples(symbol, daily)
     historical_edge = estimate_historical_edge(label_samples)

@@ -1,10 +1,10 @@
-# Strategy Specification: swing_long_v1.0.0
+# Strategy Specification: swing_long_v1.0.1
 
 Status: frozen deterministic specification for implementation and validation
 
 ## Scope
 
-`swing_long_v1.0.0` is the sole canonical strategy for the 84-day plan. It is
+`swing_long_v1.0.1` is the sole canonical strategy for the 84-day plan. It is
 a long-only US stock/ETF tactical swing strategy with a target holding horizon
 of 3-7 trading days. It uses a closed daily bar for trend and a closed 1-hour
 bar for entry confirmation.
@@ -161,7 +161,7 @@ R:R at least 2.0, a saved journal, and every later-stage Go/No-Go gate.
 
 ## Versioning rule
 
-This document defines `swing_long_v1.0.0`. Any change to a parameter, score
+This document defines `swing_long_v1.0.1`. Any change to a parameter, score
 weight, classification threshold, stop/target formula, universe rule, market
 filter, or confirmation rule creates a new strategy version. Past signals,
 journal entries, and validation results remain bound to their original version

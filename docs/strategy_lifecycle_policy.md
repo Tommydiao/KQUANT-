@@ -3,7 +3,7 @@
 ## Current decision policy
 
 `swing_long_v1` is the only selectable KQUANT decision strategy. Its immutable
-configuration is registered as `swing_long_v1.0.0` and its rules are defined in
+configuration is registered as `swing_long_v1.0.1` and its rules are defined in
 `docs/strategy_specification.md`.
 
 ## Legacy profiles
