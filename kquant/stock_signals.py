@@ -22,6 +22,7 @@ from .entry_confirmation import analyze_hourly_confirmation
 from .hard_veto import HARD_VETO_POLICY_VERSION, evaluate_hard_veto
 from .historical_replay import replay_metadata, slice_completed_candles_as_of
 from .market_store import persist_canonical_candles
+from .manual_workflow import build_daily_candidate_board
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
@@ -1735,6 +1736,7 @@ def api_stock_signals(
         "validation_by_level": summarize_validation_by_level(signals),
         "review_counts": summarize_review_counts(signals),
         "trade_conclusion_counts": summarize_trade_conclusions(signals),
+        "daily_candidates": build_daily_candidate_board(signals),
         "high_priority_policy": "BUY SETUP requires clean live data, positive profile-specific historical edge, clear exit risk, and market-regime approval",
         "counts": {
             "buy_setup": sum(1 for signal in signals if signal["level"] == "BUY SETUP"),

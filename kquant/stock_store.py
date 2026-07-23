@@ -346,6 +346,99 @@ CREATE TABLE IF NOT EXISTS audit_events (
   payload_json TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS strategy_freezes (
+  strategy_version TEXT PRIMARY KEY,
+  strategy_id TEXT NOT NULL,
+  profile_name TEXT NOT NULL,
+  strategy_config_hash TEXT NOT NULL,
+  validation_fingerprint TEXT NOT NULL,
+  evidence_score REAL NOT NULL,
+  status TEXT NOT NULL,
+  manifest_json TEXT NOT NULL,
+  frozen_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS decision_ledger (
+  ledger_id TEXT PRIMARY KEY,
+  signal_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  data_snapshot_json TEXT NOT NULL,
+  system_decision_json TEXT NOT NULL,
+  user_decision TEXT NOT NULL,
+  entry_plan_json TEXT NOT NULL,
+  veto_status TEXT NOT NULL,
+  final_execution TEXT NOT NULL,
+  outcome TEXT NOT NULL,
+  outcome_r REAL,
+  error_owner TEXT NOT NULL,
+  lesson TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_decision_ledger_symbol_time
+ON decision_ledger(symbol, created_at DESC);
+CREATE TABLE IF NOT EXISTS manual_trade_journal (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ledger_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  plan_followed INTEGER,
+  actual_entry REAL,
+  actual_exit REAL,
+  result_r REAL,
+  emotion TEXT NOT NULL,
+  screenshot_ref TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  review TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_manual_trade_journal_ledger
+ON manual_trade_journal(ledger_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS scheduled_task_runs (
+  run_id TEXT PRIMARY KEY,
+  task_name TEXT NOT NULL,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  completed_at TEXT NOT NULL,
+  attempt INTEGER NOT NULL,
+  detail_json TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_scheduled_task_runs_name_time
+ON scheduled_task_runs(task_name, started_at DESC);
+CREATE TABLE IF NOT EXISTS notification_events (
+  event_id TEXT PRIMARY KEY,
+  channel TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS operational_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_type TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  component TEXT NOT NULL,
+  message TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_operational_events_component_time
+ON operational_events(component, created_at DESC);
+CREATE TABLE IF NOT EXISTS backup_runs (
+  backup_id TEXT PRIMARY KEY,
+  backup_type TEXT NOT NULL,
+  path TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  version INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  applied_at TEXT NOT NULL,
+  rollback_note TEXT NOT NULL
+);
 """
 
 
