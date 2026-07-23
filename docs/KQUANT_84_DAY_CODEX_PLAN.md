@@ -25,10 +25,10 @@ and manual-risk criteria to pass.
 | 5 | Strategy version system | Complete | `strategy_versions`, stable config hash, signal/Journal/backtest bindings |
 | 6 | Development toolchain | Complete | `.venv`-aware launcher, `scripts/verify_all.ps1`, frontend lint/test, CI hooks |
 | 7 | First-week review | Complete | README and board updated; full suite: `67 passed` (one upstream deprecation warning) |
-| 8 | Longbridge provider audit | Partial | Realtime v3 exists; credentialed quote/depth/latency audit report is still required |
-| 9 | Unified candle store | Partial | Current storage has source and upsert; canonical adjustment/dataset identity is not implemented |
+| 8 | Longbridge provider audit | Partial | `docs/longbridge_provider_audit.md`; code audit complete, credentialed quote/depth/latency smoke still requires rotated local credentials |
+| 9 | Unified candle store | Complete | Canonical `market_candles` and source-observation lineage; legacy cache table retained for compatibility |
 | 10 | Market clock | Substantially complete | XNYS/DST/early-close implementation and tests exist; keep regression coverage green |
-| 11 | Corporate actions | Not started | Implement split/dividend detection and adjustment-mode persistence |
+| 11 | Corporate actions | Partial | Conservative split/reverse-split detection and adjustment-mode lineage are stored; authorised action-feed ingestion and validation blocking remain pending. |
 | 12 | Point-in-time universe | Not started | Store membership history and label survivorship limits |
 | 13 | Daily data-quality report | Partial | Health reports exist; formal contract metrics and report version are pending |
 | 14 | Fault injection | Partial | Fallback/stale tests exist; complete timeout/future-bar/database failure matrix |

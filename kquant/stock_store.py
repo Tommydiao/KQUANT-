@@ -31,6 +31,64 @@ CREATE TABLE IF NOT EXISTS stock_candles (
   created_at TEXT NOT NULL,
   PRIMARY KEY (symbol, interval, open_time, source)
 );
+CREATE TABLE IF NOT EXISTS market_candles (
+  symbol TEXT NOT NULL,
+  interval TEXT NOT NULL,
+  open_time TEXT NOT NULL,
+  adjustment_mode TEXT NOT NULL,
+  dataset_version TEXT NOT NULL,
+  primary_source TEXT NOT NULL,
+  provider_symbol TEXT NOT NULL,
+  provider_status TEXT NOT NULL,
+  freshness_seconds INTEGER NOT NULL,
+  bar_state TEXT NOT NULL,
+  open REAL NOT NULL,
+  high REAL NOT NULL,
+  low REAL NOT NULL,
+  close REAL NOT NULL,
+  volume REAL NOT NULL,
+  fetched_at TEXT NOT NULL,
+  first_seen_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (symbol, interval, open_time, adjustment_mode, dataset_version)
+);
+CREATE INDEX IF NOT EXISTS idx_market_candles_lookup
+ON market_candles(symbol, interval, open_time DESC);
+CREATE TABLE IF NOT EXISTS market_candle_observations (
+  symbol TEXT NOT NULL,
+  interval TEXT NOT NULL,
+  open_time TEXT NOT NULL,
+  adjustment_mode TEXT NOT NULL,
+  dataset_version TEXT NOT NULL,
+  source TEXT NOT NULL,
+  provider_symbol TEXT NOT NULL,
+  provider_status TEXT NOT NULL,
+  freshness_seconds INTEGER NOT NULL,
+  bar_state TEXT NOT NULL,
+  open REAL NOT NULL,
+  high REAL NOT NULL,
+  low REAL NOT NULL,
+  close REAL NOT NULL,
+  volume REAL NOT NULL,
+  fetched_at TEXT NOT NULL,
+  PRIMARY KEY (symbol, interval, open_time, adjustment_mode, dataset_version, source)
+);
+CREATE TABLE IF NOT EXISTS corporate_action_events (
+  symbol TEXT NOT NULL,
+  effective_time TEXT NOT NULL,
+  interval TEXT NOT NULL,
+  adjustment_mode TEXT NOT NULL,
+  dataset_version TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  price_ratio REAL NOT NULL,
+  source TEXT NOT NULL,
+  status TEXT NOT NULL,
+  details_json TEXT NOT NULL,
+  detected_at TEXT NOT NULL,
+  PRIMARY KEY (symbol, effective_time, interval, adjustment_mode, dataset_version, action_type)
+);
+CREATE INDEX IF NOT EXISTS idx_corporate_action_events_symbol_time
+ON corporate_action_events(symbol, effective_time DESC);
 CREATE TABLE IF NOT EXISTS stock_signal_runs (
   run_id TEXT PRIMARY KEY,
   source TEXT NOT NULL,

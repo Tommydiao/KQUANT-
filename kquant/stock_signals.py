@@ -17,6 +17,7 @@ import requests
 from .longbridge_provider import longbridge_runtime
 from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
+from .market_store import persist_canonical_candles
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
@@ -933,6 +934,8 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "provider_status": provider_status,
             "provider_errors": [],
             "provider": "longbridge",
+            "adjustment_mode": "unadjusted",
+            "dataset_version": "market_data_contract_v1",
             "freshness": freshness,
             "freshness_seconds": freshness_seconds,
             "bar_open_age_seconds": bar_open_age,
@@ -4341,6 +4344,7 @@ def previous_monthly_trading_days(end: datetime, count: int) -> list[datetime]:
 
 def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
     now = iso_now()
+    canonical = persist_canonical_candles(db_path, payload, now)
     with connect(db_path) as conn:
         for candle in payload.get("candles", []):
             conn.execute(
@@ -4371,7 +4375,8 @@ def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
             provider_name = "longbridge_quote"
         else:
             provider_name = "yahoo_chart"
-        messages = payload.get("provider_errors", []) or [f"{len(payload.get('candles', []))} candles from {payload['source_type']}"]
+        messages = list(payload.get("provider_errors", [])) or [f"{len(payload.get('candles', []))} candles from {payload['source_type']}"]
+        messages.extend(f"canonical_candle_rejected: {reason}" for reason in canonical["reasons"])
         for message in messages:
             conn.execute(
                 """

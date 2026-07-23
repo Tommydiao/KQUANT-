@@ -106,7 +106,11 @@ fixture data, or keep an old BUY conclusion without marking it stale.
 ## Storage and audit requirements
 
 - SQLite stores raw candle payload fields, source, provider status, freshness,
-  fetched time, and data-quality events.
+  fetched time, and data-quality events. The canonical `market_candles` table
+  is unique by `(symbol, interval, open_time_utc, adjustment_mode,
+  dataset_version)`; `market_candle_observations` retains every source's
+  observation without allowing a lower-priority fallback to overwrite a
+  Longbridge primary record.
 - Each signal, journal entry, validation run, and report references its market
   dataset/version and strategy version.
 - Credential values never enter SQLite, API responses, logs, reports, or the
