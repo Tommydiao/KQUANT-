@@ -219,6 +219,7 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
     },
 }
 PROFILE = PROFILE_CONFIGS["swing_long_v1"]
+CANONICAL_STRATEGY_PROFILE = "swing_long_v1"
 MARKET_REGIME_SYMBOLS = {
     "SPY": "S&P 500",
     "QQQ": "Nasdaq 100",
@@ -241,8 +242,23 @@ MANUAL_ENTRY_JOURNAL_STATUSES = {"manual-traded", "entered-manually"}
 
 
 def profile_config(profile: str | None = None) -> dict[str, Any]:
-    key = str(profile or "swing_long_v1")
-    return PROFILE_CONFIGS.get(key, PROFILE_CONFIGS["swing_long_v1"])
+    key = str(profile or CANONICAL_STRATEGY_PROFILE)
+    return PROFILE_CONFIGS.get(key, PROFILE_CONFIGS[CANONICAL_STRATEGY_PROFILE])
+
+
+def strategy_lifecycle(profile: str | None = None) -> dict[str, str | bool]:
+    active = str(profile_config(profile)["name"])
+    canonical = active == CANONICAL_STRATEGY_PROFILE
+    return {
+        "profile": active,
+        "canonical": canonical,
+        "mode": "canonical" if canonical else "legacy_comparison_only",
+        "operator_message": (
+            "Current KQUANT decision policy."
+            if canonical
+            else "Legacy comparison profile; not selectable in the current decision workflow."
+        ),
+    }
 
 
 def api_stock_universe(universe: str = "default", db_path: Path | None = None) -> dict[str, Any]:
@@ -1596,6 +1612,7 @@ def api_stock_signals(
     db = db_path or default_db_path()
     outputs = outputs_dir or Path("outputs")
     active_profile = profile_config(profile)
+    lifecycle = strategy_lifecycle(active_profile["name"])
     strategy_record = register_strategy_version(db, definition_for_profile(active_profile["name"], active_profile))
     stocks = stock_universe(universe)
     scan_layer = str(layer or "").strip()
@@ -1634,6 +1651,7 @@ def api_stock_signals(
         signal = build_signal(symbol, primary, confirmation, active_profile)
         signal["strategy_version"] = strategy_record.strategy_version
         signal["strategy_config_hash"] = strategy_record.config_hash
+        signal["strategy_lifecycle"] = lifecycle
         stock_meta = stock_by_symbol.get(symbol)
         if stock_meta:
             signal["primary_layer"] = stock_meta.layer
@@ -1676,6 +1694,7 @@ def api_stock_signals(
         "provider_coverage": provider_coverage,
         "downgraded_by_data_count": data_downgraded_count,
         "profile": active_profile,
+        "strategy_lifecycle": lifecycle,
         "strategy_version": strategy_record.strategy_version,
         "strategy_config_hash": strategy_record.config_hash,
         "started_at": started,
@@ -1754,6 +1773,7 @@ def api_stock_analyze(
     db = db_path or default_db_path()
     active_profile = profile_config(profile)
     strategy_definition = definition_for_profile(active_profile["name"], active_profile)
+    lifecycle = strategy_lifecycle(active_profile["name"])
     normalized_symbol = normalize_symbol(symbol)
     all_stocks = stock_universe("all")
     stock_meta = next((stock for stock in all_stocks if stock.symbol == normalized_symbol), None)
@@ -1775,6 +1795,7 @@ def api_stock_analyze(
     signal = build_signal(normalized_symbol, primary, confirmation, active_profile)
     signal["strategy_version"] = strategy_definition.strategy_version
     signal["strategy_config_hash"] = strategy_definition.config_hash
+    signal["strategy_lifecycle"] = lifecycle
     if stock_meta:
         signal["primary_layer"] = stock_meta.layer
         signal["tags"] = list(stock_meta.tags)
@@ -1818,6 +1839,7 @@ def api_stock_analyze(
         "symbol": normalized_symbol,
         "source": source,
         "profile": active_profile,
+        "strategy_lifecycle": lifecycle,
         "strategy_version": strategy_definition.strategy_version,
         "strategy_config_hash": strategy_definition.config_hash,
         "universe_match": stock_meta is not None,
@@ -5648,13 +5670,7 @@ def openai_review_request(model: str, context: dict[str, Any]) -> dict[str, Any]
 
 
 def visible_strategy_profile_keys() -> list[str]:
-    return [
-        "tactical_1w_v1",
-        "swing_1_2m_v1",
-        "position_6m_v1",
-        "cycle_1_3y_v1",
-        "high_beta_growth_v1",
-    ]
+    return [CANONICAL_STRATEGY_PROFILE]
 
 
 def ai_agent_safety_policy(veto: dict[str, Any]) -> dict[str, Any]:
