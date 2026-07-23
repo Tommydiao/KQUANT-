@@ -24,6 +24,14 @@ from .strategy_validation import (
     summarize_outcomes,
     walk_forward_split,
 )
+from .validation_robustness import (
+    concentration_report,
+    evidence_score,
+    market_regime_report,
+    parameter_sensitivity_report,
+    rolling_walk_forward_windows,
+    statistical_confidence_report,
+)
 
 
 POLICY_VERSION = "deterministic_action_policy_v3"
@@ -142,14 +150,24 @@ def _policy_signals(
     data_source: str,
     signal_start: str | None = None,
     signal_end: str | None = None,
+    parameters: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
+    active_parameters = dict(parameters or {})
+    ema_fast_period = max(2, int(active_parameters.get("ema_fast", 20)))
+    ema_medium_period = max(ema_fast_period + 1, int(active_parameters.get("ema_medium", 50)))
+    ema_long_period = max(ema_medium_period + 1, int(active_parameters.get("ema_long", 200)))
+    min_relative_volume = _float(active_parameters.get("min_relative_volume"), 1.15)
+    atr_stop_factor = _float(active_parameters.get("atr_stop_multiplier_factor"), 1.0)
+    risk_reward_factor = _float(active_parameters.get("risk_reward_factor"), 1.0)
     closes = [_float(item.get("close")) for item in candles]
     volumes = [_float(item.get("volume")) for item in candles]
-    ema20, ema50, ema200 = _ema(closes, 20), _ema(closes, 50), _ema(closes, 200)
+    ema20 = _ema(closes, ema_fast_period)
+    ema50 = _ema(closes, ema_medium_period)
+    ema200 = _ema(closes, ema_long_period)
     rsi14, atr14 = _rsi(closes), _atr(candles)
     signals: list[dict[str, Any]] = []
     horizon = 5 if profile == "tactical_1w_v1" else 20
-    for index in range(200, len(candles) - 1):
+    for index in range(max(ema_long_period, 200), len(candles) - 1):
         candle = candles[index]
         signal_day = str(candle.get("open_time") or "")[:10]
         if signal_start and signal_day < signal_start:
@@ -165,7 +183,7 @@ def _policy_signals(
         relative_volume = volumes[index] / avg_volume if avg_volume > 0 else 0.0
         near_ema = min(abs(close - ema20[index]), abs(close - ema50[index])) / close <= 0.025
         reclaimed = closes[index - 1] < ema20[index - 1] and close >= ema20[index]
-        breakout = close > prior_high and relative_volume >= 1.15
+        breakout = close > prior_high and relative_volume >= min_relative_volume
         trend = close > ema50[index] and ema50[index] > ema200[index]
         hourly_ok = hourly_confirmation.get(signal_day, profile != "tactical_1w_v1")
         action = "AI_WAIT"
@@ -181,8 +199,8 @@ def _policy_signals(
             action = "AI_EXIT_REVIEW"
         if action == "AI_WAIT" and index % 5:
             continue
-        stop = close - (1.35 if profile == "tactical_1w_v1" else 1.8) * atr_value
-        target = close + 2.0 * (close - stop)
+        stop = close - (1.35 if profile == "tactical_1w_v1" else 1.8) * atr_stop_factor * atr_value
+        target = close + 2.0 * risk_reward_factor * (close - stop)
         outcome = evaluate_long_trade(candles, index, stop, target, horizon, BacktestConfig())
         if not outcome.get("completed"):
             continue
@@ -214,6 +232,7 @@ def _policy_signals(
                 "rsi14": round(rsi14[index], 4),
                 "atr_pct": round(volatility_pct, 4),
                 "hourly_confirmation": bool(hourly_ok),
+                "policy_parameters": active_parameters,
             }
         )
     return signals
@@ -266,6 +285,7 @@ def run_strategy_validation(
     qqq_payload = api_stock_candles("QQQ", "5y", "1d", "live", db)
     regime_by_day = _regime_map(_closed_candles(spy_payload, None, end))
     all_trades: list[dict[str, Any]] = []
+    replay_inputs: list[dict[str, Any]] = []
     provider_errors: list[dict[str, str]] = []
     for stock in stock_rows:
         symbol = str(stock["symbol"]).upper()
@@ -283,14 +303,18 @@ def run_strategy_validation(
             "layer": str(stock.get("layer") or stock.get("primary_layer") or "Unknown"),
         }
         for profile in selected_profiles:
+            replay_input = {
+                "candles": daily,
+                "profile": profile,
+                "hourly_confirmation": hourly_confirmation,
+                "regime_by_day": regime_by_day,
+                "metadata": metadata,
+                "data_source": str(daily_payload.get("source_type") or "unknown"),
+            }
+            replay_inputs.append(replay_input)
             all_trades.extend(
                 _policy_signals(
-                    daily,
-                    profile=profile,
-                    hourly_confirmation=hourly_confirmation,
-                    regime_by_day=regime_by_day,
-                    metadata=metadata,
-                    data_source=str(daily_payload.get("source_type") or "unknown"),
+                    **replay_input,
                     signal_start=start,
                     signal_end=end,
                 )
@@ -303,6 +327,25 @@ def run_strategy_validation(
             for item in rows:
                 item["split_name"] = split_name
     all_trades = [item for item in all_trades if item.get("split_name")]
+
+    def replay_variant(overrides: dict[str, Any]) -> list[dict[str, Any]]:
+        variant_rows: list[dict[str, Any]] = []
+        for replay_input in replay_inputs:
+            variant_rows.extend(
+                _policy_signals(
+                    **replay_input,
+                    signal_start=start,
+                    signal_end=end,
+                    parameters=overrides,
+                )
+            )
+        return variant_rows
+
+    sensitivity = parameter_sensitivity_report(replay_variant) if replay_inputs else {
+        "stable": False,
+        "variants": [],
+        "not_an_optimization_search": True,
+    }
     config = BacktestConfig()
     created_at = _now()
     with connect(db) as conn:
@@ -375,6 +418,28 @@ def run_strategy_validation(
     summary = summarize_outcomes(all_trades)
     portfolio = simulate_cash_portfolio(all_trades, PortfolioConfig())
     portfolio_metrics = portfolio_performance_metrics(portfolio)
+    benchmark_spy = buy_and_hold_benchmark(_closed_candles(spy_payload, start, end), "SPY buy-and-hold")
+    benchmark_qqq = buy_and_hold_benchmark(_closed_candles(qqq_payload, start, end), "QQQ buy-and-hold")
+    test_rows = [item for item in all_trades if item.get("split_name") == "test"]
+    test_summary = summarize_outcomes(test_rows)
+    rolling = {
+        profile: rolling_walk_forward_windows(
+            [item for item in all_trades if item["profile"] == profile],
+            embargo_bars=5 if profile == "tactical_1w_v1" else 20,
+        )
+        for profile in selected_profiles
+    }
+    regime = market_regime_report(all_trades)
+    concentration = concentration_report(all_trades)
+    confidence = statistical_confidence_report(all_trades, trial_count=len(sensitivity.get("variants") or []))
+    evidence = evidence_score(
+        test_summary=test_summary,
+        sensitivity=sensitivity,
+        regime=regime,
+        concentration=concentration,
+        portfolio_metrics=portfolio_metrics,
+        benchmark_return_pct=_float(benchmark_spy.get("total_return_pct")) if benchmark_spy.get("available") else None,
+    )
     audit = build_backtest_audit(
         dataset_id=dataset_id,
         policy_version=POLICY_VERSION,
@@ -412,8 +477,8 @@ def run_strategy_validation(
             "cash_only": True,
         },
         "benchmarks": {
-            "spy_buy_and_hold": buy_and_hold_benchmark(_closed_candles(spy_payload, start, end), "SPY buy-and-hold"),
-            "qqq_buy_and_hold": buy_and_hold_benchmark(_closed_candles(qqq_payload, start, end), "QQQ buy-and-hold"),
+            "spy_buy_and_hold": benchmark_spy,
+            "qqq_buy_and_hold": benchmark_qqq,
             "spy_ema20_ema50": ema_trend_benchmark(_closed_candles(spy_payload, start, end)),
             "deterministic_policy_only": {
                 "available": True,
@@ -421,6 +486,15 @@ def run_strategy_validation(
                 "sample_count": summary["sample_count"],
                 "average_r": summary["average_r"],
             },
+        },
+        "robustness": {
+            "rolling_walk_forward": rolling,
+            "parameter_sensitivity": sensitivity,
+            "market_regimes": regime,
+            "concentration": concentration,
+            "statistical_confidence": confidence,
+            "evidence_score": evidence,
+            "research_only": True,
         },
         "reproducibility_audit": audit,
         "created_at": created_at,
