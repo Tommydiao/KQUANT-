@@ -69,6 +69,34 @@ def test_self_check_includes_route_and_secret_safety(tmp_path: Path, monkeypatch
     assert payload["ai_key"] in {"configured", "missing"}
 
 
+def test_manual_workflow_routes_remain_research_only(tmp_path: Path) -> None:
+    client = TestClient(_app(tmp_path))
+    sizing = client.post(
+        "/api/stocks/manual-position-plan",
+        json={
+            "account_value": 10_000,
+            "risk_per_trade_pct": 1,
+            "entry_price": 100,
+            "stop_price": 95,
+            "max_total_risk_pct": 2,
+        },
+    )
+    assert sizing.status_code == 200
+    assert sizing.json()["no_order_submission"] is True
+    ledger = client.post(
+        "/api/stocks/decision-ledger",
+        json={"signal_id": "signal-1", "symbol": "NVDA", "user_decision": "observe"},
+    )
+    assert ledger.status_code == 200
+    assert ledger.json()["read_only_research"] is True
+    assert client.get("/api/stocks/weekly-review").status_code == 200
+    assert client.get("/api/stocks/operations/health").status_code == 200
+    assert client.get("/api/stocks/database/migration-readiness").json()["runtime_supported"] is True
+    notification = client.post("/api/stocks/notifications", json={"event_type": "data_anomaly", "payload": {"symbol": "NVDA"}})
+    assert notification.status_code == 200
+    assert notification.json()["secret_values_stored"] is False
+
+
 def test_kquant_runtime_does_not_import_legacy_package() -> None:
     root = Path(__file__).resolve().parents[1]
     source = "\n".join(path.read_text(encoding="utf-8") for path in (root / "kquant").rglob("*.py"))

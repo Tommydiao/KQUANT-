@@ -11,6 +11,20 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from kquant.config import KquantConfig, load_config
+from kquant.database_migrations import migration_readiness
+from kquant.decision_ledger import (
+    create_decision_ledger_entry,
+    list_decision_ledger,
+    record_manual_trade_journal,
+    weekly_personal_review,
+)
+from kquant.manual_workflow import calculate_manual_position_size
+from kquant.operations import (
+    dispatch_personal_notification,
+    operational_health,
+    queue_notification,
+    recent_notifications,
+)
 from kquant.stock_signals import (
     api_stock_ai_daily_agent,
     api_stock_ai_daily_report_latest,
@@ -108,6 +122,53 @@ class StrategyValidationRunRequest(BaseModel):
     end: str = ""
     universe: str = "default"
     symbols: list[str] | None = None
+
+
+class ManualPositionPlanRequest(BaseModel):
+    account_value: float = Field(gt=0)
+    risk_per_trade_pct: float = Field(gt=0, le=100)
+    entry_price: float = Field(gt=0)
+    stop_price: float = Field(gt=0)
+    max_total_risk_pct: float = Field(gt=0, le=100)
+    currently_open_risk: float = Field(default=0, ge=0)
+    max_position_pct: float = Field(default=25, gt=0, le=100)
+
+
+class DecisionLedgerRequest(BaseModel):
+    signal_id: str
+    symbol: str
+    strategy_version: str = "legacy_unversioned"
+    data_snapshot: dict[str, Any] = Field(default_factory=dict)
+    system_decision: dict[str, Any] = Field(default_factory=dict)
+    user_decision: str = "observe"
+    entry_plan: dict[str, Any] = Field(default_factory=dict)
+    veto_status: str = "unknown"
+    final_execution: str = "not_executed"
+    outcome: str = "pending"
+    outcome_r: float | None = None
+    error_owner: str = "unclassified"
+    lesson: str = ""
+
+
+class ManualTradeJournalRequest(BaseModel):
+    ledger_id: str
+    symbol: str
+    stage: str = "pre_trade"
+    reason: str = ""
+    plan_followed: bool | None = None
+    actual_entry: float | None = None
+    actual_exit: float | None = None
+    result_r: float | None = None
+    emotion: str = ""
+    screenshot_ref: str = ""
+    notes: str = ""
+    review: str = ""
+
+
+class NotificationRequest(BaseModel):
+    event_type: str
+    payload: dict[str, Any] = Field(default_factory=dict)
+    channel: str = "web"
 
 
 def _live_only(source: str) -> str:
@@ -208,6 +269,20 @@ def create_app(
             db_path=settings.db_path, outputs_dir=settings.outputs_dir,
         )
 
+    @app.get("/api/stocks/daily-candidates")
+    def daily_candidates(source: str = "live", universe: str = "default", profile: str = "swing_long_v1") -> dict[str, Any]:
+        payload = api_stock_signals_latest(
+            source=_live_only(source), universe=universe, profile=profile,
+            db_path=settings.db_path, outputs_dir=settings.outputs_dir,
+        )
+        return {
+            "run_id": payload.get("run_id"),
+            "daily_candidates": payload.get("daily_candidates") or {
+                "buy_setups": [], "watch": [], "excluded_count": 0,
+                "read_only_research": True, "no_order_submission": True,
+            },
+        }
+
     @app.get("/api/stocks/provider-health")
     def provider_health() -> dict[str, Any]:
         return api_stock_provider_health(settings.db_path)
@@ -249,6 +324,46 @@ def create_app(
     @app.get("/api/stocks/signal-journal")
     def journal(symbol: str = "", limit: int = Query(default=50, ge=1, le=200)) -> dict[str, Any]:
         return api_stock_signal_journal(settings.db_path, symbol or None, limit)
+
+    @app.post("/api/stocks/manual-position-plan")
+    def manual_position_plan(payload: ManualPositionPlanRequest) -> dict[str, Any]:
+        return calculate_manual_position_size(**payload.model_dump())
+
+    @app.get("/api/stocks/decision-ledger")
+    def decision_ledger(symbol: str = "", limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+        return list_decision_ledger(settings.db_path, symbol=symbol or None, limit=limit)
+
+    @app.post("/api/stocks/decision-ledger")
+    def decision_ledger_entry(payload: DecisionLedgerRequest) -> dict[str, Any]:
+        return create_decision_ledger_entry(payload.model_dump(), settings.db_path)
+
+    @app.post("/api/stocks/manual-trade-journal")
+    def manual_trade_journal(payload: ManualTradeJournalRequest) -> dict[str, Any]:
+        return record_manual_trade_journal(payload.model_dump(), settings.db_path)
+
+    @app.get("/api/stocks/weekly-review")
+    def weekly_review(week_start: str = "") -> dict[str, Any]:
+        return weekly_personal_review(settings.db_path, week_start=week_start or None)
+
+    @app.get("/api/stocks/operations/health")
+    def operations_health() -> dict[str, Any]:
+        return operational_health(settings.db_path)
+
+    @app.get("/api/stocks/database/migration-readiness")
+    def database_readiness() -> dict[str, Any]:
+        return migration_readiness(default_path=settings.db_path)
+
+    @app.get("/api/stocks/notifications")
+    def notifications(limit: int = Query(default=50, ge=1, le=200)) -> dict[str, Any]:
+        return recent_notifications(settings.db_path, limit=limit)
+
+    @app.post("/api/stocks/notifications")
+    def notification(payload: NotificationRequest) -> dict[str, Any]:
+        return queue_notification(settings.db_path, event_type=payload.event_type, payload=payload.payload, channel=payload.channel)
+
+    @app.post("/api/stocks/notifications/{event_id}/dispatch")
+    def notification_dispatch(event_id: str) -> dict[str, Any]:
+        return dispatch_personal_notification(settings.db_path, event_id=event_id)
 
     @app.post("/api/stocks/signal-journal/entry")
     def journal_entry(payload: StockSignalJournalEntryRequest) -> dict[str, Any]:

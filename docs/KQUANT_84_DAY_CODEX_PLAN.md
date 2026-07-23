@@ -33,10 +33,10 @@ and manual-risk criteria to pass.
 | 13 | Daily data-quality report | Substantially complete | Versioned machine-readable candle and realtime quality gate, integrity metrics, and hard vetoes are implemented; scheduled daily aggregate reporting remains pending. |
 | 14 | Fault injection | Complete | Deterministic timeout, Longbridge-to-Yahoo fallback, future-candle, and SQLite cache-write failure matrix added, with a dedicated local test runner. |
 | 15-21 | Strategy stabilization | Partial | Features, risk and veto logic exist; consolidate to canonical profile and add 20 golden scenarios |
-| 22-28 | Reproducible backtest engine | Partial | Validation v3 has next-bar/cost/split foundations; canonical `swing_long_v1.1.0` replay, portfolio and benchmark work are pending |
-| 29-35 | Overfit controls and evidence freeze | Not started | Walk-forward exists in v3; sensitivity, regime/concentration checks and v1.0.0 freeze remain |
-| 36-42 | Forward observation and Journal review | Partial | Journal and prospective outcomes exist; scheduled daily observation/error attribution are pending |
-| 43-49 | Operational reliability | Not started | Add migrations, scheduler, notification, backup/restore, structured monitoring |
+| 22-28 | Reproducible backtest engine | Substantially complete | Deterministic replay now includes cash-only portfolio constraints, benchmark references, complete performance metrics, and versioned JSON/Markdown audit fingerprints. Historical membership remains survivorship-limited. |
+| 29-35 | Overfit controls and evidence freeze | Substantially complete | Rolling chronological windows, neighbouring-parameter replay, regime/concentration, confidence checks, Evidence Score, and a gated strategy-freeze manifest exist. No canonical version has been frozen for forward observation without a qualifying real validation run. |
+| 36-42 | Forward observation and Journal review | Substantially complete | Bounded daily candidate board, manual plan/position calculator, Decision Ledger, manual Journal, error attribution, and weekly review exist. Real prospective evidence remains intentionally unclaimed until it accumulates. |
+| 43-49 | Operational reliability | Partial | Local schema versioning, idempotent task records, web/optional personal notification plumbing, structured operational events, verified SQLite backup, and restore drill exist. PostgreSQL is a documented migration contract, not an enabled runtime adapter. |
 | 50-56 | Workstation UI release candidate | Not started | Do only after data and strategy evidence are stable |
 | 57-63 | Forward test | Not started | Require a fixed strategy/data version and daily observations |
 | 64-70 | Paper simulation | Not started | Manual workflow only; no broker integration |
@@ -54,10 +54,11 @@ and manual-risk criteria to pass.
 
 ## Immediate sequence
 
-1. Complete the Day 7 full verification and repository release reconciliation.
-2. Run the Day 8 Longbridge credentialed provider audit without exposing
-   credentials.
-3. Implement the Day 9 canonical candle schema and Day 11 corporate-action
-   policy before using more historical evidence.
-4. Do not change any `swing_long_v1.1.0` parameter until the version registry,
-   point-in-time universe, and replay path bind to the same immutable version.
+1. Run a credentialed Longbridge provider audit without exposing credentials.
+2. Run an explicitly scoped historical validation, inspect the audit,
+   robustness report, benchmarks, and Evidence Score, then decide whether a
+   strategy may be frozen for forward observation.
+3. Use the daily candidate board and Decision Ledger for paper-observed manual
+   review; do not infer real-money readiness from historical results.
+4. Complete the PostgreSQL adapter/staging parity work before treating the
+   production architecture as deployable.
