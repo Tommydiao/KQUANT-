@@ -25,6 +25,7 @@ from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
 from .technical_features import calculate_feature_snapshot
+from .trade_risk import assess_trade_risk
 from .trend_analysis import analyze_daily_trend
 from .universe_store import persist_universe_snapshot, universe_snapshot_status
 
@@ -2969,6 +2970,19 @@ def build_signal(
         exit_risk=exit_risk,
         data_clean=data_clean,
     )
+    trade_risk = assess_trade_risk(
+        daily_candles=daily,
+        feature_values={
+            "gap_risk_pct": daily_feature_values.get("gap_risk_pct"),
+            "extension_pct": extension_pct,
+            "atr_pct": atr_pct,
+        },
+        entry_plan=rule_plans["entry_plan"],
+        stop_plan=rule_plans["stop_plan"],
+        risk_reward_plan=rule_plans["risk_reward_plan"],
+        data_clean=data_clean,
+    )
+    risks.extend(str(item).replace("_", " ") for item in trade_risk["warnings"])
     ai_action_validation = build_ai_action_validation(
         "PENDING_AI_DECISION",
         historical_edge,
@@ -3009,7 +3023,6 @@ def build_signal(
             and daily_source == LONG_BRIDGE_CANDLE_SOURCE
             and hourly_source == LONG_BRIDGE_CANDLE_SOURCE
         ),
-        "data_quality": "clean" if data_clean else "caution",
         "live_does_not_fallback_to_fixture": bool(daily_payload.get("live_does_not_fallback_to_fixture")),
     }
     money_pilot_eligibility = build_money_pilot_eligibility(
@@ -3024,7 +3037,7 @@ def build_signal(
         },
         risk_reward_plan=rule_plans["risk_reward_plan"],
         historical_edge=historical_edge,
-        hard_veto_active=not data_clean,
+        hard_veto_active=not data_clean or bool(trade_risk["hard_vetoes"]),
     )
     probe_eligibility = build_probe_eligibility(
         action="PENDING_AI_DECISION",
@@ -3038,7 +3051,7 @@ def build_signal(
         },
         risk_reward_plan=rule_plans["risk_reward_plan"],
         historical_edge=historical_edge,
-        hard_veto_active=not data_clean,
+        hard_veto_active=not data_clean or bool(trade_risk["hard_vetoes"]),
     )
     return {
         "symbol": symbol,
@@ -3073,6 +3086,7 @@ def build_signal(
         "stop_plan": rule_plans["stop_plan"],
         "target_plan": rule_plans["target_plan"],
         "risk_reward_plan": rule_plans["risk_reward_plan"],
+        "trade_risk_assessment": trade_risk,
         "money_pilot_eligibility": money_pilot_eligibility,
         "probe_eligibility": probe_eligibility,
         "probe_risk_policy": probe_risk_policy(),
