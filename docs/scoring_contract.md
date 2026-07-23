@@ -1,7 +1,7 @@
 # Scoring Contract
 
 `kquant.scoring.CANONICAL_SCORING_CONFIG` holds every score weight, cap, and
-risk deduction used by `swing_long_v1.0.1`. `calculate_score_components` stores
+risk deduction used by `swing_long_v1.1.0`. `calculate_score_components` stores
 the individual trend/trigger factors, risk deductions, component scores, and
 total score in each signal's `score_breakdown`.
 

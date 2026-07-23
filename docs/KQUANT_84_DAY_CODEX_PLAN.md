@@ -20,7 +20,7 @@ and manual-risk criteria to pass.
 | --- | --- | --- | --- |
 | 1 | Repository audit | Complete | `docs/current_system_audit.md` |
 | 2 | Personal live MVP definition | Complete | `docs/personal_live_mvp.md`; six-step manual workflow |
-| 3 | Freeze main strategy | Complete as specification | `docs/strategy_specification.md` defines `swing_long_v1.0.1` |
+| 3 | Freeze main strategy | Complete as specification | `docs/strategy_specification.md` defines `swing_long_v1.1.0` |
 | 4 | Market-data contract | Complete as specification | `docs/market_data_contract.md` |
 | 5 | Strategy version system | Complete | `strategy_versions`, stable config hash, signal/Journal/backtest bindings |
 | 6 | Development toolchain | Complete | `.venv`-aware launcher, `scripts/verify_all.ps1`, frontend lint/test, CI hooks |
@@ -33,7 +33,7 @@ and manual-risk criteria to pass.
 | 13 | Daily data-quality report | Substantially complete | Versioned machine-readable candle and realtime quality gate, integrity metrics, and hard vetoes are implemented; scheduled daily aggregate reporting remains pending. |
 | 14 | Fault injection | Complete | Deterministic timeout, Longbridge-to-Yahoo fallback, future-candle, and SQLite cache-write failure matrix added, with a dedicated local test runner. |
 | 15-21 | Strategy stabilization | Partial | Features, risk and veto logic exist; consolidate to canonical profile and add 20 golden scenarios |
-| 22-28 | Reproducible backtest engine | Partial | Validation v3 has next-bar/cost/split foundations; canonical `swing_long_v1.0.1` replay, portfolio and benchmark work are pending |
+| 22-28 | Reproducible backtest engine | Partial | Validation v3 has next-bar/cost/split foundations; canonical `swing_long_v1.1.0` replay, portfolio and benchmark work are pending |
 | 29-35 | Overfit controls and evidence freeze | Not started | Walk-forward exists in v3; sensitivity, regime/concentration checks and v1.0.0 freeze remain |
 | 36-42 | Forward observation and Journal review | Partial | Journal and prospective outcomes exist; scheduled daily observation/error attribution are pending |
 | 43-49 | Operational reliability | Not started | Add migrations, scheduler, notification, backup/restore, structured monitoring |
@@ -59,5 +59,5 @@ and manual-risk criteria to pass.
    credentials.
 3. Implement the Day 9 canonical candle schema and Day 11 corporate-action
    policy before using more historical evidence.
-4. Do not change any `swing_long_v1.0.1` parameter until the version registry,
+4. Do not change any `swing_long_v1.1.0` parameter until the version registry,
    point-in-time universe, and replay path bind to the same immutable version.

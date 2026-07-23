@@ -19,6 +19,7 @@ from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
 from .data_quality import assess_candle_payload, assess_realtime_market_data
 from .entry_confirmation import analyze_hourly_confirmation
+from .hard_veto import HARD_VETO_POLICY_VERSION, evaluate_hard_veto
 from .market_store import persist_canonical_candles
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .strategy_registry import definition_for_profile, register_strategy_version
@@ -89,6 +90,7 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
         "focus_avg_return_min": 0.4,
         "stop_loss_pct": 3.5,
         "scoring": CANONICAL_SCORING_CONFIG,
+        "hard_veto_policy_version": HARD_VETO_POLICY_VERSION,
         "formula": "daily trend + 1h trigger + volume confirmation + short risk window",
     },
     "tactical_1w_v1": {
@@ -1668,6 +1670,7 @@ def api_stock_signals(
     for signal in signals:
         signal["review_bucket"] = signal_review_bucket(signal)
         signal["downgraded_reasons"] = downgraded_reasons(signal)
+        signal["hard_veto"] = evaluate_hard_veto(signal, market_regime)
         signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
         signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
     signals = sort_signals_for_review(signals)
@@ -1839,6 +1842,9 @@ def api_stock_analyze(
             "market_session": quote.get("session") or market_regime.get("session") or market_session_now(),
         }
     )
+    signal["hard_veto"] = evaluate_hard_veto(signal, market_regime)
+    signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
+    signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
     signal["ai_feature_packet_v3"] = build_ai_feature_packet_v3(signal, quote, market_regime)
     return {
         "product": "KQUANT US Stock Signal Terminal",
@@ -5511,6 +5517,7 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
     historical = signal.get("historical_edge", {})
     exit_risk = signal.get("exit_risk", {})
     readiness = signal.get("readiness_gate", {})
+    hard_veto = signal.get("hard_veto", {})
     high_beta_growth = signal.get("profile_name") == "high_beta_growth_v1"
     market_state = str(market_regime.get("regime", "DATA_CAUTION"))
     data_clean = data_status.get("data_quality") == "clean"
@@ -5543,6 +5550,8 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
         blockers.append(f"Exit risk is {exit_status}.")
     if signal.get("level") == "PASS":
         blockers.append("Rule level is PASS.")
+    if hard_veto.get("active"):
+        blockers.extend(f"Hard veto: {reason}." for reason in hard_veto.get("reasons", []))
 
     if signal.get("level") == "BUY SETUP":
         why.append("Rule system classifies this as BUY SETUP.")
@@ -5559,7 +5568,12 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
     if high_beta_growth:
         why.append("High-beta profile requires smaller size, staged entry, and AI Review before action.")
 
-    if readiness.get("ready") is True and signal.get("level") == "BUY SETUP" and data_clean and historical_positive and exit_clear:
+    if hard_veto.get("active"):
+        action = "WAIT"
+        confidence = "LOW"
+        risk_bucket = "avoid"
+        summary = "WAIT: deterministic hard veto blocks a new long review."
+    elif readiness.get("ready") is True and signal.get("level") == "BUY SETUP" and data_clean and historical_positive and exit_clear:
         action = "BUY"
         confidence = "HIGH" if market_state == "RISK_ON" else "MEDIUM"
         risk_bucket = "high_beta_risk" if high_beta_growth else "standard_risk" if confidence == "HIGH" else "light_risk"

@@ -21,7 +21,7 @@ def test_strategy_versions_are_content_addressed_and_immutable(tmp_path: Path) -
     first = register_strategy_version(db_path, baseline)
     repeated = register_strategy_version(db_path, baseline)
 
-    assert first.strategy_version == "swing_long_v1.0.1"
+    assert first.strategy_version == "swing_long_v1.1.0"
     assert repeated.config_hash == first.config_hash
 
     changed_config = deepcopy(profile_config("swing_long_v1"))
@@ -29,7 +29,7 @@ def test_strategy_versions_are_content_addressed_and_immutable(tmp_path: Path) -
     changed = definition_for_profile(
         "swing_long_v1",
         changed_config,
-        strategy_version="swing_long_v1.0.2",
+        strategy_version="swing_long_v1.1.1",
     )
     changed_record = register_strategy_version(db_path, changed)
 
@@ -39,8 +39,8 @@ def test_strategy_versions_are_content_addressed_and_immutable(tmp_path: Path) -
             "SELECT strategy_version, config_hash FROM strategy_versions ORDER BY strategy_version"
         ).fetchall()
     assert rows == [
-        ("swing_long_v1.0.1", first.config_hash),
-        ("swing_long_v1.0.2", changed_record.config_hash),
+        ("swing_long_v1.1.0", first.config_hash),
+        ("swing_long_v1.1.1", changed_record.config_hash),
     ]
 
     with pytest.raises(StrategyVersionConflict):
@@ -61,7 +61,7 @@ def test_signal_run_persists_strategy_version_and_hash(tmp_path: Path) -> None:
         limit=1,
     )
 
-    assert payload["strategy_version"] == "swing_long_v1.0.1"
+    assert payload["strategy_version"] == "swing_long_v1.1.0"
     assert len(payload["strategy_config_hash"]) == 64
     with sqlite3.connect(db_path) as conn:
         run = conn.execute(
@@ -99,5 +99,5 @@ def test_journal_entry_binds_the_current_strategy_version(tmp_path: Path) -> Non
         db_path=tmp_path / "kquant.sqlite3",
     )["entry"]
 
-    assert entry["strategy_version"] == "swing_long_v1.0.1"
+    assert entry["strategy_version"] == "swing_long_v1.1.0"
     assert len(entry["strategy_config_hash"]) == 64

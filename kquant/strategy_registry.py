@@ -10,7 +10,7 @@ from .stock_store import connect
 
 
 CANONICAL_VERSIONS = {
-    "swing_long_v1": "swing_long_v1.0.1",
+    "swing_long_v1": "swing_long_v1.1.0",
 }
 
 

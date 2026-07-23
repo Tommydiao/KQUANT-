@@ -11,4 +11,4 @@ bars are excluded by the contract.
 `build_signal` now consumes this contract for its existing EMA, ATR, volume,
 and 1H momentum inputs, and persists the added RSI, trend-slope, and gap-risk
 observations for audit. These new observations do not change the frozen scoring
-weights or thresholds in `swing_long_v1.0.1`.
+weights or thresholds in `swing_long_v1.1.0`.

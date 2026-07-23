@@ -33,7 +33,7 @@ falls through to a trade suggestion.
 2. **Establish market state**: read regular-session status, SPY/QQQ/IWM/VIX
    regime, provider health, and the market-data trust label. `DATA_CAUTION` or
    `RISK_OFF` blocks new long review.
-3. **Scan the frozen universe**: run the canonical `swing_long_v1.0.1` scan on
+3. **Scan the frozen universe**: run the canonical `swing_long_v1.1.0` scan on
    the point-in-time eligible universe. Use Longbridge closed daily and 1-hour
    bars for any candidate that could advance.
 4. **Review one candidate**: check the rule level, score components, price and
@@ -52,7 +52,7 @@ falls through to a trade suggestion.
 - Longbridge quote, BBO, daily bars, and 1-hour bars with explicit freshness,
   session, source, and candle-completion state.
 - Clearly marked Yahoo reference fallback that hard-vetoes new buy-class action.
-- One versioned deterministic strategy: `swing_long_v1.0.1`.
+- One versioned deterministic strategy: `swing_long_v1.1.0`.
 - Market-regime, data-quality, liquidity, risk/reward, and historical-evidence
   gates that cannot be bypassed by AI.
 - Entry, stop, target, invalidation, position-risk guidance, and a manual

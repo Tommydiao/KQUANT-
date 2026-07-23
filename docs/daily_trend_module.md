@@ -7,4 +7,4 @@ higher-timeframe risks.
 
 The module's bullish EMA alignment is the existing canonical trend gate. The
 additional structure and risk fields are persisted for audit; they do not alter
-the frozen score weights or thresholds of `swing_long_v1.0.1`.
+the frozen score weights or thresholds of `swing_long_v1.1.0`.
