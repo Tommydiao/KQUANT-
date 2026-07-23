@@ -24,6 +24,7 @@ from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
 from .technical_features import calculate_feature_snapshot
+from .trend_analysis import analyze_daily_trend
 from .universe_store import persist_universe_snapshot, universe_snapshot_status
 
 UTC = timezone.utc
@@ -2733,6 +2734,7 @@ def build_signal(
     )
     daily_feature_values = daily_feature_snapshot["values"]
     hourly_feature_values = hourly_feature_snapshot["values"]
+    daily_trend = analyze_daily_trend(daily, daily_feature_snapshot)
     ema8 = float(daily_feature_values["ema_8"])
     ema9 = float(daily_feature_values["ema_9"])
     ema20 = float(daily_feature_values["ema_20"])
@@ -2782,6 +2784,10 @@ def build_signal(
         "gap_risk_pct": round(float(daily_feature_values["gap_risk_pct"]), 2) if daily_feature_values["gap_risk_pct"] is not None else None,
         "hourly_gap_risk_pct": round(float(hourly_feature_values["gap_risk_pct"]), 2) if hourly_feature_values["gap_risk_pct"] is not None else None,
         "feature_contract_version": daily_feature_snapshot["contract_version"],
+        "daily_trend_direction": daily_trend["direction"],
+        "daily_trend_strength": daily_trend["strength"],
+        "daily_extension_risk": daily_trend.get("extension_risk"),
+        "daily_higher_timeframe_risks": list(daily_trend.get("higher_timeframe_risks") or []),
     }
     score_breakdown = {
         "trend_score": round(trend_score, 1),
@@ -2797,7 +2803,7 @@ def build_signal(
     historical_edge = estimate_historical_edge(label_samples)
     historical_edge = profile_historical_edge(historical_edge, label_samples, active_profile)
     high_beta_growth = bool(active_profile.get("high_beta_growth"))
-    trend_aligned = close > ema20 > ema50 > ema200
+    trend_aligned = bool((daily_trend.get("ema_alignment") or {}).get("bullish"))
     trigger_confirmed = hourly_close[-1] > h_ema20 > h_ema50 and one_hour_momentum >= float(active_profile.get("confirmation_momentum_min", 0.6))
     volume_confirmed = volume_ratio >= float(active_profile.get("volume_ratio_min", 1.2))
     risk_window_ok = -2.5 <= extension_pct <= float(active_profile.get("max_extension_pct", 5.5)) and atr_pct <= float(active_profile.get("max_atr_pct", 5.0))
