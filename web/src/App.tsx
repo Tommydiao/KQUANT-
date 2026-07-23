@@ -25,6 +25,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { parseRiskReward } from "./tradingFormatters";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -5453,12 +5454,6 @@ function marketDataMiniLabel(apiHealth: ApiHealthPayload | null) {
     return "Longbridge";
   }
   return "Yahoo prototype";
-}
-
-function parseRiskReward(value: string | undefined) {
-  if (!value) return 0;
-  const match = value.match(/(\d+(?:\.\d+)?)/);
-  return match ? Number(match[1]) : 0;
 }
 
 function explicitPlanText(value: string | undefined) {

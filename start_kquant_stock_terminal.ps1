@@ -50,9 +50,14 @@ function Test-PythonExecutable {
 }
 
 function Resolve-KquantPython {
-  $venvPython = Join-Path $Root ".venv-win\Scripts\python.exe"
-  if ((Test-Path $venvPython) -and (Test-PythonExecutable $venvPython)) {
-    return $venvPython
+  $venvCandidates = @(
+    (Join-Path $Root ".venv\Scripts\python.exe"),
+    (Join-Path $Root ".venv-win\Scripts\python.exe")
+  )
+  foreach ($venvPython in $venvCandidates) {
+    if ((Test-Path $venvPython) -and (Test-PythonExecutable $venvPython)) {
+      return $venvPython
+    }
   }
 
   if (Test-PythonExecutable "python") {
@@ -72,11 +77,10 @@ function Resolve-KquantPython {
   }
 
   Write-Host "No usable Python runtime was found for KQUANT." -ForegroundColor Red
-  Write-Host "Install Python 3.12, then recreate the local environment:" -ForegroundColor Yellow
-  Write-Host "  Remove-Item -Recurse -Force .\.venv-win" -ForegroundColor DarkGray
-  Write-Host "  python -m venv .venv-win" -ForegroundColor DarkGray
-  Write-Host "  .\.venv-win\Scripts\python -m pip install --upgrade pip" -ForegroundColor DarkGray
-  Write-Host "  .\.venv-win\Scripts\python -m pip install -e `".[dev]`"" -ForegroundColor DarkGray
+  Write-Host "Install Python 3.12, then create the local environment:" -ForegroundColor Yellow
+  Write-Host "  python -m venv .venv" -ForegroundColor DarkGray
+  Write-Host "  .\.venv\Scripts\python -m pip install --upgrade pip" -ForegroundColor DarkGray
+  Write-Host "  .\.venv\Scripts\python -m pip install -e `".[dev]`"" -ForegroundColor DarkGray
   throw "KQUANT startup blocked: Python runtime missing."
 }
 

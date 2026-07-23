@@ -21,7 +21,8 @@ python scripts/verify_read_only_boundary.py
 ## Local Start
 
 ```powershell
-python -m pip install -e ".[dev]"
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -e ".[dev]"
 cd web
 npm.cmd ci
 npm.cmd run build
@@ -81,6 +82,12 @@ cd web
 npm.cmd run build
 cd ..
 python scripts/verify_read_only_boundary.py
+```
+
+Or use the Windows verification entry point after the environment is installed:
+
+```powershell
+.\scripts\verify_all.ps1
 ```
 
 GitHub Actions runs the same checks on Windows without real credentials.
