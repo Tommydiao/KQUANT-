@@ -6,6 +6,14 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
+from .backtest_audit import build_backtest_audit, write_backtest_audit
+from .portfolio_backtest import (
+    PortfolioConfig,
+    buy_and_hold_benchmark,
+    ema_trend_benchmark,
+    portfolio_performance_metrics,
+    simulate_cash_portfolio,
+)
 from .stock_store import connect, default_db_path
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import (
@@ -255,6 +263,7 @@ def run_strategy_validation(
     dataset_id = _stable_id("dataset", POLICY_VERSION, universe, start or "", end or "", *symbol_list)
     run_id = _stable_id("validation", dataset_id, _now())
     spy_payload = api_stock_candles("SPY", "5y", "1d", "live", db)
+    qqq_payload = api_stock_candles("QQQ", "5y", "1d", "live", db)
     regime_by_day = _regime_map(_closed_candles(spy_payload, None, end))
     all_trades: list[dict[str, Any]] = []
     provider_errors: list[dict[str, str]] = []
@@ -363,6 +372,23 @@ def run_strategy_validation(
                     ),
                 )
         conn.commit()
+    summary = summarize_outcomes(all_trades)
+    portfolio = simulate_cash_portfolio(all_trades, PortfolioConfig())
+    portfolio_metrics = portfolio_performance_metrics(portfolio)
+    audit = build_backtest_audit(
+        dataset_id=dataset_id,
+        policy_version=POLICY_VERSION,
+        strategy_versions={profile: record.strategy_version for profile, record in strategy_records.items()},
+        strategy_config_hashes={profile: record.config_hash for profile, record in strategy_records.items()},
+        config={
+            **config.__dict__,
+            "config_version": CONFIG_VERSION,
+            "split": "60/20/20",
+            "portfolio": portfolio["portfolio_config"],
+        },
+        symbols=symbol_list,
+        trades=all_trades,
+    )
     payload = {
         "run_id": run_id,
         "dataset_id": dataset_id,
@@ -377,12 +403,32 @@ def run_strategy_validation(
         "symbols_requested": len(symbol_list),
         "symbols_with_data": len({item["symbol"] for item in all_trades}),
         "provider_errors": provider_errors,
-        "summary": summarize_outcomes(all_trades),
+        "summary": summary,
         "by_dimension": summarize_by_dimensions(all_trades),
+        "portfolio_backtest": {
+            "metrics": portfolio_metrics,
+            "execution_count": len(portfolio["executions"]),
+            "rejected_candidate_count": len(portfolio["rejected"]),
+            "cash_only": True,
+        },
+        "benchmarks": {
+            "spy_buy_and_hold": buy_and_hold_benchmark(_closed_candles(spy_payload, start, end), "SPY buy-and-hold"),
+            "qqq_buy_and_hold": buy_and_hold_benchmark(_closed_candles(qqq_payload, start, end), "QQQ buy-and-hold"),
+            "spy_ema20_ema50": ema_trend_benchmark(_closed_candles(spy_payload, start, end)),
+            "deterministic_policy_only": {
+                "available": True,
+                "description": "Uses rule-policy replay only; no LLM ranking or account data.",
+                "sample_count": summary["sample_count"],
+                "average_r": summary["average_r"],
+            },
+        },
+        "reproducibility_audit": audit,
         "created_at": created_at,
     }
     output = outputs_dir or Path("outputs")
     output.mkdir(parents=True, exist_ok=True)
+    (output / "strategy-validation-v3-latest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    payload["reproducibility_audit"]["report_paths"] = write_backtest_audit(audit, summary, output, run_id=run_id)
     (output / "strategy-validation-v3-latest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return payload
 
