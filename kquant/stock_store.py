@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS stock_signal_runs (
   source TEXT NOT NULL,
   universe TEXT NOT NULL,
   profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   started_at TEXT NOT NULL,
   completed_at TEXT NOT NULL,
   provider_status TEXT NOT NULL,
@@ -47,6 +49,8 @@ CREATE TABLE IF NOT EXISTS stock_signal_runs (
 CREATE TABLE IF NOT EXISTS stock_signals (
   run_id TEXT NOT NULL,
   symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   score REAL NOT NULL,
   level TEXT NOT NULL,
   trend_summary TEXT NOT NULL,
@@ -63,6 +67,8 @@ CREATE TABLE IF NOT EXISTS stock_features (
   symbol TEXT NOT NULL,
   feature_time TEXT NOT NULL,
   profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   features_json TEXT NOT NULL,
   data_status_json TEXT NOT NULL,
   created_at TEXT NOT NULL,
@@ -84,6 +90,8 @@ CREATE TABLE IF NOT EXISTS stock_labels (
 CREATE TABLE IF NOT EXISTS stock_backtest_runs (
   run_id TEXT PRIMARY KEY,
   profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   sample_count INTEGER NOT NULL,
   win_rate_5d REAL NOT NULL,
   avg_forward_return_5d REAL NOT NULL,
@@ -151,6 +159,8 @@ CREATE TABLE IF NOT EXISTS strategy_validation_runs (
   max_drawdown_r REAL NOT NULL,
   confidence_low REAL NOT NULL,
   confidence_high REAL NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   payload_json TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
@@ -171,6 +181,8 @@ CREATE TABLE IF NOT EXISTS strategy_validation_trades (
   dataset_id TEXT NOT NULL,
   evidence_source TEXT NOT NULL,
   policy_version TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   profile TEXT NOT NULL,
   action TEXT NOT NULL,
   symbol TEXT NOT NULL,
@@ -197,6 +209,8 @@ CREATE TABLE IF NOT EXISTS stock_signal_journal (
   run_id TEXT NOT NULL,
   symbol TEXT NOT NULL,
   strategy_profile TEXT NOT NULL DEFAULT '',
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   rule_conclusion TEXT NOT NULL DEFAULT '',
   ai_review_verdict TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL,
@@ -210,6 +224,17 @@ CREATE TABLE IF NOT EXISTS stock_signal_journal (
 );
 CREATE INDEX IF NOT EXISTS idx_stock_signal_journal_symbol_time
 ON stock_signal_journal(symbol, reviewed_at DESC);
+CREATE TABLE IF NOT EXISTS strategy_versions (
+  strategy_id TEXT NOT NULL,
+  strategy_version TEXT PRIMARY KEY,
+  profile_name TEXT NOT NULL,
+  config_hash TEXT NOT NULL,
+  config_json TEXT NOT NULL,
+  specification_path TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_strategy_versions_id_hash
+ON strategy_versions(strategy_id, config_hash);
 CREATE TABLE IF NOT EXISTS provider_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   provider TEXT NOT NULL,
@@ -252,8 +277,42 @@ def connect(db_path: Path) -> sqlite3.Connection:
         "stock_signal_journal",
         {
             "strategy_profile": "TEXT NOT NULL DEFAULT ''",
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
             "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
             "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
+    _ensure_columns(
+        conn,
+        "stock_signal_runs",
+        {
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
+    _ensure_columns(
+        conn,
+        "stock_signals",
+        {
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
+    _ensure_columns(
+        conn,
+        "stock_features",
+        {
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
+    _ensure_columns(
+        conn,
+        "stock_backtest_runs",
+        {
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
         },
     )
     _ensure_columns(
@@ -264,6 +323,16 @@ def connect(db_path: Path) -> sqlite3.Connection:
             "evidence_source": "TEXT NOT NULL DEFAULT 'prospective_llm_actions'",
             "policy_version": "TEXT NOT NULL DEFAULT ''",
             "config_version": "TEXT NOT NULL DEFAULT ''",
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+        },
+    )
+    _ensure_columns(
+        conn,
+        "strategy_validation_trades",
+        {
+            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
         },
     )
     return conn

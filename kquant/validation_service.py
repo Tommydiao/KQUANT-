@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .stock_store import connect, default_db_path
+from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import (
     BacktestConfig,
     evaluate_long_trade,
@@ -211,12 +212,16 @@ def run_strategy_validation(
     db_path: Path | None = None,
     outputs_dir: Path | None = None,
 ) -> dict[str, Any]:
-    from .stock_signals import api_stock_candles, api_stock_universe
+    from .stock_signals import api_stock_candles, api_stock_universe, profile_config
 
     selected_profiles = [profile for profile in profiles if profile in SUPPORTED_PROFILES]
     if not selected_profiles:
         raise ValueError(f"profiles must contain one of: {sorted(SUPPORTED_PROFILES)}")
     db = db_path or default_db_path()
+    strategy_records = {
+        profile: register_strategy_version(db, definition_for_profile(profile, profile_config(profile)))
+        for profile in selected_profiles
+    }
     universe_payload = api_stock_universe(universe=universe, db_path=db)
     stock_rows = list(universe_payload.get("stocks") or universe_payload.get("universe") or [])
     requested = {item.upper() for item in symbols or []}
@@ -280,7 +285,11 @@ def run_strategy_validation(
             (
                 dataset_id, "historical_policy_replay", POLICY_VERSION, universe,
                 start or "", end or "", json.dumps(symbol_list),
-                json.dumps({**config.__dict__, "config_version": CONFIG_VERSION, "split": "60/20/20", "embargo": "max_horizon"}),
+                json.dumps({
+                    **config.__dict__, "config_version": CONFIG_VERSION, "split": "60/20/20", "embargo": "max_horizon",
+                    "strategy_versions": {profile: record.strategy_version for profile, record in strategy_records.items()},
+                    "strategy_config_hashes": {profile: record.config_hash for profile, record in strategy_records.items()},
+                }),
                 created_at,
             ),
         )
@@ -289,14 +298,15 @@ def run_strategy_validation(
             conn.execute(
                 """
                 INSERT OR REPLACE INTO strategy_validation_trades(
-                  trade_id, run_id, dataset_id, evidence_source, policy_version, profile,
+                  trade_id, run_id, dataset_id, evidence_source, policy_version, strategy_version, strategy_config_hash, profile,
                   action, symbol, signal_time, entry_time, exit_time, split_name,
                   market_regime, sector, stock_layer, volatility_bucket, data_source,
                   outcome, realized_r, target_first, stop_first, payload_json, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     trade_id, run_id, dataset_id, "historical_policy_replay", POLICY_VERSION,
+                    strategy_records[item["profile"]].strategy_version, strategy_records[item["profile"]].config_hash,
                     item["profile"], item["action"], item["symbol"], item["signal_time"],
                     item.get("entry_time"), item.get("exit_time"), item["split_name"],
                     item["market_regime"], item["sector"], item["stock_layer"],
@@ -316,8 +326,8 @@ def run_strategy_validation(
                       run_id, profile, action, split_name, sample_count, win_rate,
                       average_r, profit_factor, max_drawdown_r, confidence_low,
                       confidence_high, payload_json, created_at, dataset_id,
-                      evidence_source, policy_version, config_version
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      evidence_source, policy_version, config_version, strategy_version, strategy_config_hash
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         record_id, profile, "ALL", split_name, summary["sample_count"],
@@ -325,6 +335,7 @@ def run_strategy_validation(
                         summary["max_drawdown_r"], summary["confidence_interval_95"][0],
                         summary["confidence_interval_95"][1], json.dumps(summary), created_at,
                         dataset_id, "historical_policy_replay", POLICY_VERSION, CONFIG_VERSION,
+                        strategy_records[profile].strategy_version, strategy_records[profile].config_hash,
                     ),
                 )
         conn.commit()
@@ -333,6 +344,8 @@ def run_strategy_validation(
         "dataset_id": dataset_id,
         "evidence_source": "historical_policy_replay",
         "policy_version": POLICY_VERSION,
+        "strategy_versions": {profile: record.strategy_version for profile, record in strategy_records.items()},
+        "strategy_config_hashes": {profile: record.config_hash for profile, record in strategy_records.items()},
         "profiles": selected_profiles,
         "universe": universe,
         "symbols_requested": len(symbol_list),

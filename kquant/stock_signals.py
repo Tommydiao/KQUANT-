@@ -17,6 +17,7 @@ import requests
 from .longbridge_provider import longbridge_runtime
 from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
+from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
@@ -1568,6 +1569,7 @@ def api_stock_signals(
     db = db_path or default_db_path()
     outputs = outputs_dir or Path("outputs")
     active_profile = profile_config(profile)
+    strategy_record = register_strategy_version(db, definition_for_profile(active_profile["name"], active_profile))
     stocks = stock_universe(universe)
     scan_layer = str(layer or "").strip()
     if scan_layer:
@@ -1603,6 +1605,8 @@ def api_stock_signals(
         if confirmation["provider_status"] not in ("available", "fixture_read_only"):
             provider_errors.append(f"{symbol}: {active_profile['confirmation_timeframe']} {confirmation['provider_status']}")
         signal = build_signal(symbol, primary, confirmation, active_profile)
+        signal["strategy_version"] = strategy_record.strategy_version
+        signal["strategy_config_hash"] = strategy_record.config_hash
         stock_meta = stock_by_symbol.get(symbol)
         if stock_meta:
             signal["primary_layer"] = stock_meta.layer
@@ -1645,6 +1649,8 @@ def api_stock_signals(
         "provider_coverage": provider_coverage,
         "downgraded_by_data_count": data_downgraded_count,
         "profile": active_profile,
+        "strategy_version": strategy_record.strategy_version,
+        "strategy_config_hash": strategy_record.config_hash,
         "started_at": started,
         "completed_at": completed,
         "provider_status": provider_status,
@@ -1720,6 +1726,7 @@ def api_stock_analyze(
 ) -> dict[str, Any]:
     db = db_path or default_db_path()
     active_profile = profile_config(profile)
+    strategy_definition = definition_for_profile(active_profile["name"], active_profile)
     normalized_symbol = normalize_symbol(symbol)
     all_stocks = stock_universe("all")
     stock_meta = next((stock for stock in all_stocks if stock.symbol == normalized_symbol), None)
@@ -1739,6 +1746,8 @@ def api_stock_analyze(
     )
     market_regime = api_stock_market_regime(source=source, db_path=db)
     signal = build_signal(normalized_symbol, primary, confirmation, active_profile)
+    signal["strategy_version"] = strategy_definition.strategy_version
+    signal["strategy_config_hash"] = strategy_definition.config_hash
     if stock_meta:
         signal["primary_layer"] = stock_meta.layer
         signal["tags"] = list(stock_meta.tags)
@@ -1782,6 +1791,8 @@ def api_stock_analyze(
         "symbol": normalized_symbol,
         "source": source,
         "profile": active_profile,
+        "strategy_version": strategy_definition.strategy_version,
+        "strategy_config_hash": strategy_definition.config_hash,
         "universe_match": stock_meta is not None,
         "universe_meta": (
             {
@@ -2480,7 +2491,7 @@ def api_stock_signal_journal(
         if normalized_symbol:
             rows = conn.execute(
                 """
-                SELECT id, run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+                SELECT id, run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
                        planned_target, outcome, reviewed_at, created_at
                 FROM stock_signal_journal
                 WHERE symbol = ?
@@ -2492,7 +2503,7 @@ def api_stock_signal_journal(
         else:
             rows = conn.execute(
                 """
-                SELECT id, run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+                SELECT id, run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
                        planned_target, outcome, reviewed_at, created_at
                 FROM stock_signal_journal
                 ORDER BY reviewed_at DESC, id DESC
@@ -2539,7 +2550,10 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
     db = db_path or default_db_path()
     now = iso_now()
     run_id = str(payload.get("run_id") or latest_stock_run_id(db) or "manual-review")
-    strategy_profile = str(payload.get("strategy_profile") or payload.get("profile_name") or "")[:80]
+    requested_profile = str(payload.get("strategy_profile") or payload.get("profile_name") or "swing_long_v1")[:80]
+    active_profile = profile_config(requested_profile)
+    strategy_profile = str(active_profile["name"])
+    strategy_record = register_strategy_version(db, definition_for_profile(strategy_profile, active_profile))
     rule_conclusion = str(payload.get("rule_conclusion") or "")[:80]
     ai_review_verdict = str(payload.get("ai_review_verdict") or "")[:80]
     notes = str(payload.get("notes") or "")[:4000]
@@ -2555,15 +2569,17 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
         cursor = conn.execute(
             """
             INSERT INTO stock_signal_journal (
-              run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+              run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
               planned_target, outcome, reviewed_at, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
                 symbol,
                 strategy_profile,
+                strategy_record.strategy_version,
+                strategy_record.config_hash,
                 rule_conclusion,
                 ai_review_verdict,
                 status,
@@ -2580,7 +2596,7 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
         conn.commit()
         row = conn.execute(
             """
-            SELECT id, run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+            SELECT id, run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
                    planned_target, outcome, reviewed_at, created_at
             FROM stock_signal_journal
             WHERE id = ?
@@ -2959,7 +2975,7 @@ def build_signal(
             "Check the daily trend and EMA20/50/200 alignment.",
             "Confirm the 1h candle structure before entry.",
             "Review ATR distance, gap risk, and volume confirmation.",
-            "If this later becomes an option trade, only then review ATM option liquidity.",
+            "Save entry, stop, target, and invalidation in the journal before any manual action.",
         ],
         "data_status": data_status,
         "features": features,
@@ -4393,15 +4409,17 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
         conn.execute(
             """
             INSERT OR REPLACE INTO stock_signal_runs
-            (run_id, source, universe, profile, started_at, completed_at, provider_status,
+            (run_id, source, universe, profile, strategy_version, strategy_config_hash, started_at, completed_at, provider_status,
              provider_error_count, buy_setup_count, watch_count, pass_count)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload["run_id"],
                 payload["source"],
                 payload["universe"],
                 payload["profile"]["name"],
+                payload["strategy_version"],
+                payload["strategy_config_hash"],
                 payload["started_at"],
                 payload["completed_at"],
                 payload["provider_status"],
@@ -4415,13 +4433,15 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO stock_signals
-                (run_id, symbol, score, level, trend_summary, trigger_summary,
+                (run_id, symbol, strategy_version, strategy_config_hash, score, level, trend_summary, trigger_summary,
                  risk_warnings_json, manual_checklist_json, data_status_json, features_json, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     payload["run_id"],
                     signal["symbol"],
+                    payload["strategy_version"],
+                    payload["strategy_config_hash"],
                     signal["score"],
                     signal["level"],
                     signal["trend_summary"],
@@ -4437,14 +4457,16 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO stock_features
-                (run_id, symbol, feature_time, profile, features_json, data_status_json, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (run_id, symbol, feature_time, profile, strategy_version, strategy_config_hash, features_json, data_status_json, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     payload["run_id"],
                     signal["symbol"],
                     str(feature_time),
                     payload["profile"]["name"],
+                    payload["strategy_version"],
+                    payload["strategy_config_hash"],
                     json.dumps(signal["features"]),
                     json.dumps(signal["data_status"]),
                     now,
@@ -4475,13 +4497,15 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
         conn.execute(
             """
             INSERT OR REPLACE INTO stock_backtest_runs
-            (run_id, profile, sample_count, win_rate_5d, avg_forward_return_5d, avg_max_drawdown_5d,
+            (run_id, profile, strategy_version, strategy_config_hash, sample_count, win_rate_5d, avg_forward_return_5d, avg_max_drawdown_5d,
              buy_setup_count, watch_count, pass_count, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload["run_id"],
                 payload["profile"]["name"],
+                payload["strategy_version"],
+                payload["strategy_config_hash"],
                 int(validation.get("sample_count", 0)),
                 float(validation.get("win_rate_5d", 0.0)),
                 float(validation.get("avg_forward_return_5d", 0.0)),
@@ -7108,6 +7132,8 @@ def stock_journal_row(row: Any) -> dict[str, Any]:
         "run_id": row["run_id"],
         "symbol": row["symbol"],
         "strategy_profile": row["strategy_profile"] if "strategy_profile" in row.keys() else "",
+        "strategy_version": row["strategy_version"] if "strategy_version" in row.keys() else "legacy_unversioned",
+        "strategy_config_hash": row["strategy_config_hash"] if "strategy_config_hash" in row.keys() else "",
         "rule_conclusion": row["rule_conclusion"] if "rule_conclusion" in row.keys() else "",
         "ai_review_verdict": row["ai_review_verdict"] if "ai_review_verdict" in row.keys() else "",
         "status": row["status"],
