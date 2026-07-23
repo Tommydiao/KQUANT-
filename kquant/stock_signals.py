@@ -23,6 +23,7 @@ from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
+from .technical_features import calculate_feature_snapshot
 from .universe_store import persist_universe_snapshot, universe_snapshot_status
 
 UTC = timezone.utc
@@ -2725,25 +2726,30 @@ def build_signal(
     if len(daily) < 60 or len(hourly) < 20:
         return empty_signal(symbol, daily_payload, hourly_payload, active_profile)
     daily_close = [bar["close"] for bar in daily]
-    daily_volume = [bar["volume"] for bar in daily]
     hourly_close = [bar["close"] for bar in hourly]
-    ema8 = ema_last(daily_close, 8)
-    ema9 = ema_last(daily_close, 9)
-    ema20 = ema_last(daily_close, 20)
-    ema50 = ema_last(daily_close, 50)
-    ema200 = ema_last(daily_close, 200)
-    h_ema8 = ema_last(hourly_close, 8)
-    h_ema9 = ema_last(hourly_close, 9)
-    h_ema20 = ema_last(hourly_close, 20)
-    h_ema50 = ema_last(hourly_close, 50)
+    daily_feature_snapshot = calculate_feature_snapshot(daily, timeframe="1D")
+    hourly_feature_snapshot = calculate_feature_snapshot(
+        hourly, timeframe="1H", ema_periods=(8, 9, 20, 50), momentum_period=7
+    )
+    daily_feature_values = daily_feature_snapshot["values"]
+    hourly_feature_values = hourly_feature_snapshot["values"]
+    ema8 = float(daily_feature_values["ema_8"])
+    ema9 = float(daily_feature_values["ema_9"])
+    ema20 = float(daily_feature_values["ema_20"])
+    ema50 = float(daily_feature_values["ema_50"])
+    ema200 = float(daily_feature_values["ema_200"])
+    h_ema8 = float(hourly_feature_values["ema_8"])
+    h_ema9 = float(hourly_feature_values["ema_9"])
+    h_ema20 = float(hourly_feature_values["ema_20"])
+    h_ema50 = float(hourly_feature_values["ema_50"])
     close = daily_close[-1]
     previous = daily_close[-6] if len(daily_close) > 6 else daily_close[0]
     trend_return = pct(close, previous)
     return_20d = pct(close, daily_close[-21] if len(daily_close) > 21 else daily_close[0])
-    volume_ratio = daily_volume[-1] / max(sum(daily_volume[-21:-1]) / max(len(daily_volume[-21:-1]), 1), 1)
-    atr_pct = average_true_range_pct(daily[-20:])
+    volume_ratio = float(daily_feature_values["volume_ratio_20"])
+    atr_pct = float(daily_feature_values["atr_pct"])
     extension_pct = pct(close, ema20)
-    one_hour_momentum = pct(hourly_close[-1], hourly_close[-8])
+    one_hour_momentum = float(hourly_feature_values["momentum_pct"])
     trend_score = score_trend(close, ema20, ema50, ema200, trend_return)
     trigger_score = score_trigger(hourly_close[-1], h_ema20, h_ema50, one_hour_momentum)
     volume_score = clamp((volume_ratio - 0.75) * 18, 0, 18)
@@ -2771,6 +2777,11 @@ def build_signal(
         "trigger_score": round(trigger_score, 1),
         "volume_score": round(volume_score, 1),
         "risk_score": round(risk_score, 1),
+        "rsi14": round(float(daily_feature_values["rsi_14"]), 2) if daily_feature_values["rsi_14"] is not None else None,
+        "trend_slope_20d_pct": round(float(daily_feature_values["trend_slope_pct"]), 2) if daily_feature_values["trend_slope_pct"] is not None else None,
+        "gap_risk_pct": round(float(daily_feature_values["gap_risk_pct"]), 2) if daily_feature_values["gap_risk_pct"] is not None else None,
+        "hourly_gap_risk_pct": round(float(hourly_feature_values["gap_risk_pct"]), 2) if hourly_feature_values["gap_risk_pct"] is not None else None,
+        "feature_contract_version": daily_feature_snapshot["contract_version"],
     }
     score_breakdown = {
         "trend_score": round(trend_score, 1),
