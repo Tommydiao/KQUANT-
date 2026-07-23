@@ -167,9 +167,11 @@ filter, or confirmation rule creates a new strategy version. Past signals,
 journal entries, and validation results remain bound to their original version
 and must never be recomputed in place.
 
-## Known implementation alignment work
+## Current implementation alignment
 
-The current code contains additional legacy profiles and its dashboard default
-is named `swing_long_v1` rather than the full version string. Day 5 must add a
-registry and bind this specification to the persisted signal, journal, and
-validation records before the strategy can be described as version-controlled.
+The current workflow exposes only `swing_long_v1`; legacy profiles are marked
+comparison-only. Signals, journals, and validation records bind the immutable
+strategy version and configuration hash. The strict gate consumes the
+machine-readable candle data-quality decision, so fixture, Yahoo fallback,
+stale, malformed, or otherwise non-clean data cannot promote a signal to
+`BUY SETUP`.

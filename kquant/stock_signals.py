@@ -2799,12 +2799,15 @@ def build_signal(
     hourly_status = hourly_payload["provider_status"]
     daily_source = str(daily_payload.get("source_type", ""))
     hourly_source = str(hourly_payload.get("source_type", ""))
+    daily_quality = dict(daily_payload.get("data_quality") or {})
+    hourly_quality = dict(hourly_payload.get("data_quality") or {})
     longbridge_required = preferred_market_data_provider() == "longbridge"
     realtime_source_clean = (
         not longbridge_required
         or (daily_source == LONG_BRIDGE_CANDLE_SOURCE and hourly_source == LONG_BRIDGE_CANDLE_SOURCE)
     )
-    data_clean = daily_status == "available" and hourly_status == "available" and realtime_source_clean
+    quality_clean = daily_quality.get("status") == "clean" and hourly_quality.get("status") == "clean"
+    data_clean = daily_status == "available" and hourly_status == "available" and realtime_source_clean and quality_clean
     has_real_or_internal_data = daily_status in ("available", "stale_cache", "fixture_read_only") and hourly_status in (
         "available",
         "stale_cache",
@@ -2842,6 +2845,8 @@ def build_signal(
         risks.append("Daily candles have provider caution.")
     if hourly_payload["provider_status"] not in ("available", "fixture_read_only"):
         risks.append("1h confirmation candles have provider caution.")
+    if not quality_clean:
+        risks.append("Daily or 1h data-quality gate is not clean; strict BUY SETUP is blocked.")
     if not risks:
         risks.append("No hard data blocker, but confirm price action manually before acting.")
     exit_risk = build_exit_risk(
@@ -2946,6 +2951,13 @@ def build_signal(
     data_status = {
         "daily_provider_status": daily_payload["provider_status"],
         "hourly_provider_status": hourly_payload["provider_status"],
+        "daily_data_quality": daily_quality,
+        "confirmation_data_quality": hourly_quality,
+        "data_quality": "clean" if data_clean else "caution",
+        "data_quality_hard_vetoes": list(dict.fromkeys(
+            list(daily_quality.get("hard_veto_reasons") or [])
+            + list(hourly_quality.get("hard_veto_reasons") or [])
+        )),
         "primary_provider_status": daily_payload["provider_status"],
         "confirmation_provider_status": hourly_payload["provider_status"],
         "daily_candles": len(daily),
