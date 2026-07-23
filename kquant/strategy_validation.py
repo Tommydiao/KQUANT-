@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
+from .execution_costs import execution_cost_parameters
+
 
 UTC = timezone.utc
 
@@ -118,6 +120,40 @@ def evaluate_long_trade(
         "stop_first": stop_first,
         "config": asdict(active),
     }
+
+
+def evaluate_long_trade_scenarios(
+    candles: list[dict[str, Any]],
+    signal_index: int,
+    stop_price: float,
+    target_price: float,
+    horizon_bars: int,
+    *,
+    average_dollar_volume: float,
+) -> dict[str, dict[str, Any]]:
+    entry_index = signal_index + 1
+    entry_price = _number(candles[entry_index].get("open")) if entry_index < len(candles) else 0.0
+    results: dict[str, dict[str, Any]] = {}
+    for scenario in ("optimistic", "baseline", "conservative"):
+        costs = execution_cost_parameters(
+            scenario=scenario,
+            price=entry_price,
+            average_dollar_volume=average_dollar_volume,
+        )
+        outcome = evaluate_long_trade(
+            candles,
+            signal_index,
+            stop_price,
+            target_price,
+            horizon_bars,
+            BacktestConfig(
+                commission_bps_per_side=float(costs["commission_bps_per_side"]),
+                slippage_bps_per_side=float(costs["slippage_bps_per_side"]),
+            ),
+        )
+        outcome["execution_costs"] = costs
+        results[scenario] = outcome
+    return results
 
 
 def wilson_interval(wins: int, samples: int, z: float = 1.96) -> tuple[float, float]:

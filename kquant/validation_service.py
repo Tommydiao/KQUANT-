@@ -11,6 +11,7 @@ from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import (
     BacktestConfig,
     evaluate_long_trade,
+    evaluate_long_trade_scenarios,
     summarize_by_dimensions,
     summarize_outcomes,
     walk_forward_split,
@@ -177,6 +178,14 @@ def _policy_signals(
         outcome = evaluate_long_trade(candles, index, stop, target, horizon, BacktestConfig())
         if not outcome.get("completed"):
             continue
+        outcome["execution_scenarios"] = evaluate_long_trade_scenarios(
+            candles,
+            index,
+            stop,
+            target,
+            horizon,
+            average_dollar_volume=close * avg_volume,
+        )
         volatility_pct = atr_value / close * 100
         volatility_bucket = "low" if volatility_pct < 2 else "medium" if volatility_pct < 4 else "high"
         signals.append(
