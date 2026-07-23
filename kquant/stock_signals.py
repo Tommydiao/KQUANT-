@@ -22,6 +22,7 @@ from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
+from .universe_store import persist_universe_snapshot, universe_snapshot_status
 
 UTC = timezone.utc
 RANGES = {
@@ -273,6 +274,23 @@ def api_stock_universe(universe: str = "default", db_path: Path | None = None) -
                     ),
                 )
             conn.commit()
+        market_date = market_clock().market_date
+        snapshot = persist_universe_snapshot(
+            db_path,
+            universe=str(payload["universe"]),
+            as_of_date=market_date,
+            stocks=payload["stocks"],
+        )
+        payload["point_in_time"] = {
+            **universe_snapshot_status(db_path, universe=str(payload["universe"]), as_of_date=market_date),
+            "current_snapshot": snapshot,
+        }
+    else:
+        payload["point_in_time"] = {
+            "historical_membership_complete": False,
+            "survivorship_limited": True,
+            "limitation": "No local database was supplied, so this is an unsaved current runtime universe only.",
+        }
     return payload
 
 

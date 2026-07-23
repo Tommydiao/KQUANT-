@@ -29,7 +29,7 @@ and manual-risk criteria to pass.
 | 9 | Unified candle store | Complete | Canonical `market_candles` and source-observation lineage; legacy cache table retained for compatibility |
 | 10 | Market clock | Substantially complete | XNYS/DST/early-close implementation and tests exist; keep regression coverage green |
 | 11 | Corporate actions | Partial | Conservative split/reverse-split detection and adjustment-mode lineage are stored; authorised action-feed ingestion and validation blocking remain pending. |
-| 12 | Point-in-time universe | Not started | Store membership history and label survivorship limits |
+| 12 | Point-in-time universe | Partial | Runtime membership snapshots, content hashes, coverage metadata, and survivorship labels are implemented; authorised historical membership import remains pending. |
 | 13 | Daily data-quality report | Partial | Health reports exist; formal contract metrics and report version are pending |
 | 14 | Fault injection | Partial | Fallback/stale tests exist; complete timeout/future-bar/database failure matrix |
 | 15-21 | Strategy stabilization | Partial | Features, risk and veto logic exist; consolidate to canonical profile and add 20 golden scenarios |

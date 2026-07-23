@@ -66,6 +66,8 @@ def test_validation_run_persists_separate_historical_evidence(tmp_path: Path, mo
     )
     assert payload["evidence_source"] == "historical_policy_replay"
     assert payload["summary"]["sample_count"] > 0
+    assert payload["universe_point_in_time"]["survivorship_limited"] is True
+    assert payload["data_limitations"]
     latest = api_strategy_validation_latest(db_path, "high_beta_growth_v1")
     assert latest["evidence_mixed"] is False
     assert latest["evidence"]["historical_policy_replay"]["summary"]["sample_count"] > 0

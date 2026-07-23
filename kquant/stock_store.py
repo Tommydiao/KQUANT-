@@ -16,6 +16,35 @@ CREATE TABLE IF NOT EXISTS stock_universe (
   active INTEGER NOT NULL DEFAULT 1,
   updated_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS stock_universe_snapshots (
+  universe TEXT NOT NULL,
+  as_of_date TEXT NOT NULL,
+  definition_hash TEXT NOT NULL,
+  membership_count INTEGER NOT NULL,
+  source TEXT NOT NULL,
+  recorded_at TEXT NOT NULL,
+  PRIMARY KEY (universe, as_of_date, definition_hash)
+);
+CREATE INDEX IF NOT EXISTS idx_stock_universe_snapshots_date
+ON stock_universe_snapshots(universe, as_of_date);
+CREATE TABLE IF NOT EXISTS stock_universe_memberships (
+  universe TEXT NOT NULL,
+  as_of_date TEXT NOT NULL,
+  definition_hash TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  name TEXT NOT NULL,
+  sector TEXT NOT NULL,
+  layer TEXT NOT NULL,
+  tags_json TEXT NOT NULL,
+  rank INTEGER NOT NULL,
+  liquidity_tier TEXT NOT NULL,
+  recorded_at TEXT NOT NULL,
+  PRIMARY KEY (universe, as_of_date, definition_hash, symbol),
+  FOREIGN KEY (universe, as_of_date, definition_hash)
+    REFERENCES stock_universe_snapshots(universe, as_of_date, definition_hash)
+);
+CREATE INDEX IF NOT EXISTS idx_stock_universe_memberships_lookup
+ON stock_universe_memberships(universe, as_of_date, symbol);
 CREATE TABLE IF NOT EXISTS stock_candles (
   symbol TEXT NOT NULL,
   interval TEXT NOT NULL,

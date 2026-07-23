@@ -223,6 +223,19 @@ def run_strategy_validation(
         for profile in selected_profiles
     }
     universe_payload = api_stock_universe(universe=universe, db_path=db)
+    universe_point_in_time = dict(universe_payload.get("point_in_time") or {
+        "historical_membership_complete": False,
+        "survivorship_limited": True,
+        "limitation": (
+            "The universe provider supplied no point-in-time membership metadata; "
+            "historical replay is survivorship-limited."
+        ),
+    })
+    universe_limitations = []
+    if universe_point_in_time.get("survivorship_limited", True):
+        universe_limitations.append(
+            "Historical membership composition is incomplete; this replay uses a current/runtime universe snapshot and is survivorship-limited."
+        )
     stock_rows = list(universe_payload.get("stocks") or universe_payload.get("universe") or [])
     requested = {item.upper() for item in symbols or []}
     if requested:
@@ -289,6 +302,8 @@ def run_strategy_validation(
                     **config.__dict__, "config_version": CONFIG_VERSION, "split": "60/20/20", "embargo": "max_horizon",
                     "strategy_versions": {profile: record.strategy_version for profile, record in strategy_records.items()},
                     "strategy_config_hashes": {profile: record.config_hash for profile, record in strategy_records.items()},
+                    "universe_point_in_time": universe_point_in_time,
+                    "data_limitations": universe_limitations,
                 }),
                 created_at,
             ),
@@ -348,6 +363,8 @@ def run_strategy_validation(
         "strategy_config_hashes": {profile: record.config_hash for profile, record in strategy_records.items()},
         "profiles": selected_profiles,
         "universe": universe,
+        "universe_point_in_time": universe_point_in_time,
+        "data_limitations": universe_limitations,
         "symbols_requested": len(symbol_list),
         "symbols_with_data": len({item["symbol"] for item in all_trades}),
         "provider_errors": provider_errors,
