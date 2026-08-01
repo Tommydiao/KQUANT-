@@ -142,6 +142,10 @@ type RealtimeSnapshotPayload = {
 
 type ApiHealthPayload = {
   status: string;
+  build_sha?: string;
+  build_sha_short?: string;
+  build_time?: string;
+  environment?: string;
   backend?: string;
   live_data_enabled?: boolean;
   ai_review_status?: string;
@@ -155,6 +159,9 @@ type ApiHealthPayload = {
   market_data?: {
     provider?: string;
     status?: string;
+    trust_state?: "live_primary" | "stale_primary" | "reference_only" | "unavailable" | string;
+    freshness_seconds?: number | null;
+    last_successful_market_data_at?: string | null;
     longbridge_env?: string;
     longbridge_sdk?: string;
     default_source_type?: string;
@@ -4302,6 +4309,8 @@ function SettingsPanel({
           <strong>{text.currentLocalMode}</strong>
           <p>Local backend: {apiHealth?.backend ?? "127.0.0.1:8001"} / SQLite: work/kquant_us.sqlite3</p>
           <p>Status: {apiConnection === "connected" ? "live API connected" : "live API offline"}</p>
+          <p>Build: {apiHealth?.build_sha_short ?? __KQUANT_BUILD_SHA__.slice(0, 7)} / {apiHealth?.environment ?? __KQUANT_BUILD_ENVIRONMENT__}</p>
+          <p>Built: {apiHealth?.build_time ?? __KQUANT_BUILD_TIME__}</p>
         </div>
         <div className="settings-card">
           <strong>{text.futureSaasTarget}</strong>
@@ -5787,6 +5796,13 @@ function refreshingMeta(symbol: string, preset: ChartPreset): CandleMeta {
 function normalizeApiBase(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";
+  if (import.meta.env.PROD) {
+    try {
+      if (new URL(trimmed).hostname.toLowerCase().endsWith(".trycloudflare.com")) return "";
+    } catch {
+      return "";
+    }
+  }
   return trimmed.replace(/\/+$/, "");
 }
 
@@ -6055,7 +6071,7 @@ function makeUnavailableSignal(symbol: string, stock?: UniverseStock): StockSign
       action: "DO_NOT_BUY",
       confidence: "LOW",
       risk_bucket: "avoid",
-      decision_summary: "DO NOT BUY: live public candles are unavailable.",
+      decision_summary: "UNABLE TO ASSESS: primary live market data is unavailable.",
       why: ["Provider failed or local API is unavailable.", "No rule conclusion can be trusted without live candles."],
       blockers: ["provider_failed"],
       invalidation: ["Refresh live data and rerun analysis."],
@@ -6538,6 +6554,11 @@ function mergeRealtimeQuote(candles: Candle[], quote: RealtimeQuote, interval: s
 function marketDataMiniLabel(apiHealth: ApiHealthPayload | null) {
   const provider = apiHealth?.market_data?.provider ?? apiHealth?.market_data_provider ?? "live";
   const status = apiHealth?.market_data?.status ?? apiHealth?.longbridge_status ?? "";
+  const trustState = apiHealth?.market_data?.trust_state;
+  if (trustState === "live_primary") return "Longbridge Live";
+  if (trustState === "stale_primary") return "Longbridge Stale";
+  if (trustState === "reference_only") return "Reference only";
+  if (trustState === "unavailable") return "Market data unavailable";
   if (provider === "longbridge") {
     if (status === "available") return "Longbridge Live";
     if (status === "missing") return "Longbridge Missing";

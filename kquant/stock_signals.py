@@ -769,6 +769,33 @@ def _longbridge_adjust_type() -> Any:
     return None
 
 
+def classify_market_data_state(
+    provider: str,
+    configured: bool,
+    sdk_installed: bool,
+    latest_primary_success: str | None,
+    *,
+    now: datetime | None = None,
+    live_threshold_seconds: int = 120,
+) -> tuple[str, int | None]:
+    """Classify market data without confusing configuration with health."""
+
+    if provider != "longbridge":
+        return "reference_only", None
+    if not configured or not sdk_installed:
+        return "unavailable", None
+    if not latest_primary_success:
+        return "unavailable", None
+    try:
+        parsed = datetime.fromisoformat(str(latest_primary_success).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=UTC)
+        age_seconds = max(0, int(((now or datetime.now(UTC)) - parsed.astimezone(UTC)).total_seconds()))
+    except (TypeError, ValueError):
+        return "unavailable", None
+    return ("live_primary" if age_seconds <= live_threshold_seconds else "stale_primary"), age_seconds
+
+
 def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
     provider = preferred_market_data_provider()
     longbridge_ready = longbridge_env_ready()
@@ -794,6 +821,12 @@ def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
             latest_longbridge_cache = row["value"] if row else None
     except (OSError, sqlite3.Error):
         latest_longbridge_cache = None
+    trust_state, freshness_seconds = classify_market_data_state(
+        provider,
+        longbridge_ready,
+        sdk_status == "installed",
+        latest_longbridge_cache,
+    )
     return {
         "provider": provider,
         "status": status,
@@ -804,6 +837,9 @@ def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
         "longbridge_trade_enabled": False,
         "default_source_type": LONG_BRIDGE_CANDLE_SOURCE if provider == "longbridge" else "live_yahoo_chart",
         "latest_longbridge_cache": latest_longbridge_cache,
+        "last_successful_market_data_at": latest_longbridge_cache,
+        "freshness_seconds": freshness_seconds,
+        "trust_state": trust_state,
         "yahoo_public_fallback": True,
         "real_money_requires_longbridge_live": True,
         "runtime": longbridge_runtime().health(),

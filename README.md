@@ -26,6 +26,11 @@ release.
 - Canonical execution plan: [`docs/KQUANT_84_DAY_CODEX_PLAN.md`](docs/KQUANT_84_DAY_CODEX_PLAN.md)
 - Current evidence-based audit: [`docs/current_system_audit.md`](docs/current_system_audit.md)
 - Daily engineering logs: [`docs/daily/`](docs/daily/)
+- Deployment/version trust audit: [`docs/deployment_version_audit.md`](docs/deployment_version_audit.md)
+
+Release identity is available from `GET /api/version` and is also included in
+`GET /api/health`. GitHub, frontend, and API must report the same `build_sha`
+before a deployment is considered traceable.
 
 The current implementation inventory includes:
 

@@ -16,6 +16,7 @@ from kquant.stock_signals import (
     api_stock_candles,
     api_stock_live_data_health,
     api_stock_market_data_status,
+    classify_market_data_state,
     api_stock_monday_readiness_latest,
     api_stock_quote,
     api_stock_research_chat,
@@ -205,6 +206,23 @@ def test_longbridge_market_data_status_is_read_only(monkeypatch: pytest.MonkeyPa
     assert payload["longbridge_account_enabled"] is False
     assert payload["longbridge_trade_enabled"] is False
     assert payload["real_money_requires_longbridge_live"] is True
+    assert payload["trust_state"] == "unavailable"
+
+
+def test_market_data_trust_state_distinguishes_live_stale_and_reference() -> None:
+    now = datetime(2026, 8, 1, 12, 0, tzinfo=timezone.utc)
+    live_state, live_age = classify_market_data_state(
+        "longbridge", True, True, "2026-08-01T11:59:30+00:00", now=now
+    )
+    stale_state, stale_age = classify_market_data_state(
+        "longbridge", True, True, "2026-08-01T11:30:00+00:00", now=now
+    )
+    reference_state, reference_age = classify_market_data_state(
+        "yahoo", False, False, None, now=now
+    )
+    assert (live_state, live_age) == ("live_primary", 30)
+    assert (stale_state, stale_age) == ("stale_primary", 1800)
+    assert (reference_state, reference_age) == ("reference_only", None)
 
 
 def test_stock_quote_without_longbridge_is_safe(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

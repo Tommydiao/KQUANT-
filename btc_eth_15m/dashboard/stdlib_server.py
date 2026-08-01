@@ -74,6 +74,7 @@ from kquant.stock_signals import (
     api_stock_strategy_validation,
     api_stock_universe,
 )
+from kquant.build_info import build_info
 from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
 
 
@@ -92,7 +93,7 @@ class ReadOnlyDashboard:
         self.runs_dir = self.root / "work" / "runs"
         self.outputs_dir = self.root / "outputs"
         dist_index = self.root / "web" / "dist" / "index.html"
-        self.index_path = dist_index if dist_index.exists() else self.root / "btc_eth_15m" / "dashboard" / "static" / "index.html"
+        self.index_path = dist_index if dist_index.exists() else self.root / "web" / "index.html"
         self.agent_runtime = default_runtime(self.db_path, self.outputs_dir)
         self._live_market_cache: Dict[str, Tuple[float, Dict[str, Any]]] = {}
         self._btc_kline_refresh_cache: Tuple[float, Dict[str, Any]] | None = None
@@ -905,6 +906,8 @@ class Handler(BaseHTTPRequestHandler):
             raise ValueError("Invalid mode.")
         if path == "/api/health":
             return self.api_health()
+        if path == "/api/version":
+            return build_info()
         if path == "/api/status":
             return self.dashboard.status(mode)
         if path == "/api/signals/latest":
@@ -1222,6 +1225,7 @@ class Handler(BaseHTTPRequestHandler):
         ai_status = api_stock_ai_review_status()
         market_data_status = api_stock_market_data_status(db_path=self.dashboard.stock_db_path)
         return {
+            **build_info(),
             "product": "KQUANT US Stock Signal Terminal",
             "status": "online",
             "backend": "stdlib_server",

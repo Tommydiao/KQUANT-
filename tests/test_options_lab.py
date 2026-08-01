@@ -497,7 +497,7 @@ def test_options_api_endpoints(tmp_path):
     assert root_response.status_code == 200
     assert '<div id="root"></div>' in root_response.text
     assert 'script type="module"' in root_response.text
-    assert '/assets/' in root_response.text
+    assert '/assets/' in root_response.text or '/src/main.tsx' in root_response.text
 
 
 def test_options_snapshot_endpoint_keeps_provider_outage_visible(monkeypatch, tmp_path):

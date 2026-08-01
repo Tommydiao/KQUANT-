@@ -93,6 +93,7 @@ from kquant.stock_signals import (
     api_stock_strategy_validation,
     api_stock_universe,
 )
+from kquant.build_info import build_info
 from kquant.mstr_cycle import api_mstr_cycle_history, api_mstr_cycle_journal, api_mstr_cycle_journal_entry, api_mstr_cycle_radar
 
 
@@ -218,6 +219,7 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
         ai_status = api_stock_ai_review_status()
         market_data_status = api_stock_market_data_status(db_path=stock_db_path)
         return {
+            **build_info(),
             "product": "KQUANT US Stock Signal Terminal",
             "status": "online",
             "backend": "fastapi",
@@ -234,6 +236,10 @@ def create_app(config_path: str | Path = "config/default.yml") -> FastAPI:
             "account_access_enabled": False,
             "order_submission_enabled": False,
         }
+
+    @app.get("/api/version")
+    def api_version() -> dict:
+        return build_info()
 
     @app.get("/api/status")
     def status(mode: str = Query(default="paper", pattern="^(paper|testnet|live)$")) -> dict:
@@ -1495,15 +1501,17 @@ def _position_close_summary(position_id: str, payload: ClosePositionRequest, res
 def mount_frontend(app: FastAPI) -> None:
     root = Path(__file__).resolve().parents[2]
     dist = root / "web" / "dist"
-    source_static = Path(__file__).resolve().parent / "static"
-    index = dist / "index.html" if (dist / "index.html").exists() else source_static / "index.html"
+    source_web = root / "web"
+    index = dist / "index.html" if (dist / "index.html").exists() else source_web / "index.html"
     if not index.exists():
         return
     assets = dist / "assets"
     if index.parent == dist and assets.exists():
         app.mount("/assets", StaticFiles(directory=assets), name="assets")
+    elif (source_web / "src").exists():
+        app.mount("/src", StaticFiles(directory=source_web / "src"), name="frontend-source")
     three_module = root / "web" / "node_modules" / "three" / "build" / "three.module.js"
-    lightweight_charts = source_static / "vendor" / "lightweight-charts.standalone.production.js"
+    lightweight_charts = Path(__file__).resolve().parent / "static" / "vendor" / "lightweight-charts.standalone.production.js"
 
     @app.get("/vendor/three.module.js")
     def three_vendor() -> FileResponse:
