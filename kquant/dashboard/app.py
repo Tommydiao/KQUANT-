@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import os
+import json
+import queue
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -39,6 +42,24 @@ from kquant.operations import (
     queue_notification,
     recent_notifications,
 )
+from kquant.options_expression import (
+    OPTION_EXPRESSION_VERSION,
+    option_candidates,
+    option_chain,
+    option_contract_snapshot,
+    option_expiries,
+    option_market_status,
+    list_option_paper_observations,
+    record_option_paper_observation,
+)
+from kquant.realtime_instructions import (
+    TRIGGER_POLICY_VERSION,
+    AlertEventHub,
+    acknowledge_alert,
+    list_alerts,
+    list_instructions,
+)
+from kquant.realtime_supervisor import RealtimeSupervisor
 from kquant.security import ApiSecurityMiddleware, LocalSessionAuth, SecuritySettings
 from kquant.production_readiness import (
     evaluate_go_no_go,
@@ -78,7 +99,7 @@ from kquant.validation_service import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-07-26"
+API_CONTRACT_VERSION = "kquant-api-2026-08-08-realtime-options-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -86,7 +107,6 @@ FORBIDDEN_ROUTE_TOKENS = (
     "/broker",
     "/orders",
     "/positions",
-    "/options",
     "/binance",
     "/btc",
     "/eth",
@@ -262,6 +282,16 @@ class LocalLoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=512)
 
 
+class OptionPaperObservationRequest(BaseModel):
+    action: str = Field(default="open", pattern="^(open|close)$")
+    candidate_id: str = ""
+    observation_id: str = ""
+    underlying_price: float = Field(gt=0)
+    exit_price: float | None = Field(default=None, ge=0)
+    exit_reason: str = ""
+    notes: str = ""
+
+
 def _live_only(source: str) -> str:
     if source != "live":
         raise HTTPException(status_code=400, detail="The stock terminal accepts live/reference data only.")
@@ -287,6 +317,8 @@ def route_safety_report(app: FastAPI) -> dict[str, Any]:
         "account_access_enabled": False,
         "trade_context_enabled": False,
         "order_submission_enabled": False,
+        "options_research_enabled": True,
+        "options_order_submission_enabled": False,
     }
 
 
@@ -299,10 +331,23 @@ def create_app(
     security = SecuritySettings.from_environment()
     session_auth = LocalSessionAuth(security)
     started_at_utc = datetime.now(timezone.utc).isoformat()
-    app = FastAPI(title=settings.product, version="0.9.0-personal-rc1")
+    alert_hub = AlertEventHub()
+    supervisor = RealtimeSupervisor(settings.db_path, settings.outputs_dir, alert_hub)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        supervisor.start()
+        try:
+            yield
+        finally:
+            supervisor.stop()
+
+    app = FastAPI(title=settings.product, version="0.10.0-realtime-options", lifespan=lifespan)
     app.state.settings = settings
     app.state.security = security
     app.state.session_auth = session_auth
+    app.state.alert_hub = alert_hub
+    app.state.realtime_supervisor = supervisor
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(security.cors_origins),
@@ -361,15 +406,112 @@ def create_app(
                 "api_contract_version": API_CONTRACT_VERSION,
                 "started_at_utc": started_at_utc,
                 "auth_routes_version": "local_email_password_v1",
-                "static_assets_version": "v3",
+                "static_assets_version": "realtime-options-v1",
+                "database_schema_version": "realtime-options-v1",
+                "strategy_version": "swing_long_v1.1.0",
+                "trigger_policy_version": TRIGGER_POLICY_VERSION,
+                "options_expression_version": OPTION_EXPRESSION_VERSION,
             },
             "stock_database": str(settings.db_path),
             "market_data": market_data,
             "ai": api_stock_ai_review_status(),
             "security": security.report(),
             "safety": safety,
+            "supervisor": supervisor.status(),
             "read_only_research": True,
         }
+
+    @app.get("/api/instructions/current")
+    def current_instructions(limit: int = Query(default=30, ge=1, le=100)) -> dict[str, Any]:
+        payload = list_instructions(settings.db_path, current_only=True, limit=limit)
+        payload["count"] = len(payload["instructions"])
+        return payload
+
+    @app.get("/api/instructions/history")
+    def instruction_history(symbol: str = "", limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+        payload = list_instructions(settings.db_path, symbol=symbol or None, limit=limit)
+        payload["count"] = len(payload["instructions"])
+        return payload
+
+    @app.get("/api/alerts")
+    def alerts(unread_only: bool = False, limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+        payload = list_alerts(settings.db_path, unread_only=unread_only, limit=limit)
+        payload["count"] = len(payload["alerts"])
+        return payload
+
+    @app.get("/api/alerts/stream")
+    def alerts_stream() -> StreamingResponse:
+        channel = alert_hub.subscribe()
+
+        def events():
+            try:
+                yield "retry: 3000\n\n"
+                while True:
+                    try:
+                        event = channel.get(timeout=15)
+                        yield f"event: alert\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
+                    except queue.Empty:
+                        yield ": keepalive\n\n"
+            finally:
+                alert_hub.unsubscribe(channel)
+
+        return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+
+    @app.post("/api/alerts/{alert_id}/ack")
+    def alert_ack(alert_id: str) -> dict[str, Any]:
+        try:
+            return acknowledge_alert(settings.db_path, alert_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/runtime/supervisor-status")
+    def supervisor_status() -> dict[str, Any]:
+        return supervisor.status()
+
+    @app.get("/api/options/status")
+    def options_status() -> dict[str, Any]:
+        return option_market_status()
+
+    @app.get("/api/options/expiries")
+    def options_expiries(symbol: str = "NVDA") -> dict[str, Any]:
+        try:
+            return option_expiries(symbol)
+        except (RuntimeError, ValueError) as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/options/chain")
+    def options_chain(symbol: str, expiry: str) -> dict[str, Any]:
+        try:
+            return option_chain(symbol, expiry)
+        except (RuntimeError, ValueError) as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/options/candidates")
+    def options_candidates(symbol: str = "NVDA") -> dict[str, Any]:
+        coverage = api_stock_data_coverage(settings.db_path)
+        event_status = str((coverage.get("event_calendar") or {}).get("status") or "missing")
+        try:
+            return option_candidates(settings.db_path, symbol, event_calendar_ready=event_status == "available")
+        except (RuntimeError, ValueError) as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/options/contracts/{contract}")
+    def option_contract(contract: str) -> dict[str, Any]:
+        try:
+            return option_contract_snapshot(contract, settings.db_path)
+        except (RuntimeError, ValueError) as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.post("/api/options/paper-observations")
+    def option_paper(payload: OptionPaperObservationRequest) -> dict[str, Any]:
+        try:
+            return record_option_paper_observation(settings.db_path, payload.model_dump())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/options/paper-observations")
+    def option_paper_list(status: str = "", limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+        return list_option_paper_observations(settings.db_path, status=status, limit=limit)
 
     @app.get("/api/stocks/universe")
     def universe(universe: str = Query(default="default")) -> dict[str, Any]:

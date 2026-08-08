@@ -9,6 +9,7 @@ from pathlib import Path
 from .database_migrations import migration_readiness
 from .data_coverage import api_stock_data_coverage
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
+from .market_data_backfill import run_longbridge_backfill
 from .production_readiness import (
     evaluate_go_no_go,
     serialize_go_no_go,
@@ -39,6 +40,13 @@ def main() -> None:
     health.add_argument("--scan-pause-seconds", type=float, default=0.0)
     coverage = sub.add_parser("data-coverage", help="Report source-aware cached candle coverage without fetching market data.")
     coverage.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    backfill = sub.add_parser("backfill-market-data", help="Backfill 5y daily and 2y hourly Longbridge candles; reference fallback is never eligible.")
+    backfill.add_argument("--universe", default="all")
+    backfill.add_argument("--symbols", default="")
+    backfill.add_argument("--limit", type=int, default=None)
+    backfill.add_argument("--pause-seconds", type=float, default=0.2)
+    backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    backfill.add_argument("--outputs-dir", default="outputs")
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -114,6 +122,21 @@ def main() -> None:
             "interval_summary": payload["interval_summary"],
             "market_breadth": payload["market_breadth"],
             "canonical_validation_eligible_symbols": payload["canonical_validation_eligible_symbols"],
+        }, indent=2))
+    if args.command == "backfill-market-data":
+        payload = run_longbridge_backfill(
+            db_path=Path(args.db_path),
+            outputs_dir=Path(args.outputs_dir),
+            universe=args.universe,
+            symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
+            limit=args.limit,
+            pause_seconds=max(0.0, args.pause_seconds),
+        )
+        print(json.dumps({
+            "version": payload["version"],
+            "requested_symbol_count": payload["requested_symbol_count"],
+            "eligible_symbol_count": payload["eligible_symbol_count"],
+            "report": str(Path(args.outputs_dir) / "longbridge-backfill-latest.json"),
         }, indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(

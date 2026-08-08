@@ -37,8 +37,10 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-07-26"
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-08-realtime-options-v1"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
+    assert health.json()["safety"]["options_research_enabled"] is True
+    assert health.json()["safety"]["options_order_submission_enabled"] is False
 
 
 def test_removed_legacy_paths_are_not_registered(tmp_path: Path) -> None:
@@ -52,6 +54,15 @@ def test_removed_legacy_paths_are_not_registered(tmp_path: Path) -> None:
         "/api/exchange/sync",
     ):
         assert client.get(path).status_code == 404
+
+
+def test_realtime_instruction_and_option_research_routes_are_registered(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("kquant.dashboard.app.option_market_status", lambda: {"provider": "longbridge", "status": "missing_config"})
+    client = TestClient(_app(tmp_path))
+    assert client.get("/api/instructions/current").status_code == 200
+    assert client.get("/api/alerts").status_code == 200
+    assert client.get("/api/runtime/supervisor-status").json()["order_submission_enabled"] is False
+    assert client.get("/api/options/status").json()["provider"] == "longbridge"
 
 
 def test_fixture_source_is_blocked_at_http_boundary(tmp_path: Path) -> None:

@@ -211,6 +211,41 @@ class LongbridgeReadOnlyRuntime:
             timeout_seconds,
         )
 
+    def option_expiry_dates(self, symbol: str, timeout_seconds: int) -> Any:
+        return self.call(
+            "option_expiry_dates",
+            lambda context: context.option_chain_expiry_date_list(symbol),
+            timeout_seconds,
+        )
+
+    def option_chain(self, symbol: str, expiry_date: Any, timeout_seconds: int) -> Any:
+        return self.call(
+            "option_chain",
+            lambda context: context.option_chain_info_by_date(symbol, expiry_date),
+            timeout_seconds,
+        )
+
+    def option_quotes(self, symbols: list[str], timeout_seconds: int) -> Any:
+        return self.call(
+            "option_quotes",
+            lambda context: context.option_quote(symbols),
+            timeout_seconds,
+        )
+
+    def calc_indexes(self, symbols: list[str], indexes: list[Any], timeout_seconds: int) -> Any:
+        return self.call(
+            "calc_indexes",
+            lambda context: context.calc_indexes(symbols, indexes),
+            timeout_seconds,
+        )
+
+    def quote_packages(self, timeout_seconds: int) -> Any:
+        return self.call(
+            "quote_packages",
+            lambda context: context.quote_package_details(),
+            timeout_seconds,
+        )
+
     def health(self) -> dict[str, Any]:
         return {
             "runtime": "persistent_quote_context",

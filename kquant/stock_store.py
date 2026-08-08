@@ -549,6 +549,117 @@ CREATE TABLE IF NOT EXISTS paper_simulation_positions (
 );
 CREATE INDEX IF NOT EXISTS idx_paper_positions_account_status
 ON paper_simulation_positions(account_id, status, entry_time);
+CREATE TABLE IF NOT EXISTS trade_instructions (
+  instruction_id TEXT PRIMARY KEY,
+  dedupe_key TEXT NOT NULL UNIQUE,
+  symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  trigger_version TEXT NOT NULL,
+  state TEXT NOT NULL,
+  action TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  material_state_hash TEXT NOT NULL,
+  quote_time TEXT,
+  data_source TEXT NOT NULL,
+  expires_at TEXT,
+  plan_json TEXT NOT NULL,
+  evidence_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_trade_instructions_current
+ON trade_instructions(state, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_trade_instructions_symbol
+ON trade_instructions(symbol, updated_at DESC);
+CREATE TABLE IF NOT EXISTS alert_events (
+  alert_id TEXT PRIMARY KEY,
+  instruction_id TEXT,
+  dedupe_key TEXT NOT NULL UNIQUE,
+  symbol TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  delivery_status TEXT NOT NULL,
+  acknowledged_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_alert_events_unread
+ON alert_events(acknowledged_at, created_at DESC);
+CREATE TABLE IF NOT EXISTS option_contract_snapshots (
+  snapshot_id TEXT PRIMARY KEY,
+  contract_symbol TEXT NOT NULL,
+  underlying_symbol TEXT NOT NULL,
+  expiry_date TEXT NOT NULL,
+  strike_price REAL NOT NULL,
+  direction TEXT NOT NULL,
+  is_standard INTEGER NOT NULL,
+  bid REAL,
+  ask REAL,
+  last REAL,
+  mid REAL,
+  spread_pct REAL,
+  implied_volatility REAL,
+  historical_volatility REAL,
+  open_interest INTEGER NOT NULL,
+  volume INTEGER NOT NULL,
+  delta REAL,
+  gamma REAL,
+  theta REAL,
+  vega REAL,
+  rho REAL,
+  quote_time TEXT,
+  provider_status TEXT NOT NULL,
+  source TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_option_snapshots_contract_time
+ON option_contract_snapshots(contract_symbol, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_option_snapshots_underlying_time
+ON option_contract_snapshots(underlying_symbol, created_at DESC);
+CREATE TABLE IF NOT EXISTS option_expression_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  instruction_id TEXT NOT NULL,
+  contract_symbol TEXT NOT NULL,
+  underlying_symbol TEXT NOT NULL,
+  expression_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  score REAL NOT NULL,
+  max_loss REAL NOT NULL,
+  breakeven REAL NOT NULL,
+  rationale_json TEXT NOT NULL,
+  snapshot_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_option_candidates_instruction
+ON option_expression_candidates(instruction_id, score DESC);
+CREATE TABLE IF NOT EXISTS option_paper_observations (
+  observation_id TEXT PRIMARY KEY,
+  candidate_id TEXT NOT NULL,
+  contract_symbol TEXT NOT NULL,
+  underlying_symbol TEXT NOT NULL,
+  contracts INTEGER NOT NULL,
+  entry_time TEXT NOT NULL,
+  entry_price REAL NOT NULL,
+  entry_underlying_price REAL NOT NULL,
+  max_loss REAL NOT NULL,
+  status TEXT NOT NULL,
+  exit_time TEXT,
+  exit_price REAL,
+  exit_underlying_price REAL,
+  realized_pnl REAL,
+  realized_return_pct REAL,
+  exit_reason TEXT,
+  notes TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_option_observations_status
+ON option_paper_observations(status, entry_time DESC);
 """
 
 

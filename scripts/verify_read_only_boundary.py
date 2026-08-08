@@ -12,7 +12,6 @@ FORBIDDEN_RUNTIME_TEXT = (
     "TradeContext",
     "broker_for_mode",
     "submit_order",
-    "/api/options",
     "/api/orders",
     "/api/positions",
     "Binance",
@@ -40,7 +39,7 @@ def main() -> None:
         for pattern in SECRET_PATTERNS:
             if pattern in bundle:
                 failures.append(f"secret assignment leaked into bundle: {pattern}")
-        for path in ("/api/options", "/api/orders", "/api/positions", "/api/mstr/cycle-radar"):
+        for path in ("/api/broker", "/api/account", "/api/orders", "/api/positions", "/api/mstr/cycle-radar"):
             if path in bundle:
                 failures.append(f"removed API path remains in bundle: {path}")
     print(json.dumps({"status": "fail" if failures else "pass", "route_safety": report, "failures": failures}, indent=2))
