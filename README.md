@@ -1,7 +1,7 @@
 # KQUANT
 
 KQUANT is a local, single-user US stock and ETF research terminal. It combines
-read-only Longbridge market data, deterministic technical features, AI-assisted
+read-only Longbridge market data, deterministic technical features, guided
 manual review, a journal, and reproducible strategy validation.
 
 ## Safety Boundary
@@ -31,6 +31,19 @@ cd ..
 ```
 
 Open `http://127.0.0.1:8001/`.
+
+### Optional Local Login
+
+Create the local email identity, password hash, and signing secret without placing a
+plaintext password in `.env`:
+
+```powershell
+.\.venv\Scripts\python -m kquant local-login-config
+```
+
+Set the printed `KQUANT_LOGIN_*` values in the private `.env` file, then restart the
+terminal. Once enabled, all research APIs require the local browser session; neither
+the email, password, nor password hash is returned by the API.
 
 Optional environment variables are read from `.env` by the Windows launcher:
 
@@ -62,10 +75,10 @@ forming and closed 1m/5m bars, exchange-calendar state, and a trust label.
 
 Historical validation uses a deterministic, versioned action policy. Actual AI
 outputs are tracked prospectively in a separate evidence chain and are never
-mixed into historical statistics. The active research strategy is
-`swing_long_v1.0.0`; the current replay CLI still operates legacy comparison
-profiles, so it must not be represented as completed validation for the
-canonical strategy until its policy binding is aligned.
+mixed into historical statistics. The active canonical research strategy is
+`swing_long_v1.1.0`. It can only be frozen for forward observation from a
+reviewed validation fingerprint and Evidence Score; missing evidence remains
+`NO_GO`, not a silent upgrade to production readiness.
 
 ```powershell
 python -m kquant validate-strategies `
@@ -94,6 +107,20 @@ Or use the Windows verification entry point after the environment is installed:
 ```
 
 GitHub Actions runs the same checks on Windows without real credentials.
+
+## Forward Observation And Release Gate
+
+The Today workspace shows a `NO TRADE` state whenever data, operations, hard
+vetoes, or forward-evidence gates are not clear. KQUANT includes a Decision
+Ledger, forward pilot protocol, and cash-only paper simulation, but none of
+them accesses an account or submits an order.
+
+Use [the forward pilot protocol](docs/forward_pilot_protocol.md) and run the
+Release Candidate check before a local release:
+
+```powershell
+.\scripts\verify_release_candidate.ps1
+```
 
 The full frozen scope and current day-by-day progress are tracked in
 [`docs/KQUANT_84_DAY_CODEX_PLAN.md`](docs/KQUANT_84_DAY_CODEX_PLAN.md).

@@ -1,14 +1,23 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
+import secrets
 from pathlib import Path
 
 from .database_migrations import migration_readiness
+from .data_coverage import api_stock_data_coverage
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
+from .production_readiness import (
+    evaluate_go_no_go,
+    serialize_go_no_go,
+    write_personal_production_launch_report,
+)
+from .security import SecuritySettings, generate_password_hash
 from .stock_signals import api_stock_live_data_health, api_stock_signals
 from .stock_store import default_db_path
-from .validation_service import run_strategy_validation
+from .validation_service import api_strategy_validation_latest, run_strategy_validation
 
 
 def main() -> None:
@@ -28,6 +37,8 @@ def main() -> None:
     health.add_argument("--outputs-dir", default="outputs")
     health.add_argument("--limit", type=int, default=None)
     health.add_argument("--scan-pause-seconds", type=float, default=0.0)
+    coverage = sub.add_parser("data-coverage", help="Report source-aware cached candle coverage without fetching market data.")
+    coverage.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -52,7 +63,29 @@ def main() -> None:
     task.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     task.add_argument("--outputs-dir", default="outputs")
     task.add_argument("--enable-market-scan", action="store_true")
+    readiness = sub.add_parser("production-readiness", help="Evaluate strict personal-production gates without any broker access.")
+    readiness.add_argument("--strategy-version", default="swing_long_v1.1.0")
+    readiness.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    launch_report = sub.add_parser("write-launch-report", help="Write a Go/No-Go launch report; this never enables execution.")
+    launch_report.add_argument("--strategy-version", default="swing_long_v1.1.0")
+    launch_report.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    launch_report.add_argument("--output", default="docs/personal_production_launch_report.md")
+    login_config = sub.add_parser("local-login-config", help="Print local email-and-password login values after a hidden password prompt.")
     args = parser.parse_args()
+    if args.command == "local-login-config":
+        email = input("KQUANT local login email: ").strip().lower()
+        if not email or email.count("@") != 1 or email.startswith("@") or email.endswith("@"):
+            raise SystemExit("Enter a valid email address. No configuration was generated.")
+        password = getpass.getpass("Choose a KQUANT local login password (12+ characters): ")
+        confirmation = getpass.getpass("Confirm password: ")
+        if password != confirmation:
+            raise SystemExit("Passwords did not match. No configuration was generated.")
+        print("# Paste these values into the local .env file. Do not commit them.")
+        print("KQUANT_LOGIN_ENABLED=true")
+        print(f"KQUANT_LOGIN_EMAIL={email}")
+        print(f"KQUANT_LOGIN_PASSWORD_HASH={generate_password_hash(password)}")
+        print(f"KQUANT_SESSION_SECRET={secrets.token_urlsafe(48)}")
+        return
     if args.command == "stock-scan":
         payload = api_stock_signals(
             source=args.source,
@@ -73,6 +106,15 @@ def main() -> None:
             scan_pause_seconds=args.scan_pause_seconds,
         )
         print(json.dumps({"run_id": payload["run_id"], "summary": payload["summary"]}, indent=2))
+    if args.command == "data-coverage":
+        payload = api_stock_data_coverage(Path(args.db_path))
+        print(json.dumps({
+            "as_of": payload["as_of"],
+            "universe_symbols": payload["universe_symbols"],
+            "interval_summary": payload["interval_summary"],
+            "market_breadth": payload["market_breadth"],
+            "canonical_validation_eligible_symbols": payload["canonical_validation_eligible_symbols"],
+        }, indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],
@@ -125,6 +167,23 @@ def main() -> None:
                 db_path=db, outputs_dir=Path(args.outputs_dir), limit=None,
             )
         print(json.dumps(run_scheduled_task(db, task_name=args.name, idempotency_key=args.key, callback=callback), indent=2))
+    if args.command in {"production-readiness", "write-launch-report"}:
+        db = Path(args.db_path)
+        validation = api_strategy_validation_latest(db)
+        historical = (validation.get("evidence") or {}).get("historical_policy_replay") or {}
+        report = evaluate_go_no_go(
+            db_path=db,
+            strategy_version=args.strategy_version,
+            historical_validation=historical,
+            security_report={
+                **SecuritySettings.from_environment().report(),
+                "order_submission_enabled": False,
+            },
+        )
+        if args.command == "write-launch-report":
+            print(json.dumps(write_personal_production_launch_report(report, Path(args.output)), indent=2))
+        else:
+            print(serialize_go_no_go(report))
 
 
 if __name__ == "__main__":

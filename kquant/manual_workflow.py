@@ -34,6 +34,8 @@ def build_daily_candidate_board(signals: Iterable[dict[str, Any]]) -> dict[str, 
         conclusion = signal.get("trade_conclusion") or {}
         risk = signal.get("trade_risk_assessment") or {}
         stop = signal.get("stop_plan") or {}
+        entry = signal.get("entry_plan") or {}
+        target = signal.get("target_plan") or {}
         return {
             "rank": rank,
             "bucket": bucket,
@@ -49,6 +51,14 @@ def build_daily_candidate_board(signals: Iterable[dict[str, Any]]) -> dict[str, 
             "data_status": (signal.get("data_status") or {}).get("data_quality"),
             "system_action": conclusion.get("action", "WAIT"),
             "invalidation": list(stop.get("invalidation") or [])[:4],
+            "plan": {
+                "entry_trigger": entry.get("trigger"),
+                "entry_low": entry.get("entry_low"),
+                "entry_high": entry.get("entry_high"),
+                "stop": stop.get("stop"),
+                "target_low": target.get("target_low"),
+                "target_high": target.get("target_high"),
+            },
             "read_only_research": True,
         }
 

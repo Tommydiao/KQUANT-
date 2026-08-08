@@ -161,6 +161,26 @@ CREATE TABLE IF NOT EXISTS stock_features (
   created_at TEXT NOT NULL,
   PRIMARY KEY (run_id, symbol)
 );
+CREATE TABLE IF NOT EXISTS factor_definitions (
+  factor_id TEXT NOT NULL,
+  registry_version TEXT NOT NULL,
+  definition_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (factor_id, registry_version)
+);
+CREATE TABLE IF NOT EXISTS factor_snapshots (
+  snapshot_hash TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  strategy_config_hash TEXT NOT NULL,
+  as_of_time TEXT NOT NULL,
+  registry_version TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_factor_snapshots_symbol_time
+ON factor_snapshots(symbol, as_of_time DESC);
 CREATE TABLE IF NOT EXISTS stock_labels (
   run_id TEXT NOT NULL,
   symbol TEXT NOT NULL,
@@ -439,6 +459,96 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   applied_at TEXT NOT NULL,
   rollback_note TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS forward_pilot_sessions (
+  session_id TEXT PRIMARY KEY,
+  strategy_version TEXT NOT NULL,
+  strategy_config_hash TEXT NOT NULL,
+  universe_name TEXT NOT NULL,
+  universe_snapshot_hash TEXT NOT NULL,
+  validation_fingerprint TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  status TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT,
+  rules_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  closed_at TEXT
+);
+CREATE TABLE IF NOT EXISTS forward_pilot_days (
+  session_id TEXT NOT NULL,
+  market_date TEXT NOT NULL,
+  phase TEXT NOT NULL,
+  preflight_json TEXT NOT NULL,
+  scan_json TEXT NOT NULL,
+  close_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (session_id, market_date)
+);
+CREATE TABLE IF NOT EXISTS forward_pilot_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  market_date TEXT NOT NULL,
+  signal_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  rank INTEGER NOT NULL,
+  level TEXT NOT NULL,
+  data_status TEXT NOT NULL,
+  veto_status TEXT NOT NULL,
+  plan_json TEXT NOT NULL,
+  snapshot_json TEXT NOT NULL,
+  trigger_status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_forward_pilot_candidates_session_date
+ON forward_pilot_candidates(session_id, market_date, rank);
+CREATE TABLE IF NOT EXISTS forward_pilot_outcomes (
+  candidate_id TEXT PRIMARY KEY,
+  outcome_status TEXT NOT NULL,
+  triggered_at TEXT,
+  completed_at TEXT,
+  entry_price REAL,
+  exit_price REAL,
+  realized_r REAL,
+  deviation_json TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS paper_simulation_accounts (
+  account_id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL UNIQUE,
+  initial_cash REAL NOT NULL,
+  cash REAL NOT NULL,
+  risk_per_trade_pct REAL NOT NULL,
+  max_positions INTEGER NOT NULL,
+  max_daily_risk_pct REAL NOT NULL,
+  no_averaging INTEGER NOT NULL,
+  no_chasing INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS paper_simulation_positions (
+  position_id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL,
+  candidate_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  entry_time TEXT NOT NULL,
+  entry_price REAL NOT NULL,
+  shares INTEGER NOT NULL,
+  stop_price REAL NOT NULL,
+  target_price REAL NOT NULL,
+  entry_plan_high REAL,
+  status TEXT NOT NULL,
+  exit_time TEXT,
+  exit_price REAL,
+  realized_r REAL,
+  notes TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_paper_positions_account_status
+ON paper_simulation_positions(account_id, status, entry_time);
 """
 
 

@@ -1,7 +1,7 @@
 # KQUANT 84-Day Development Progress
 
 Plan source: `KQUANT 84 天持续开发计划.pdf`  
-Current audit date: 2026-07-23 (Asia/Shanghai)
+Current audit date: 2026-07-24 (Asia/Shanghai)
 
 ## Frozen outcome
 
@@ -36,12 +36,12 @@ and manual-risk criteria to pass.
 | 22-28 | Reproducible backtest engine | Substantially complete | Deterministic replay now includes cash-only portfolio constraints, benchmark references, complete performance metrics, and versioned JSON/Markdown audit fingerprints. Historical membership remains survivorship-limited. |
 | 29-35 | Overfit controls and evidence freeze | Substantially complete | Rolling chronological windows, neighbouring-parameter replay, regime/concentration, confidence checks, Evidence Score, and a gated strategy-freeze manifest exist. No canonical version has been frozen for forward observation without a qualifying real validation run. |
 | 36-42 | Forward observation and Journal review | Substantially complete | Bounded daily candidate board, manual plan/position calculator, Decision Ledger, manual Journal, error attribution, and weekly review exist. Real prospective evidence remains intentionally unclaimed until it accumulates. |
-| 43-49 | Operational reliability | Partial | Local schema versioning, idempotent task records, web/optional personal notification plumbing, structured operational events, verified SQLite backup, and restore drill exist. PostgreSQL is a documented migration contract, not an enabled runtime adapter. |
-| 50-56 | Workstation UI release candidate | Not started | Do only after data and strategy evidence are stable |
-| 57-63 | Forward test | Not started | Require a fixed strategy/data version and daily observations |
-| 64-70 | Paper simulation | Not started | Manual workflow only; no broker integration |
-| 71-77 | Simulated pilot and Go/No-Go | Not started | Review safety, drawdown, sample quality and discipline |
-| 78-84 | Small-capital manual real-money readiness | Blocked by design | Only after every stated gate passes; KQUANT remains read-only |
+| 43-49 | Operational reliability | Substantially complete | Schema versioning, idempotent task records, notification plumbing, operational events, verified backup/restore drill, local-first CORS, rate limit, optional token guard, secret scan, and read-only route scan are implemented. PostgreSQL remains a documented migration contract, not an enabled runtime adapter. |
+| 50-56 | Workstation UI release candidate | Substantially complete, pending release verification | Today decision workbench, stock decision data, risk/No-Go panel, exception states, responsive/PWA shell, RC checklist, rollback path and release verifier are implemented. A fresh full release command and browser smoke are required for a green RC. |
+| 57-63 | Forward test | Framework complete; evidence not started | Frozen-strategy and frozen-universe requirements, exact daily queue snapshots, outcomes, close notes and data incidents are persisted. Fifteen actual market days cannot be manufactured by code. |
+| 64-70 | Paper simulation | Framework complete; evidence not started | Cash-only simulation enforces <=0.25% risk, daily-risk and position limits, no averaging and no chasing. It has no broker integration and needs real manual observations. |
+| 71-77 | Simulated pilot and Go/No-Go | Gate complete; evidence not started | Strict historical, forward, paper, discipline and security gates produce `NO_GO` until all facts are recorded. |
+| 78-84 | Small-capital manual real-money readiness | Deliberately `NO_GO` | Day-84 report and manual-readiness checklist exist, but they do not enable trading. A Go requires 100+ historical samples, positive OOS/cost evidence and 15 real forward days. |
 
 ## Current release baseline
 
@@ -62,3 +62,29 @@ and manual-risk criteria to pass.
    review; do not infer real-money readiness from historical results.
 4. Complete the PostgreSQL adapter/staging parity work before treating the
    production architecture as deployable.
+
+## Continued Work: Days 49-84
+
+- Added local-first security controls: bounded API request rate, optional
+  fail-closed API token, restrictive local CORS, response headers, a
+  repository secret-pattern scanner, and explicit read-only route audit.
+- Added the Today decision workbench and risk centre panel. It renders a
+  `NO_TRADE` decision whenever data, operations, AI availability, market
+  state, or the production gate is unsuitable; it never upgrades an abnormal
+  state into a BUY conclusion.
+- Added a responsive PWA shell that caches only static application assets and
+  deliberately never caches API market data.
+- Added a forward-pilot ledger and a cash-only paper simulation ledger. Both
+  bind observations to a frozen strategy and universe, preserve the original
+  plan, and enforce no averaging/no chasing/risk limits without broker access.
+- Added the strict Day-84 Go/No-Go evaluator, manual readiness checklist and
+  launch-report writer. The current truthful decision is `NO_GO` because
+  required historical and prospective evidence has not yet accumulated.
+
+## Evidence Boundary
+
+Days 58-84 include calendar-time work: at least 15 completed market days,
+human-recorded outcomes and paper observations. KQUANT can prepare, capture
+and evaluate that evidence, but no implementation may backfill it, mark it
+complete, or authorize real money. Until the gates turn `GO` from genuine
+records, keep the system in paper-observed/manual-decision mode.

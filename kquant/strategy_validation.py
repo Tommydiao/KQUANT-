@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import random
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Iterable
 
 from .execution_costs import execution_cost_parameters
@@ -170,15 +170,40 @@ def walk_forward_split(
     items: list[dict[str, Any]],
     embargo_bars: int = 0,
 ) -> dict[str, list[dict[str, Any]]]:
+    """Split by trading date, keeping every symbol from a date in one partition.
+
+    The embargo is expressed in distinct signal dates, not row count. This avoids
+    cross-symbol leakage and removes labels close to a partition boundary.
+    """
+
     ordered = sorted(items, key=lambda item: str(item.get("signal_time") or item.get("created_at") or ""))
-    total = len(ordered)
-    train_end = int(total * 0.6)
-    validation_end = int(total * 0.8)
+    by_date: dict[str, list[dict[str, Any]]] = {}
+    for item in ordered:
+        value = str(item.get("signal_time") or item.get("created_at") or "")
+        if len(value) > 10 and value[10] not in {"T", " "}:
+            by_date.setdefault(value, []).append(item)
+            continue
+        candidate = value[:10]
+        try:
+            date.fromisoformat(candidate)
+            partition_date = candidate
+        except ValueError:
+            # Preserve malformed fixture identifiers as distinct values rather
+            # than silently grouping an entire test/history into one date.
+            partition_date = value
+        by_date.setdefault(partition_date, []).append(item)
+    dates = sorted(by_date)
+    total_dates = len(dates)
+    train_end = int(total_dates * 0.6)
+    validation_end = int(total_dates * 0.8)
     embargo = max(0, int(embargo_bars))
+    train_dates = dates[: max(0, train_end - embargo)]
+    validation_dates = dates[min(total_dates, train_end + embargo) : max(train_end, validation_end - embargo)]
+    test_dates = dates[min(total_dates, validation_end + embargo) :]
     return {
-        "train": ordered[: max(0, train_end - embargo)],
-        "validation": ordered[min(total, train_end + embargo) : max(train_end, validation_end - embargo)],
-        "test": ordered[min(total, validation_end + embargo) :],
+        "train": [item for date in train_dates for item in by_date[date]],
+        "validation": [item for date in validation_dates for item in by_date[date]],
+        "test": [item for date in test_dates for item in by_date[date]],
     }
 
 

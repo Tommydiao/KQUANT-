@@ -184,6 +184,9 @@ def test_realtime_snapshot_combines_quote_and_longbridge_bars(monkeypatch) -> No
             "provider_status": "available",
             "source_type": "longbridge_candles",
             "provider_errors": [],
+            "adjustment_mode": "unadjusted",
+            "interval": "1m",
+            "freshness_seconds": 2,
             "candles": [candle(start, 100)],
         },
     )

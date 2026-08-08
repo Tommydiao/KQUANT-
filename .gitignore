@@ -13,5 +13,6 @@ work/
 *.sqlite3-wal
 web/node_modules/
 web/dist/
+KQUANT-github-main/
 
 .vercel

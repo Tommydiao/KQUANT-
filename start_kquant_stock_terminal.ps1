@@ -85,6 +85,7 @@ function Resolve-KquantPython {
 }
 
 $Url = "http://$HostName`:$Port/"
+$ExpectedApiContract = "kquant-api-2026-07-26"
 function Test-KquantDashboardOnline {
   try {
     $response = Invoke-WebRequest -UseBasicParsing "$Url/api/health" -TimeoutSec 3
@@ -97,18 +98,59 @@ function Test-KquantDashboardOnline {
   return $false
 }
 
+function Get-KquantRuntimeProcessIds {
+  param([int]$ListenerPid)
+  $all = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)
+  $byId = @{}
+  foreach ($process in $all) { $byId[[int]$process.ProcessId] = $process }
+  $ids = [System.Collections.Generic.HashSet[int]]::new()
+  $current = $byId[$ListenerPid]
+  while ($null -ne $current) {
+    if ([string]$current.CommandLine -match "kquant\.dashboard") {
+      [void]$ids.Add([int]$current.ProcessId)
+    }
+    $current = $byId[[int]$current.ParentProcessId]
+  }
+  if ($ids.Count -eq 0) { [void]$ids.Add($ListenerPid) }
+  return @($ids)
+}
+
+function Stop-KquantRuntime {
+  param([int]$ListenerPid)
+  foreach ($processId in (Get-KquantRuntimeProcessIds $ListenerPid)) {
+    Write-Host "Stopping existing KQUANT runtime on port $Port (PID $processId)..." -ForegroundColor Yellow
+    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+  }
+}
+
+function Get-ApiContractVersion {
+  try {
+    $health = Invoke-RestMethod -Uri "$Url/api/health" -TimeoutSec 3
+    return [string]$health.runtime.api_contract_version
+  } catch {
+    return ""
+  }
+}
+
 $listeners = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
 if ($listeners.Count -gt 0) {
   $pids = @($listeners | Select-Object -ExpandProperty OwningProcess -Unique)
   if ($KillExisting) {
     foreach ($listenerPid in $pids) {
-      Write-Host "Stopping existing KQUANT listener on port $Port (PID $listenerPid)..." -ForegroundColor Yellow
-      Stop-Process -Id $listenerPid -Force -ErrorAction SilentlyContinue
+      Stop-KquantRuntime $listenerPid
     }
-    Start-Sleep -Milliseconds 700
+    Start-Sleep -Milliseconds 900
+    if (@(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue).Count -gt 0) {
+      throw "KQUANT startup blocked: port $Port is still in use. Close the old KQUANT terminal, then run this command again."
+    }
   } else {
     Write-Host "KQUANT appears to already be running on $Url" -ForegroundColor Green
-    Write-Host "Use -KillExisting if you need to restart after code or API key changes." -ForegroundColor DarkGray
+    $contract = Get-ApiContractVersion
+    if ($contract -ne $ExpectedApiContract) {
+      Write-Host "The running backend is an older build ($contract). Restart with -KillExisting to load the current KQUANT code." -ForegroundColor Yellow
+    } else {
+      Write-Host "Use -KillExisting if you need to restart after code or API key changes." -ForegroundColor DarkGray
+    }
     if (-not $NoBrowser) {
       Start-Process $Url
     }
@@ -118,10 +160,6 @@ if ($listeners.Count -gt 0) {
 
 if (Test-KquantDashboardOnline) {
   Write-Host "KQUANT backend is already online at $Url" -ForegroundColor Green
-  if ($KillExisting) {
-    Write-Host "Could not identify the listener PID through Windows TCP APIs; reusing the online backend." -ForegroundColor Yellow
-    Write-Host "If you need a hard restart after changing Python or API keys, close the existing KQUANT terminal window first." -ForegroundColor DarkGray
-  }
   if (-not $NoBrowser) {
     Start-Process $Url
   }
@@ -135,6 +173,13 @@ Write-Host "URL: $Url" -ForegroundColor Green
 Write-Host "Database: work/kquant_us.sqlite3" -ForegroundColor DarkGray
 Write-Host "Mode: read-only stock research" -ForegroundColor DarkGray
 Write-Host "Python: $Python" -ForegroundColor DarkGray
+if ($env:KQUANT_LOGIN_ENABLED -eq "true") {
+  if ($env:KQUANT_LOGIN_EMAIL -and $env:KQUANT_LOGIN_PASSWORD_HASH -and $env:KQUANT_SESSION_SECRET) {
+    Write-Host "Local email-and-password login: enabled" -ForegroundColor Green
+  } else {
+    Write-Host "Local email-and-password login: enabled but incomplete. Run python -m kquant local-login-config." -ForegroundColor Yellow
+  }
+}
 if ($env:OPENAI_API_KEY) {
   Write-Host "AI Review: enabled from backend environment" -ForegroundColor Green
   $researchModel = if ($env:KQUANT_AI_RESEARCH_MODEL) { $env:KQUANT_AI_RESEARCH_MODEL } elseif ($env:KQUANT_AI_DEEP_MODEL) { $env:KQUANT_AI_DEEP_MODEL } else { "gpt-5.5-pro" }

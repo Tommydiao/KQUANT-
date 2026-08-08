@@ -32,6 +32,8 @@ def _signal(symbol: str, level: str, score: float, veto: bool = False) -> dict:
 def test_candidate_limits_plan_and_local_position_calculator() -> None:
     board = build_daily_candidate_board([_signal(f"B{index}", "BUY SETUP", 90 - index) for index in range(5)] + [_signal("BLOCKED", "BUY SETUP", 99, True)])
     assert len(board["buy_setups"]) == 3
+    assert board["buy_setups"][0]["plan"]["entry_high"] == 101
+    assert board["buy_setups"][0]["plan"]["target_high"] == 115
     plan = build_manual_trade_plan(_signal("NVDA", "BUY SETUP", 90))
     assert plan["target_two"] == 115
     size = calculate_manual_position_size(account_value=10_000, risk_per_trade_pct=1, entry_price=100, stop_price=95, max_total_risk_pct=2)

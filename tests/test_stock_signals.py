@@ -15,6 +15,7 @@ from kquant.stock_signals import (
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_live_data_health_latest,
     api_stock_market_data_status,
     api_stock_monday_readiness_latest,
     api_stock_quote,
@@ -23,10 +24,43 @@ from kquant.stock_signals import (
     api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
+    archive_legacy_reference_report,
     ai_hard_veto,
 )
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
+
+
+def test_longbridge_isolates_legacy_yahoo_reports(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("KQUANT_MARKET_DATA_PROVIDER", "longbridge")
+    legacy_signal = {
+        "run_id": "old-yahoo-signal",
+        "source": "live",
+        "universe": "default",
+        "profile": {"name": "swing_long_v1"},
+        "cache_source": "live_yahoo_chart",
+        "signals": [],
+    }
+    legacy_health = {
+        "run_id": "old-yahoo-health",
+        "source": "live",
+        "universes_detail": [{"symbols": [{"timeframes": [{"source_type": "live_yahoo_chart"}]}]}],
+    }
+    (tmp_path / "stock-signals-report.json").write_text(json.dumps(legacy_signal), encoding="utf-8")
+    (tmp_path / "stock-live-data-health.json").write_text(json.dumps(legacy_health), encoding="utf-8")
+
+    signals = api_stock_signals_latest(outputs_dir=tmp_path)
+    health = api_stock_live_data_health_latest(outputs_dir=tmp_path)
+
+    assert signals["latest_cache_status"] == "legacy_reference"
+    assert signals["signals"] == []
+    assert health["latest_cache_status"] == "legacy_reference"
+    assert health["summary"]["provider_status"] == "not_scanned"
+
+    archive_legacy_reference_report(tmp_path, "stock-signals-report.json")
+    archived = list((tmp_path / "legacy-reference").glob("stock-signals-report-*.json"))
+    assert len(archived) == 1
+    assert json.loads(archived[0].read_text(encoding="utf-8"))["run_id"] == "old-yahoo-signal"
 
 
 def test_default_stock_universe_has_200_symbols() -> None:

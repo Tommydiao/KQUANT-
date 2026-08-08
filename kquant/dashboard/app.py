@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from kquant.config import KquantConfig, load_config
+from kquant.data_coverage import api_stock_data_coverage
 from kquant.database_migrations import migration_readiness
 from kquant.decision_ledger import (
     create_decision_ledger_entry,
@@ -19,12 +21,31 @@ from kquant.decision_ledger import (
     weekly_personal_review,
 )
 from kquant.manual_workflow import calculate_manual_position_size
+from kquant.forward_pilot import (
+    activate_forward_pilot,
+    close_forward_day,
+    enter_paper_position,
+    exit_paper_position,
+    forward_pilot_summary,
+    initialize_paper_simulation,
+    paper_simulation_summary,
+    prepare_forward_pilot,
+    record_forward_day,
+    record_forward_outcome,
+)
 from kquant.operations import (
     dispatch_personal_notification,
     operational_health,
     queue_notification,
     recent_notifications,
 )
+from kquant.security import ApiSecurityMiddleware, LocalSessionAuth, SecuritySettings
+from kquant.production_readiness import (
+    evaluate_go_no_go,
+    manual_live_readiness_check,
+    write_personal_production_launch_report,
+)
+from kquant.today_workbench import build_today_workbench
 from kquant.stock_signals import (
     api_stock_ai_daily_agent,
     api_stock_ai_daily_report_latest,
@@ -55,6 +76,9 @@ from kquant.validation_service import (
     api_strategy_validation_latest,
     run_strategy_validation,
 )
+
+
+API_CONTRACT_VERSION = "kquant-api-2026-07-26"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -171,6 +195,73 @@ class NotificationRequest(BaseModel):
     channel: str = "web"
 
 
+class ForwardPilotPrepareRequest(BaseModel):
+    strategy_version: str
+    universe_name: str = "default"
+    universe_snapshot_hash: str
+    start_date: str
+    mode: str = "paper_observation"
+
+
+class ForwardPilotDayRequest(BaseModel):
+    market_date: str
+    preflight: dict[str, Any] = Field(default_factory=dict)
+    scan: dict[str, Any] = Field(default_factory=dict)
+    phase: str = "daily_observation"
+
+
+class ForwardOutcomeRequest(BaseModel):
+    outcome_status: str
+    entry_price: float | None = None
+    exit_price: float | None = None
+    realized_r: float | None = None
+    notes: str = ""
+    deviations: dict[str, Any] = Field(default_factory=dict)
+
+
+class ForwardDayCloseRequest(BaseModel):
+    close_notes: dict[str, Any] = Field(default_factory=dict)
+
+
+class PaperAccountRequest(BaseModel):
+    initial_cash: float = Field(gt=0)
+    risk_per_trade_pct: float = Field(default=0.25, gt=0, le=0.25)
+    max_positions: int = Field(default=3, ge=1, le=10)
+    max_daily_risk_pct: float = Field(default=0.75, gt=0, le=2)
+
+
+class PaperEntryRequest(BaseModel):
+    candidate_id: str
+    entry_time: str
+    entry_price: float = Field(gt=0)
+    stop_price: float = Field(gt=0)
+    target_price: float = Field(gt=0)
+    entry_plan_high: float | None = None
+    notes: str = ""
+
+
+class PaperExitRequest(BaseModel):
+    position_id: str
+    exit_time: str
+    exit_price: float = Field(gt=0)
+    notes: str = ""
+
+
+class ManualLiveReadinessRequest(BaseModel):
+    instrument_type: str
+    risk_per_trade_pct: float = Field(gt=0, le=0.25)
+    manual_trades_today: int = Field(default=0, ge=0)
+    data_clean: bool
+    hard_veto_active: bool
+    is_leveraged_etf: bool = False
+    is_option: bool = False
+
+
+class LocalLoginRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=1, max_length=512)
+
+
 def _live_only(source: str) -> str:
     if source != "live":
         raise HTTPException(status_code=400, detail="The stock terminal accepts live/reference data only.")
@@ -205,21 +296,58 @@ def create_app(
     config: KquantConfig | None = None,
 ) -> FastAPI:
     settings = config or load_config(config_path)
-    app = FastAPI(title=settings.product, version="0.3.0")
+    security = SecuritySettings.from_environment()
+    session_auth = LocalSessionAuth(security)
+    started_at_utc = datetime.now(timezone.utc).isoformat()
+    app = FastAPI(title=settings.product, version="0.9.0-personal-rc1")
     app.state.settings = settings
+    app.state.security = security
+    app.state.session_auth = session_auth
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "http://localhost:8001",
-            "http://127.0.0.1:8001",
-        ],
-        allow_origin_regex=r"https://.*",
-        allow_credentials=True,
+        allow_origins=list(security.cors_origins),
+        allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
+    app.add_middleware(ApiSecurityMiddleware, settings=security, session_auth=session_auth)
+
+    @app.get("/api/auth/session")
+    def auth_session(request: Request) -> dict[str, Any]:
+        session = session_auth.session_from_request(request)
+        if not security.local_login_enabled:
+            return {"authentication_required": False, "authenticated": True, "mode": "not_required"}
+        if not security.local_login_ready:
+            return {"authentication_required": True, "authenticated": False, "mode": "setup_required"}
+        return {
+            "authentication_required": True,
+            "authenticated": bool(session),
+            "mode": "local_email_password",
+            "expires_at": session.get("exp") if session else None,
+        }
+
+    @app.post("/api/auth/login")
+    def auth_login(payload: LocalLoginRequest, request: Request) -> JSONResponse:
+        if not security.local_login_enabled:
+            raise HTTPException(status_code=409, detail="Local login is not enabled.")
+        if not security.local_login_ready:
+            raise HTTPException(status_code=503, detail="Local login is enabled but not configured.")
+        client = request.client.host if request.client else "unknown"
+        if not session_auth.login_allowed(client):
+            raise HTTPException(status_code=429, detail="Too many login attempts. Try again later.")
+        if not session_auth.verify_login(payload.email, payload.password):
+            session_auth.record_login_failure(client)
+            raise HTTPException(status_code=401, detail="Incorrect email or password.")
+        session_auth.clear_login_failures(client)
+        response = JSONResponse({"authenticated": True, "expires_in_seconds": security.session_max_seconds})
+        session_auth.set_session_cookie(response, session_auth.issue_session())
+        return response
+
+    @app.post("/api/auth/logout")
+    def auth_logout() -> JSONResponse:
+        response = JSONResponse({"authenticated": False})
+        session_auth.clear_session_cookie(response)
+        return response
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -229,9 +357,16 @@ def create_app(
             "product": settings.product,
             "status": "online" if safety["status"] == "pass" else "unsafe",
             "backend": "kquant.dashboard.fastapi",
+            "runtime": {
+                "api_contract_version": API_CONTRACT_VERSION,
+                "started_at_utc": started_at_utc,
+                "auth_routes_version": "local_email_password_v1",
+                "static_assets_version": "v3",
+            },
             "stock_database": str(settings.db_path),
             "market_data": market_data,
             "ai": api_stock_ai_review_status(),
+            "security": security.report(),
             "safety": safety,
             "read_only_research": True,
         }
@@ -299,6 +434,10 @@ def create_app(
     def market_data_status() -> dict[str, Any]:
         return api_stock_market_data_status(settings.db_path)
 
+    @app.get("/api/stocks/data-coverage")
+    def data_coverage() -> dict[str, Any]:
+        return api_stock_data_coverage(settings.db_path)
+
     @app.get("/api/stocks/market-data/self-check")
     def market_data_self_check(symbol: str = "SPY") -> dict[str, Any]:
         payload = api_stock_market_data_self_check(symbol, settings.db_path)
@@ -316,6 +455,17 @@ def create_app(
     @app.get("/api/stocks/analyze")
     def analyze(symbol: str = "NVDA", source: str = "live", profile: str = "swing_long_v1") -> dict[str, Any]:
         return api_stock_analyze(symbol, _live_only(source), profile, settings.db_path)
+
+    @app.get("/api/stocks/{symbol}/factor-snapshot")
+    def factor_snapshot(symbol: str, profile: str = "swing_long_v1") -> dict[str, Any]:
+        analysis = api_stock_analyze(symbol, "live", profile, settings.db_path)
+        return {
+            "symbol": analysis["symbol"],
+            "strategy_version": analysis["strategy_version"],
+            "factor_snapshot": analysis["factor_snapshot"],
+            "decision_evidence": analysis["decision_evidence"],
+            "read_only_research": True,
+        }
 
     @app.get("/api/stocks/market-regime")
     def market_regime(source: str = "live") -> dict[str, Any]:
@@ -344,6 +494,90 @@ def create_app(
     @app.get("/api/stocks/weekly-review")
     def weekly_review(week_start: str = "") -> dict[str, Any]:
         return weekly_personal_review(settings.db_path, week_start=week_start or None)
+
+    @app.get("/api/stocks/production-readiness")
+    def production_readiness(strategy_version: str = "swing_long_v1.1.0") -> dict[str, Any]:
+        validation = api_strategy_validation_latest(settings.db_path)
+        return evaluate_go_no_go(
+            db_path=settings.db_path,
+            strategy_version=strategy_version,
+            historical_validation=validation.get("evidence", {}).get("historical_policy_replay", {}),
+            security_report={**security.report(), "order_submission_enabled": False},
+        )
+
+    @app.post("/api/stocks/manual-live-readiness")
+    def manual_live_readiness(payload: ManualLiveReadinessRequest, strategy_version: str = "swing_long_v1.1.0") -> dict[str, Any]:
+        go_no_go = production_readiness(strategy_version)
+        return manual_live_readiness_check(go_no_go=go_no_go, **payload.model_dump())
+
+    @app.post("/api/stocks/production-launch-report")
+    def production_launch_report(strategy_version: str = "swing_long_v1.1.0") -> dict[str, Any]:
+        report = production_readiness(strategy_version)
+        root = Path(__file__).resolve().parents[2]
+        return {"report": report, "artifact": write_personal_production_launch_report(report, root / "docs" / "personal_production_launch_report.md")}
+
+    @app.get("/api/stocks/today-workbench")
+    def today_workbench(universe: str = "default", profile: str = "swing_long_v1") -> dict[str, Any]:
+        run = api_stock_signals_latest(
+            source="live", universe=universe, profile=profile,
+            db_path=settings.db_path, outputs_dir=settings.outputs_dir,
+        )
+        validation = api_strategy_validation_latest(settings.db_path)
+        readiness = evaluate_go_no_go(
+            db_path=settings.db_path,
+            strategy_version=str(run.get("strategy_version") or "swing_long_v1.1.0"),
+            historical_validation=validation.get("evidence", {}).get("historical_policy_replay", {}),
+            security_report={**security.report(), "order_submission_enabled": False},
+        )
+        return build_today_workbench(
+            run=run,
+            market_regime=run.get("market_regime"),
+            market_data=api_stock_market_data_status(settings.db_path),
+            ai_status=api_stock_ai_review_status(),
+            operational_health=operational_health(settings.db_path),
+            weekly_review=weekly_personal_review(settings.db_path),
+            production_readiness=readiness,
+        )
+
+    @app.post("/api/stocks/forward-pilot")
+    def forward_pilot_prepare(payload: ForwardPilotPrepareRequest) -> dict[str, Any]:
+        return prepare_forward_pilot(db_path=settings.db_path, **payload.model_dump())
+
+    @app.post("/api/stocks/forward-pilot/{session_id}/activate")
+    def forward_pilot_activate(session_id: str) -> dict[str, Any]:
+        return activate_forward_pilot(settings.db_path, session_id)
+
+    @app.get("/api/stocks/forward-pilot/{session_id}")
+    def forward_pilot_status(session_id: str) -> dict[str, Any]:
+        return forward_pilot_summary(settings.db_path, session_id)
+
+    @app.post("/api/stocks/forward-pilot/{session_id}/days")
+    def forward_pilot_day(session_id: str, payload: ForwardPilotDayRequest) -> dict[str, Any]:
+        return record_forward_day(db_path=settings.db_path, session_id=session_id, **payload.model_dump())
+
+    @app.post("/api/stocks/forward-pilot/{session_id}/days/{market_date}/close")
+    def forward_pilot_day_close(session_id: str, market_date: str, payload: ForwardDayCloseRequest) -> dict[str, Any]:
+        return close_forward_day(db_path=settings.db_path, session_id=session_id, market_date=market_date, **payload.model_dump())
+
+    @app.post("/api/stocks/forward-pilot/candidates/{candidate_id}/outcome")
+    def forward_pilot_outcome(candidate_id: str, payload: ForwardOutcomeRequest) -> dict[str, Any]:
+        return record_forward_outcome(db_path=settings.db_path, candidate_id=candidate_id, **payload.model_dump())
+
+    @app.post("/api/stocks/paper-simulation/{session_id}")
+    def paper_simulation_initialize(session_id: str, payload: PaperAccountRequest) -> dict[str, Any]:
+        return initialize_paper_simulation(db_path=settings.db_path, session_id=session_id, **payload.model_dump())
+
+    @app.get("/api/stocks/paper-simulation/{account_id}")
+    def paper_simulation_status(account_id: str) -> dict[str, Any]:
+        return paper_simulation_summary(settings.db_path, account_id)
+
+    @app.post("/api/stocks/paper-simulation/{account_id}/entries")
+    def paper_simulation_entry(account_id: str, payload: PaperEntryRequest) -> dict[str, Any]:
+        return enter_paper_position(db_path=settings.db_path, account_id=account_id, **payload.model_dump())
+
+    @app.post("/api/stocks/paper-simulation/{account_id}/exits")
+    def paper_simulation_exit(account_id: str, payload: PaperExitRequest) -> dict[str, Any]:
+        return exit_paper_position(db_path=settings.db_path, account_id=account_id, **payload.model_dump())
 
     @app.get("/api/stocks/operations/health")
     def operations_health() -> dict[str, Any]:
@@ -442,4 +676,8 @@ def mount_frontend(app: FastAPI) -> None:
     def frontend_fallback(path: str) -> FileResponse:
         if path.startswith("api/"):
             raise HTTPException(status_code=404, detail="Not found")
+        if path in {"manifest.webmanifest", "service-worker.js", "kquant-mark.svg"}:
+            static_file = dist / path
+            if static_file.exists():
+                return FileResponse(static_file)
         return FileResponse(index)

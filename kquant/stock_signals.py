@@ -18,6 +18,8 @@ from .longbridge_provider import longbridge_runtime
 from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
 from .data_quality import assess_candle_payload, assess_realtime_market_data
+from .data_coverage import corporate_event_context, market_breadth_snapshot
+from .factor_engine import build_factor_snapshot, decision_evidence, persist_factor_snapshot
 from .entry_confirmation import analyze_hourly_confirmation
 from .hard_veto import HARD_VETO_POLICY_VERSION, evaluate_hard_veto
 from .historical_replay import replay_metadata, slice_completed_candles_as_of
@@ -66,6 +68,12 @@ LONG_BRIDGE_STALE_SOURCE = "stale_longbridge_cache"
 YAHOO_FALLBACK_SOURCE = "yahoo_public_fallback"
 REAL_MONEY_CANDLE_SOURCE = LONG_BRIDGE_CANDLE_SOURCE
 LONG_BRIDGE_TIMEOUT_SECONDS = int(os.getenv("KQUANT_LONGBRIDGE_TIMEOUT_SECONDS", "12"))
+LEGACY_REFERENCE_SOURCES = {
+    "live_yahoo_chart",
+    "stale_yahoo_chart_cache",
+    YAHOO_FALLBACK_SOURCE,
+    "yahoo_public",
+}
 PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
     "swing_long_v1": {
         "name": "swing_long_v1",
@@ -510,6 +518,70 @@ def preferred_market_data_provider() -> str:
     if longbridge_env_ready():
         return "longbridge"
     return "yahoo"
+
+
+def report_data_sources(payload: dict[str, Any]) -> set[str]:
+    """Return concrete data-source fields without treating policy prose as evidence."""
+    sources: set[str] = set()
+    source_keys = {"source_type", "cache_source", "default_source_type", "market_data_source"}
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key in source_keys and isinstance(child, str) and child:
+                    sources.add(child.strip().lower())
+                elif key == "provider" and isinstance(child, str) and child.strip().lower() == "yahoo_public":
+                    sources.add("yahoo_public")
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(payload)
+    return sources
+
+
+def report_data_class(payload: dict[str, Any]) -> str:
+    sources = report_data_sources(payload)
+    has_longbridge = any(source in {LONG_BRIDGE_CANDLE_SOURCE, LONG_BRIDGE_STALE_SOURCE} for source in sources)
+    has_yahoo = any(source in LEGACY_REFERENCE_SOURCES or "yahoo" in source for source in sources)
+    if has_yahoo and not has_longbridge:
+        return "legacy_reference"
+    if has_yahoo and has_longbridge:
+        return "mixed_reference"
+    if has_longbridge:
+        return "longbridge_primary"
+    return "unknown"
+
+
+def legacy_reference_summary(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "report_data_class": report_data_class(payload),
+        "run_id": payload.get("run_id"),
+        "completed_at": payload.get("completed_at") or payload.get("generated_at_utc"),
+        "source_types": sorted(report_data_sources(payload)),
+        "preserved_for_audit": True,
+    }
+
+
+def archive_legacy_reference_report(outputs_dir: Path, filename: str) -> None:
+    """Preserve an old Yahoo report without allowing it to remain the current result."""
+    report = outputs_dir / filename
+    if not report.exists():
+        return
+    try:
+        contents = report.read_bytes()
+        payload = json.loads(contents.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return
+    if report_data_class(payload) != "legacy_reference":
+        return
+    archive_dir = outputs_dir / "legacy-reference"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(contents).hexdigest()[:12]
+    target = archive_dir / f"{report.stem}-{digest}.json"
+    if not target.exists():
+        target.write_bytes(contents)
 
 
 def longbridge_env_ready() -> bool:
@@ -1355,7 +1427,7 @@ def api_stock_market_regime(source: str = "live", db_path: Path | None = None) -
         "provider_error_count": len(provider_errors),
         "provider_errors": provider_errors,
         "reasons": reasons,
-        "live_only_policy": "market regime uses live Yahoo public chart or stale real cache only",
+        "live_only_policy": "Longbridge is primary; Yahoo reference data cannot support buy eligibility.",
         "fixture_user_visible": False,
     }
 
@@ -1374,7 +1446,7 @@ def empty_market_regime(reason: str = "No market regime scan yet.") -> dict[str,
         "provider_error_count": 1,
         "provider_errors": [reason],
         "reasons": [reason],
-        "live_only_policy": "market regime uses live Yahoo public chart or stale real cache only",
+        "live_only_policy": "Longbridge is primary; Yahoo reference data cannot support buy eligibility.",
         "fixture_user_visible": False,
     }
 
@@ -1480,10 +1552,12 @@ def api_stock_live_data_health(
         "summary": summary,
         "daily_usability": live_health_usability(summary),
         "database": database_health_summary(db),
-        "live_only_policy": "live Yahoo public chart or stale real cache only; fixture is not user-visible",
+        "market_data_provider": preferred_market_data_provider(),
+        "live_only_policy": "Longbridge is primary; Yahoo reference data is audit-only and cannot support buy eligibility.",
         "fixture_user_visible": False,
         "universes_detail": universe_reports,
     }
+    payload["report_data_class"] = report_data_class(payload)
     write_stock_live_data_health_report(outputs, payload)
     return payload
 
@@ -1494,10 +1568,25 @@ def api_stock_live_data_health_latest(outputs_dir: Path | None = None) -> dict[s
     if report.exists():
         try:
             payload = json.loads(report.read_text(encoding="utf-8"))
+            if preferred_market_data_provider() == "longbridge" and report_data_class(payload) == "legacy_reference":
+                current = api_stock_live_data_health_latest_empty()
+                current.update(
+                    {
+                        "market_data_provider": "longbridge",
+                        "latest_cache_status": "legacy_reference",
+                        "legacy_reference": legacy_reference_summary(payload),
+                    }
+                )
+                return current
             payload["latest_cache_status"] = "available"
+            payload.setdefault("report_data_class", report_data_class(payload))
             return payload
         except json.JSONDecodeError:
             pass
+    return api_stock_live_data_health_latest_empty()
+
+
+def api_stock_live_data_health_latest_empty() -> dict[str, Any]:
     summary = {
         "symbol_count": 0,
         "timeframe_checks": 0,
@@ -1518,7 +1607,9 @@ def api_stock_live_data_health_latest(outputs_dir: Path | None = None) -> dict[s
         "summary": summary,
         "daily_usability": live_health_usability(summary),
         "database": {},
-        "live_only_policy": "latest health reads the last report only and never hits Yahoo",
+        "market_data_provider": preferred_market_data_provider(),
+        "report_data_class": "not_scanned",
+        "live_only_policy": "Latest health reads only a current report; Yahoo legacy records are audit-only.",
         "fixture_user_visible": False,
         "universes_detail": [],
         "latest_cache_status": "not_scanned",
@@ -1639,6 +1730,7 @@ def api_stock_signals(
     provider_errors: list[str] = []
     label_samples_by_symbol: dict[str, list[dict[str, Any]]] = {}
     market_regime = api_stock_market_regime(source=source, db_path=db)
+    market_regime = {**market_regime, "breadth": market_breadth_snapshot(db)}
     for symbol in symbols:
         primary = api_stock_candles(
             symbol,
@@ -1714,7 +1806,8 @@ def api_stock_signals(
         "provider_error_count": len(provider_errors),
         "provider_errors": provider_errors[:30],
         "market_regime": market_regime,
-        "live_only_policy": "user-facing stock terminal uses live Yahoo public chart or stale real cache only",
+        "market_data_provider": preferred_market_data_provider(),
+        "live_only_policy": "Longbridge is primary; Yahoo reference data is audit-only and cannot support buy eligibility.",
         "fixture_user_visible": False,
         "cache_source": LONG_BRIDGE_STALE_SOURCE
         if any(
@@ -1749,6 +1842,7 @@ def api_stock_signals(
         "broker_order_wiring_enabled": False,
         "_label_samples_by_symbol": label_samples_by_symbol,
     }
+    payload["report_data_class"] = report_data_class(payload)
     persist_signal_run(db, payload)
     write_reports(outputs, payload)
     return payload
@@ -1767,6 +1861,23 @@ def api_stock_signals_latest(
         try:
             payload = json.loads(report.read_text(encoding="utf-8"))
             if payload.get("source") == source and payload.get("universe") == universe and payload.get("profile", {}).get("name") == profile:
+                if preferred_market_data_provider() == "longbridge" and report_data_class(payload) == "legacy_reference":
+                    current = empty_signal_run(
+                        source=source,
+                        universe=universe,
+                        profile=profile,
+                        reason="A legacy Yahoo report was isolated. Run a Longbridge live scan.",
+                    )
+                    current.update(
+                        {
+                            "latest_cache_status": "legacy_reference",
+                            "legacy_reference": legacy_reference_summary(payload),
+                            "market_data_provider": "longbridge",
+                        }
+                    )
+                    return current
+                payload.setdefault("report_data_class", report_data_class(payload))
+                payload["latest_cache_status"] = "available"
                 return payload
         except json.JSONDecodeError:
             pass
@@ -1849,6 +1960,22 @@ def api_stock_analyze(
     signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
     signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
     signal["ai_feature_packet_v3"] = build_ai_feature_packet_v3(signal, quote, market_regime)
+    signal["event_context"] = corporate_event_context(
+        db,
+        normalized_symbol,
+        as_of=str(signal.get("data_status", {}).get("daily_candle_time") or ""),
+    )
+    factor_snapshot = build_factor_snapshot(signal, market_regime)
+    persist_factor_snapshot(db, factor_snapshot)
+    signal["factor_snapshot"] = factor_snapshot
+    signal["decision_evidence"] = decision_evidence(factor_snapshot, signal)
+    signal["ai_feature_packet_v3"]["factor_snapshot"] = {
+        "factor_snapshot_hash": factor_snapshot["factor_snapshot_hash"],
+        "registry_version": factor_snapshot["registry_version"],
+        "supporting_factors": factor_snapshot["supporting_factors"],
+        "opposing_factors": factor_snapshot["opposing_factors"],
+        "unavailable_factors": factor_snapshot["unavailable_factors"],
+    }
     return {
         "product": "KQUANT US Stock Signal Terminal",
         "symbol": normalized_symbol,
@@ -1882,6 +2009,8 @@ def api_stock_analyze(
         "primary_candles": candle_payload_meta(primary),
         "confirmation_candles": candle_payload_meta(confirmation),
         "signal": signal,
+        "factor_snapshot": factor_snapshot,
+        "decision_evidence": signal["decision_evidence"],
         "market_regime": market_regime,
         "realtime_quote": quote,
         "journal_summary": api_stock_signal_journal(db_path=db, symbol=normalized_symbol, limit=10)["summary"],
@@ -1947,6 +2076,7 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
     context = ai_review_context(symbol, profile, signal_payload, profile_comparison, journal)
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not api_key:
+        record_ai_runtime_health("missing_key", "OPENAI_API_KEY is not configured on the backend.")
         return {
             "product": "KQUANT AI Review Assistant",
             "status": "ai_review_unavailable",
@@ -1974,10 +2104,13 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
         review = sanitize_ai_review(json.loads(text), signal_payload)
         status = "available"
         reason = "ok"
+        record_ai_runtime_health("available", "Model request completed successfully.")
     except Exception as exc:
         review = unavailable_ai_review(signal_payload, f"AI review request failed: {type(exc).__name__}")
         status = "ai_review_unavailable"
         reason = str(exc)[:240]
+        runtime_status, runtime_reason = classify_ai_failure(exc)
+        record_ai_runtime_health(runtime_status, runtime_reason)
     return {
         "product": "KQUANT AI Review Assistant",
         "status": status,
@@ -2090,6 +2223,13 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
     veto = ai_hard_veto(signal_payload, market_regime)
     safety = ai_agent_safety_policy(veto)
     material_state_hash = _ai_material_state_hash(signal_payload, veto)
+    model_audit = {
+        "model": model,
+        "prompt_version": "transparent_factor_decision_v1",
+        "factor_snapshot_hash": (signal_payload.get("factor_snapshot") or {}).get("factor_snapshot_hash"),
+        "permitted_actions": sorted(ai_agent_safety_policy(veto).get("allowed_actions") or []),
+        "material_state_hash": material_state_hash,
+    }
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     force_regenerate = bool(payload.get("force_regenerate"))
     if api_key and not force_regenerate:
@@ -2112,6 +2252,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
                 },
             }
     if not api_key:
+        record_ai_runtime_health("missing_key", "OPENAI_API_KEY is not configured on the backend.")
         decision = unavailable_ai_decision(signal_payload, veto, "OPENAI_API_KEY is not configured.")
         result = {
             "product": "KQUANT AI Trading Agent",
@@ -2135,6 +2276,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
             "probe_blockers": decision.get("probe_blockers", signal_payload.get("probe_blockers", [])),
             "hard_veto": veto,
             "safety_policy": safety,
+            "model_audit": {**model_audit, "request_status": "missing_key"},
         }
         result["action_event_key"] = persist_ai_action_event(
             db,
@@ -2143,6 +2285,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
             signal=signal_payload,
             decision=decision,
             market_regime=market_regime,
+            model_audit=result["model_audit"],
         )
         return result
     try:
@@ -2161,10 +2304,13 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         decision = sanitize_ai_decision(json.loads(text), signal_payload, veto)
         status = "available"
         reason = "ok"
+        record_ai_runtime_health("available", "Model request completed successfully.")
     except Exception as exc:
         decision = unavailable_ai_decision(signal_payload, veto, f"AI decision request failed: {type(exc).__name__}")
         status = "ai_unavailable"
         reason = str(exc)[:240]
+        runtime_status, runtime_reason = classify_ai_failure(exc)
+        record_ai_runtime_health(runtime_status, runtime_reason)
     result = {
         "product": "KQUANT AI Trading Agent",
         "status": status,
@@ -2187,6 +2333,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         "probe_blockers": decision.get("probe_blockers", signal_payload.get("probe_blockers", [])),
         "hard_veto": veto,
         "safety_policy": safety,
+        "model_audit": {**model_audit, "request_status": status},
     }
     result["action_event_key"] = persist_ai_action_event(
         db,
@@ -2195,6 +2342,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         signal=signal_payload,
         decision=decision,
         market_regime=market_regime,
+        model_audit=result["model_audit"],
     )
     result["cache"] = {
         "hit": False,
@@ -2541,16 +2689,51 @@ def enrich_ai_daily_report_freshness(payload: dict[str, Any], max_age_seconds: i
     }
 
 
+AI_RUNTIME_HEALTH: dict[str, Any] = {
+    "status": "not_checked",
+    "reason": "No model request has completed in this backend process.",
+    "checked_at": None,
+}
+
+
+def record_ai_runtime_health(status: str, reason: str) -> None:
+    AI_RUNTIME_HEALTH.update(
+        {
+            "status": status,
+            "reason": reason[:240],
+            "checked_at": iso_now(),
+        }
+    )
+
+
+def ai_runtime_health() -> dict[str, Any]:
+    return dict(AI_RUNTIME_HEALTH)
+
+
+def classify_ai_failure(exc: Exception) -> tuple[str, str]:
+    response = getattr(exc, "response", None)
+    status_code = getattr(response, "status_code", None)
+    if status_code == 401:
+        return "authentication_failed", "Model credentials were rejected by the provider. Update the backend key and restart."
+    if status_code == 429:
+        return "rate_limited", "The model provider rate-limited the request. Try again later."
+    if isinstance(exc, requests.Timeout):
+        return "timeout", "The model provider did not respond before the request timeout."
+    return "service_error", f"Model service request failed: {type(exc).__name__}"
+
+
 def api_stock_ai_review_status() -> dict[str, Any]:
     review_model = os.environ.get("KQUANT_AI_REVIEW_MODEL", "gpt-5.4").strip() or "gpt-5.4"
     batch_model = os.environ.get("KQUANT_AI_BATCH_MODEL", "gpt-5.4-mini").strip() or "gpt-5.4-mini"
     deep_model = os.environ.get("KQUANT_AI_DEEP_MODEL", "gpt-5.5").strip() or "gpt-5.5"
     research_model = os.environ.get("KQUANT_AI_RESEARCH_MODEL", "").strip() or "gpt-5.5-pro"
     has_key = bool(os.environ.get("OPENAI_API_KEY", "").strip())
+    runtime = ai_runtime_health()
     return {
         "product": "KQUANT AI Trading Agent",
-        "status": "available" if has_key else "missing_key",
-        "reason": "OPENAI_API_KEY is configured." if has_key else "OPENAI_API_KEY is not configured on the backend.",
+        "status": runtime["status"] if has_key else "missing_key",
+        "reason": runtime["reason"] if has_key else "OPENAI_API_KEY is not configured on the backend.",
+        "runtime": runtime,
         "setup_hint": "Set OPENAI_API_KEY in the local backend environment and restart KQUANT. Never put this key in web/, GitHub, or Vercel frontend variables.",
         "models": {
             "review": review_model,
@@ -2563,7 +2746,7 @@ def api_stock_ai_review_status() -> dict[str, Any]:
         "read_only_research": True,
         "llm_signal_core_enabled": True,
         "ai_review_only": False,
-        "ai_decision_engine_enabled": has_key,
+        "ai_decision_engine_enabled": has_key and runtime["status"] != "authentication_failed",
         "daily_opportunity_agent_enabled": has_key,
         "deep_research_chat_enabled": has_key,
         "hard_rule_veto_enabled": True,
@@ -2731,7 +2914,9 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "provider_error_count": 0,
         "provider_errors": [reason],
         "market_regime": empty_market_regime(reason),
-        "live_only_policy": "user-facing stock terminal uses live Yahoo public chart or stale real cache only",
+        "market_data_provider": preferred_market_data_provider(),
+        "report_data_class": "not_scanned",
+        "live_only_policy": "Longbridge is primary; Yahoo reference data is audit-only and cannot support buy eligibility.",
         "fixture_user_visible": False,
         "cache_source": "none",
         "stale_signal_count": 0,
@@ -4705,6 +4890,7 @@ def persist_ai_action_event(
     signal: dict[str, Any],
     decision: dict[str, Any],
     market_regime: dict[str, Any],
+    model_audit: dict[str, Any] | None = None,
 ) -> str:
     action = str(decision.get("action") or "AI_WAIT")
     packet_v3 = signal.get("ai_feature_packet_v3") or {}
@@ -4739,6 +4925,7 @@ def persist_ai_action_event(
         "signal": signal,
         "decision": decision,
         "market_regime": market_regime,
+        "model_audit": model_audit or {},
         "recording_policy": "prospective_ai_action_event_v1",
     }
     with connect(db_path) as conn:
@@ -4977,7 +5164,9 @@ def write_ai_action_validation_report(outputs_dir: Path, payload: dict[str, Any]
 
 def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
+    archive_legacy_reference_report(outputs_dir, "stock-signals-report.json")
     public_payload = {key: value for key, value in payload.items() if not key.startswith("_")}
+    public_payload.setdefault("report_data_class", report_data_class(public_payload))
     (outputs_dir / "stock-signals-report.json").write_text(json.dumps(public_payload, indent=2), encoding="utf-8")
     validation = payload.get("historical_validation", {})
     profile_validation = payload.get("validation_by_strategy_profile", {})
@@ -5204,7 +5393,10 @@ def write_ai_daily_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
 
 def write_stock_live_data_health_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
-    (outputs_dir / "stock-live-data-health.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    archive_legacy_reference_report(outputs_dir, "stock-live-data-health.json")
+    public_payload = dict(payload)
+    public_payload.setdefault("report_data_class", report_data_class(public_payload))
+    (outputs_dir / "stock-live-data-health.json").write_text(json.dumps(public_payload, indent=2), encoding="utf-8")
     summary = payload["summary"]
     database = payload["database"]
     usability = payload.get("daily_usability", {})
@@ -5945,6 +6137,9 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
             "what_invalidates_this_setup": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
             "best_profile": {"type": "string"},
             "human_checklist": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
+            "supporting_factor_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+            "opposing_factor_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+            "blocker_factor_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
             "summary": {"type": "string"},
         },
         "required": [
@@ -5960,6 +6155,9 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
             "what_invalidates_this_setup",
             "best_profile",
             "human_checklist",
+            "supporting_factor_ids",
+            "opposing_factor_ids",
+            "blocker_factor_ids",
             "summary",
         ],
     }
@@ -5967,7 +6165,9 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
         "You are KQUANT AI Primary Trade Engine v3. You lead opportunity recognition and manual trade planning, "
         "while remaining strictly read-only. Treat ai_feature_packet_v3 as the primary structured trading input, "
         "including realtime quote freshness, closed/forming bars, 1D/1H summaries, EMA8/9/20/50/200, VWAP, RSI14, "
-        "volume, ATR, relative-strength context, action validation, and market regime. Never treat a forming bar as a closed signal. "
+        "volume, ATR, relative-strength context, action validation, and market regime. FactorSnapshot is authoritative: "
+        "cite only factor IDs present in factor_snapshot.factors, never invent an indicator or hidden factor. "
+        "Never treat a forming bar as a closed signal. "
         "Use rule_trade_plans as the deterministic baseline, but improve or reject the plan if the evidence demands it. "
         "The rule conclusion is a guardrail input, not the final decision. If hard_veto.active is true, do not output "
         "AI_BUY_CANDIDATE, AI_PULLBACK_BUY, or AI_PROBE_BUY. AI_PROBE_BUY means a starter-position research candidate, "
@@ -6059,6 +6259,15 @@ def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto:
         historical_edge=signal.get("historical_edge") or {},
         hard_veto_active=bool(veto.get("active")),
     )
+    snapshot = signal.get("factor_snapshot") or {}
+    valid_factor_ids = {str(entry.get("factor_id")) for entry in snapshot.get("factors", []) if entry.get("factor_id")}
+
+    def factor_ids(key: str, fallback_key: str) -> list[str]:
+        requested = decision.get(key)
+        if not isinstance(requested, list):
+            requested = snapshot.get(fallback_key, [])
+        return [str(item) for item in requested if str(item) in valid_factor_ids][:3]
+
     return {
         "action": action,
         "confidence": confidence,
@@ -6072,6 +6281,10 @@ def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto:
         "what_invalidates_this_setup": safe_string_list(decision.get("what_invalidates_this_setup"), 6),
         "best_profile": str(decision.get("best_profile") or signal.get("profile_name") or "")[:80],
         "human_checklist": safe_string_list(decision.get("human_checklist"), 6),
+        "supporting_factor_ids": factor_ids("supporting_factor_ids", "supporting_factors"),
+        "opposing_factor_ids": factor_ids("opposing_factor_ids", "opposing_factors"),
+        "blocker_factor_ids": factor_ids("blocker_factor_ids", "unavailable_factors"),
+        "factor_snapshot_hash": snapshot.get("factor_snapshot_hash"),
         "summary": str(decision.get("summary") or "AI decision generated for manual review only.")[:600],
         "rule_action": rule_action,
         "hard_veto_applied": bool(veto.get("active")),
@@ -6124,6 +6337,7 @@ def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason
         historical_edge=signal.get("historical_edge") or {},
         hard_veto_active=bool(veto.get("active")),
     )
+    snapshot = signal.get("factor_snapshot") or {}
     return {
         "action": action,
         "confidence": "LOW",
@@ -6144,6 +6358,10 @@ def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason
             "Check rule conclusion, market regime, and exit risk.",
             "Save a journal plan before acting manually.",
         ],
+        "supporting_factor_ids": list(snapshot.get("supporting_factors") or [])[:3],
+        "opposing_factor_ids": list(snapshot.get("opposing_factors") or [])[:3],
+        "blocker_factor_ids": list(snapshot.get("unavailable_factors") or [])[:3],
+        "factor_snapshot_hash": snapshot.get("factor_snapshot_hash"),
         "summary": reason,
         "rule_action": rule_action,
         "hard_veto_applied": bool(veto.get("active")),

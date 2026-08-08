@@ -37,6 +37,8 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-07-26"
+    assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
 
 
 def test_removed_legacy_paths_are_not_registered(tmp_path: Path) -> None:
@@ -95,6 +97,30 @@ def test_manual_workflow_routes_remain_research_only(tmp_path: Path) -> None:
     notification = client.post("/api/stocks/notifications", json={"event_type": "data_anomaly", "payload": {"symbol": "NVDA"}})
     assert notification.status_code == 200
     assert notification.json()["secret_values_stored"] is False
+
+
+def test_today_and_production_routes_fail_safe_without_forward_evidence(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "kquant.dashboard.app.api_stock_signals_latest",
+        lambda **_: {
+            "run_id": "run-1", "provider_status": "available", "provider_error_count": 0,
+            "daily_candidates": {"buy_setups": [{"symbol": "NVDA", "rank": 1}], "watch": []},
+            "market_regime": {"regime": "RISK_ON", "label": "Risk On", "score": 80},
+            "strategy_version": "swing_long_v1.1.0",
+        },
+    )
+    monkeypatch.setattr("kquant.dashboard.app.api_stock_market_data_status", lambda *_: {"status": "available"})
+    monkeypatch.setattr("kquant.dashboard.app.api_stock_ai_review_status", lambda: {"status": "available"})
+    monkeypatch.setattr("kquant.dashboard.app.api_strategy_validation_latest", lambda *_: {"evidence": {"historical_policy_replay": {"summary": {}}}})
+    client = TestClient(_app(tmp_path))
+    today = client.get("/api/stocks/today-workbench").json()
+    assert today["decision"] == "NO_TRADE"
+    live = client.post(
+        "/api/stocks/manual-live-readiness",
+        json={"instrument_type": "common_stock", "risk_per_trade_pct": 0.25, "manual_trades_today": 0, "data_clean": True, "hard_veto_active": False},
+    ).json()
+    assert live["status"] == "blocked"
+    assert live["broker_execution_present"] is False
 
 
 def test_kquant_runtime_does_not_import_legacy_package() -> None:
