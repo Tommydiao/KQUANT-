@@ -1,4 +1,4 @@
-const STATIC_CACHE = "kquant-static-v3";
+const STATIC_CACHE = "kquant-static-realtime-options-v1";
 
 function isStaticAsset(url) {
   if (url.origin !== self.location.origin) return false;

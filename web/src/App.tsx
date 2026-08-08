@@ -2,6 +2,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  BellRing,
   CheckCircle2,
   KeyRound,
   Languages,
@@ -73,7 +74,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-07-26";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-08-realtime-options-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -827,6 +828,68 @@ type TodayWorkbenchPayload = {
   read_only_research: boolean;
   automatic_execution_allowed: boolean;
   order_submission_enabled: boolean;
+};
+
+type TradeInstructionPayload = {
+  instruction_id: string;
+  symbol: string;
+  state: "MONITORING" | "READY" | "TRIGGERED" | "INVALIDATED" | "EXPIRED" | "EXIT_REVIEW" | string;
+  action: string;
+  severity: "INFO" | "ACTION" | "RISK" | "CRITICAL" | string;
+  quote_time?: string | null;
+  data_source: string;
+  plan: {
+    observed_price?: number | null;
+    bid?: number | null;
+    ask?: number | null;
+    entry_low?: number | null;
+    entry_high?: number | null;
+    stop?: number | null;
+    target_low?: number | null;
+    target_high?: number | null;
+    risk_reward_value?: number | null;
+  };
+  evidence: { blockers?: string[]; data_eligible?: boolean; bbo_valid?: boolean };
+  created_at: string;
+};
+
+type AlertEventPayload = {
+  alert_id: string;
+  instruction_id?: string | null;
+  symbol: string;
+  severity: "INFO" | "ACTION" | "RISK" | "CRITICAL" | string;
+  title: string;
+  message: string;
+  acknowledged_at?: string | null;
+  created_at: string;
+};
+
+type OptionExpressionCandidate = {
+  candidate_id: string;
+  contract_symbol: string;
+  expiry_date: string;
+  strike_price: number;
+  bid?: number | null;
+  ask?: number | null;
+  delta?: number | null;
+  implied_volatility?: number | null;
+  open_interest?: number;
+  volume?: number;
+  spread_pct?: number | null;
+  status: "eligible" | "paper_only" | "blocked" | string;
+  score: number;
+  max_loss: number;
+  breakeven: number;
+  underlying_price?: number;
+  blockers: string[];
+};
+
+type OptionCandidatesPayload = {
+  symbol: string;
+  status: string;
+  candidates: OptionExpressionCandidate[];
+  event_calendar_ready?: boolean;
+  blockers?: string[];
 };
 
 type ProductionReadinessPayload = {
@@ -1977,6 +2040,12 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
   const [mondayReadinessReport, setMondayReadinessReport] = useState<MondayReadinessReport | null>(null);
   const [todayWorkbench, setTodayWorkbench] = useState<TodayWorkbenchPayload | null>(null);
   const [productionReadiness, setProductionReadiness] = useState<ProductionReadinessPayload | null>(null);
+  const [tradeInstructions, setTradeInstructions] = useState<TradeInstructionPayload[]>([]);
+  const [realtimeAlerts, setRealtimeAlerts] = useState<AlertEventPayload[]>([]);
+  const [unreadAlertCount, setUnreadAlertCount] = useState(0);
+  const [optionCandidates, setOptionCandidates] = useState<OptionCandidatesPayload | null>(null);
+  const [optionCandidateState, setOptionCandidateState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [optionPaperMessage, setOptionPaperMessage] = useState("");
   const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("today");
   const [researchOpen, setResearchOpen] = useState(() => window.innerWidth >= 1080);
@@ -2053,6 +2122,24 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
     void loadMondayReadinessReport();
     void loadTodayWorkbench();
     void loadProductionReadiness();
+    void loadRealtimeCommandCenter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const source = new EventSource(apiUrl("/api/alerts/stream"), { withCredentials: true });
+    const handleAlert = (message: MessageEvent<string>) => {
+      try {
+        const alert = JSON.parse(message.data) as AlertEventPayload;
+        setRealtimeAlerts((current) => [alert, ...current.filter((item) => item.alert_id !== alert.alert_id)].slice(0, 20));
+        setUnreadAlertCount((count) => count + 1);
+        void loadRealtimeCommandCenter();
+      } catch {
+        // Ignore malformed external stream messages; persisted alerts remain available through the REST endpoint.
+      }
+    };
+    source.addEventListener("alert", handleAlert as EventListener);
+    return () => source.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2141,8 +2228,70 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
     setAiReviewState("idle");
     setResearchChatInput("");
     setResearchChatState("idle");
+    setOptionCandidates(null);
+    setOptionCandidateState("idle");
+    setOptionPaperMessage("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.symbol, primaryPresetKey, confirmationPresetKey]);
+
+  async function loadRealtimeCommandCenter() {
+    try {
+      const [instructionResponse, alertResponse] = await Promise.all([
+        apiFetch("/api/instructions/current?limit=30"),
+        apiFetch("/api/alerts?limit=20"),
+      ]);
+      if (!instructionResponse.ok || !alertResponse.ok) throw new Error("Realtime command center unavailable");
+      const instructions = (await instructionResponse.json()) as { instructions?: TradeInstructionPayload[] };
+      const alerts = (await alertResponse.json()) as { alerts?: AlertEventPayload[]; unread_count?: number };
+      setTradeInstructions(instructions.instructions ?? []);
+      setRealtimeAlerts(alerts.alerts ?? []);
+      setUnreadAlertCount(alerts.unread_count ?? 0);
+    } catch {
+      setTradeInstructions([]);
+    }
+  }
+
+  async function acknowledgeRealtimeAlert(alertId: string) {
+    const response = await apiFetch(`/api/alerts/${encodeURIComponent(alertId)}/ack`, { method: "POST" });
+    if (!response.ok) return;
+    setRealtimeAlerts((current) => current.map((item) => item.alert_id === alertId ? { ...item, acknowledged_at: new Date().toISOString() } : item));
+    setUnreadAlertCount((count) => Math.max(0, count - 1));
+  }
+
+  async function loadOptionCandidatesForSelected() {
+    try {
+      setOptionCandidateState("loading");
+      const response = await apiFetch(`/api/options/candidates?symbol=${encodeURIComponent(selected.symbol)}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setOptionCandidates((await response.json()) as OptionCandidatesPayload);
+      setOptionCandidateState("ready");
+    } catch {
+      setOptionCandidates({ symbol: selected.symbol, status: "blocked", candidates: [], blockers: [lang === "zh" ? "期权行情或事件日历暂不可用。" : "Options data or the event calendar is unavailable."] });
+      setOptionCandidateState("error");
+    }
+  }
+
+  async function startOptionPaperObservation(candidate: OptionExpressionCandidate) {
+    try {
+      setOptionPaperMessage(lang === "zh" ? "正在建立观察记录…" : "Creating observation…");
+      const response = await apiFetch("/api/options/paper-observations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "open",
+          candidate_id: candidate.candidate_id,
+          underlying_price: candidate.underlying_price ?? realtimeSnapshot?.quote.last ?? 0,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(String(error.detail || `HTTP ${response.status}`));
+      }
+      setOptionPaperMessage(lang === "zh" ? "已建立一张合约的本地观察记录。" : "One-contract local observation created.");
+    } catch (error) {
+      setOptionPaperMessage(error instanceof Error ? error.message : (lang === "zh" ? "建立观察记录失败。" : "Could not create observation."));
+    }
+  }
 
   useEffect(() => {
     if (view !== "stocks" || apiConnection !== "connected") return;
@@ -2951,6 +3100,20 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
 
       <>
       <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
+      <RealtimeCommandCenter
+        instructions={tradeInstructions}
+        alerts={realtimeAlerts}
+        unreadCount={unreadAlertCount}
+        selectedSymbol={selected.symbol}
+        optionCandidates={optionCandidates}
+        optionState={optionCandidateState}
+        lang={lang}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+        onAcknowledge={(alertId) => void acknowledgeRealtimeAlert(alertId)}
+        onLoadOptions={() => void loadOptionCandidatesForSelected()}
+        onStartPaper={(candidate) => void startOptionPaperObservation(candidate)}
+        optionPaperMessage={optionPaperMessage}
+      />
       <TodayDecisionPanel
         payload={todayWorkbench}
         onPick={(symbol) => void analyzeSymbol(symbol)}
@@ -3720,6 +3883,112 @@ function SettingsPanel({
         <div className="settings-card wide">
           <strong>{text.journalDesign}</strong>
           <p>{text.journalDesignText}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RealtimeCommandCenter({
+  instructions,
+  alerts,
+  unreadCount,
+  selectedSymbol,
+  optionCandidates,
+  optionState,
+  lang,
+  onPick,
+  onAcknowledge,
+  onLoadOptions,
+  onStartPaper,
+  optionPaperMessage,
+}: {
+  instructions: TradeInstructionPayload[];
+  alerts: AlertEventPayload[];
+  unreadCount: number;
+  selectedSymbol: string;
+  optionCandidates: OptionCandidatesPayload | null;
+  optionState: "idle" | "loading" | "ready" | "error";
+  lang: Lang;
+  onPick: (symbol: string) => void;
+  onAcknowledge: (alertId: string) => void;
+  onLoadOptions: () => void;
+  onStartPaper: (candidate: OptionExpressionCandidate) => void;
+  optionPaperMessage: string;
+}) {
+  const active = instructions.find((item) => item.symbol === selectedSymbol) ?? instructions[0];
+  const instructionLabel: Record<string, string> = lang === "zh"
+    ? { MONITORING: "观察中", READY: "进入计划区", TRIGGERED: "可人工复核", INVALIDATED: "计划失效", EXPIRED: "计划过期", EXIT_REVIEW: "复核退出" }
+    : { MONITORING: "Monitoring", READY: "In plan zone", TRIGGERED: "Review now", INVALIDATED: "Invalidated", EXPIRED: "Expired", EXIT_REVIEW: "Review exit" };
+  const instructionTone = active?.state === "TRIGGERED" ? "action" : active?.state === "EXIT_REVIEW" ? "risk" : "info";
+  return (
+    <section className="realtime-command-center" aria-label={lang === "zh" ? "主动交易指令中心" : "Live instruction center"}>
+      <div className="command-center-head">
+        <div>
+          <span>{lang === "zh" ? "主动预警" : "Live alerts"}</span>
+          <h2>{lang === "zh" ? "人工复核指令中心" : "Manual review instructions"}</h2>
+          <p>{lang === "zh" ? "系统持续监控闭合 K 线与实时买卖盘，只推送需要你确认的计划，不连接账户，也不会下单。" : "KQUANT monitors closed candles and live BBO, then pushes plans for your review. It never connects to an account or submits an order."}</p>
+        </div>
+        <div className="command-live-badge"><BellRing size={17} /><strong>{unreadCount}</strong><span>{lang === "zh" ? "条未读" : "unread"}</span></div>
+      </div>
+
+      <div className="command-center-grid">
+        <div className={`instruction-focus ${instructionTone}`}>
+          <div className="command-section-title"><strong>{lang === "zh" ? "当前指令" : "Current instruction"}</strong><span>{instructions.length}</span></div>
+          {active ? (
+            <>
+              <button type="button" className="instruction-symbol" onClick={() => onPick(active.symbol)}>
+                <span>{active.symbol}</span>
+                <strong>{instructionLabel[active.state] ?? active.state}</strong>
+              </button>
+              <div className="instruction-price-grid">
+                <Fact label={lang === "zh" ? "现价" : "Last"} value={formatPrice(active.plan.observed_price)} />
+                <Fact label={lang === "zh" ? "入场区" : "Entry"} value={`${formatPrice(active.plan.entry_low)} - ${formatPrice(active.plan.entry_high)}`} />
+                <Fact label={lang === "zh" ? "止损" : "Stop"} value={formatPrice(active.plan.stop)} />
+                <Fact label={lang === "zh" ? "目标" : "Target"} value={formatPrice(active.plan.target_low)} />
+              </div>
+              <p className="instruction-next">{active.state === "TRIGGERED"
+                ? (lang === "zh" ? "下一步：核对报价、止损和日志后，由你决定是否在外部券商手工执行。" : "Next: verify BBO, stop, and journal, then decide manually outside KQUANT.")
+                : (active.evidence.blockers?.[0] ?? (lang === "zh" ? "等待价格与确认条件变化。" : "Wait for the next material state change."))}</p>
+            </>
+          ) : <p className="command-empty">{lang === "zh" ? "还没有有效指令。后台会在合格候选出现后主动推送。" : "No active instruction yet. The supervisor will push one when a qualified setup appears."}</p>}
+        </div>
+
+        <div className="alert-inbox">
+          <div className="command-section-title"><strong>{lang === "zh" ? "最新预警" : "Latest alerts"}</strong><span>{unreadCount}</span></div>
+          <div className="alert-list">
+            {alerts.slice(0, 4).map((alert) => (
+              <div className={`alert-row severity-${alert.severity.toLowerCase()} ${alert.acknowledged_at ? "acknowledged" : ""}`} key={alert.alert_id}>
+                <button type="button" className="alert-main" onClick={() => onPick(alert.symbol)}>
+                  <b>{alert.symbol}</b><span>{alert.title}</span><small>{formatDateTimeUtc8(alert.created_at, { withDate: true })}</small>
+                </button>
+                {!alert.acknowledged_at ? <button type="button" className="ack-alert" onClick={() => onAcknowledge(alert.alert_id)} title={lang === "zh" ? "标记已读" : "Acknowledge"}><CheckCircle2 size={15} /></button> : null}
+              </div>
+            ))}
+            {!alerts.length ? <p className="command-empty">{lang === "zh" ? "暂无预警。" : "No alerts yet."}</p> : null}
+          </div>
+        </div>
+
+        <div className="option-expression-panel">
+          <div className="command-section-title"><strong>{lang === "zh" ? "期权表达" : "Options expression"}</strong><span>{selectedSymbol}</span></div>
+          <p>{lang === "zh" ? "只筛选 14-45 天、流动性合格的单腿看涨期权。当前仅做一张合约的本地观察模拟。" : "Screens liquid 14-45 DTE single-leg calls. One-contract local observation only."}</p>
+          <button type="button" className="option-load-button" onClick={onLoadOptions} disabled={optionState === "loading"}>
+            {optionState === "loading" ? <RefreshCw className="spin" size={15} /> : <TrendingUp size={15} />}
+            {lang === "zh" ? "检查期权候选" : "Check option candidates"}
+          </button>
+          {optionCandidates?.candidates?.[0] ? (
+            <div className={`option-candidate-summary ${optionCandidates.candidates[0].status}`}>
+              <strong>{optionCandidates.candidates[0].contract_symbol}</strong>
+              <span>{optionCandidates.candidates[0].expiry_date} / Δ {formatNumber(optionCandidates.candidates[0].delta)}</span>
+              <small>{lang === "zh" ? "最大权利金风险" : "Max premium risk"} ${formatNumber(optionCandidates.candidates[0].max_loss)}</small>
+              {optionCandidates.candidates[0].status === "eligible" ? (
+                <button type="button" className="option-paper-button" onClick={() => onStartPaper(optionCandidates.candidates[0])}>
+                  {lang === "zh" ? "加入一张合约观察" : "Observe one contract"}
+                </button>
+              ) : null}
+            </div>
+          ) : optionCandidates ? <p className="option-blocker">{optionCandidates.blockers?.[0] ?? (lang === "zh" ? "当前没有合格期权候选。" : "No eligible option candidate.")}</p> : null}
+          {optionPaperMessage ? <p className="option-paper-message">{optionPaperMessage}</p> : null}
         </div>
       </div>
     </section>
@@ -6451,6 +6720,10 @@ function clamp(value: number, min: number, max: number) {
 function formatNumber(value: number | null | undefined) {
   if (value === undefined || value === null || Number.isNaN(value)) return "-";
   return value.toFixed(value > 50 ? 2 : 1);
+}
+
+function formatPrice(value: number | null | undefined): string {
+  return value == null || !Number.isFinite(value) ? "-" : `$${value.toFixed(2)}`;
 }
 
 function formatSigned(value: number | null | undefined) {
