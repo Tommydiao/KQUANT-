@@ -2197,7 +2197,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
 
   useEffect(() => {
     if (view === "stocks") {
-      void analyzeSymbol(selectedSymbol || "SPY", { keepSearch: true });
+      void analyzeSymbol(selectedSymbol || "SPY", { keepSearch: true, preserveWorkspace: true });
       void loadSignals(false);
       void loadMarketRegime();
       void loadTodayWorkbench();
@@ -2522,12 +2522,12 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
     setStockJournal(payload.journal as StockJournalPayload);
   }
 
-  async function analyzeSymbol(rawSymbol: string, options: { keepSearch?: boolean } = {}) {
+  async function analyzeSymbol(rawSymbol: string, options: { keepSearch?: boolean; preserveWorkspace?: boolean } = {}) {
     const symbol = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
     if (!symbol) return;
     const requestId = ++analyzeRequestRef.current;
     setView("stocks");
-    setActiveWorkspace("stock");
+    if (!options.preserveWorkspace) setActiveWorkspace("stock");
     setSelectedSymbol(symbol);
     setAnalysisState("loading");
     setAiDecision(null);
