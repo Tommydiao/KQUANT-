@@ -4,6 +4,7 @@ import argparse
 import getpass
 import json
 import secrets
+import os
 from pathlib import Path
 
 from .database_migrations import migration_readiness
@@ -21,7 +22,23 @@ from .stock_store import default_db_path
 from .validation_service import api_strategy_validation_latest, run_strategy_validation
 
 
+def load_local_environment(path: Path = Path(".env")) -> None:
+    """Load local-only CLI configuration without overriding the current process environment."""
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        name = name.strip()
+        value = value.strip().strip('"').strip("'")
+        if name and value and name not in os.environ:
+            os.environ[name] = value
+
+
 def main() -> None:
+    load_local_environment()
     parser = argparse.ArgumentParser(prog="python -m kquant")
     sub = parser.add_subparsers(dest="command", required=True)
     scan = sub.add_parser("stock-scan", help="Run the US stock signal scan.")
