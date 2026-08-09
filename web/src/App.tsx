@@ -74,7 +74,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-08-realtime-options-v1";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-09-early-trend-push-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -92,6 +92,47 @@ type AuthSession = {
   authenticated: boolean;
   mode: "not_required" | "local_email_password" | "setup_required" | string;
   expires_at?: number | null;
+};
+
+type EarlyTrendPayload = {
+  symbol: string;
+  strategy_stage: "NOT_READY" | "EARLY_WATCH" | "ARMED" | "BUY_REVIEW" | "LATE_WAIT_PULLBACK" | "INVALIDATED";
+  setup_score: number;
+  trigger_score: number | null;
+  setup_as_of: string | null;
+  confirmation_as_of: string | null;
+  summary: string;
+  pullback_zone: [number, number] | null;
+  invalidation_price: number | null;
+  setup_factors: Array<{ factor_id: string; contribution: number; maximum: number; detail: string }>;
+  execution_eligibility: {
+    status: string;
+    eligible_for_manual_review: boolean;
+    paper_only: boolean;
+    blockers: string[];
+  };
+  lead_time_evidence: {
+    status: string;
+    historical_setup_trades: number;
+    prospective_trigger_results: number;
+    buy_review_activation_ready: boolean;
+  };
+};
+
+type WebPushStatus = {
+  enabled: boolean;
+  configured: boolean;
+  active_subscriptions: number;
+  ios_requirement: string;
+  preferences: NotificationPreferences;
+};
+
+type NotificationPreferences = {
+  web_push_enabled: boolean;
+  quiet_start: string;
+  quiet_end: string;
+  timezone: string;
+  daily_routine_limit: number;
 };
 
 type Candle = {
@@ -2007,7 +2048,8 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
   const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset:v2", "1h");
   const [run, setRun] = useState<SignalRun>(() => makeUnavailableSignalRun(selectedUniverse));
   const [universe, setUniverse] = useState<UniverseStock[]>(() => stocksForUniverse(selectedUniverse));
-  const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", "NVDA");
+  const linkedSymbol = initialUrlSymbol();
+  const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", linkedSymbol ?? "NVDA", Boolean(linkedSymbol));
   const [searchText, setSearchText] = useState("");
   const [recentSearches, setRecentSearches] = useStoredState<string>("kquant-stock:recent-searches:v1", "NVDA,MSTR,SPY");
   const primaryPreset = chartPresetByKey(primaryPresetKey);
@@ -2046,8 +2088,9 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
   const [optionCandidates, setOptionCandidates] = useState<OptionCandidatesPayload | null>(null);
   const [optionCandidateState, setOptionCandidateState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [optionPaperMessage, setOptionPaperMessage] = useState("");
+  const [earlyTrend, setEarlyTrend] = useState<EarlyTrendPayload | null>(null);
   const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("today");
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>(() => initialUrlWorkspace());
   const [researchOpen, setResearchOpen] = useState(() => window.innerWidth >= 1080);
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -2123,6 +2166,15 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
     void loadTodayWorkbench();
     void loadProductionReadiness();
     void loadRealtimeCommandCenter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const linkedSymbol = initialUrlSymbol();
+    if (linkedSymbol) {
+      void analyzeSymbol(linkedSymbol, { preserveWorkspace: true });
+    }
+    // A notification deep link must override the last locally viewed symbol once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2532,9 +2584,11 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
     setAnalysisState("loading");
     setAiDecision(null);
     setAiDecisionState("idle");
+    setEarlyTrend(null);
     const candlePromise = loadCandles(symbol);
     const journalPromise = loadStockJournal(symbol);
     const aiStatusPromise = loadAiStatus();
+    const earlyTrendPromise = loadEarlyTrend(symbol, requestId);
     try {
       const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2573,7 +2627,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
       }
       const nextRecent = [signal.symbol, ...recentSymbols.filter((item) => item !== signal.symbol)].slice(0, 8);
       setRecentSearches(nextRecent.join(","));
-      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise, earlyTrendPromise]);
       setAnalysisState("ready");
       setApiState("api");
       void requestAiDecision({ trigger: "auto", signalOverride: signal });
@@ -2588,6 +2642,14 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
       setAnalysisState("error");
       setApiState("fallback");
     }
+  }
+
+  async function loadEarlyTrend(symbol: string, requestId: number) {
+    const response = await apiFetch(`/api/stocks/${encodeURIComponent(symbol)}/early-trend`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = (await response.json()) as EarlyTrendPayload;
+    if (requestId === analyzeRequestRef.current) setEarlyTrend(payload);
+    return payload;
   }
 
   async function compareProfiles(symbol: string) {
@@ -3248,6 +3310,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
               onRegenerate={() => void requestAiDecision({ trigger: "manual", force: true })}
               onOpenJournal={() => openWorkspace("journal")}
             />
+            <EarlyTrendPanel snapshot={earlyTrend} lang={lang} />
             <ManualTradeTicketPanel
               ticket={manualTradeTicket}
               aiDecision={aiDecision}
@@ -3491,6 +3554,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
         apiBaseUrl={API_BASE_URL}
         apiHealth={apiHealth}
         text={text}
+        lang={lang}
       />
       ) : null}
         </>
@@ -3832,19 +3896,157 @@ function StockJournalPanel({
   );
 }
 
+function EarlyTrendPanel({ snapshot, lang }: { snapshot: EarlyTrendPayload | null; lang: Lang }) {
+  if (!snapshot) return null;
+  const stageCopy: Record<EarlyTrendPayload["strategy_stage"], string> = {
+    NOT_READY: lang === "zh" ? "尚未转强" : "Not ready",
+    EARLY_WATCH: lang === "zh" ? "早期观察" : "Early watch",
+    ARMED: lang === "zh" ? "等待盘中确认" : "Armed",
+    BUY_REVIEW: lang === "zh" ? "可做模拟复核" : "Paper review",
+    LATE_WAIT_PULLBACK: lang === "zh" ? "走势转强，等待回踩" : "Strong, wait for pullback",
+    INVALIDATED: lang === "zh" ? "结构失效" : "Invalidated",
+  };
+  const factorNames: Record<string, string> = {
+    setup_fast_ema_turn: lang === "zh" ? "均线刚转强" : "Fast EMA turn",
+    setup_relative_strength_acceleration: lang === "zh" ? "相对强弱加速" : "Relative strength",
+    setup_volume_accumulation: lang === "zh" ? "量价累积" : "Volume accumulation",
+    setup_base_breakout: lang === "zh" ? "平台与突破" : "Base and breakout",
+    setup_liquidity_risk: lang === "zh" ? "波动与流动性" : "Risk and liquidity",
+  };
+  return (
+    <section className={`early-trend-band stage-${snapshot.strategy_stage.toLowerCase()}`}>
+      <div className="early-trend-heading">
+        <div>
+          <span>{lang === "zh" ? "早期转强观察" : "Early trend"}</span>
+          <strong>{stageCopy[snapshot.strategy_stage]}</strong>
+          <p>{snapshot.summary}</p>
+        </div>
+        <div className="early-trend-scores">
+          <span>{lang === "zh" ? "结构" : "Setup"}<b>{snapshot.setup_score}</b></span>
+          <span>{lang === "zh" ? "触发" : "Trigger"}<b>{snapshot.trigger_score ?? "-"}</b></span>
+        </div>
+      </div>
+      <div className="early-factor-strip">
+        {snapshot.setup_factors.map((factor) => (
+          <div key={factor.factor_id}>
+            <span>{factorNames[factor.factor_id] ?? factor.factor_id}</span>
+            <strong>{factor.contribution}/{factor.maximum}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="early-trend-foot">
+        <span>{lang === "zh" ? "回踩区" : "Pullback"}: {snapshot.pullback_zone ? `${snapshot.pullback_zone[0]} - ${snapshot.pullback_zone[1]}` : "-"}</span>
+        <span>{lang === "zh" ? "结构失效位" : "Invalidation"}: {snapshot.invalidation_price ?? "-"}</span>
+        <span>{lang === "zh" ? "证据状态" : "Evidence"}: {snapshot.lead_time_evidence.status === "limited_evidence" ? (lang === "zh" ? "样本积累中" : "Limited") : snapshot.lead_time_evidence.status}</span>
+      </div>
+    </section>
+  );
+}
+
 function SettingsPanel({
   apiConnection,
   aiStatus,
   apiBaseUrl,
   apiHealth,
   text,
+  lang,
 }: {
   apiConnection: ApiConnectionState;
   aiStatus: AiReviewStatusPayload | null;
   apiBaseUrl: string;
   apiHealth: ApiHealthPayload | null;
   text: (typeof copy)["en"] | (typeof copy)["zh"];
+  lang: Lang;
 }) {
+  const [pushStatus, setPushStatus] = useState<WebPushStatus | null>(null);
+  const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
+  const [pushMessage, setPushMessage] = useState("");
+  const [pushBusy, setPushBusy] = useState(false);
+
+  async function loadPushStatus() {
+    const response = await apiFetch("/api/notifications/status");
+    if (!response.ok) return;
+    const payload = (await response.json()) as WebPushStatus;
+    setPushStatus(payload);
+    setPreferences(payload.preferences);
+  }
+
+  useEffect(() => {
+    void loadPushStatus();
+  }, []);
+
+  async function enablePush() {
+    setPushBusy(true);
+    setPushMessage("");
+    try {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) throw new Error(lang === "zh" ? "当前浏览器不支持手机通知。" : "Push is not supported in this browser.");
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") throw new Error(lang === "zh" ? "你尚未允许通知。" : "Notification permission was not granted.");
+      const keyResponse = await apiFetch("/api/notifications/web-push/public-key");
+      const keyPayload = (await keyResponse.json()) as { configured: boolean; public_key: string };
+      if (!keyPayload.configured || !keyPayload.public_key) throw new Error(lang === "zh" ? "本机尚未配置手机通知密钥。" : "Web Push keys are not configured.");
+      const registration = await navigator.serviceWorker.ready;
+      const existing = await registration.pushManager.getSubscription();
+      const subscription = existing ?? await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyPayload.public_key),
+      });
+      const response = await apiFetch("/api/notifications/web-push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(subscription.toJSON()),
+      });
+      if (!response.ok) throw new Error(lang === "zh" ? "订阅保存失败。" : "Could not save the subscription.");
+      setPushMessage(lang === "zh" ? "此设备已启用主动提醒。" : "Notifications are enabled on this device.");
+      await loadPushStatus();
+    } catch (error) {
+      setPushMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function disablePush() {
+    setPushBusy(true);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await apiFetch("/api/notifications/web-push/subscribe", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: subscription.endpoint }),
+        });
+        await subscription.unsubscribe();
+      }
+      setPushMessage(lang === "zh" ? "此设备的主动提醒已关闭。" : "Notifications are disabled on this device.");
+      await loadPushStatus();
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function savePushPreferences() {
+    if (!preferences) return;
+    setPushBusy(true);
+    const response = await apiFetch("/api/notifications/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(preferences),
+    });
+    setPushMessage(response.ok ? (lang === "zh" ? "提醒偏好已保存。" : "Preferences saved.") : (lang === "zh" ? "保存失败。" : "Save failed."));
+    await loadPushStatus();
+    setPushBusy(false);
+  }
+
+  async function testPush() {
+    setPushBusy(true);
+    const response = await apiFetch("/api/notifications/web-push/test", { method: "POST" });
+    const payload = await response.json() as { status?: string; reason?: string };
+    setPushMessage(response.ok && payload.status === "sent" ? (lang === "zh" ? "测试通知已发送。" : "Test notification sent.") : `${lang === "zh" ? "未发送" : "Not sent"}: ${payload.reason ?? payload.status ?? "unknown"}`);
+    setPushBusy(false);
+  }
+
   return (
     <section className="panel settings-panel" id="settings-workspace">
       <div className="settings-head">
@@ -3884,6 +4086,31 @@ function SettingsPanel({
           <strong>{text.journalDesign}</strong>
           <p>{text.journalDesignText}</p>
         </div>
+        <section className="notification-settings-band">
+          <div className="notification-settings-head">
+            <div>
+              <BellRing size={18} />
+              <strong>{lang === "zh" ? "iPhone 主动提醒" : "iPhone notifications"}</strong>
+              <p>{lang === "zh" ? "将 KQUANT 添加到 iPhone 主屏幕后，可在锁屏和通知中心收到提醒。" : "Add KQUANT to the iPhone Home Screen to receive lock-screen alerts."}</p>
+            </div>
+            <span className={pushStatus?.active_subscriptions ? "push-status active" : "push-status"}>
+              {pushStatus?.active_subscriptions ? (lang === "zh" ? "已连接" : "Connected") : (lang === "zh" ? "未连接" : "Not connected")}
+            </span>
+          </div>
+          <div className="notification-preferences">
+            <label>{lang === "zh" ? "静默开始" : "Quiet from"}<input type="time" value={preferences?.quiet_start ?? "22:30"} onChange={(event) => setPreferences((current) => current ? { ...current, quiet_start: event.target.value } : current)} /></label>
+            <label>{lang === "zh" ? "静默结束" : "Quiet until"}<input type="time" value={preferences?.quiet_end ?? "08:00"} onChange={(event) => setPreferences((current) => current ? { ...current, quiet_end: event.target.value } : current)} /></label>
+            <label>{lang === "zh" ? "每日普通提醒上限" : "Daily routine limit"}<input type="number" min="1" max="20" value={preferences?.daily_routine_limit ?? 5} onChange={(event) => setPreferences((current) => current ? { ...current, daily_routine_limit: Number(event.target.value) } : current)} /></label>
+          </div>
+          <div className="notification-actions">
+            <button type="button" className="primary-action" disabled={pushBusy || !pushStatus?.configured} onClick={() => void enablePush()}><BellRing size={15} />{lang === "zh" ? "在此设备启用" : "Enable here"}</button>
+            <button type="button" className="secondary-action" disabled={pushBusy || !pushStatus?.active_subscriptions} onClick={() => void testPush()}>{lang === "zh" ? "发送测试" : "Send test"}</button>
+            <button type="button" className="secondary-action" disabled={pushBusy || !preferences} onClick={() => void savePushPreferences()}>{lang === "zh" ? "保存偏好" : "Save"}</button>
+            <button type="button" className="icon-action" title={lang === "zh" ? "关闭此设备提醒" : "Disable notifications"} disabled={pushBusy || !pushStatus?.active_subscriptions} onClick={() => void disablePush()}><Trash2 size={15} /></button>
+          </div>
+          {!pushStatus?.configured ? <p className="notification-note">{lang === "zh" ? "本机尚未配置 VAPID 密钥，暂时只能使用网页预警。" : "VAPID keys are not configured; web alerts remain available."}</p> : null}
+          {pushMessage ? <p className="notification-note">{pushMessage}</p> : null}
+        </section>
       </div>
     </section>
   );
@@ -5400,6 +5627,24 @@ function urlRequestedFixture(): boolean {
   return false;
 }
 
+function initialUrlSymbol(): string | null {
+  try {
+    const value = new URLSearchParams(window.location.search).get("symbol")?.trim().toUpperCase() ?? "";
+    return /^[A-Z0-9.^-]{1,16}$/.test(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function initialUrlWorkspace(): WorkspaceName {
+  try {
+    const value = new URLSearchParams(window.location.search).get("workspace") as WorkspaceName | null;
+    return value && ["today", "search", "watchlist", "stock", "charts", "aiPlan", "chat", "journal", "settings"].includes(value) ? value : "today";
+  } catch {
+    return "today";
+  }
+}
+
 function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, candles: Candle[]): CandleMeta {
   return {
     symbol: String(payload.symbol ?? ""),
@@ -5484,6 +5729,14 @@ function apiFetch(path: string, init?: RequestInit): Promise<Response> {
     ...init,
     credentials: API_BASE_URL ? "include" : init?.credentials ?? "same-origin",
   });
+}
+
+function urlBase64ToUint8Array(value: string): ArrayBuffer {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const normalized = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(normalized);
+  const bytes = Uint8Array.from([...raw].map((character) => character.charCodeAt(0)));
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
 function formatStaleAge(rawSeconds: unknown, freshness: unknown): string {
@@ -6094,10 +6347,10 @@ function lastEma(values: number[], period: number) {
   return series[series.length - 1]?.value ?? 0;
 }
 
-function useStoredState<T extends string>(key: string, initial: T): [T, (value: T) => void] {
+function useStoredState<T extends string>(key: string, initial: T, preferInitial = false): [T, (value: T) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
-      return (window.localStorage.getItem(key) as T | null) ?? initial;
+      return preferInitial ? initial : (window.localStorage.getItem(key) as T | null) ?? initial;
     } catch {
       return initial;
     }

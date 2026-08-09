@@ -33,19 +33,19 @@ FACTOR_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "active_in_score": True,
     },
     {
-        "factor_id": "hourly_ema_structure",
+        "factor_id": "confirmation_ema_structure",
         "group": "confirmation",
-        "label": "Hourly EMA confirmation",
-        "formula": "close_1h > EMA20_1h > EMA50_1h",
+        "label": "Confirmation EMA structure",
+        "formula": "confirmation close > confirmation EMA20 > confirmation EMA50",
         "timeframe": "1H",
         "source": "longbridge_candles",
         "active_in_score": True,
     },
     {
-        "factor_id": "hourly_momentum_7h",
+        "factor_id": "confirmation_momentum_7bar",
         "group": "confirmation",
-        "label": "Hourly momentum",
-        "formula": "close_1h / close_1h[-7] - 1",
+        "label": "Confirmation momentum",
+        "formula": "confirmation close / confirmation close[-7] - 1",
         "timeframe": "1H",
         "source": "longbridge_candles",
         "active_in_score": True,
@@ -181,71 +181,80 @@ def build_factor_snapshot(
     confirmation = technical.get("confirmation") or {}
     data_status = signal.get("data_status") or {}
     market = market_regime or {}
-    as_of = str(data_status.get("confirmation_candle_time") or data_status.get("daily_candle_time") or "")
+    daily_as_of = str(data_status.get("daily_candle_time") or "")
+    confirmation_as_of = str(data_status.get("confirmation_candle_time") or "")
+    confirmation_timeframe = str(data_status.get("confirmation_timeframe") or features.get("confirmation_timeframe") or "1H")
 
     trend_parts = scoring_factors.get("trend") or {}
     trigger_parts = scoring_factors.get("trigger") or {}
     stack_contribution = sum(_number(trend_parts.get(key)) or 0.0 for key in (
         "close_above_ema20", "ema20_above_ema50", "ema50_above_ema200"
     ))
-    hourly_structure_contribution = sum(_number(trigger_parts.get(key)) or 0.0 for key in (
-        "close_above_hourly_ema20", "hourly_ema20_above_ema50"
+    confirmation_structure_contribution = sum(_number(trigger_parts.get(key)) or 0.0 for key in (
+        "close_above_confirmation_ema20", "confirmation_ema20_above_ema50"
     ))
+    if not confirmation_structure_contribution:
+        confirmation_structure_contribution = sum(_number(trigger_parts.get(key)) or 0.0 for key in (
+            "close_above_hourly_ema20", "hourly_ema20_above_ema50"
+        ))
     atr_deduction = _number(deductions.get("atr")) or 0.0
     extension_deduction = (_number(deductions.get("extension_high")) or 0.0) + (_number(deductions.get("extension_low")) or 0.0)
 
     entries = [
         _entry(
             definitions["daily_ema_stack"],
-            value=bool(stack_contribution >= 42), contribution=stack_contribution, as_of=as_of,
+            value=bool(stack_contribution >= 42), contribution=stack_contribution, as_of=daily_as_of,
             note="Contribution is the sum of the three daily EMA alignment score components.",
         ),
         _entry(
             definitions["daily_trend_return_5d"], value=features.get("trend_return_5d_pct"),
-            contribution=_number(trend_parts.get("trend_return")), as_of=as_of,
+            contribution=_number(trend_parts.get("trend_return")), as_of=daily_as_of,
         ),
         _entry(
-            definitions["hourly_ema_structure"], value=bool(hourly_structure_contribution >= 19),
-            contribution=hourly_structure_contribution, as_of=as_of,
+            {**definitions["confirmation_ema_structure"], "timeframe": confirmation_timeframe},
+            value=bool(confirmation_structure_contribution >= 19),
+            contribution=confirmation_structure_contribution, as_of=confirmation_as_of,
         ),
         _entry(
-            definitions["hourly_momentum_7h"], value=features.get("one_hour_momentum_pct"),
-            contribution=_number(trigger_parts.get("hourly_momentum")), as_of=as_of,
+            {**definitions["confirmation_momentum_7bar"], "timeframe": confirmation_timeframe},
+            value=features.get("confirmation_momentum_pct", features.get("one_hour_momentum_pct")),
+            contribution=_number(trigger_parts.get("confirmation_momentum", trigger_parts.get("hourly_momentum"))),
+            as_of=confirmation_as_of,
         ),
         _entry(
             definitions["relative_volume_20d"], value=features.get("volume_ratio"),
-            contribution=_number(score.get("volume_score")), as_of=as_of,
+            contribution=_number(score.get("volume_score")), as_of=daily_as_of,
         ),
         _entry(
-            definitions["atr_risk_20d"], value=features.get("atr_pct"), contribution=-atr_deduction, as_of=as_of,
+            definitions["atr_risk_20d"], value=features.get("atr_pct"), contribution=-atr_deduction, as_of=daily_as_of,
         ),
         _entry(
-            definitions["ema20_extension"], value=features.get("extension_pct"), contribution=-extension_deduction, as_of=as_of,
+            definitions["ema20_extension"], value=features.get("extension_pct"), contribution=-extension_deduction, as_of=daily_as_of,
         ),
         _entry(
             definitions["relative_strength_spy_20d"], value=relative.get("stock_minus_spy_pct"),
-            as_of=as_of, note="Context factor; not yet included in the live score.",
+            as_of=daily_as_of, note="Context factor; not yet included in the live score.",
         ),
         _entry(
             definitions["relative_strength_qqq_20d"], value=relative.get("stock_minus_qqq_pct"),
-            as_of=as_of, note="Context factor; not yet included in the live score.",
+            as_of=daily_as_of, note="Context factor; not yet included in the live score.",
         ),
         _entry(
-            definitions["rsi14_context"], value=features.get("rsi14"), as_of=as_of,
+            definitions["rsi14_context"], value=features.get("rsi14"), as_of=daily_as_of,
             note="Context factor; not yet included in the live score.",
         ),
         _entry(
             definitions["vwap_reclaim_1h"], value=(confirmation.get("close_vs_vwap20_pct") is not None and (confirmation.get("close_vs_vwap20_pct") or 0) >= 0),
-            as_of=as_of, note="Context factor; not yet included in the live score.",
+            as_of=confirmation_as_of, note="Context factor; not yet included in the live score.",
         ),
         _entry(
             definitions["market_breadth"], value=(market.get("breadth") or {}).get("participation_score"),
-            status="available" if (market.get("breadth") or {}).get("status") == "available" else "unavailable", as_of=as_of,
+            status="available" if (market.get("breadth") or {}).get("status") == "available" else "unavailable", as_of=daily_as_of,
             note="Breadth is usable only after sufficient Longbridge coverage; otherwise it cannot support an action.",
         ),
         _entry(
             definitions["corporate_event_window"], value=(signal.get("event_context") or {}).get("nearest_event"),
-            status="available" if signal.get("event_context") else "unavailable", as_of=as_of,
+            status="available" if signal.get("event_context") else "unavailable", as_of=daily_as_of,
             note="Event-calendar ingestion is pending; unavailable factors cannot support an action.",
         ),
     ]
@@ -268,7 +277,10 @@ def build_factor_snapshot(
         "strategy_config_hash": signal.get("strategy_config_hash", ""),
         "symbol": signal.get("symbol"),
         "profile": signal.get("profile_name"),
-        "as_of": as_of,
+        "as_of": daily_as_of or confirmation_as_of,
+        "daily_as_of": daily_as_of,
+        "confirmation_as_of": confirmation_as_of,
+        "confirmation_timeframe": confirmation_timeframe,
         "factors": entries,
         "supporting_factors": [entry["factor_id"] for entry in supporting],
         "opposing_factors": [entry["factor_id"] for entry in opposing],

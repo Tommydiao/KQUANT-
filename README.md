@@ -63,6 +63,11 @@ using realtime mode if it has appeared in a screenshot, log, or shared file.
 - `GET /api/health`
 - `GET /api/stocks/realtime-snapshot?symbol=NVDA`
 - `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=swing_long_v1`
+- `GET /api/stocks/RKLB/early-trend`
+- `GET /api/instructions/current`
+- `GET /api/alerts/stream`
+- `GET /api/notifications/status`
+- `POST /api/notifications/web-push/subscribe`
 - `POST /api/stocks/ai-decision`
 - `POST /api/stocks/strategy-validation/runs`
 - `GET /api/stocks/strategy-validation/latest`
@@ -82,13 +87,20 @@ reviewed validation fingerprint and Evidence Score; missing evidence remains
 
 ```powershell
 python -m kquant validate-strategies `
-  --profiles tactical_1w_v1,high_beta_growth_v1 `
+  --profiles tactical_1w_v1,high_beta_growth_v1,early_trend_3_15d_v1 `
   --universe default
 ```
 
 Signals use closed bars only, enter no earlier than the next bar, apply costs
 and gap handling, use conservative stop-first treatment, and split data 60/20/20
 with a maximum-horizon embargo.
+
+The early-trend strategy reports daily setup evidence separately from closed
+1H/5m trigger evidence. It remains paper-only until the sealed validation and
+prospective observation gates pass. See `docs/early_trend_strategy.md`.
+
+For optional iPhone Home Screen notifications, generate local VAPID values with
+`python -m kquant web-push-config`, then follow `docs/iphone_web_push.md`.
 
 ## Verification
 

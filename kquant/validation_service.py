@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .backtest_audit import build_backtest_audit, write_backtest_audit
+from .early_trend import evaluate_early_trend
 from .portfolio_backtest import (
     PortfolioConfig,
     buy_and_hold_benchmark,
@@ -34,9 +35,9 @@ from .validation_robustness import (
 )
 
 
-POLICY_VERSION = "deterministic_action_policy_v3"
-CONFIG_VERSION = "backtest_costs_v1"
-SUPPORTED_PROFILES = {"tactical_1w_v1", "high_beta_growth_v1"}
+POLICY_VERSION = "deterministic_action_policy_v4"
+CONFIG_VERSION = "backtest_costs_v2"
+SUPPORTED_PROFILES = {"tactical_1w_v1", "high_beta_growth_v1", "early_trend_3_15d_v1"}
 BUY_ACTIONS = {"AI_BUY_CANDIDATE", "AI_PULLBACK_BUY", "AI_PROBE_BUY"}
 
 
@@ -151,7 +152,19 @@ def _policy_signals(
     signal_start: str | None = None,
     signal_end: str | None = None,
     parameters: dict[str, Any] | None = None,
+    benchmark_daily: dict[str, list[dict[str, Any]]] | None = None,
 ) -> list[dict[str, Any]]:
+    if profile == "early_trend_3_15d_v1":
+        return _early_trend_policy_signals(
+            candles,
+            regime_by_day=regime_by_day,
+            metadata=metadata,
+            data_source=data_source,
+            signal_start=signal_start,
+            signal_end=signal_end,
+            benchmark_daily=benchmark_daily or {},
+            parameters=parameters,
+        )
     active_parameters = dict(parameters or {})
     ema_fast_period = max(2, int(active_parameters.get("ema_fast", 20)))
     ema_medium_period = max(ema_fast_period + 1, int(active_parameters.get("ema_medium", 50)))
@@ -238,6 +251,90 @@ def _policy_signals(
     return signals
 
 
+def _benchmark_slice(candles: list[dict[str, Any]], signal_day: str) -> list[dict[str, Any]]:
+    return [item for item in candles if str(item.get("open_time") or "")[:10] <= signal_day]
+
+
+def _early_trend_policy_signals(
+    candles: list[dict[str, Any]],
+    *,
+    regime_by_day: dict[str, str],
+    metadata: dict[str, str],
+    data_source: str,
+    signal_start: str | None,
+    signal_end: str | None,
+    benchmark_daily: dict[str, list[dict[str, Any]]],
+    parameters: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Replay the exact daily setup kernel; intraday trigger evidence remains separate."""
+    active = dict(parameters or {})
+    minimum_setup = _float(active.get("minimum_setup_score"), 60.0)
+    outcomes: list[dict[str, Any]] = []
+    start_index = max(60, int(active.get("minimum_history", 60)))
+    for index in range(start_index, len(candles) - 1):
+        candle = candles[index]
+        signal_day = str(candle.get("open_time") or "")[:10]
+        if signal_start and signal_day < signal_start:
+            continue
+        if signal_end and signal_day > signal_end:
+            continue
+        daily_slice = candles[: index + 1]
+        snapshot = evaluate_early_trend(
+            metadata["symbol"],
+            daily_slice,
+            [],
+            benchmark_candles={
+                symbol: _benchmark_slice(rows, signal_day)
+                for symbol, rows in benchmark_daily.items()
+            },
+            event_context={"status": "detected_actions_only", "earnings_calendar_status": "historical_not_available"},
+            instrument_eligible=True,
+            validation_ready=False,
+            parameters=active,
+        )
+        if float(snapshot.get("setup_score") or 0) < minimum_setup:
+            continue
+        if snapshot.get("strategy_stage") not in {"EARLY_WATCH", "ARMED"}:
+            continue
+        close = _float(candle.get("close"))
+        invalidation = _float(snapshot.get("invalidation_price"))
+        risk = close - invalidation
+        if close <= 0 or risk <= 0:
+            continue
+        target = close + 2.0 * risk
+        outcome = evaluate_long_trade(candles, index, invalidation, target, 15, BacktestConfig())
+        if not outcome.get("completed"):
+            continue
+        outcome["execution_scenarios"] = evaluate_long_trade_scenarios(
+            candles, index, invalidation, target, 15,
+            average_dollar_volume=close * _float(candle.get("volume")),
+        )
+        factors = list(snapshot.get("setup_factors") or [])
+        risk_factor = next((item for item in factors if item.get("factor_id") == "setup_liquidity_risk"), {})
+        atr_pct = _float((risk_factor.get("value") or {}).get("atr_pct"))
+        outcomes.append({
+            **outcome,
+            "profile": "early_trend_3_15d_v1",
+            "action": str(snapshot["strategy_stage"]),
+            "symbol": metadata["symbol"],
+            "signal_time": candle.get("open_time"),
+            "market_regime": regime_by_day.get(signal_day, "DATA_CAUTION"),
+            "sector": metadata.get("sector", "Unknown"),
+            "stock_layer": metadata.get("layer", "Unknown"),
+            "volatility_bucket": "low" if atr_pct < 2 else "medium" if atr_pct < 4 else "high",
+            "data_source": data_source,
+            "policy_version": POLICY_VERSION,
+            "strategy_engine": "early_trend.evaluate.v1",
+            "evidence_source": "historical_policy_replay",
+            "evidence_scope": "daily_setup_only",
+            "intraday_trigger_evidence": "limited_evidence",
+            "setup_score": snapshot["setup_score"],
+            "factor_snapshot_hash": snapshot["factor_snapshot_hash"],
+            "policy_parameters": active,
+        })
+    return outcomes
+
+
 def run_strategy_validation(
     *,
     profiles: list[str],
@@ -310,6 +407,10 @@ def run_strategy_validation(
                 "regime_by_day": regime_by_day,
                 "metadata": metadata,
                 "data_source": str(daily_payload.get("source_type") or "unknown"),
+                "benchmark_daily": {
+                    "SPY": _closed_candles(spy_payload, None, end),
+                    "QQQ": _closed_candles(qqq_payload, None, end),
+                },
             }
             replay_inputs.append(replay_input)
             all_trades.extend(
@@ -321,7 +422,7 @@ def run_strategy_validation(
             )
     for profile in selected_profiles:
         profile_rows = [item for item in all_trades if item["profile"] == profile]
-        embargo = 5 if profile == "tactical_1w_v1" else 20
+        embargo = 5 if profile == "tactical_1w_v1" else 15 if profile == "early_trend_3_15d_v1" else 20
         split = walk_forward_split(profile_rows, embargo_bars=embargo)
         for split_name, rows in split.items():
             for item in rows:
@@ -346,6 +447,58 @@ def run_strategy_validation(
         "variants": [],
         "not_an_optimization_search": True,
     }
+    factor_lab: dict[str, Any] = {
+        "strategy": "early_trend_3_15d_v1.0.0",
+        "status": "not_requested",
+        "test_partition_used_for_selection": False,
+        "variants": [],
+    }
+    if "early_trend_3_15d_v1" in selected_profiles and replay_inputs:
+        experiment_variants = [
+            ("watch_58", {"watch_threshold": 58.0}),
+            ("watch_62", {"watch_threshold": 62.0}),
+            ("ignition_4", {"ignition_return_min": 4.0}),
+            ("ignition_6", {"ignition_return_min": 6.0}),
+            ("volume_1_0", {"volume_ratio_full": 1.0}),
+            ("volume_1_4", {"volume_ratio_full": 1.4}),
+            ("contraction_0_85", {"atr_contraction_ratio": 0.85}),
+            ("contraction_0_95", {"atr_contraction_ratio": 0.95}),
+            ("late_extension_8", {"late_extension_pct": 8.0}),
+            ("late_extension_12", {"late_extension_pct": 12.0}),
+        ]
+        def experiment_summary(overrides: dict[str, Any]) -> dict[str, Any]:
+            rows = [
+                item for item in replay_variant(overrides)
+                if item.get("profile") == "early_trend_3_15d_v1"
+            ]
+            partitions = walk_forward_split(rows, embargo_bars=15)
+            selection_rows = list(partitions["train"]) + list(partitions["validation"])
+            return {
+                "selection_summary": summarize_outcomes(selection_rows),
+                "sealed_test_sample_count": len(partitions["test"]),
+                "test_metrics_hidden_during_selection": True,
+            }
+
+        factor_lab = {
+            "strategy": "early_trend_3_15d_v1.0.0",
+            "status": "available",
+            "selection_partitions": ["train", "validation"],
+            "test_partition_used_for_selection": False,
+            "not_an_optimization_search": True,
+            "variants": [
+                {
+                    "name": name,
+                    "overrides": overrides,
+                    **experiment_summary(overrides),
+                }
+                for name, overrides in experiment_variants
+            ],
+            "evidence_scopes": {
+                "daily_setup": "historical_policy_replay",
+                "intraday_trigger": "limited_evidence",
+                "prospective_trigger": "tracked separately",
+            },
+        }
     config = BacktestConfig()
     created_at = _now()
     with connect(db) as conn:
@@ -425,7 +578,7 @@ def run_strategy_validation(
     rolling = {
         profile: rolling_walk_forward_windows(
             [item for item in all_trades if item["profile"] == profile],
-            embargo_bars=5 if profile == "tactical_1w_v1" else 20,
+            embargo_bars=5 if profile == "tactical_1w_v1" else 15 if profile == "early_trend_3_15d_v1" else 20,
         )
         for profile in selected_profiles
     }
@@ -496,14 +649,15 @@ def run_strategy_validation(
             "evidence_score": evidence,
             "research_only": True,
         },
+        "factor_lab": factor_lab,
         "reproducibility_audit": audit,
         "created_at": created_at,
     }
     output = outputs_dir or Path("outputs")
     output.mkdir(parents=True, exist_ok=True)
-    (output / "strategy-validation-v3-latest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    (output / "strategy-validation-v4-latest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     payload["reproducibility_audit"]["report_paths"] = write_backtest_audit(audit, summary, output, run_id=run_id)
-    (output / "strategy-validation-v3-latest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    (output / "strategy-validation-v4-latest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return payload
 
 

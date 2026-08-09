@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 
-HARD_VETO_POLICY_VERSION = "hard_veto_v1"
+HARD_VETO_POLICY_VERSION = "hard_veto_v1.1"
 
 
 def evaluate_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -30,8 +30,13 @@ def evaluate_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any] | N
     rr = float(plans.get("risk_reward_value") or 0)
     if rr < 2.0:
         reasons.append("risk_reward_below_minimum")
-    if float(features.get("extension_pct") or 0) > 5.5:
+    strategy_limits = dict(signal.get("strategy_limits") or {})
+    max_extension_pct = float(strategy_limits.get("max_extension_pct") or 5.5)
+    max_atr_pct = float(strategy_limits.get("max_atr_pct") or 5.0)
+    if float(features.get("extension_pct") or 0) > max_extension_pct:
         reasons.append("extension_too_high")
+    if float(features.get("atr_pct") or 0) > max_atr_pct:
+        reasons.append("atr_too_high")
     if historical and int(historical.get("sample_count") or 0) < 10:
         reasons.append("insufficient_strategy_evidence")
     reasons = list(dict.fromkeys(reasons))
@@ -40,5 +45,9 @@ def evaluate_hard_veto(signal: dict[str, Any], market_regime: dict[str, Any] | N
         "active": bool(reasons),
         "reasons": reasons,
         "buy_actions_allowed": not reasons,
+        "strategy_limits": {
+            "max_extension_pct": max_extension_pct,
+            "max_atr_pct": max_atr_pct,
+        },
         "ai_override_allowed": False,
     }

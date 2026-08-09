@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import getpass
 import json
 import secrets
@@ -96,6 +97,8 @@ def main() -> None:
     launch_report.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     launch_report.add_argument("--output", default="docs/personal_production_launch_report.md")
     login_config = sub.add_parser("local-login-config", help="Print local email-and-password login values after a hidden password prompt.")
+    push_config = sub.add_parser("web-push-config", help="Generate a local VAPID key pair for iPhone Home Screen notifications.")
+    push_config.add_argument("--write-env", action="store_true", help="Update the ignored local .env without printing key values.")
     args = parser.parse_args()
     if args.command == "local-login-config":
         email = input("KQUANT local login email: ").strip().lower()
@@ -110,6 +113,43 @@ def main() -> None:
         print(f"KQUANT_LOGIN_EMAIL={email}")
         print(f"KQUANT_LOGIN_PASSWORD_HASH={generate_password_hash(password)}")
         print(f"KQUANT_SESSION_SECRET={secrets.token_urlsafe(48)}")
+        return
+    if args.command == "web-push-config":
+        try:
+            from cryptography.hazmat.primitives.asymmetric import ec
+        except ImportError as exc:
+            raise SystemExit("Install project dependencies before generating Web Push keys.") from exc
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        private_value = private_key.private_numbers().private_value.to_bytes(32, "big")
+        public_numbers = private_key.public_key().public_numbers()
+        public_value = b"\x04" + public_numbers.x.to_bytes(32, "big") + public_numbers.y.to_bytes(32, "big")
+        encode = lambda value: base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+        values = {
+            "KQUANT_WEB_PUSH_ENABLED": "true",
+            "KQUANT_WEB_PUSH_PUBLIC_KEY": encode(public_value),
+            "KQUANT_WEB_PUSH_PRIVATE_KEY": encode(private_value),
+            "KQUANT_WEB_PUSH_SUBJECT": "mailto:local@kquant.invalid",
+        }
+        if args.write_env:
+            env_path = Path(".env")
+            existing = env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []
+            found: set[str] = set()
+            updated: list[str] = []
+            for line in existing:
+                name = line.split("=", 1)[0].strip() if "=" in line and not line.lstrip().startswith("#") else ""
+                if name in values:
+                    updated.append(f"{name}={values[name]}")
+                    found.add(name)
+                else:
+                    updated.append(line)
+            if found != set(values):
+                updated.extend(f"{name}={value}" for name, value in values.items() if name not in found)
+            env_path.write_text("\n".join(updated).rstrip() + "\n", encoding="utf-8")
+            print("Local Web Push configuration was written to the ignored .env file. No key values were printed.")
+        else:
+            print("# Paste these values into the local .env file. Never commit the private key.")
+            for name, value in values.items():
+                print(f"{name}={value}")
         return
     if args.command == "stock-scan":
         payload = api_stock_signals(

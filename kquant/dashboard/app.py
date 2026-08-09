@@ -24,6 +24,7 @@ from kquant.decision_ledger import (
     weekly_personal_review,
 )
 from kquant.manual_workflow import calculate_manual_position_size
+from kquant.early_trend_service import early_trend_snapshot
 from kquant.forward_pilot import (
     activate_forward_pilot,
     close_forward_day,
@@ -97,9 +98,18 @@ from kquant.validation_service import (
     api_strategy_validation_latest,
     run_strategy_validation,
 )
+from kquant.web_push import (
+    deliver_web_push,
+    notification_preferences,
+    public_key as web_push_public_key,
+    subscribe as web_push_subscribe,
+    unsubscribe as web_push_unsubscribe,
+    update_notification_preferences,
+    web_push_status,
+)
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-08-realtime-options-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-09-early-trend-push-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -213,6 +223,23 @@ class NotificationRequest(BaseModel):
     event_type: str
     payload: dict[str, Any] = Field(default_factory=dict)
     channel: str = "web"
+
+
+class WebPushSubscriptionRequest(BaseModel):
+    endpoint: str = Field(min_length=10, max_length=4096)
+    keys: dict[str, str]
+
+
+class WebPushUnsubscribeRequest(BaseModel):
+    endpoint: str = Field(min_length=10, max_length=4096)
+
+
+class NotificationPreferencesRequest(BaseModel):
+    web_push_enabled: bool = True
+    quiet_start: str = Field(default="22:30", pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
+    quiet_end: str = Field(default="08:00", pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
+    timezone: str = "Asia/Shanghai"
+    daily_routine_limit: int = Field(default=5, ge=1, le=20)
 
 
 class ForwardPilotPrepareRequest(BaseModel):
@@ -342,7 +369,7 @@ def create_app(
         finally:
             supervisor.stop()
 
-    app = FastAPI(title=settings.product, version="0.10.0-realtime-options", lifespan=lifespan)
+    app = FastAPI(title=settings.product, version="0.11.0-early-trend-push", lifespan=lifespan)
     app.state.settings = settings
     app.state.security = security
     app.state.session_auth = session_auth
@@ -406,9 +433,10 @@ def create_app(
                 "api_contract_version": API_CONTRACT_VERSION,
                 "started_at_utc": started_at_utc,
                 "auth_routes_version": "local_email_password_v1",
-                "static_assets_version": "realtime-options-v1",
-                "database_schema_version": "realtime-options-v1",
+                "static_assets_version": "early-trend-push-v1",
+                "database_schema_version": "early-trend-push-v1",
                 "strategy_version": "swing_long_v1.1.0",
+                "early_trend_strategy_version": "early_trend_3_15d_v1.0.0",
                 "trigger_policy_version": TRIGGER_POLICY_VERSION,
                 "options_expression_version": OPTION_EXPRESSION_VERSION,
             },
@@ -463,6 +491,51 @@ def create_app(
             return acknowledge_alert(settings.db_path, alert_id)
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/notifications/status")
+    def notifications_status() -> dict[str, Any]:
+        return web_push_status(settings.db_path)
+
+    @app.get("/api/notifications/web-push/public-key")
+    def notifications_public_key() -> dict[str, Any]:
+        return web_push_public_key()
+
+    @app.post("/api/notifications/web-push/subscribe")
+    def notifications_subscribe(payload: WebPushSubscriptionRequest, request: Request) -> dict[str, Any]:
+        try:
+            return web_push_subscribe(settings.db_path, payload.model_dump(), request.headers.get("user-agent", ""))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.delete("/api/notifications/web-push/subscribe")
+    def notifications_unsubscribe(payload: WebPushUnsubscribeRequest) -> dict[str, Any]:
+        return web_push_unsubscribe(settings.db_path, payload.endpoint)
+
+    @app.post("/api/notifications/web-push/test")
+    def notifications_test() -> dict[str, Any]:
+        return deliver_web_push(
+            settings.db_path,
+            alert_id=None,
+            severity="INFO",
+            payload={
+                "title": "KQUANT 测试通知",
+                "body": "手机主动提醒已经连接。",
+                "url": "/?workspace=today",
+                "tag": "kquant-web-push-test",
+            },
+            force=True,
+        )
+
+    @app.get("/api/notifications/preferences")
+    def notifications_preferences() -> dict[str, Any]:
+        return notification_preferences(settings.db_path)
+
+    @app.put("/api/notifications/preferences")
+    def notifications_preferences_update(payload: NotificationPreferencesRequest) -> dict[str, Any]:
+        try:
+            return update_notification_preferences(settings.db_path, payload.model_dump())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.get("/api/runtime/supervisor-status")
     def supervisor_status() -> dict[str, Any]:
@@ -608,6 +681,10 @@ def create_app(
             "decision_evidence": analysis["decision_evidence"],
             "read_only_research": True,
         }
+
+    @app.get("/api/stocks/{symbol}/early-trend")
+    def early_trend(symbol: str) -> dict[str, Any]:
+        return early_trend_snapshot(symbol, settings.db_path)
 
     @app.get("/api/stocks/market-regime")
     def market_regime(source: str = "live") -> dict[str, Any]:

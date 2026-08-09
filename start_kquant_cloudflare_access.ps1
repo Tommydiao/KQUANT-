@@ -1,14 +1,40 @@
 param(
   [int]$Port = 8001,
-  [string]$HostName = $env:KQUANT_CLOUDFLARE_HOSTNAME,
-  [string]$TunnelName = $env:KQUANT_CLOUDFLARE_TUNNEL_NAME,
+  [string]$HostName = "",
+  [string]$TunnelName = "",
   [switch]$NoDashboardStart
 )
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Python = Join-Path $Root ".venv-win\Scripts\python.exe"
 $DashboardUrl = "http://127.0.0.1:$Port"
+
+function Import-LocalEnv {
+  param([string]$Path)
+  if (-not (Test-Path $Path)) { return }
+  Get-Content $Path | ForEach-Object {
+    $line = $_.Trim()
+    if (-not $line -or $line.StartsWith("#") -or -not $line.Contains("=")) { return }
+    $name, $value = $line.Split("=", 2)
+    $name = $name.Trim()
+    $value = $value.Trim().Trim('"').Trim("'")
+    if ($name -and $value -and -not [Environment]::GetEnvironmentVariable($name, "Process")) {
+      [Environment]::SetEnvironmentVariable($name, $value, "Process")
+    }
+  }
+}
+
+function Get-PythonRuntime {
+  foreach ($candidate in @(
+    (Join-Path $Root ".venv\Scripts\python.exe"),
+    (Join-Path $Root ".venv-win\Scripts\python.exe")
+  )) {
+    if (Test-Path $candidate) { return $candidate }
+  }
+  $command = Get-Command python -ErrorAction SilentlyContinue
+  if ($command) { return $command.Source }
+  return $null
+}
 
 function Get-CloudflaredCli {
   $cmd = Get-Command cloudflared -ErrorAction SilentlyContinue
@@ -33,6 +59,11 @@ function Test-LocalDashboard {
   }
 }
 
+Import-LocalEnv (Join-Path $Root ".env")
+$Python = Get-PythonRuntime
+if (-not $HostName) { $HostName = $env:KQUANT_CLOUDFLARE_HOSTNAME }
+if (-not $TunnelName) { $TunnelName = $env:KQUANT_CLOUDFLARE_TUNNEL_NAME }
+
 if (-not $HostName) {
   throw "Set KQUANT_CLOUDFLARE_HOSTNAME, for example kquant-api.yourdomain.com. Protect that hostname with Cloudflare Access before using it from Vercel."
 }
@@ -41,8 +72,8 @@ if (-not $TunnelName) {
   throw "Set KQUANT_CLOUDFLARE_TUNNEL_NAME to your named Cloudflare Tunnel. Create it in Cloudflare Zero Trust > Networks > Tunnels."
 }
 
-if (-not (Test-Path $Python)) {
-  throw "Python runtime not found: $Python"
+if (-not $Python) {
+  throw "Python runtime not found. Create .venv or install Python."
 }
 
 Set-Location $Root

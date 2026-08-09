@@ -8,9 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from .operations import record_operational_event
+from .early_trend_service import early_trend_snapshot
 from .realtime_instructions import (
     AlertEventHub,
     evaluate_instruction_state,
+    evaluate_early_trend_instruction,
     latest_instruction,
     persist_instruction,
 )
@@ -31,6 +33,9 @@ class RealtimeSupervisor:
         self._thread: threading.Thread | None = None
         self._lock = threading.RLock()
         self._candidate_index = 0
+        self._early_pool_date = ""
+        self._early_pool: list[dict[str, Any]] = []
+        self._early_pool_source_symbols: set[str] = set()
         self._status: dict[str, Any] = {
             "enabled": self.enabled,
             "running": False,
@@ -79,30 +84,49 @@ class RealtimeSupervisor:
             universe="default",
             profile="swing_long_v1",
         )
-        candidates = [
-            signal for signal in list(run.get("signals") or [])
-            if signal.get("level") in {"BUY SETUP", "WATCH"}
-        ]
+        candidates = list(run.get("signals") or [])
         candidates.sort(key=lambda item: (-float(item.get("score") or 0), str(item.get("symbol") or "")))
         candidates = candidates[: self.max_candidates]
+        pool_key = datetime.now(UTC).strftime("%Y-%m-%d")
+        candidate_symbols = {str(item.get("symbol") or "").upper() for item in candidates}
+        if self._early_pool_date != pool_key or candidate_symbols != self._early_pool_source_symbols:
+            early_pool: list[dict[str, Any]] = []
+            for candidate in candidates:
+                symbol = str(candidate.get("symbol") or "").upper()
+                try:
+                    snapshot = early_trend_snapshot(symbol, self.db_path)
+                except Exception as exc:  # noqa: BLE001 - one symbol cannot block the daily pool.
+                    record_operational_event(
+                        self.db_path,
+                        event_type="early_trend_candidate_error",
+                        severity="warning",
+                        component="realtime_supervisor",
+                        message=f"{symbol}: {type(exc).__name__}",
+                    )
+                    continue
+                if snapshot.get("strategy_stage") != "NOT_READY":
+                    early_pool.append(snapshot)
+            stage_rank = {"BUY_REVIEW": 5, "ARMED": 4, "EARLY_WATCH": 3, "LATE_WAIT_PULLBACK": 2, "INVALIDATED": 1}
+            early_pool.sort(key=lambda item: (-stage_rank.get(str(item.get("strategy_stage")), 0), -float(item.get("setup_score") or 0), str(item.get("symbol") or "")))
+            self._early_pool = early_pool
+            self._early_pool_date = pool_key
+            self._early_pool_source_symbols = candidate_symbols
         with self._lock:
-            self._status["candidate_count"] = len(candidates)
+            self._status["candidate_count"] = len(self._early_pool)
             self._status["last_cycle_at"] = datetime.now(UTC).isoformat()
             self._status["cycles"] = int(self._status["cycles"]) + 1
-        if not candidates:
+        if not self._early_pool:
             return {"status": "idle", "candidate_count": 0, "reason": "No eligible signals in the latest canonical scan."}
-        candidate = candidates[self._candidate_index % len(candidates)]
+        candidate = self._early_pool[self._candidate_index % len(self._early_pool)]
         self._candidate_index += 1
         symbol = str(candidate.get("symbol") or "").upper()
         with self._lock:
             self._status["active_symbol"] = symbol
         previous = latest_instruction(self.db_path, symbol)
-        snapshot = api_stock_realtime_snapshot(symbol, self.db_path)
-        instruction = evaluate_instruction_state(
-            candidate,
-            snapshot,
-            previous_state=(previous or {}).get("state"),
-        )
+        early_snapshot = early_trend_snapshot(symbol, self.db_path)
+        instruction = evaluate_early_trend_instruction(early_snapshot, previous_state=(previous or {}).get("state"))
+        if instruction is None:
+            return {"status": "completed", "symbol": symbol, "instruction": None, "reason": "Early-trend setup is not ready."}
         stored = persist_instruction(self.db_path, instruction, self.hub)
         with self._lock:
             self._status["last_success_at"] = datetime.now(UTC).isoformat()
@@ -128,4 +152,3 @@ class RealtimeSupervisor:
                     message=message,
                 )
             self._stop.wait(self.interval_seconds)
-

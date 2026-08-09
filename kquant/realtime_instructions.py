@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .operations import dispatch_personal_notification, queue_notification
+from .web_push import deliver_web_push
 from .stock_store import connect
 
 
@@ -154,6 +155,73 @@ def evaluate_instruction_state(
     }
 
 
+def evaluate_early_trend_instruction(snapshot: dict[str, Any], previous_state: str | None = None) -> dict[str, Any] | None:
+    stage = str(snapshot.get("strategy_stage") or "NOT_READY")
+    if stage == "NOT_READY":
+        return None
+    state_map = {
+        "EARLY_WATCH": ("MONITORING", "EARLY_WATCH", "INFO"),
+        "ARMED": ("READY", "WAIT_FOR_TRIGGER", "INFO"),
+        "BUY_REVIEW": ("TRIGGERED", "PAPER_BUY_REVIEW", "ACTION"),
+        "LATE_WAIT_PULLBACK": ("MONITORING", "WAIT_PULLBACK", "INFO"),
+        "INVALIDATED": ("INVALIDATED", "DO_NOT_ENTER", "RISK"),
+    }
+    state, action, severity = state_map.get(stage, ("MONITORING", "OBSERVE", "INFO"))
+    if previous_state == "TRIGGERED" and state in {"MONITORING", "READY"}:
+        state, action, severity = "TRIGGERED", "HOLD_REVIEW", "INFO"
+    realtime = dict(snapshot.get("realtime_snapshot") or {})
+    quote = dict(realtime.get("quote") or {})
+    pullback = list(snapshot.get("pullback_zone") or [])
+    execution = dict(snapshot.get("execution_eligibility") or {})
+    material = {
+        "symbol": snapshot.get("symbol"),
+        "strategy_version": snapshot.get("strategy_version"),
+        "stage": stage,
+        "setup_score": snapshot.get("setup_score"),
+        "trigger_score": snapshot.get("trigger_score"),
+        "pullback_zone": pullback,
+        "invalidation": snapshot.get("invalidation_price"),
+        "blockers": execution.get("blockers"),
+    }
+    material_hash = hashlib.sha256(json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")).hexdigest()[:24]
+    return {
+        "symbol": str(snapshot.get("symbol") or "").upper(),
+        "strategy_version": str(snapshot.get("strategy_version") or "early_trend_3_15d_v1.0.0"),
+        "trigger_version": str(snapshot.get("trigger_policy_version") or "early_trend_trigger_v1.0.0"),
+        "state": state,
+        "action": action,
+        "severity": severity,
+        "material_state_hash": material_hash,
+        "quote_time": quote.get("quote_time"),
+        "data_source": str(realtime.get("trust") or "unavailable"),
+        "expires_at": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
+        "plan": {
+            "observed_price": quote.get("last"),
+            "bid": quote.get("bid"),
+            "ask": quote.get("ask"),
+            "entry_low": pullback[0] if len(pullback) == 2 else None,
+            "entry_high": pullback[1] if len(pullback) == 2 else None,
+            "stop": snapshot.get("invalidation_price"),
+            "target_low": None,
+            "target_high": None,
+            "risk_reward": "pending trigger",
+            "risk_reward_value": None,
+            "confirmation": "closed 1H trigger plus closed 5m confirmation",
+            "manual_confirmation_required": True,
+            "paper_only": True,
+        },
+        "evidence": {
+            "strategy_stage": stage,
+            "setup_score": snapshot.get("setup_score"),
+            "trigger_score": snapshot.get("trigger_score"),
+            "execution_eligibility": execution,
+            "lead_time_evidence": snapshot.get("lead_time_evidence"),
+            "factor_snapshot_hash": snapshot.get("factor_snapshot_hash"),
+            "blockers": execution.get("blockers") or [],
+        },
+        "read_only_research": True,
+        "order_submission_enabled": False,
+    }
 class AlertEventHub:
     def __init__(self) -> None:
         self._lock = threading.Lock()
@@ -222,6 +290,11 @@ def _instruction_row(row: Any, *, duplicate: bool = False) -> dict[str, Any]:
     item = dict(row)
     item["plan"] = json.loads(item.pop("plan_json"))
     item["evidence"] = json.loads(item.pop("evidence_json"))
+    item["strategy_stage"] = item["evidence"].get("strategy_stage")
+    item["setup_score"] = item["evidence"].get("setup_score")
+    item["trigger_score"] = item["evidence"].get("trigger_score")
+    item["execution_eligibility"] = item["evidence"].get("execution_eligibility")
+    item["lead_time_evidence"] = item["evidence"].get("lead_time_evidence")
     item["duplicate"] = duplicate
     item["read_only_research"] = True
     item["order_submission_enabled"] = False
@@ -306,6 +379,27 @@ def create_alert_for_instruction(db_path: Path, instruction: dict[str, Any]) -> 
         )
         conn.commit()
     alert = get_alert(db_path, alert_id)
+    push_result = deliver_web_push(
+        db_path,
+        alert_id=alert_id,
+        severity=severity,
+        payload={
+            "title": title_by_state.get(state, state),
+            "body": message,
+            "symbol": instruction["symbol"],
+            "state": state,
+            "price": instruction.get("plan", {}).get("observed_price"),
+            "entry_low": instruction.get("plan", {}).get("entry_low"),
+            "entry_high": instruction.get("plan", {}).get("entry_high"),
+            "stop": instruction.get("plan", {}).get("stop"),
+            "invalidation": (instruction.get("evidence") or {}).get("blockers"),
+            "data_time": instruction.get("quote_time"),
+            "url": f"/?symbol={instruction['symbol']}&workspace=today",
+            "tag": dedupe_key,
+            "severity": severity,
+        },
+    )
+    alert["web_push"] = push_result
     if os.getenv("KQUANT_ENABLE_NOTIFICATIONS", "false").lower() == "true":
         queued = queue_notification(db_path, event_type=_legacy_notification_type(state), payload=payload, channel="telegram")
         result = dispatch_personal_notification(db_path, event_id=queued["event_id"])

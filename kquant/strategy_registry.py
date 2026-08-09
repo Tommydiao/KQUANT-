@@ -11,6 +11,7 @@ from .stock_store import connect
 
 CANONICAL_VERSIONS = {
     "swing_long_v1": "swing_long_v1.1.0",
+    "early_trend_3_15d_v1": "early_trend_3_15d_v1.0.0",
 }
 
 
@@ -70,13 +71,13 @@ def definition_for_profile(
     """
 
     normalized = str(profile_name or profile.get("name") or "swing_long_v1")
-    canonical = normalized == "swing_long_v1"
+    canonical = normalized in {"swing_long_v1", "early_trend_3_15d_v1"}
     return StrategyDefinition(
-        strategy_id="swing_long" if canonical else normalized,
+        strategy_id="swing_long" if normalized == "swing_long_v1" else "early_trend_3_15d" if normalized == "early_trend_3_15d_v1" else normalized,
         strategy_version=strategy_version or CANONICAL_VERSIONS.get(normalized, f"{normalized}.legacy.0"),
         profile_name=normalized,
-        rule_engine_version="stock_signals.build_signal.v1",
-        specification_path="docs/strategy_specification.md" if canonical else "legacy_profile_unfrozen",
+        rule_engine_version="early_trend.evaluate.v1" if normalized == "early_trend_3_15d_v1" else "stock_signals.build_signal.v1",
+        specification_path="docs/early_trend_strategy.md" if normalized == "early_trend_3_15d_v1" else "docs/strategy_specification.md" if canonical else "legacy_profile_unfrozen",
         parameters=dict(profile),
     )
 

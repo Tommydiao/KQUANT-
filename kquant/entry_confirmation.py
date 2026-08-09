@@ -3,13 +3,15 @@ from __future__ import annotations
 from typing import Any
 
 
-def analyze_hourly_confirmation(
+def analyze_confirmation(
     candles: list[dict[str, Any]],
     feature_snapshot: dict[str, Any],
     *,
     minimum_momentum_pct: float,
+    timeframe: str = "1H",
 ) -> dict[str, Any]:
-    """Audit a completed 1H entry confirmation without changing strategy rules."""
+    """Audit a completed confirmation series using its actual timeframe."""
+    normalized_timeframe = str(timeframe or "1H").upper()
     completed = [item for item in candles if item.get("bar_state") != "forming_candle"]
     values = dict(feature_snapshot.get("values") or {})
     forming_count = len(candles) - len(completed)
@@ -18,7 +20,8 @@ def analyze_hourly_confirmation(
             "status": "unavailable",
             "strict_confirmation": False,
             "forming_candle_count": forming_count,
-            "reasons": ["insufficient_completed_hourly_candles"],
+            "timeframe": normalized_timeframe,
+            "reasons": ["insufficient_completed_confirmation_candles"],
         }
     close = float(completed[-1]["close"])
     high = float(completed[-1]["high"])
@@ -47,17 +50,18 @@ def analyze_hourly_confirmation(
     if not strict_confirmation:
         reasons.append("ema_or_momentum_confirmation_missing")
     if not volume_confirmation:
-        reasons.append("hourly_volume_not_expanding")
+        reasons.append("confirmation_volume_not_expanding")
     if forming_count:
-        reasons.append("forming_hourly_candles_excluded")
+        reasons.append("forming_confirmation_candles_excluded")
     return {
         "status": "available",
+        "timeframe": normalized_timeframe,
         "strict_confirmation": strict_confirmation,
         "setup_mode": setup_mode,
         "breakout": breakout,
         "pullback_reclaim": pullback_reclaim,
         "volume_confirmation": volume_confirmation,
-        "hourly_volume_ratio": round(float(volume_ratio), 3) if volume_ratio is not None else None,
+        "confirmation_volume_ratio": round(float(volume_ratio), 3) if volume_ratio is not None else None,
         "momentum_pct": round(float(momentum), 3) if momentum is not None else None,
         "ema20": round(ema20, 4),
         "ema50": round(ema50, 4),
@@ -66,3 +70,23 @@ def analyze_hourly_confirmation(
         "forming_candle_count": forming_count,
         "reasons": reasons,
     }
+
+
+def analyze_hourly_confirmation(
+    candles: list[dict[str, Any]],
+    feature_snapshot: dict[str, Any],
+    *,
+    minimum_momentum_pct: float,
+) -> dict[str, Any]:
+    """Backward-compatible 1H wrapper for saved reports and older callers."""
+    result = analyze_confirmation(
+        candles,
+        feature_snapshot,
+        minimum_momentum_pct=minimum_momentum_pct,
+        timeframe="1H",
+    )
+    result["hourly_volume_ratio"] = result.get("confirmation_volume_ratio")
+    result["reasons"] = [
+        reason.replace("confirmation", "hourly") for reason in result.get("reasons", [])
+    ]
+    return result

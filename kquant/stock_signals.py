@@ -20,7 +20,7 @@ from .market_clock import active_regular_session_start, is_trading_day, market_c
 from .data_quality import assess_candle_payload, assess_realtime_market_data
 from .data_coverage import corporate_event_context, market_breadth_snapshot
 from .factor_engine import build_factor_snapshot, decision_evidence, persist_factor_snapshot
-from .entry_confirmation import analyze_hourly_confirmation
+from .entry_confirmation import analyze_confirmation
 from .hard_veto import HARD_VETO_POLICY_VERSION, evaluate_hard_veto
 from .historical_replay import replay_metadata, slice_completed_candles_as_of
 from .market_store import persist_canonical_candles
@@ -234,6 +234,33 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
         "pullback_ema50_floor": 0.97,
         "high_beta_growth": True,
         "formula": "high-beta growth pullback + 1h momentum turn + looser volume + wider ATR risk",
+    },
+    "early_trend_3_15d_v1": {
+        "name": "early_trend_3_15d_v1",
+        "label": "Early Trend 3-15D",
+        "holding_period": "3-15 trading days",
+        "buy_setup_threshold": 72,
+        "strict_buy_gate_score": 72,
+        "watch_threshold": 60,
+        "direction": "long_only",
+        "primary_range": "1y",
+        "primary_interval": "1d",
+        "confirmation_range": "2y",
+        "confirmation_interval": "1h",
+        "primary_timeframe": "1D",
+        "confirmation_timeframe": "1H",
+        "focus_window": "15D",
+        "focus_horizon_bars": 15,
+        "target_return_pct": 6.0,
+        "max_atr_pct": 12.0,
+        "max_extension_pct": 10.0,
+        "confirmation_momentum_min": 0.3,
+        "volume_ratio_min": 1.0,
+        "focus_win_rate_min": 0.0,
+        "focus_avg_return_min": 0.0,
+        "stop_loss_pct": 6.0,
+        "formula": "daily early trend setup + closed 1h trigger + closed 5m execution confirmation",
+        "separate_strategy_engine": "early_trend.evaluate.v1",
     },
 }
 PROFILE = PROFILE_CONFIGS["swing_long_v1"]
@@ -2960,16 +2987,18 @@ def build_signal(
     daily_close = [bar["close"] for bar in daily]
     hourly_close = [bar["close"] for bar in hourly]
     daily_feature_snapshot = calculate_feature_snapshot(daily, timeframe="1D")
+    confirmation_timeframe = str(active_profile.get("confirmation_timeframe") or "1H").upper()
     hourly_feature_snapshot = calculate_feature_snapshot(
-        hourly, timeframe="1H", ema_periods=(8, 9, 20, 50), momentum_period=7
+        hourly, timeframe=confirmation_timeframe, ema_periods=(8, 9, 20, 50), momentum_period=7
     )
     daily_feature_values = daily_feature_snapshot["values"]
     hourly_feature_values = hourly_feature_snapshot["values"]
     daily_trend = analyze_daily_trend(daily, daily_feature_snapshot)
-    hourly_confirmation = analyze_hourly_confirmation(
+    hourly_confirmation = analyze_confirmation(
         hourly,
         hourly_feature_snapshot,
         minimum_momentum_pct=float(active_profile.get("confirmation_momentum_min", 0.6)),
+        timeframe=confirmation_timeframe,
     )
     ema8 = float(daily_feature_values["ema_8"])
     ema9 = float(daily_feature_values["ema_9"])
@@ -3043,6 +3072,18 @@ def build_signal(
         "hourly_breakout": bool(hourly_confirmation.get("breakout")),
         "hourly_pullback_reclaim": bool(hourly_confirmation.get("pullback_reclaim")),
         "hourly_volume_confirmation": bool(hourly_confirmation.get("volume_confirmation")),
+        "confirmation_timeframe": confirmation_timeframe,
+        "confirmation_close": round(hourly_close[-1], 2),
+        "confirmation_ema8": round(h_ema8, 2),
+        "confirmation_ema9": round(h_ema9, 2),
+        "confirmation_ema20": round(h_ema20, 2),
+        "confirmation_ema50": round(h_ema50, 2),
+        "confirmation_momentum_pct": round(one_hour_momentum, 2),
+        "confirmation_gap_risk_pct": round(float(hourly_feature_values["gap_risk_pct"]), 2) if hourly_feature_values["gap_risk_pct"] is not None else None,
+        "confirmation_mode": hourly_confirmation.get("setup_mode"),
+        "confirmation_breakout": bool(hourly_confirmation.get("breakout")),
+        "confirmation_pullback_reclaim": bool(hourly_confirmation.get("pullback_reclaim")),
+        "confirmation_volume_confirmed": bool(hourly_confirmation.get("volume_confirmation")),
     }
     score_breakdown = {
         "trend_score": round(trend_score, 1),
@@ -3081,7 +3122,12 @@ def build_signal(
         not longbridge_required
         or (daily_source == LONG_BRIDGE_CANDLE_SOURCE and hourly_source == LONG_BRIDGE_CANDLE_SOURCE)
     )
-    quality_clean = daily_quality.get("status") == "clean" and hourly_quality.get("status") == "clean"
+    confirmation_cautions = set(hourly_quality.get("caution_reasons") or [])
+    confirmation_quality_usable = hourly_quality.get("status") == "clean" or (
+        not hourly_quality.get("hard_veto_reasons")
+        and confirmation_cautions <= {"forming_candles_excluded_from_confirmation"}
+    )
+    quality_clean = daily_quality.get("status") == "clean" and confirmation_quality_usable
     data_clean = daily_status == "available" and hourly_status == "available" and realtime_source_clean and quality_clean
     has_real_or_internal_data = daily_status in ("available", "stale_cache", "fixture_read_only") and hourly_status in (
         "available",
@@ -3314,7 +3360,7 @@ def build_signal(
         "tags": [],
         "liquidity_tier": "core",
         "trend_summary": f"Daily close {close:.2f}; EMA20 {ema20:.2f}, EMA50 {ema50:.2f}, EMA200 {ema200:.2f}.",
-        "trigger_summary": f"1h momentum {one_hour_momentum:.2f}% with close {'above' if hourly_close[-1] >= h_ema20 else 'below'} EMA20.",
+        "trigger_summary": f"{confirmation_timeframe} momentum {one_hour_momentum:.2f}% with close {'above' if hourly_close[-1] >= h_ema20 else 'below'} EMA20.",
         "score_breakdown": score_breakdown,
         "exit_risk": exit_risk,
         "exit_plan": build_exit_plan(active_profile, exit_risk, close, ema20, ema50, extension_pct),
@@ -3327,6 +3373,12 @@ def build_signal(
         ],
         "data_status": data_status,
         "features": features,
+        "strategy_limits": {
+            "max_extension_pct": float(active_profile.get("max_extension_pct", 5.5)),
+            "max_atr_pct": float(active_profile.get("max_atr_pct", 5.0)),
+            "volume_ratio_min": float(active_profile.get("volume_ratio_min", 1.2)),
+            "confirmation_momentum_min": float(active_profile.get("confirmation_momentum_min", 0.6)),
+        },
         "ai_feature_packet_v1": ai_feature_packet,
         "ai_feature_packet_v2": ai_feature_packet_v2,
         "entry_plan": rule_plans["entry_plan"],

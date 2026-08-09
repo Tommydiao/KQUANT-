@@ -71,9 +71,9 @@ def calculate_score_components(
     }
     trend_score = _clamp(sum(trend_factors.values()), 0.0, trend["score_max"])
     trigger_factors = {
-        "close_above_hourly_ema20": trigger["close_above_ema20"] if hourly_close > hourly_ema20 else 0.0,
-        "hourly_ema20_above_ema50": trigger["ema20_above_ema50"] if hourly_ema20 > hourly_ema50 else 0.0,
-        "hourly_momentum": _clamp(hourly_momentum_pct * trigger["momentum_multiplier"], trigger["momentum_min"], trigger["momentum_max"]),
+        "close_above_confirmation_ema20": trigger["close_above_ema20"] if hourly_close > hourly_ema20 else 0.0,
+        "confirmation_ema20_above_ema50": trigger["ema20_above_ema50"] if hourly_ema20 > hourly_ema50 else 0.0,
+        "confirmation_momentum": _clamp(hourly_momentum_pct * trigger["momentum_multiplier"], trigger["momentum_min"], trigger["momentum_max"]),
     }
     trigger_score = _clamp(sum(trigger_factors.values()), 0.0, trigger["score_max"])
     volume_score = _clamp((volume_ratio - volume["baseline"]) * volume["multiplier"], 0.0, volume["score_max"])

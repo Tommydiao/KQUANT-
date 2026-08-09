@@ -10,6 +10,7 @@ dependencies = [
   "numpy>=2.0",
   "pandas>=2.2",
   "PyYAML>=6.0",
+  "pywebpush>=2.0",
   "requests>=2.32",
   "rich>=13.7",
   "uvicorn[standard]>=0.30",

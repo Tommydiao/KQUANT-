@@ -588,6 +588,44 @@ CREATE TABLE IF NOT EXISTS alert_events (
 );
 CREATE INDEX IF NOT EXISTS idx_alert_events_unread
 ON alert_events(acknowledged_at, created_at DESC);
+CREATE TABLE IF NOT EXISTS web_push_subscriptions (
+  subscription_id TEXT PRIMARY KEY,
+  endpoint TEXT NOT NULL UNIQUE,
+  endpoint_hash TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  user_agent TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  failure_count INTEGER NOT NULL DEFAULT 0,
+  last_success_at TEXT,
+  last_failure_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_web_push_subscriptions_enabled
+ON web_push_subscriptions(enabled, updated_at DESC);
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  preference_id TEXT PRIMARY KEY,
+  web_push_enabled INTEGER NOT NULL DEFAULT 1,
+  quiet_start TEXT NOT NULL DEFAULT '22:30',
+  quiet_end TEXT NOT NULL DEFAULT '08:00',
+  timezone TEXT NOT NULL DEFAULT 'Asia/Shanghai',
+  daily_routine_limit INTEGER NOT NULL DEFAULT 5,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS alert_delivery_attempts (
+  attempt_id TEXT PRIMARY KEY,
+  alert_id TEXT,
+  subscription_id TEXT NOT NULL,
+  channel TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  attempt INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_alert_delivery_attempts_time
+ON alert_delivery_attempts(channel, status, created_at DESC);
 CREATE TABLE IF NOT EXISTS option_contract_snapshots (
   snapshot_id TEXT PRIMARY KEY,
   contract_symbol TEXT NOT NULL,
