@@ -9,9 +9,10 @@ import os
 from pathlib import Path
 
 from .database_migrations import apply_sqlite_schema_migrations, migration_readiness
-from .data_coverage import api_stock_data_coverage
+from .data_coverage import api_stock_data_coverage, persist_data_coverage_run
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
-from .market_data_backfill import run_longbridge_backfill
+from .market_data_backfill import create_backfill_job, run_backfill_job, run_longbridge_backfill
+from .provider_event_retention import archive_provider_events, provider_event_retention_status
 from .production_readiness import (
     evaluate_go_no_go,
     serialize_go_no_go,
@@ -58,6 +59,7 @@ def main() -> None:
     health.add_argument("--scan-pause-seconds", type=float, default=0.0)
     coverage = sub.add_parser("data-coverage", help="Report source-aware cached candle coverage without fetching market data.")
     coverage.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    coverage.add_argument("--record", action="store_true", help="Persist an immutable coverage-run record.")
     backfill = sub.add_parser("backfill-market-data", help="Backfill 5y daily and 2y hourly Longbridge candles; reference fallback is never eligible.")
     backfill.add_argument("--universe", default="all")
     backfill.add_argument("--symbols", default="")
@@ -65,6 +67,20 @@ def main() -> None:
     backfill.add_argument("--pause-seconds", type=float, default=0.2)
     backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     backfill.add_argument("--outputs-dir", default="outputs")
+    queue_backfill = sub.add_parser("queue-market-backfill", help="Create a resumable Longbridge-only market-data backfill job.")
+    queue_backfill.add_argument("--symbols", default="")
+    queue_backfill.add_argument("--pause-seconds", type=float, default=0.2)
+    queue_backfill.add_argument("--max-attempts", type=int, default=3)
+    queue_backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    run_backfill = sub.add_parser("run-market-backfill", help="Run one bounded batch from a queued backfill job.")
+    run_backfill.add_argument("--job-id", required=True)
+    run_backfill.add_argument("--batch-size", type=int, default=10)
+    run_backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    retention = sub.add_parser("provider-event-retention", help="Inspect or explicitly archive old provider event records without deleting them.")
+    retention.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    retention.add_argument("--retention-days", type=int, default=90)
+    retention.add_argument("--archive-dir", default="outputs/archives")
+    retention.add_argument("--apply", action="store_true")
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -174,7 +190,7 @@ def main() -> None:
         )
         print(json.dumps({"run_id": payload["run_id"], "summary": payload["summary"]}, indent=2))
     if args.command == "data-coverage":
-        payload = api_stock_data_coverage(Path(args.db_path))
+        payload = persist_data_coverage_run(Path(args.db_path))["coverage"] if args.record else api_stock_data_coverage(Path(args.db_path))
         print(json.dumps({
             "as_of": payload["as_of"],
             "universe_symbols": payload["universe_symbols"],
@@ -197,6 +213,19 @@ def main() -> None:
             "eligible_symbol_count": payload["eligible_symbol_count"],
             "report": str(Path(args.outputs_dir) / "longbridge-backfill-latest.json"),
         }, indent=2))
+    if args.command == "queue-market-backfill":
+        print(json.dumps(create_backfill_job(
+            db_path=Path(args.db_path),
+            symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
+            pause_seconds=max(0.0, args.pause_seconds), max_attempts=max(1, args.max_attempts),
+        ), indent=2))
+    if args.command == "run-market-backfill":
+        print(json.dumps(run_backfill_job(db_path=Path(args.db_path), job_id=args.job_id, batch_size=max(1, args.batch_size)), indent=2))
+    if args.command == "provider-event-retention":
+        if args.apply:
+            print(json.dumps(archive_provider_events(db_path=Path(args.db_path), output_dir=Path(args.archive_dir), retention_days=max(1, args.retention_days), apply=True), indent=2))
+        else:
+            print(json.dumps(provider_event_retention_status(Path(args.db_path), max(1, args.retention_days)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],

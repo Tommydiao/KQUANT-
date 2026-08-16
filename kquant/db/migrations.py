@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 3
+LATEST_SCHEMA_VERSION = 4
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -224,11 +224,127 @@ def _data_snapshot_checksum() -> str:
     )
 
 
+def _apply_data_trust_contract(conn: sqlite3.Connection) -> None:
+    """Add durable operational records without rewriting legacy market data."""
+
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS universe_registry_versions (
+          registry_id TEXT PRIMARY KEY,
+          registry_name TEXT NOT NULL,
+          source TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          symbol_count INTEGER NOT NULL,
+          details_json TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS universe_registry_members (
+          registry_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          name TEXT NOT NULL,
+          sector TEXT NOT NULL,
+          layer TEXT NOT NULL,
+          tags_json TEXT NOT NULL,
+          rank_value INTEGER NOT NULL,
+          active INTEGER NOT NULL,
+          eligibility_status TEXT NOT NULL,
+          provenance TEXT NOT NULL,
+          PRIMARY KEY (registry_id, symbol),
+          FOREIGN KEY (registry_id) REFERENCES universe_registry_versions(registry_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_universe_registry_members_symbol
+        ON universe_registry_members(symbol, registry_id);
+        CREATE TABLE IF NOT EXISTS data_coverage_runs (
+          coverage_run_id TEXT PRIMARY KEY,
+          registry_id TEXT NOT NULL,
+          contract_version TEXT NOT NULL,
+          as_of_time TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          summary_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (registry_id) REFERENCES universe_registry_versions(registry_id)
+        );
+        CREATE TABLE IF NOT EXISTS data_coverage_items (
+          coverage_run_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          interval TEXT NOT NULL,
+          source TEXT NOT NULL,
+          provider_status TEXT NOT NULL,
+          adjustment_mode TEXT NOT NULL,
+          candle_count INTEGER NOT NULL,
+          first_time TEXT,
+          last_time TEXT,
+          fetched_at TEXT,
+          gap_count INTEGER NOT NULL,
+          max_gap_seconds INTEGER,
+          eligibility_status TEXT NOT NULL,
+          details_json TEXT NOT NULL,
+          PRIMARY KEY (coverage_run_id, symbol, interval),
+          FOREIGN KEY (coverage_run_id) REFERENCES data_coverage_runs(coverage_run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_data_coverage_items_symbol_interval
+        ON data_coverage_items(symbol, interval, coverage_run_id DESC);
+        CREATE TABLE IF NOT EXISTS market_backfill_jobs (
+          job_id TEXT PRIMARY KEY,
+          provider TEXT NOT NULL,
+          registry_id TEXT NOT NULL,
+          status TEXT NOT NULL,
+          requested_intervals_json TEXT NOT NULL,
+          pause_seconds REAL NOT NULL,
+          max_attempts INTEGER NOT NULL,
+          requested_at TEXT NOT NULL,
+          started_at TEXT,
+          completed_at TEXT,
+          last_error TEXT NOT NULL DEFAULT '',
+          details_json TEXT NOT NULL,
+          FOREIGN KEY (registry_id) REFERENCES universe_registry_versions(registry_id)
+        );
+        CREATE TABLE IF NOT EXISTS market_backfill_job_items (
+          job_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          interval TEXT NOT NULL,
+          range_value TEXT NOT NULL,
+          minimum_bars INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          attempts INTEGER NOT NULL DEFAULT 0,
+          next_attempt_at TEXT,
+          last_error TEXT NOT NULL DEFAULT '',
+          result_json TEXT NOT NULL DEFAULT '{}',
+          updated_at TEXT NOT NULL,
+          PRIMARY KEY (job_id, symbol, interval),
+          FOREIGN KEY (job_id) REFERENCES market_backfill_jobs(job_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_market_backfill_job_items_pending
+        ON market_backfill_job_items(job_id, status, next_attempt_at);
+        CREATE TABLE IF NOT EXISTS provider_event_archive_runs (
+          archive_id TEXT PRIMARY KEY,
+          provider TEXT NOT NULL,
+          before_time TEXT NOT NULL,
+          candidate_count INTEGER NOT NULL,
+          archived_count INTEGER NOT NULL,
+          archive_path TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          details_json TEXT NOT NULL
+        );
+        """
+    )
+
+
+def _data_trust_checksum() -> str:
+    return _checksum(
+        "data_trust_v1|universe_registry_versions|universe_registry_members|"
+        "data_coverage_runs|data_coverage_items|market_backfill_jobs|"
+        "market_backfill_job_items|provider_event_archive_runs"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
         Migration(2, "explicit_schema_migration_framework", _framework_checksum(), _apply_explicit_framework),
         Migration(3, "data_snapshot_contract", _data_snapshot_checksum(), _apply_data_snapshot_contract),
+        Migration(4, "data_trust_registry_and_backfill_contract", _data_trust_checksum(), _apply_data_trust_contract),
     )
 
 

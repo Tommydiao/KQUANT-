@@ -74,7 +74,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-09-early-trend-push-v1";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-16-data-trust-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -3960,6 +3960,7 @@ function SettingsPanel({
 }) {
   const [pushStatus, setPushStatus] = useState<WebPushStatus | null>(null);
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
+  const [coverage, setCoverage] = useState<{ universe_symbols: number; interval_summary: Record<string, { longbridge_eligible_symbols: number; coverage_pct: number; target_pct: number }>; universe_registry?: { registry_id: string } } | null>(null);
   const [pushMessage, setPushMessage] = useState("");
   const [pushBusy, setPushBusy] = useState(false);
 
@@ -3973,6 +3974,9 @@ function SettingsPanel({
 
   useEffect(() => {
     void loadPushStatus();
+    void apiFetch("/api/data/coverage").then(async (response) => {
+      if (response.ok) setCoverage(await response.json());
+    });
   }, []);
 
   async function enablePush() {
@@ -4077,6 +4081,11 @@ function SettingsPanel({
           <strong>{text.aiStatusTitle}</strong>
           <p>{aiStatus?.status === "available" ? `Connected: ${aiStatus.models.review ?? "review model"}` : "Missing backend OPENAI_API_KEY"}</p>
           <p>{text.aiStatusCopy}</p>
+        </div>
+        <div className="settings-card wide">
+          <strong>{lang === "zh" ? "数据可信度" : "Data Trust"}</strong>
+          <p>{coverage ? `${coverage.universe_symbols} symbols / registry ${coverage.universe_registry?.registry_id ?? "pending"}` : (lang === "zh" ? "正在读取覆盖报告..." : "Loading coverage report...")}</p>
+          {coverage ? <p>{Object.entries(coverage.interval_summary).map(([interval, item]) => `${interval}: ${item.longbridge_eligible_symbols}/${coverage.universe_symbols} (${item.coverage_pct}% / target ${item.target_pct}%)`).join(" · ")}</p> : null}
         </div>
         <div className="settings-card wide">
           <strong>{text.consumerSafetyCopy}</strong>

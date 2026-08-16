@@ -110,7 +110,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-16-data-snapshot-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-16-data-trust-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -656,6 +656,11 @@ def create_app(
 
     @app.get("/api/stocks/data-coverage")
     def data_coverage() -> dict[str, Any]:
+        return api_stock_data_coverage(settings.db_path)
+
+    @app.get("/api/data/coverage")
+    def data_trust_coverage() -> dict[str, Any]:
+        """Canonical v2 Data Trust endpoint; legacy stock route remains compatible."""
         return api_stock_data_coverage(settings.db_path)
 
     @app.get("/api/data/snapshots/{snapshot_id}")
