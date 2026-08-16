@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
+from kquant.db import LATEST_SCHEMA_VERSION
 from kquant.operations import (
     backup_local_workspace,
     dispatch_personal_notification,
@@ -16,7 +17,7 @@ from kquant.stock_store import connect
 
 def test_schema_migration_is_versioned_and_postgres_is_fail_safe(tmp_path: Path) -> None:
     db = tmp_path / "ops.sqlite3"
-    assert apply_sqlite_schema_migrations(db)["schema_version"] == 1
+    assert apply_sqlite_schema_migrations(db)["schema_version"] == LATEST_SCHEMA_VERSION
     assert migration_readiness("postgresql://secret@example/db")["runtime_supported"] is False
 
 

@@ -39,6 +39,9 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.json()["safety"]["order_submission_enabled"] is False
     assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-09-early-trend-push-v1"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
+    assert health.json()["runtime"]["database_schema_version"] == 2
+    assert health.json()["database_migration"]["status"] == "up_to_date"
+    assert health.json()["database_migration"]["checksum_verified"] is True
     assert health.json()["safety"]["options_research_enabled"] is True
     assert health.json()["safety"]["options_order_submission_enabled"] is False
 

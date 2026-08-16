@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from kquant.config import KquantConfig, load_config
 from kquant.data_coverage import api_stock_data_coverage
-from kquant.database_migrations import migration_readiness
+from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
 from kquant.decision_ledger import (
     create_decision_ledger_entry,
     list_decision_ledger,
@@ -355,6 +355,7 @@ def create_app(
     config: KquantConfig | None = None,
 ) -> FastAPI:
     settings = config or load_config(config_path)
+    apply_sqlite_schema_migrations(settings.db_path)
     security = SecuritySettings.from_environment()
     session_auth = LocalSessionAuth(security)
     started_at_utc = datetime.now(timezone.utc).isoformat()
@@ -425,6 +426,7 @@ def create_app(
     def health() -> dict[str, Any]:
         market_data = api_stock_market_data_status(db_path=settings.db_path)
         safety = route_safety_report(app)
+        migration = migration_readiness(default_path=settings.db_path)
         return {
             "product": settings.product,
             "status": "online" if safety["status"] == "pass" else "unsafe",
@@ -434,13 +436,15 @@ def create_app(
                 "started_at_utc": started_at_utc,
                 "auth_routes_version": "local_email_password_v1",
                 "static_assets_version": "early-trend-push-v1",
-                "database_schema_version": "early-trend-push-v1",
+                "database_schema_version": migration["migration"].get("schema_version", 0),
+                "database_schema_fingerprint": migration["migration"].get("schema_fingerprint", ""),
                 "strategy_version": "swing_long_v1.1.0",
                 "early_trend_strategy_version": "early_trend_3_15d_v1.0.0",
                 "trigger_policy_version": TRIGGER_POLICY_VERSION,
                 "options_expression_version": OPTION_EXPRESSION_VERSION,
             },
             "stock_database": str(settings.db_path),
+            "database_migration": migration["migration"],
             "market_data": market_data,
             "ai": api_stock_ai_review_status(),
             "security": security.report(),

@@ -706,80 +706,79 @@ def default_db_path(root: Path | None = None) -> Path:
     return base / "work" / "kquant_us.sqlite3"
 
 
+LEGACY_COLUMN_PATCHES: dict[str, dict[str, str]] = {
+    "stock_signal_journal": {
+        "strategy_profile": "TEXT NOT NULL DEFAULT ''",
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+        "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
+        "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_signal_runs": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_signals": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_features": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_backtest_runs": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "strategy_validation_runs": {
+        "dataset_id": "TEXT NOT NULL DEFAULT ''",
+        "evidence_source": "TEXT NOT NULL DEFAULT 'prospective_llm_actions'",
+        "policy_version": "TEXT NOT NULL DEFAULT ''",
+        "config_version": "TEXT NOT NULL DEFAULT ''",
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "strategy_validation_trades": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+}
+
+
+def initialize_legacy_schema(conn: sqlite3.Connection) -> None:
+    """Apply the legacy v1 schema only from the explicit migration runner."""
+
+    conn.execute("PRAGMA journal_mode=WAL")
+    statements = SCHEMA.replace("PRAGMA journal_mode=WAL;", "", 1)
+    conn.executescript(f"BEGIN IMMEDIATE;\n{statements}\nCOMMIT;")
+    for table, columns in LEGACY_COLUMN_PATCHES.items():
+        _ensure_columns(conn, table, columns, commit=False)
+    conn.commit()
+
+
 def connect(db_path: Path) -> sqlite3.Connection:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+    """Return a compatibility connection after the explicit migration ledger is current."""
+
+    from .db.migrations import apply_sqlite_migrations
+
+    db_path = Path(db_path)
+    apply_sqlite_migrations(db_path)
+    conn = sqlite3.connect(str(db_path), timeout=15)
     conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-    _ensure_columns(
-        conn,
-        "stock_signal_journal",
-        {
-            "strategy_profile": "TEXT NOT NULL DEFAULT ''",
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-            "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
-            "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    _ensure_columns(
-        conn,
-        "stock_signal_runs",
-        {
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    _ensure_columns(
-        conn,
-        "stock_signals",
-        {
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    _ensure_columns(
-        conn,
-        "stock_features",
-        {
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    _ensure_columns(
-        conn,
-        "stock_backtest_runs",
-        {
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    _ensure_columns(
-        conn,
-        "strategy_validation_runs",
-        {
-            "dataset_id": "TEXT NOT NULL DEFAULT ''",
-            "evidence_source": "TEXT NOT NULL DEFAULT 'prospective_llm_actions'",
-            "policy_version": "TEXT NOT NULL DEFAULT ''",
-            "config_version": "TEXT NOT NULL DEFAULT ''",
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    _ensure_columns(
-        conn,
-        "strategy_validation_trades",
-        {
-            "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
-            "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
+    conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 
-def _ensure_columns(conn: sqlite3.Connection, table: str, columns: dict[str, str]) -> None:
+def _ensure_columns(
+    conn: sqlite3.Connection,
+    table: str,
+    columns: dict[str, str],
+    *,
+    commit: bool = True,
+) -> None:
     existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
     for name, definition in columns.items():
         if name not in existing:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
-    conn.commit()
+    if commit:
+        conn.commit()

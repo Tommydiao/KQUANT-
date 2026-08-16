@@ -8,7 +8,7 @@ import secrets
 import os
 from pathlib import Path
 
-from .database_migrations import migration_readiness
+from .database_migrations import apply_sqlite_schema_migrations, migration_readiness
 from .data_coverage import api_stock_data_coverage
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
 from .market_data_backfill import run_longbridge_backfill
@@ -76,6 +76,8 @@ def main() -> None:
     database = sub.add_parser("database-status", help="Show local schema migration readiness without exposing credentials.")
     database.add_argument("--database-url", default="")
     database.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    migrate = sub.add_parser("migrate-database", help="Apply forward-only SQLite schema migrations after backup verification.")
+    migrate.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     operations = sub.add_parser("operations-health", help="Show local scheduler, notification, and database health.")
     operations.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     backup = sub.add_parser("backup-local", help="Create a verified local SQLite backup. Secrets are excluded.")
@@ -217,6 +219,8 @@ def main() -> None:
         )
     if args.command == "database-status":
         print(json.dumps(migration_readiness(args.database_url or None, default_path=Path(args.db_path)), indent=2))
+    if args.command == "migrate-database":
+        print(json.dumps(apply_sqlite_schema_migrations(Path(args.db_path)), indent=2))
     if args.command == "operations-health":
         print(json.dumps(operational_health(Path(args.db_path)), indent=2))
     if args.command == "backup-local":
