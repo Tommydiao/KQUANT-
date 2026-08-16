@@ -145,3 +145,60 @@ def universe_snapshot_status(
             "reconstructed, so historical replay using this universe is survivorship-limited."
         ),
     }
+
+
+def resolve_universe_membership(
+    db_path: Path,
+    *,
+    universe: str,
+    as_of_date: str,
+) -> dict[str, Any]:
+    """Resolve only observed membership available on or before a requested date.
+
+    Runtime snapshots do not reconstruct delisted constituents or index history,
+    so every result remains explicitly survivorship-limited until that dataset is
+    independently ingested.
+    """
+
+    normalized_universe = (universe or "default").strip().lower()
+    requested = str(as_of_date)
+    with connect(db_path) as conn:
+        snapshot = conn.execute(
+            """
+            SELECT universe, as_of_date, definition_hash, membership_count, source, recorded_at
+            FROM stock_universe_snapshots
+            WHERE universe = ? AND as_of_date <= ?
+            ORDER BY as_of_date DESC, recorded_at DESC
+            LIMIT 1
+            """,
+            (normalized_universe, requested),
+        ).fetchone()
+        members = []
+        if snapshot:
+            members = [
+                dict(row)
+                for row in conn.execute(
+                    """
+                    SELECT symbol, name, sector, layer, tags_json, rank, liquidity_tier, recorded_at
+                    FROM stock_universe_memberships
+                    WHERE universe = ? AND as_of_date = ? AND definition_hash = ?
+                    ORDER BY symbol
+                    """,
+                    (snapshot["universe"], snapshot["as_of_date"], snapshot["definition_hash"]),
+                ).fetchall()
+            ]
+    for member in members:
+        member["tags"] = json.loads(member.pop("tags_json"))
+    resolved = dict(snapshot) if snapshot else None
+    return {
+        "universe": normalized_universe,
+        "requested_as_of_date": requested,
+        "resolved_snapshot": resolved,
+        "resolution": "exact" if snapshot and snapshot["as_of_date"] == requested else "latest_prior_observation" if snapshot else "unavailable",
+        "members": members,
+        "membership_count": len(members),
+        "historical_membership_complete": False,
+        "survivorship_limited": True,
+        "eligible_for_model": False,
+        "limitation": "Observed runtime memberships are not a complete historical constituent history.",
+    }

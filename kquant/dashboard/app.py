@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from kquant.config import KquantConfig, load_config
 from kquant.data_coverage import api_stock_data_coverage
+from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
 from kquant.decision_ledger import (
     create_decision_ledger_entry,
@@ -109,7 +110,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-09-early-trend-push-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-16-data-snapshot-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -656,6 +657,13 @@ def create_app(
     @app.get("/api/stocks/data-coverage")
     def data_coverage() -> dict[str, Any]:
         return api_stock_data_coverage(settings.db_path)
+
+    @app.get("/api/data/snapshots/{snapshot_id}")
+    def data_snapshot(snapshot_id: str) -> dict[str, Any]:
+        try:
+            return read_data_snapshot(settings.db_path, snapshot_id=snapshot_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/stocks/market-data/self-check")
     def market_data_self_check(symbol: str = "SPY") -> dict[str, Any]:

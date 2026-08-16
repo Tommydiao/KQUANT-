@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 2
+LATEST_SCHEMA_VERSION = 3
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -162,10 +162,73 @@ def _framework_checksum() -> str:
     )
 
 
+def _apply_data_snapshot_contract(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS data_snapshots (
+          snapshot_id TEXT PRIMARY KEY,
+          contract_version TEXT NOT NULL,
+          snapshot_kind TEXT NOT NULL,
+          scope_json TEXT NOT NULL,
+          as_of_time TEXT NOT NULL,
+          available_at TEXT NOT NULL,
+          eligibility_status TEXT NOT NULL,
+          item_count INTEGER NOT NULL,
+          eligible_item_count INTEGER NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          details_json TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_data_snapshots_kind_as_of
+        ON data_snapshots(snapshot_kind, as_of_time DESC)
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS data_snapshot_items (
+          snapshot_id TEXT NOT NULL,
+          item_key TEXT NOT NULL,
+          item_type TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          interval TEXT NOT NULL DEFAULT '',
+          source TEXT NOT NULL,
+          as_of_time TEXT NOT NULL,
+          available_at TEXT NOT NULL,
+          fetched_at TEXT NOT NULL,
+          eligibility_status TEXT NOT NULL,
+          exclusion_reason TEXT NOT NULL DEFAULT '',
+          content_hash TEXT NOT NULL,
+          payload_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (snapshot_id, item_key),
+          FOREIGN KEY (snapshot_id) REFERENCES data_snapshots(snapshot_id)
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_data_snapshot_items_symbol_interval
+        ON data_snapshot_items(symbol, interval, as_of_time DESC)
+        """
+    )
+
+
+def _data_snapshot_checksum() -> str:
+    return _checksum(
+        "data_snapshot_contract_v1|data_snapshots|data_snapshot_items|"
+        "source,as_of_time,available_at,fetched_at,eligibility_status,content_hash"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
         Migration(2, "explicit_schema_migration_framework", _framework_checksum(), _apply_explicit_framework),
+        Migration(3, "data_snapshot_contract", _data_snapshot_checksum(), _apply_data_snapshot_contract),
     )
 
 

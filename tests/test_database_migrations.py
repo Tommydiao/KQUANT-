@@ -17,7 +17,7 @@ def test_migrations_create_auditable_idempotent_schema(tmp_path: Path) -> None:
     second = apply_sqlite_schema_migrations(db)
 
     assert first["schema_version"] == LATEST_SCHEMA_VERSION
-    assert first["newly_applied"] == [1, 2]
+    assert first["newly_applied"] == [1, 2, LATEST_SCHEMA_VERSION]
     assert second["newly_applied"] == []
     assert first["schema_fingerprint"] == second["schema_fingerprint"]
     with sqlite3.connect(db) as conn:
@@ -41,7 +41,7 @@ def test_existing_legacy_database_is_upgraded_without_removing_legacy_tables(tmp
 
     result = apply_sqlite_schema_migrations(db)
 
-    assert result["newly_applied"] == [2]
+    assert result["newly_applied"] == [2, LATEST_SCHEMA_VERSION]
     assert {item["object_name"] for item in result["quarantined_objects"]} == {"equity_live_orders"}
     with sqlite3.connect(db) as conn:
         assert conn.execute("SELECT order_id FROM equity_live_orders").fetchone()[0] == "legacy-order"

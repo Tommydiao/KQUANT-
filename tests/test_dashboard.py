@@ -5,7 +5,10 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from kquant.config import KquantConfig
+from kquant.data_snapshots import create_market_data_snapshot
 from kquant.dashboard.app import FORBIDDEN_ROUTE_TOKENS, create_app, route_safety_report
+from kquant.db import LATEST_SCHEMA_VERSION
+from kquant.stock_store import connect
 
 
 def _app(tmp_path: Path):
@@ -37,9 +40,9 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-09-early-trend-push-v1"
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-16-data-snapshot-v1"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
-    assert health.json()["runtime"]["database_schema_version"] == 2
+    assert health.json()["runtime"]["database_schema_version"] == LATEST_SCHEMA_VERSION
     assert health.json()["database_migration"]["status"] == "up_to_date"
     assert health.json()["database_migration"]["checksum_verified"] is True
     assert health.json()["safety"]["options_research_enabled"] is True
@@ -66,6 +69,31 @@ def test_realtime_instruction_and_option_research_routes_are_registered(tmp_path
     assert client.get("/api/alerts").status_code == 200
     assert client.get("/api/runtime/supervisor-status").json()["order_submission_enabled"] is False
     assert client.get("/api/options/status").json()["provider"] == "longbridge"
+
+
+def test_data_snapshot_route_returns_an_immutable_snapshot(tmp_path: Path) -> None:
+    db_path = tmp_path / "kquant.sqlite3"
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO market_candles(
+              symbol, interval, open_time, adjustment_mode, dataset_version,
+              primary_source, provider_symbol, provider_status, freshness_seconds,
+              bar_state, open, high, low, close, volume, fetched_at, first_seen_at, updated_at
+            ) VALUES ('NVDA', '1d', '2026-01-02T14:30:00+00:00', 'unadjusted', 'test',
+              'longbridge_candles', 'US.NVDA', 'available', 0, 'closed_candle', 100, 101, 99, 100, 1000,
+              '2026-01-02T21:00:00+00:00', '2026-01-02T21:00:00+00:00', '2026-01-02T21:00:00+00:00')
+            """
+        )
+        conn.commit()
+    snapshot = create_market_data_snapshot(
+        db_path, symbol="NVDA", intervals=["1d"], as_of_time="2026-01-03T00:00:00+00:00"
+    )
+
+    response = TestClient(_app(tmp_path)).get(f"/api/data/snapshots/{snapshot['snapshot_id']}")
+
+    assert response.status_code == 200
+    assert response.json()["content_hash"] == snapshot["content_hash"]
 
 
 def test_fixture_source_is_blocked_at_http_boundary(tmp_path: Path) -> None:
