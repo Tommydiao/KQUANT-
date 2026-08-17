@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from kquant.config import KquantConfig, load_config
 from kquant.data_coverage import api_stock_data_coverage
+from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
 from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
 from kquant.decision_ledger import (
@@ -667,6 +668,17 @@ def create_app(
     def data_snapshot(snapshot_id: str) -> dict[str, Any]:
         try:
             return read_data_snapshot(settings.db_path, snapshot_id=snapshot_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/themes")
+    def themes() -> dict[str, Any]:
+        return latest_theme_taxonomy(settings.db_path)
+
+    @app.get("/api/themes/{theme_id:path}")
+    def theme(theme_id: str) -> dict[str, Any]:
+        try:
+            return theme_detail(settings.db_path, theme_id)
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

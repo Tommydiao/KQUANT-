@@ -96,6 +96,14 @@ def test_data_snapshot_route_returns_an_immutable_snapshot(tmp_path: Path) -> No
     assert response.json()["content_hash"] == snapshot["content_hash"]
 
 
+def test_theme_taxonomy_routes_are_read_only_and_explicit_when_not_materialized(tmp_path: Path) -> None:
+    client = TestClient(_app(tmp_path))
+    response = client.get("/api/themes")
+    assert response.status_code == 200
+    assert response.json()["status"] == "not_materialized"
+    assert client.get("/api/themes/theme.unknown").status_code == 404
+
+
 def test_fixture_source_is_blocked_at_http_boundary(tmp_path: Path) -> None:
     client = TestClient(_app(tmp_path))
     response = client.get("/api/stocks/candles?symbol=NVDA&range=1y&interval=1d&source=fixture")

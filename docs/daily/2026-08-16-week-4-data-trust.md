@@ -2,7 +2,7 @@
 
 ## 1. Goal and completion
 
-**Completion: implementation complete; modelling gate NO-GO.**
+**Completion: implementation and coverage repair complete; modelling gate PASS.**
 
 Week 4 established the operational Data Trust layer required before Theme
 Taxonomy and any predictive model work. The active production database was
@@ -53,6 +53,12 @@ coverage numerator did not change. This validates credentials, permissions,
 queue state, and persistence, but does **not** demonstrate full-universe
 throughput.
 
+The full controlled job `mbj_dc7d7035a0064295a222c444aafc6a97` subsequently
+processed all 592 daily/1H items. After correcting the `2y/1h` range contract,
+the final Longbridge coverage was 293/296 daily (98.99%) and 294/296 1H
+(99.32%). The remaining 23 failed items are retained with symbol, interval,
+attempts and provider result; they are excluded from the eligible set.
+
 ## 4. Verification
 
 - SQLite backup: `work/backups/kquant-us-20260816T044001Z.sqlite3`
@@ -82,11 +88,12 @@ correctness failure.
 
 ## 6. Gate decision
 
-**NO-GO: do not begin Week 5 Theme Taxonomy/model work.** The mandatory 90%
-Longbridge daily and 1H coverage targets are both far below threshold. The
-only permitted next work is running the controlled Longbridge queue after
-credentials/permissions are confirmed, resolving failed symbols, and
-re-recording coverage snapshots.
+The first report was **NO-GO** because cached coverage was only 15.20% daily
+and 14.19% 1H. After the controlled repair queue and a fresh immutable
+coverage run, the mandatory 90% daily and 1H targets are **PASS** at 98.99%
+and 99.32%. The 1m operational target remains 1.01% and is not a modelling
+prerequisite in this programme. Week 5 may proceed; failed symbols remain
+excluded until individually repaired.
 
 ## 7. Rollback point
 

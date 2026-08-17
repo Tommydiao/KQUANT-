@@ -21,6 +21,7 @@ from .production_readiness import (
 from .security import SecuritySettings, generate_password_hash
 from .stock_signals import api_stock_live_data_health, api_stock_signals
 from .stock_store import default_db_path
+from .theme_taxonomy import build_theme_taxonomy, latest_theme_taxonomy
 from .validation_service import api_strategy_validation_latest, run_strategy_validation
 
 
@@ -81,6 +82,12 @@ def main() -> None:
     retention.add_argument("--retention-days", type=int, default=90)
     retention.add_argument("--archive-dir", default="outputs/archives")
     retention.add_argument("--apply", action="store_true")
+    taxonomy = sub.add_parser("build-theme-taxonomy", help="Materialize the versioned point-in-time theme taxonomy.")
+    taxonomy.add_argument("--config", default="config/theme_taxonomy_v1.yml")
+    taxonomy.add_argument("--as-of-date", default="")
+    taxonomy.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    taxonomy_status = sub.add_parser("theme-taxonomy-status", help="Read the latest materialized theme taxonomy.")
+    taxonomy_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -226,6 +233,10 @@ def main() -> None:
             print(json.dumps(archive_provider_events(db_path=Path(args.db_path), output_dir=Path(args.archive_dir), retention_days=max(1, args.retention_days), apply=True), indent=2))
         else:
             print(json.dumps(provider_event_retention_status(Path(args.db_path), max(1, args.retention_days)), indent=2))
+    if args.command == "build-theme-taxonomy":
+        print(json.dumps(build_theme_taxonomy(db_path=Path(args.db_path), config_path=Path(args.config), as_of_date=args.as_of_date or None), indent=2))
+    if args.command == "theme-taxonomy-status":
+        print(json.dumps(latest_theme_taxonomy(Path(args.db_path)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],

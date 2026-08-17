@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 4
+LATEST_SCHEMA_VERSION = 5
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -339,12 +339,92 @@ def _data_trust_checksum() -> str:
     )
 
 
+def _apply_theme_taxonomy_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS theme_taxonomy_runs (
+          run_id TEXT PRIMARY KEY,
+          taxonomy_version TEXT NOT NULL,
+          taxonomy_hash TEXT NOT NULL,
+          registry_id TEXT NOT NULL,
+          as_of_date TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          summary_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (registry_id) REFERENCES universe_registry_versions(registry_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_theme_taxonomy_runs_version_date
+        ON theme_taxonomy_runs(taxonomy_version, as_of_date DESC);
+        CREATE TABLE IF NOT EXISTS theme_definitions (
+          taxonomy_version TEXT NOT NULL,
+          definition_id TEXT NOT NULL,
+          dimension_type TEXT NOT NULL,
+          parent_id TEXT,
+          slug TEXT NOT NULL,
+          display_name TEXT NOT NULL,
+          aliases_json TEXT NOT NULL,
+          rule_json TEXT NOT NULL,
+          status TEXT NOT NULL,
+          effective_from TEXT NOT NULL,
+          effective_to TEXT,
+          content_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (taxonomy_version, definition_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_theme_definitions_dimension_status
+        ON theme_definitions(taxonomy_version, dimension_type, status);
+        CREATE TABLE IF NOT EXISTS theme_memberships (
+          run_id TEXT NOT NULL,
+          taxonomy_version TEXT NOT NULL,
+          registry_id TEXT NOT NULL,
+          definition_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          dimension_type TEXT NOT NULL,
+          weight REAL NOT NULL,
+          confidence REAL NOT NULL,
+          evidence_json TEXT NOT NULL,
+          review_status TEXT NOT NULL,
+          valid_from TEXT NOT NULL,
+          valid_to TEXT,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, definition_id, symbol),
+          FOREIGN KEY (run_id) REFERENCES theme_taxonomy_runs(run_id),
+          FOREIGN KEY (taxonomy_version, definition_id)
+            REFERENCES theme_definitions(taxonomy_version, definition_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_theme_memberships_symbol_dimension
+        ON theme_memberships(symbol, taxonomy_version, dimension_type);
+        CREATE INDEX IF NOT EXISTS idx_theme_memberships_definition
+        ON theme_memberships(taxonomy_version, definition_id, review_status);
+        CREATE TABLE IF NOT EXISTS theme_membership_audit (
+          audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          run_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          definition_id TEXT NOT NULL,
+          action TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          recorded_at TEXT NOT NULL,
+          FOREIGN KEY (run_id) REFERENCES theme_taxonomy_runs(run_id)
+        );
+        """
+    )
+
+
+def _theme_taxonomy_checksum() -> str:
+    return _checksum(
+        "theme_taxonomy_v1|theme_taxonomy_runs|theme_definitions|"
+        "theme_memberships|theme_membership_audit|effective_from,effective_to"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
         Migration(2, "explicit_schema_migration_framework", _framework_checksum(), _apply_explicit_framework),
         Migration(3, "data_snapshot_contract", _data_snapshot_checksum(), _apply_data_snapshot_contract),
         Migration(4, "data_trust_registry_and_backfill_contract", _data_trust_checksum(), _apply_data_trust_contract),
+        Migration(5, "theme_taxonomy_contract", _theme_taxonomy_checksum(), _apply_theme_taxonomy_contract),
     )
 
 

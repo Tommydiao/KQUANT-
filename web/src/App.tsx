@@ -3961,6 +3961,7 @@ function SettingsPanel({
   const [pushStatus, setPushStatus] = useState<WebPushStatus | null>(null);
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [coverage, setCoverage] = useState<{ universe_symbols: number; interval_summary: Record<string, { longbridge_eligible_symbols: number; coverage_pct: number; target_pct: number }>; universe_registry?: { registry_id: string } } | null>(null);
+  const [taxonomy, setTaxonomy] = useState<{ status: string; taxonomy_version?: string; as_of_date?: string; summary?: { mapped_coverage_pct?: number; unmapped_theme_symbols?: number; target_met?: boolean; registry_symbol_count?: number }; definitions?: Array<{ definition_id: string; dimension_type: string; display_name: string; membership_count: number }> } | null>(null);
   const [pushMessage, setPushMessage] = useState("");
   const [pushBusy, setPushBusy] = useState(false);
 
@@ -3976,6 +3977,9 @@ function SettingsPanel({
     void loadPushStatus();
     void apiFetch("/api/data/coverage").then(async (response) => {
       if (response.ok) setCoverage(await response.json());
+    });
+    void apiFetch("/api/themes").then(async (response) => {
+      if (response.ok) setTaxonomy(await response.json());
     });
   }, []);
 
@@ -4086,6 +4090,12 @@ function SettingsPanel({
           <strong>{lang === "zh" ? "数据可信度" : "Data Trust"}</strong>
           <p>{coverage ? `${coverage.universe_symbols} symbols / registry ${coverage.universe_registry?.registry_id ?? "pending"}` : (lang === "zh" ? "正在读取覆盖报告..." : "Loading coverage report...")}</p>
           {coverage ? <p>{Object.entries(coverage.interval_summary).map(([interval, item]) => `${interval}: ${item.longbridge_eligible_symbols}/${coverage.universe_symbols} (${item.coverage_pct}% / target ${item.target_pct}%)`).join(" · ")}</p> : null}
+        </div>
+        <div className="settings-card wide">
+          <strong>{lang === "zh" ? "主题分类审计" : "Theme taxonomy audit"}</strong>
+          <p>{taxonomy?.status === "materialized" ? `${taxonomy.taxonomy_version} / as of ${taxonomy.as_of_date} / ${taxonomy.summary?.registry_symbol_count ?? 0} symbols` : (lang === "zh" ? "尚未生成主题分类快照" : "Theme taxonomy snapshot not materialized")}</p>
+          {taxonomy?.summary ? <p>{`Mapped ${taxonomy.summary.mapped_coverage_pct ?? 0}% · explicit review ${taxonomy.summary.unmapped_theme_symbols ?? 0} · gate ${taxonomy.summary.target_met ? "PASS" : "REVIEW"}`}</p> : null}
+          {taxonomy?.definitions ? <p>{taxonomy.definitions.slice(0, 8).map((item) => `${item.display_name}: ${item.membership_count}`).join(" · ")}</p> : null}
         </div>
         <div className="settings-card wide">
           <strong>{text.consumerSafetyCopy}</strong>

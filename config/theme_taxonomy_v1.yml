@@ -1,0 +1,226 @@
+taxonomy_version: theme_taxonomy_v1.0.1
+effective_from: "2026-01-01"
+description: "Versioned migration taxonomy for KQUANT US equities research. Rules use only point-in-time universe metadata."
+definitions:
+  - id: theme.unmapped
+    dimension_type: theme
+    slug: unmapped
+    display_name: Unmapped / review required
+    aliases: [unmapped, review_required]
+    status: fallback
+    rule:
+      match: never
+  - id: theme.ai_infrastructure
+    dimension_type: theme
+    slug: ai-infrastructure
+    display_name: AI Infrastructure
+    aliases: [ai, ai_infra, ai_semis, compute, chips]
+    status: active
+    rule:
+      tags_any: [ai, ai_core, ai_infra, ai_semis, chips, semiconductor, semiconductors]
+      layers_any: [Chips, AI Chips, AI Infra, Compute]
+  - id: theme.cloud_software
+    dimension_type: theme
+    slug: cloud-software
+    display_name: Cloud and Software
+    aliases: [cloud, software, saas, cybersecurity]
+    status: active
+    rule:
+      tags_any: [cloud, software, saas, cybersecurity, cyber]
+      layers_any: [Cloud, AI Cloud, Software, Cybersecurity]
+  - id: theme.space_defense
+    dimension_type: theme
+    slug: space-defense
+    display_name: Space and Defense
+    aliases: [space, defense, aerospace]
+    status: active
+    rule:
+      tags_any: [space, aerospace, defense, drones]
+      layers_any: [Space, Space Exploration, Defense, Drones]
+  - id: theme.robotics_automation
+    dimension_type: theme
+    slug: robotics-automation
+    display_name: Robotics and Automation
+    aliases: [robotics, automation, autonomy]
+    status: active
+    rule:
+      tags_any: [robotics, automation, autonomy, physical_ai]
+      layers_any: [Robotics, Physical AI, Autonomy]
+  - id: theme.energy_transition
+    dimension_type: theme
+    slug: energy-transition
+    display_name: Energy Transition
+    aliases: [energy, clean_energy, nuclear, batteries]
+    status: active
+    rule:
+      tags_any: [energy, clean_energy, nuclear, batteries, uranium, solar]
+      sectors_any: [Energy, Utilities]
+  - id: theme.biotech_health
+    dimension_type: theme
+    slug: biotech-health
+    display_name: Biotech and Health
+    aliases: [healthcare, biotech, pharma]
+    status: active
+    rule:
+      tags_any: [healthcare, biotech, pharma, genomics]
+      sectors_any: [Healthcare, Health Care]
+  - id: theme.financial_platforms
+    dimension_type: theme
+    slug: financial-platforms
+    display_name: Financial Platforms
+    aliases: [fintech, finance, banks, payments]
+    status: active
+    rule:
+      tags_any: [fintech, finance, banks, payments, financials]
+      sectors_any: [Financials, Financial]
+  - id: theme.consumer_internet
+    dimension_type: theme
+    slug: consumer-internet
+    display_name: Consumer and Internet
+    aliases: [consumer, internet, ecommerce, social]
+    status: active
+    rule:
+      tags_any: [consumer, internet, ecommerce, social, communication]
+      sectors_any: [Consumer, Consumer Discretionary, Communication Services]
+  - id: theme.real_assets
+    dimension_type: theme
+    slug: real-assets
+    display_name: Real Assets and Industrials
+    aliases: [industrials, materials, infrastructure, real_estate]
+    status: active
+    rule:
+      tags_any: [industrials, materials, infrastructure, real_estate, construction]
+      sectors_any: [Industrials, Materials, Real Estate]
+  - id: theme.technology_infrastructure
+    dimension_type: theme
+    slug: technology-infrastructure
+    display_name: Technology Infrastructure
+    aliases: [datacenter, networking, optical, infrastructure]
+    status: active
+    rule:
+      tags_any: [ai_datacenter, ai_networking, ai_servers, connectivity, datacenter_interconnect, data_center, gpu_cloud, optical, photonics, pcie, networking, servers, storage]
+      layers_any: [Infrastructure]
+  - id: theme.data_models
+    dimension_type: theme
+    slug: data-models
+    display_name: Data and Models
+    aliases: [data, enterprise_ai, model_ops, database]
+    status: active
+    rule:
+      tags_any: [data_cloud, database, developer_data, enterprise, enterprise_ai, model_data, model_ops, observability]
+      layers_any: [Models, AI Software / Data, Applications]
+  - id: theme.spatial_computing
+    dimension_type: theme
+    slug: spatial-computing
+    display_name: Spatial Computing
+    aliases: [spatial_computing, mixed_reality]
+    status: active
+    rule:
+      tags_any: [spatial_computing, mixed_reality, consumer_tech]
+      layers_any: [Spatial Computing]
+  - id: theme.defensive_consumer
+    dimension_type: theme
+    slug: defensive-consumer
+    display_name: Defensive Consumer
+    aliases: [defensive, staples, quality]
+    status: active
+    rule:
+      tags_any: [defensive, staples, quality, retail]
+      layers_any: [Defensive Growth]
+      sectors_any: [Consumer Staples]
+  - id: theme.market_etfs
+    dimension_type: theme
+    slug: market-etfs
+    display_name: Market and Sector ETFs
+    aliases: [index, macro, sector_etf]
+    status: active
+    rule:
+      tags_any: [index, macro, sector_etf, gold, rates, oil]
+      layers_any: [Index ETFs, Macro ETFs, Energy, Financials, Industrials / Consumer]
+  - id: theme.leveraged_exposure
+    dimension_type: theme
+    slug: leveraged-exposure
+    display_name: Leveraged Exposure
+    aliases: [leveraged, 2x, 3x]
+    status: active
+    rule:
+      tags_any: [leveraged_etf, leveraged_etn, 2x, 3x, single_stock_2x_etf]
+      layers_any: [3x Leveraged ETFs]
+  - id: theme.digital_asset_exposure
+    dimension_type: theme
+    slug: digital-asset-exposure
+    display_name: Digital Asset Exposure
+    aliases: [crypto_etf, crypto_miner, bitcoin, ether]
+    status: active
+    rule:
+      tags_any: [bitcoin, crypto_2x_etf, crypto_etf, crypto_miner, ether, bitcoin_miner_conversion]
+      layers_any: [Crypto Stocks / 2x ETFs]
+  - id: theme.semiconductor_tools
+    dimension_type: theme
+    slug: semiconductor-tools
+    display_name: Semiconductor Tools and Foundry
+    aliases: [eda, foundry, semi_software]
+    status: active
+    rule:
+      tags_any: [eda, semi_software]
+      layers_any: [Semis / Foundry / Tools, Embodied AI Components]
+  - id: industry.semiconductors
+    dimension_type: industry
+    slug: semiconductors
+    display_name: Semiconductors
+    aliases: [chips, ai_semis, semiconductor]
+    status: active
+    rule:
+      tags_any: [chips, ai_semis, semiconductor, semiconductors]
+      layers_any: [Chips, AI Chips]
+  - id: industry.software
+    dimension_type: industry
+    slug: software
+    display_name: Software
+    aliases: [software, saas, cloud]
+    status: active
+    rule:
+      tags_any: [software, saas, cloud, cybersecurity]
+      layers_any: [Software, Cloud, AI Cloud]
+  - id: industry.etf
+    dimension_type: instrument
+    slug: etf
+    display_name: ETF
+    aliases: [etf, sector_etf, index]
+    status: active
+    rule:
+      tags_any: [etf, sector_etf, index]
+      sectors_any: [ETF]
+  - id: style.high_beta
+    dimension_type: risk_style
+    slug: high-beta
+    display_name: High Beta
+    aliases: [high_beta, volatile, turnaround]
+    status: active
+    rule:
+      tags_any: [high_beta, volatile, turnaround]
+  - id: style.leveraged
+    dimension_type: risk_style
+    slug: leveraged
+    display_name: Leveraged Instrument
+    aliases: [leveraged, 2x, 3x]
+    status: active
+    rule:
+      tags_any: [leveraged, 2x, 3x]
+      layers_any: [Leveraged ETFs, 2x ETFs, 3x ETFs]
+  - id: liquidity.liquid
+    dimension_type: liquidity
+    slug: liquid
+    display_name: Liquid
+    aliases: [liquid, mega_cap, sector_etf]
+    status: active
+    rule:
+      tags_any: [liquid, mega_cap, sector_etf]
+  - id: liquidity.high_beta
+    dimension_type: liquidity
+    slug: high-beta-liquidity
+    display_name: High Beta / Review Liquidity
+    aliases: [high_beta, turnaround]
+    status: active
+    rule:
+      tags_any: [high_beta, turnaround]
