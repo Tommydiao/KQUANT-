@@ -14,6 +14,7 @@ from .capital_rotation import latest_capital_rotation, run_capital_rotation
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
 from .market_data_backfill import create_backfill_job, run_backfill_job, run_longbridge_backfill
 from .provider_event_retention import archive_provider_events, provider_event_retention_status
+from .quant_dataset import build_quant_dataset, list_model_artifacts, model_artifact_detail, read_quant_dataset, run_baseline_suite
 from .production_readiness import (
     evaluate_go_no_go,
     serialize_go_no_go,
@@ -94,6 +95,24 @@ def main() -> None:
     rotation.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     rotation_status = sub.add_parser("capital-rotation-status", help="Read the latest Capital Rotation baseline.")
     rotation_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    build_dataset = sub.add_parser("build-quant-dataset", help="Build and seal a point-in-time stock quant dataset from a JSON item list.")
+    build_dataset.add_argument("--items-json", required=True)
+    build_dataset.add_argument("--dataset-id", default="")
+    build_dataset.add_argument("--universe-registry-id", default="")
+    build_dataset.add_argument("--source-policy-version", default="market_source_eligibility_v1")
+    build_dataset.add_argument("--embargo-days", type=int, default=5)
+    build_dataset.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    dataset_status = sub.add_parser("quant-dataset-status", help="Verify and read a sealed stock quant dataset.")
+    dataset_status.add_argument("--dataset-id", required=True)
+    dataset_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    baseline = sub.add_parser("run-quant-baselines", help="Fit the naive, Capital Rotation, and Logistic baseline artifacts.")
+    baseline.add_argument("--dataset-id", required=True)
+    baseline.add_argument("--random-seed", type=int, default=20260817)
+    baseline.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    artifacts = sub.add_parser("quant-model-artifacts", help="List or inspect sealed quant model artifacts.")
+    artifacts.add_argument("--dataset-id", default="")
+    artifacts.add_argument("--artifact-id", default="")
+    artifacts.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -247,6 +266,19 @@ def main() -> None:
         print(json.dumps(run_capital_rotation(db_path=Path(args.db_path), as_of_time=args.as_of_time or None), indent=2))
     if args.command == "capital-rotation-status":
         print(json.dumps(latest_capital_rotation(Path(args.db_path)), indent=2))
+    if args.command == "build-quant-dataset":
+        payload = json.loads(Path(args.items_json).read_text(encoding="utf-8"))
+        items = payload.get("items") if isinstance(payload, dict) else payload
+        print(json.dumps(build_quant_dataset(Path(args.db_path), items, dataset_id=args.dataset_id or None, universe_registry_id=args.universe_registry_id, source_policy_version=args.source_policy_version, embargo_days=max(0, args.embargo_days)), indent=2))
+    if args.command == "quant-dataset-status":
+        print(json.dumps(read_quant_dataset(Path(args.db_path), args.dataset_id), indent=2))
+    if args.command == "run-quant-baselines":
+        print(json.dumps(run_baseline_suite(Path(args.db_path), args.dataset_id, random_seed=args.random_seed), indent=2))
+    if args.command == "quant-model-artifacts":
+        if args.artifact_id:
+            print(json.dumps(model_artifact_detail(Path(args.db_path), args.artifact_id), indent=2))
+        else:
+            print(json.dumps(list_model_artifacts(Path(args.db_path), args.dataset_id or None), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],

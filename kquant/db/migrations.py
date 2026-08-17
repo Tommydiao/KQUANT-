@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 6
+LATEST_SCHEMA_VERSION = 7
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -475,6 +475,101 @@ def _capital_rotation_checksum() -> str:
     )
 
 
+def _apply_quant_dataset_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS quant_datasets (
+          dataset_id TEXT PRIMARY KEY,
+          contract_version TEXT NOT NULL,
+          feature_schema_version TEXT NOT NULL,
+          label_schema_version TEXT NOT NULL,
+          universe_registry_id TEXT NOT NULL,
+          source_policy_version TEXT NOT NULL,
+          start_date TEXT NOT NULL,
+          end_date TEXT NOT NULL,
+          split_config_json TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          test_partition_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_quant_datasets_created
+        ON quant_datasets(created_at DESC);
+        CREATE TABLE IF NOT EXISTS quant_dataset_partitions (
+          dataset_id TEXT NOT NULL,
+          split_name TEXT NOT NULL,
+          start_date TEXT NOT NULL,
+          end_date TEXT NOT NULL,
+          embargo_start_date TEXT NOT NULL,
+          embargo_end_date TEXT NOT NULL,
+          item_count INTEGER NOT NULL,
+          content_hash TEXT NOT NULL,
+          sealed INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (dataset_id, split_name),
+          FOREIGN KEY (dataset_id) REFERENCES quant_datasets(dataset_id)
+        );
+        CREATE TABLE IF NOT EXISTS quant_dataset_items (
+          dataset_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          signal_time TEXT NOT NULL,
+          feature_available_at TEXT NOT NULL,
+          label_end_time TEXT NOT NULL,
+          split_name TEXT NOT NULL,
+          feature_json TEXT NOT NULL,
+          label_json TEXT NOT NULL,
+          feature_hash TEXT NOT NULL,
+          label_hash TEXT NOT NULL,
+          source_snapshot_id TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (dataset_id, item_id),
+          FOREIGN KEY (dataset_id) REFERENCES quant_datasets(dataset_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_quant_dataset_items_split_time
+        ON quant_dataset_items(dataset_id, split_name, signal_time, symbol);
+        CREATE TABLE IF NOT EXISTS quant_model_artifacts (
+          artifact_id TEXT PRIMARY KEY,
+          model_name TEXT NOT NULL,
+          model_version TEXT NOT NULL,
+          dataset_id TEXT NOT NULL,
+          split_policy TEXT NOT NULL,
+          feature_schema_version TEXT NOT NULL,
+          label_schema_version TEXT NOT NULL,
+          feature_order_json TEXT NOT NULL,
+          train_config_json TEXT NOT NULL,
+          random_seed INTEGER NOT NULL,
+          environment_json TEXT NOT NULL,
+          artifact_json TEXT NOT NULL,
+          artifact_hash TEXT NOT NULL UNIQUE,
+          test_partition_hash TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (dataset_id) REFERENCES quant_datasets(dataset_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_quant_model_artifacts_dataset
+        ON quant_model_artifacts(dataset_id, created_at DESC);
+        CREATE TABLE IF NOT EXISTS quant_model_metrics (
+          artifact_id TEXT NOT NULL,
+          split_name TEXT NOT NULL,
+          metric_name TEXT NOT NULL,
+          metric_value REAL,
+          details_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (artifact_id, split_name, metric_name),
+          FOREIGN KEY (artifact_id) REFERENCES quant_model_artifacts(artifact_id)
+        );
+        """
+    )
+
+
+def _quant_dataset_checksum() -> str:
+    return _checksum(
+        "stock_quant_dataset_v0.1|quant_datasets|quant_dataset_partitions|"
+        "quant_dataset_items|quant_model_artifacts|quant_model_metrics|sealed_test_partition"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
@@ -483,6 +578,7 @@ def _migrations() -> tuple[Migration, ...]:
         Migration(4, "data_trust_registry_and_backfill_contract", _data_trust_checksum(), _apply_data_trust_contract),
         Migration(5, "theme_taxonomy_contract", _theme_taxonomy_checksum(), _apply_theme_taxonomy_contract),
         Migration(6, "capital_rotation_contract", _capital_rotation_checksum(), _apply_capital_rotation_contract),
+        Migration(7, "quant_dataset_and_model_artifact_contract", _quant_dataset_checksum(), _apply_quant_dataset_contract),
     )
 
 
