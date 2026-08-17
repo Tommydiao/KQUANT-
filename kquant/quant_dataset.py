@@ -274,6 +274,21 @@ def build_quant_dataset(
              _canonical({**split["config"], "feature_order": feature_order, "purged_count": split["purged_count"]}),
              content_hash, test_partition_hash, created_at),
         )
+        sealed_row = conn.execute(
+            "SELECT dataset_id FROM quant_datasets WHERE dataset_id = ?",
+            (resolved_id,),
+        ).fetchone()
+        if sealed_row is None:
+            duplicate = conn.execute(
+                "SELECT dataset_id FROM quant_datasets WHERE content_hash = ?",
+                (content_hash,),
+            ).fetchone()
+            if duplicate is not None:
+                raise DatasetIntegrityError(
+                    f"Dataset content is already sealed under dataset_id={duplicate['dataset_id']}; "
+                    "reuse that immutable id instead of creating a second alias."
+                )
+            raise DatasetIntegrityError("Dataset row was not sealed before its partitions could be written.")
         conn.executemany(
             """
             INSERT OR IGNORE INTO quant_dataset_partitions(

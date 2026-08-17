@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 10
+LATEST_SCHEMA_VERSION = 11
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -746,6 +746,49 @@ def _stock_quant_checksum() -> str:
     )
 
 
+def _apply_stock_quant_validation_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS stock_quant_validation_runs (
+          run_id TEXT PRIMARY KEY,
+          dataset_id TEXT NOT NULL,
+          validation_version TEXT NOT NULL,
+          status TEXT NOT NULL,
+          gate_status TEXT NOT NULL,
+          summary_json TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          test_partition_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (dataset_id) REFERENCES quant_datasets(dataset_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_stock_quant_validation_runs_created
+        ON stock_quant_validation_runs(created_at DESC);
+        CREATE TABLE IF NOT EXISTS stock_quant_validation_reports (
+          run_id TEXT NOT NULL,
+          model_name TEXT NOT NULL,
+          model_kind TEXT NOT NULL,
+          status TEXT NOT NULL,
+          evidence_level TEXT NOT NULL,
+          summary_json TEXT NOT NULL,
+          content_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, model_name),
+          FOREIGN KEY (run_id) REFERENCES stock_quant_validation_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_stock_quant_validation_reports_model
+        ON stock_quant_validation_reports(model_name, created_at DESC);
+        """
+    )
+
+
+def _stock_quant_validation_checksum() -> str:
+    return _checksum(
+        "stock_quant_validation_v1.0.0|stock_quant_validation_runs|"
+        "stock_quant_validation_reports|test_partition_fail_closed|"
+        "selection_partition_train_validation_only"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
@@ -758,6 +801,7 @@ def _migrations() -> tuple[Migration, ...]:
         Migration(8, "theme_prediction_contract", _theme_prediction_checksum(), _apply_theme_prediction_contract),
         Migration(9, "leadership_engine_contract", _leadership_checksum(), _apply_leadership_contract),
         Migration(10, "stock_quant_model_0_contract", _stock_quant_checksum(), _apply_stock_quant_contract),
+        Migration(11, "stock_quant_validation_contract", _stock_quant_validation_checksum(), _apply_stock_quant_validation_contract),
     )
 
 

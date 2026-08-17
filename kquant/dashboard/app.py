@@ -19,6 +19,11 @@ from kquant.data_coverage import api_stock_data_coverage
 from kquant.capital_rotation import capital_rotation_detail, latest_capital_rotation
 from kquant.quant_dataset import DatasetIntegrityError, list_model_artifacts, model_artifact_detail
 from kquant.stock_quant import MODEL_0_VERSION, latest_stock_quant_run, stock_quant_ranking, stock_quant_symbol_detail
+from kquant.stock_quant_validation import (
+    latest_stock_quant_validation,
+    run_stock_quant_validation,
+    stock_quant_validation_detail,
+)
 from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
 from kquant.leadership import latest_leadership, theme_leaders
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
@@ -116,7 +121,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-17-leadership-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-17-stock-quant-validation-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -183,6 +188,11 @@ class StrategyValidationRunRequest(BaseModel):
     end: str = ""
     universe: str = "default"
     symbols: list[str] | None = None
+
+
+class StockQuantValidationRequest(BaseModel):
+    dataset_id: str = Field(min_length=1, max_length=160)
+    random_seed: int = 20260817
 
 
 class ManualPositionPlanRequest(BaseModel):
@@ -741,6 +751,28 @@ def create_app(
     @app.get("/api/quant/stocks/ranking")
     def stock_quant_model_ranking(limit: int = Query(default=50, ge=1, le=200)) -> dict[str, Any]:
         return stock_quant_ranking(settings.db_path, limit=limit)
+
+    @app.post("/api/quant/stocks/validation/runs")
+    def stock_quant_validation_run(payload: StockQuantValidationRequest) -> dict[str, Any]:
+        try:
+            return run_stock_quant_validation(settings.db_path, payload.dataset_id, random_seed=payload.random_seed)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except DatasetIntegrityError as exc:
+            raise HTTPException(status_code=409, detail="Stock Quant validation integrity check failed.") from exc
+
+    @app.get("/api/quant/stocks/validation/latest")
+    def stock_quant_validation_latest() -> dict[str, Any]:
+        return latest_stock_quant_validation(settings.db_path)
+
+    @app.get("/api/quant/stocks/validation/{run_id}")
+    def stock_quant_validation_run_detail(run_id: str) -> dict[str, Any]:
+        try:
+            return stock_quant_validation_detail(settings.db_path, run_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except DatasetIntegrityError as exc:
+            raise HTTPException(status_code=409, detail="Stock Quant validation integrity check failed.") from exc
 
     @app.get("/api/quant/stocks/{symbol}")
     def stock_quant_model_detail(symbol: str) -> dict[str, Any]:

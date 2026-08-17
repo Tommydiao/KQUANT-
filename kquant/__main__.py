@@ -16,6 +16,12 @@ from .market_data_backfill import create_backfill_job, run_backfill_job, run_lon
 from .provider_event_retention import archive_provider_events, provider_event_retention_status
 from .quant_dataset import build_quant_dataset, list_model_artifacts, model_artifact_detail, read_quant_dataset, run_baseline_suite
 from .stock_quant import build_stock_quant_dataset, latest_stock_quant_run, stock_quant_run_detail
+from .stock_quant_validation import (
+    build_stock_quant_cache_dataset,
+    latest_stock_quant_validation,
+    run_stock_quant_validation,
+    stock_quant_validation_detail,
+)
 from .production_readiness import (
     evaluate_go_no_go,
     serialize_go_no_go,
@@ -144,6 +150,19 @@ def main() -> None:
     stock_quant_status = sub.add_parser("stock-quant-status", help="Read the latest sealed Model 0 stock quant run.")
     stock_quant_status.add_argument("--run-id", default="")
     stock_quant_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    stock_quant_cache = sub.add_parser("build-stock-quant-cache-dataset", help="Build a bounded Longbridge-only Model 0 dataset from the canonical candle cache.")
+    stock_quant_cache.add_argument("--symbols", default="")
+    stock_quant_cache.add_argument("--dataset-id", default="")
+    stock_quant_cache.add_argument("--max-items-per-symbol", type=int, default=40)
+    stock_quant_cache.add_argument("--stride", type=int, default=5)
+    stock_quant_cache.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    stock_quant_validation = sub.add_parser("run-stock-quant-validation", help="Run read-only Model 0, Logistic, and optional LightGBM OOS validation.")
+    stock_quant_validation.add_argument("--dataset-id", required=True)
+    stock_quant_validation.add_argument("--random-seed", type=int, default=20260817)
+    stock_quant_validation.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    stock_quant_validation_status = sub.add_parser("stock-quant-validation-status", help="Read the latest Stock Quant validation report.")
+    stock_quant_validation_status.add_argument("--run-id", default="")
+    stock_quant_validation_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -333,6 +352,18 @@ def main() -> None:
         ), indent=2))
     if args.command == "stock-quant-status":
         print(json.dumps(stock_quant_run_detail(Path(args.db_path), args.run_id) if args.run_id else latest_stock_quant_run(Path(args.db_path)), indent=2))
+    if args.command == "build-stock-quant-cache-dataset":
+        print(json.dumps(build_stock_quant_cache_dataset(
+            Path(args.db_path),
+            symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
+            dataset_id=args.dataset_id,
+            max_items_per_symbol=max(0, args.max_items_per_symbol),
+            stride=max(1, args.stride),
+        ), indent=2))
+    if args.command == "run-stock-quant-validation":
+        print(json.dumps(run_stock_quant_validation(Path(args.db_path), args.dataset_id, random_seed=args.random_seed), indent=2))
+    if args.command == "stock-quant-validation-status":
+        print(json.dumps(stock_quant_validation_detail(Path(args.db_path), args.run_id) if args.run_id else latest_stock_quant_validation(Path(args.db_path)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],
