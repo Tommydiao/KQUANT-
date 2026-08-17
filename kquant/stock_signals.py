@@ -680,6 +680,18 @@ def _parse_market_time(value: Any) -> datetime | None:
         return None
 
 
+def _parse_longbridge_time(value: Any) -> datetime | None:
+    """Normalize the Longbridge SDK's naive local datetime objects.
+
+    The SDK build used by the local runtime exposes candlestick and quote
+    timestamps as naive Asia/Shanghai datetimes, while Unix timestamps and
+    timezone-aware values follow the normal UTC contract.
+    """
+    if isinstance(value, datetime) and value.tzinfo is None:
+        return value.replace(tzinfo=ZoneInfo("Asia/Shanghai")).astimezone(UTC)
+    return _parse_market_time(value)
+
+
 def _current_us_regular_session_start(now: datetime | None = None) -> datetime:
     return active_regular_session_start(now)
 
@@ -1023,7 +1035,7 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
         )
         candles: list[dict[str, Any]] = []
         for row in list(rows or []):
-            open_time = _parse_market_time(
+            open_time = _parse_longbridge_time(
                 _pick_attr(row, ("timestamp", "time", "open_time", "date", "datetime"))
             )
             open_ = _decimal_float(_pick_attr(row, ("open", "open_price")))
@@ -1134,7 +1146,7 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         quote = list(rows or [None])[0]
         if quote is None:
             raise RuntimeError("Longbridge returned no quote.")
-        quote_time = _parse_market_time(
+        quote_time = _parse_longbridge_time(
             _pick_attr(quote, ("timestamp", "time", "quote_time", "trade_time"))
         )
         last = _decimal_float(_pick_attr(quote, ("last_done", "last", "price", "current_price", "close")))

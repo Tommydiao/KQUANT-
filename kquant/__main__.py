@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .database_migrations import apply_sqlite_schema_migrations, migration_readiness
 from .data_coverage import api_stock_data_coverage, persist_data_coverage_run
+from .capital_rotation import latest_capital_rotation, run_capital_rotation
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
 from .market_data_backfill import create_backfill_job, run_backfill_job, run_longbridge_backfill
 from .provider_event_retention import archive_provider_events, provider_event_retention_status
@@ -88,6 +89,11 @@ def main() -> None:
     taxonomy.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     taxonomy_status = sub.add_parser("theme-taxonomy-status", help="Read the latest materialized theme taxonomy.")
     taxonomy_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    rotation = sub.add_parser("run-capital-rotation", help="Materialize the deterministic point-in-time Capital Rotation baseline.")
+    rotation.add_argument("--as-of-time", default="")
+    rotation.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    rotation_status = sub.add_parser("capital-rotation-status", help="Read the latest Capital Rotation baseline.")
+    rotation_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -237,6 +243,10 @@ def main() -> None:
         print(json.dumps(build_theme_taxonomy(db_path=Path(args.db_path), config_path=Path(args.config), as_of_date=args.as_of_date or None), indent=2))
     if args.command == "theme-taxonomy-status":
         print(json.dumps(latest_theme_taxonomy(Path(args.db_path)), indent=2))
+    if args.command == "run-capital-rotation":
+        print(json.dumps(run_capital_rotation(db_path=Path(args.db_path), as_of_time=args.as_of_time or None), indent=2))
+    if args.command == "capital-rotation-status":
+        print(json.dumps(latest_capital_rotation(Path(args.db_path)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],

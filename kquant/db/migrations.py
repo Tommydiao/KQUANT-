@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 5
+LATEST_SCHEMA_VERSION = 6
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -418,6 +418,63 @@ def _theme_taxonomy_checksum() -> str:
     )
 
 
+def _apply_capital_rotation_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS capital_rotation_runs (
+          run_id TEXT PRIMARY KEY,
+          taxonomy_run_id TEXT NOT NULL,
+          as_of_time TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          summary_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (taxonomy_run_id) REFERENCES theme_taxonomy_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_capital_rotation_runs_as_of
+        ON capital_rotation_runs(as_of_time DESC);
+        CREATE TABLE IF NOT EXISTS capital_rotation_scores (
+          run_id TEXT NOT NULL,
+          definition_id TEXT NOT NULL,
+          dimension_type TEXT NOT NULL,
+          rank_value INTEGER,
+          member_count INTEGER NOT NULL,
+          eligible_member_count INTEGER NOT NULL,
+          score REAL,
+          status TEXT NOT NULL,
+          data_quality TEXT NOT NULL,
+          top_member_contribution REAL,
+          features_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, definition_id),
+          FOREIGN KEY (run_id) REFERENCES capital_rotation_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_capital_rotation_scores_rank
+        ON capital_rotation_scores(run_id, rank_value);
+        CREATE TABLE IF NOT EXISTS capital_rotation_members (
+          run_id TEXT NOT NULL,
+          definition_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          weight REAL NOT NULL,
+          contribution REAL,
+          features_json TEXT NOT NULL,
+          data_quality TEXT NOT NULL,
+          PRIMARY KEY (run_id, definition_id, symbol),
+          FOREIGN KEY (run_id) REFERENCES capital_rotation_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_capital_rotation_members_symbol
+        ON capital_rotation_members(symbol, run_id);
+        """
+    )
+
+
+def _capital_rotation_checksum() -> str:
+    return _checksum(
+        "capital_rotation_v0.1|capital_rotation_runs|capital_rotation_scores|"
+        "capital_rotation_members|single_member_contribution_cap_15pct"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
@@ -425,6 +482,7 @@ def _migrations() -> tuple[Migration, ...]:
         Migration(3, "data_snapshot_contract", _data_snapshot_checksum(), _apply_data_snapshot_contract),
         Migration(4, "data_trust_registry_and_backfill_contract", _data_trust_checksum(), _apply_data_trust_contract),
         Migration(5, "theme_taxonomy_contract", _theme_taxonomy_checksum(), _apply_theme_taxonomy_contract),
+        Migration(6, "capital_rotation_contract", _capital_rotation_checksum(), _apply_capital_rotation_contract),
     )
 
 

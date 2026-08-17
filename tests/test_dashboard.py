@@ -40,7 +40,7 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-16-data-trust-v1"
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-17-capital-rotation-v1"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
     assert health.json()["runtime"]["database_schema_version"] == LATEST_SCHEMA_VERSION
     assert health.json()["database_migration"]["status"] == "up_to_date"
@@ -101,6 +101,9 @@ def test_theme_taxonomy_routes_are_read_only_and_explicit_when_not_materialized(
     response = client.get("/api/themes")
     assert response.status_code == 200
     assert response.json()["status"] == "not_materialized"
+    ranking = client.get("/api/themes/ranking")
+    assert ranking.status_code == 200
+    assert ranking.json()["status"] == "not_materialized"
     assert client.get("/api/themes/theme.unknown").status_code == 404
 
 

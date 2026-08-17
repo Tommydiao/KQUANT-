@@ -7,6 +7,7 @@ import kquant.stock_signals as stock_signals
 from kquant.market_clock import MarketClock, market_clock, session_bounds_utc
 from kquant.stock_signals import (
     _parse_market_time,
+    _parse_longbridge_time,
     aggregate_intraday_candles,
     ai_hard_veto,
     api_stock_market_data_self_check,
@@ -48,6 +49,12 @@ def test_longbridge_naive_datetime_contract_is_utc() -> None:
     # Longbridge documents API timestamps as UTC.  A naive SDK datetime must
     # never be reinterpreted as America/New_York during summer time.
     parsed = _parse_market_time(datetime(2026, 7, 9, 13, 30))
+    assert parsed is not None
+    assert parsed.isoformat() == "2026-07-09T13:30:00+00:00"
+
+
+def test_longbridge_sdk_naive_datetime_is_local_exchange_display_time() -> None:
+    parsed = _parse_longbridge_time(datetime(2026, 7, 9, 21, 30))
     assert parsed is not None
     assert parsed.isoformat() == "2026-07-09T13:30:00+00:00"
 

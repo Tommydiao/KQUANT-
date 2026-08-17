@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from kquant.config import KquantConfig, load_config
 from kquant.data_coverage import api_stock_data_coverage
+from kquant.capital_rotation import capital_rotation_detail, latest_capital_rotation
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
 from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
@@ -111,7 +112,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-16-data-trust-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-17-capital-rotation-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -675,10 +676,23 @@ def create_app(
     def themes() -> dict[str, Any]:
         return latest_theme_taxonomy(settings.db_path)
 
+    @app.get("/api/themes/ranking")
+    def theme_ranking() -> dict[str, Any]:
+        return latest_capital_rotation(settings.db_path)
+
     @app.get("/api/themes/{theme_id:path}")
     def theme(theme_id: str) -> dict[str, Any]:
         try:
-            return theme_detail(settings.db_path, theme_id)
+            payload = theme_detail(settings.db_path, theme_id)
+            rotation = latest_capital_rotation(settings.db_path)
+            if rotation.get("status") == "materialized":
+                try:
+                    payload["capital_rotation"] = capital_rotation_detail(settings.db_path, theme_id)
+                except ValueError:
+                    payload["capital_rotation"] = {"status": "not_ranked"}
+            else:
+                payload["capital_rotation"] = {"status": "not_materialized"}
+            return payload
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
