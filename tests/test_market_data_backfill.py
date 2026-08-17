@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 from kquant.market_data_backfill import run_longbridge_backfill
+from kquant.stock_signals import normalize_range_interval
+
+
+def test_two_year_hourly_backfill_range_is_not_silently_downgraded() -> None:
+    assert normalize_range_interval("2y", "1h") == ("2y", "1h")
+    assert normalize_range_interval("5y", "1d") == ("5y", "1d")
 
 
 def test_backfill_never_counts_reference_fallback_as_eligible(tmp_path, monkeypatch) -> None:

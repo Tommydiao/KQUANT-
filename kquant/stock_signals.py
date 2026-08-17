@@ -42,6 +42,7 @@ RANGES = {
     "1mo": {"bars": 22, "step": timedelta(days=1), "interval": "1d"},
     "3mo": {"bars": 66, "step": timedelta(days=1), "interval": "1d"},
     "1y": {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
+    "2y": {"bars": 504, "step": timedelta(days=1), "interval": "1d"},
     "5y": {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
     "10y": {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
