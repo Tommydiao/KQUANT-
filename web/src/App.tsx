@@ -35,6 +35,7 @@ import {
 } from "lightweight-charts";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { parseRiskReward } from "./tradingFormatters";
+import { QuantOverviewPanel, type QuantOverviewPayload } from "./components/QuantOverviewPanel";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -74,7 +75,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-leadership-v1";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-stock-quant-validation-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -2081,6 +2082,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
   const [aiDailyState, setAiDailyState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [mondayReadinessReport, setMondayReadinessReport] = useState<MondayReadinessReport | null>(null);
   const [todayWorkbench, setTodayWorkbench] = useState<TodayWorkbenchPayload | null>(null);
+  const [quantOverview, setQuantOverview] = useState<QuantOverviewPayload | null>(null);
   const [productionReadiness, setProductionReadiness] = useState<ProductionReadinessPayload | null>(null);
   const [tradeInstructions, setTradeInstructions] = useState<TradeInstructionPayload[]>([]);
   const [realtimeAlerts, setRealtimeAlerts] = useState<AlertEventPayload[]>([]);
@@ -2164,6 +2166,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
     void loadAiDailyReportLatest();
     void loadMondayReadinessReport();
     void loadTodayWorkbench();
+    void loadQuantOverview();
     void loadProductionReadiness();
     void loadRealtimeCommandCenter();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2417,6 +2420,16 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
       setTodayWorkbench((await response.json()) as TodayWorkbenchPayload);
     } catch {
       setTodayWorkbench(null);
+    }
+  }
+
+  async function loadQuantOverview() {
+    try {
+      const response = await apiFetch("/api/quant/overview");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setQuantOverview((await response.json()) as QuantOverviewPayload);
+    } catch {
+      setQuantOverview(null);
     }
   }
 
@@ -3162,6 +3175,11 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
 
       <>
       <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
+      <QuantOverviewPanel
+        overview={quantOverview}
+        lang={lang}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+      />
       <RealtimeCommandCenter
         instructions={tradeInstructions}
         alerts={realtimeAlerts}

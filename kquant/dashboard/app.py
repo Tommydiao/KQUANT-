@@ -24,6 +24,7 @@ from kquant.stock_quant_validation import (
     run_stock_quant_validation,
     stock_quant_validation_detail,
 )
+from kquant.v2_overview import build_v2_overview
 from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
 from kquant.leadership import latest_leadership, theme_leaders
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
@@ -452,7 +453,7 @@ def create_app(
                 "api_contract_version": API_CONTRACT_VERSION,
                 "started_at_utc": started_at_utc,
                 "auth_routes_version": "local_email_password_v1",
-                "static_assets_version": "early-trend-push-v1",
+                "static_assets_version": "v2-shadow-release-v1",
                 "database_schema_version": migration["migration"].get("schema_version", 0),
                 "database_schema_fingerprint": migration["migration"].get("schema_fingerprint", ""),
                 "strategy_version": "swing_long_v1.1.0",
@@ -751,6 +752,10 @@ def create_app(
     @app.get("/api/quant/stocks/ranking")
     def stock_quant_model_ranking(limit: int = Query(default=50, ge=1, le=200)) -> dict[str, Any]:
         return stock_quant_ranking(settings.db_path, limit=limit)
+
+    @app.get("/api/quant/overview")
+    def quant_overview() -> dict[str, Any]:
+        return build_v2_overview(settings.db_path)
 
     @app.post("/api/quant/stocks/validation/runs")
     def stock_quant_validation_run(payload: StockQuantValidationRequest) -> dict[str, Any]:

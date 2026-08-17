@@ -1,4 +1,4 @@
-const STATIC_CACHE = "kquant-static-early-trend-push-v1";
+const STATIC_CACHE = "kquant-static-v2-shadow-release-v1";
 
 function isStaticAsset(url) {
   if (url.origin !== self.location.origin) return false;
@@ -16,7 +16,7 @@ self.addEventListener("install", () => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((names) => Promise.all(
-      names.filter((name) => name.startsWith("kquant-static-") && name !== STATIC_CACHE).map((name) => caches.delete(name)),
+    names.filter((name) => name.startsWith("kquant-static-") && name !== STATIC_CACHE).map((name) => caches.delete(name)),
     )).then(() => self.clients.claim()),
   );
 });
