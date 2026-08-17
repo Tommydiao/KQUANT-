@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 7
+LATEST_SCHEMA_VERSION = 8
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -570,6 +570,64 @@ def _quant_dataset_checksum() -> str:
     )
 
 
+def _apply_theme_prediction_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS theme_prediction_runs (
+          run_id TEXT PRIMARY KEY,
+          dataset_id TEXT NOT NULL UNIQUE,
+          prediction_version TEXT NOT NULL,
+          feature_schema_version TEXT NOT NULL,
+          label_schema_version TEXT NOT NULL,
+          oos_fold_count INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          gate_status TEXT NOT NULL,
+          summary_json TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          test_partition_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (dataset_id) REFERENCES quant_datasets(dataset_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_theme_prediction_runs_created
+        ON theme_prediction_runs(created_at DESC);
+        CREATE TABLE IF NOT EXISTS theme_prediction_metrics (
+          run_id TEXT NOT NULL,
+          model_name TEXT NOT NULL,
+          model_kind TEXT NOT NULL,
+          split_name TEXT NOT NULL,
+          metric_name TEXT NOT NULL,
+          metric_value REAL,
+          details_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, model_name, split_name, metric_name),
+          FOREIGN KEY (run_id) REFERENCES theme_prediction_runs(run_id)
+        );
+        CREATE TABLE IF NOT EXISTS theme_prediction_calibrations (
+          run_id TEXT NOT NULL,
+          model_name TEXT NOT NULL,
+          method TEXT NOT NULL,
+          validation_metrics_json TEXT NOT NULL,
+          test_metrics_json TEXT NOT NULL,
+          parameters_json TEXT NOT NULL,
+          gate_status TEXT NOT NULL,
+          content_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, model_name, method),
+          FOREIGN KEY (run_id) REFERENCES theme_prediction_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_theme_prediction_metrics_model
+        ON theme_prediction_metrics(run_id, model_name, split_name);
+        """
+    )
+
+
+def _theme_prediction_checksum() -> str:
+    return _checksum(
+        "theme_prediction_v1.0.0|theme_prediction_runs|theme_prediction_metrics|"
+        "theme_prediction_calibrations|validation_only_calibration|oos_fail_closed"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
@@ -579,6 +637,7 @@ def _migrations() -> tuple[Migration, ...]:
         Migration(5, "theme_taxonomy_contract", _theme_taxonomy_checksum(), _apply_theme_taxonomy_contract),
         Migration(6, "capital_rotation_contract", _capital_rotation_checksum(), _apply_capital_rotation_contract),
         Migration(7, "quant_dataset_and_model_artifact_contract", _quant_dataset_checksum(), _apply_quant_dataset_contract),
+        Migration(8, "theme_prediction_contract", _theme_prediction_checksum(), _apply_theme_prediction_contract),
     )
 
 

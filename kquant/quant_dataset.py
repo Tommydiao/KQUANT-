@@ -225,6 +225,9 @@ def build_quant_dataset(
     start_date: str | None = None,
     end_date: str | None = None,
     embargo_days: int = DEFAULT_EMBARGO_DAYS,
+    contract_version: str = DATASET_CONTRACT_VERSION,
+    feature_schema_version: str = FEATURE_SCHEMA_VERSION,
+    label_schema_version: str = LABEL_SCHEMA_VERSION,
 ) -> dict[str, Any]:
     normalized = [_normalize_item(dict(item)) for item in items]
     if len({item["item_id"] for item in normalized}) != len(normalized):
@@ -237,9 +240,9 @@ def build_quant_dataset(
     last_date = end_date or max(item["signal_time"][:10] for item in all_items)
     feature_order = sorted({key for item in all_items for key in item["features"]})
     canonical = {
-        "contract_version": DATASET_CONTRACT_VERSION,
-        "feature_schema_version": FEATURE_SCHEMA_VERSION,
-        "label_schema_version": LABEL_SCHEMA_VERSION,
+        "contract_version": contract_version,
+        "feature_schema_version": feature_schema_version,
+        "label_schema_version": label_schema_version,
         "universe_registry_id": universe_registry_id,
         "source_policy_version": source_policy_version,
         "start_date": first_date,
@@ -266,7 +269,7 @@ def build_quant_dataset(
               split_config_json, content_hash, status, test_partition_hash, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'sealed', ?, ?)
             """,
-            (resolved_id, DATASET_CONTRACT_VERSION, FEATURE_SCHEMA_VERSION, LABEL_SCHEMA_VERSION,
+            (resolved_id, contract_version, feature_schema_version, label_schema_version,
              universe_registry_id, source_policy_version, first_date, last_date,
              _canonical({**split["config"], "feature_order": feature_order, "purged_count": split["purged_count"]}),
              content_hash, test_partition_hash, created_at),
@@ -371,7 +374,9 @@ def _predict(artifact: dict[str, Any], item: dict[str, Any]) -> float:
     if kind == "feature_passthrough":
         return max(0.0, min(1.0, float(item["features"].get(artifact["feature_id"]) or 0.0) / 100.0))
     vector = []
-    for feature, mean, scale in zip(artifact["feature_order"], artifact["means"].values(), artifact["scales"].values()):
+    for feature in artifact["feature_order"]:
+        mean = float(artifact["means"].get(feature, 0.0))
+        scale = float(artifact["scales"].get(feature, 1.0)) or 1.0
         vector.append((float(item["features"].get(feature) or 0.0) - mean) / scale)
     score = float(artifact["bias"]) + sum(weight * value for weight, value in zip(artifact["weights"], vector))
     return 1 / (1 + math.exp(-max(-30.0, min(30.0, score))))

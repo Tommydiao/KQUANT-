@@ -21,6 +21,9 @@ dev = [
   "httpx>=0.28",
   "pytest>=8.0",
 ]
+quant = [
+  "lightgbm>=4.0",
+]
 
 [project.scripts]
 kquant = "kquant.__main__:main"

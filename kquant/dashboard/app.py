@@ -18,6 +18,7 @@ from kquant.config import KquantConfig, load_config
 from kquant.data_coverage import api_stock_data_coverage
 from kquant.capital_rotation import capital_rotation_detail, latest_capital_rotation
 from kquant.quant_dataset import DatasetIntegrityError, list_model_artifacts, model_artifact_detail
+from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
 from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
@@ -113,7 +114,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-17-quant-dataset-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-17-theme-prediction-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -700,6 +701,19 @@ def create_app(
     @app.get("/api/models/validation-runs")
     def model_validation_runs(dataset_id: str = "") -> dict[str, Any]:
         return list_model_artifacts(settings.db_path, dataset_id=dataset_id or None)
+
+    @app.get("/api/models/theme-prediction/latest")
+    def theme_prediction_latest() -> dict[str, Any]:
+        return latest_theme_prediction(settings.db_path)
+
+    @app.get("/api/models/theme-prediction/{run_id}")
+    def theme_prediction_run(run_id: str) -> dict[str, Any]:
+        try:
+            return theme_prediction_detail(settings.db_path, run_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except DatasetIntegrityError as exc:
+            raise HTTPException(status_code=409, detail="Theme prediction integrity check failed.") from exc
 
     @app.get("/api/models/{artifact_id}/metrics")
     def model_metrics(artifact_id: str) -> dict[str, Any]:

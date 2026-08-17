@@ -74,7 +74,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-quant-dataset-v1";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-theme-prediction-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -3963,6 +3963,7 @@ function SettingsPanel({
   const [coverage, setCoverage] = useState<{ universe_symbols: number; interval_summary: Record<string, { longbridge_eligible_symbols: number; coverage_pct: number; target_pct: number }>; universe_registry?: { registry_id: string } } | null>(null);
   const [taxonomy, setTaxonomy] = useState<{ status: string; taxonomy_version?: string; as_of_date?: string; summary?: { mapped_coverage_pct?: number; unmapped_theme_symbols?: number; target_met?: boolean; registry_symbol_count?: number }; definitions?: Array<{ definition_id: string; dimension_type: string; display_name: string; membership_count: number }> } | null>(null);
   const [rotation, setRotation] = useState<{ status: string; run_id?: string; as_of_time?: string; summary?: { ranked_theme_count?: number; stress_direction_flips?: number; stress_unreasonable_flips?: number; data_source?: string }; scores?: Array<{ definition_id: string; rank_value?: number | null; score?: number | null; status: string; data_quality: string; eligible_member_count: number }> } | null>(null);
+  const [themePrediction, setThemePrediction] = useState<{ status: string; gate_status?: string; prediction_version?: string; oos_fold_count?: number; summary?: { display_probability?: boolean; calibration_gate?: { observed_oos_folds?: number; minimum_oos_folds?: number } }; read_only_research?: boolean } | null>(null);
   const [pushMessage, setPushMessage] = useState("");
   const [pushBusy, setPushBusy] = useState(false);
 
@@ -3984,6 +3985,9 @@ function SettingsPanel({
     });
     void apiFetch("/api/themes/ranking").then(async (response) => {
       if (response.ok) setRotation(await response.json());
+    });
+    void apiFetch("/api/models/theme-prediction/latest").then(async (response) => {
+      if (response.ok) setThemePrediction(await response.json());
     });
   }, []);
 
@@ -4106,6 +4110,11 @@ function SettingsPanel({
           <p>{rotation?.status === "materialized" ? `${rotation.summary?.ranked_theme_count ?? 0} ranked themes / as of ${rotation.as_of_time ?? "-"}` : (lang === "zh" ? "尚未生成主题轮动快照" : "Capital Rotation snapshot not materialized")}</p>
           {rotation?.summary ? <p>{`Source ${rotation.summary.data_source ?? "-"} · stress flips ${rotation.summary.stress_direction_flips ?? 0} · unreasonable ${rotation.summary.stress_unreasonable_flips ?? 0}`}</p> : null}
           {rotation?.scores?.filter((item) => item.score !== null && item.score !== undefined).slice(0, 5).map((item) => <p key={item.definition_id}>{`${item.rank_value ?? "-"}. ${item.definition_id} ${Number(item.score).toFixed(1)} / ${item.eligible_member_count} members`}</p>)}
+        </div>
+        <div className="settings-card wide">
+          <strong>{lang === "zh" ? "Theme Prediction 证据" : "Theme Prediction evidence"}</strong>
+          <p>{themePrediction?.status === "materialized" ? `${themePrediction.prediction_version ?? "v1"} / ${themePrediction.gate_status ?? "review"}` : (lang === "zh" ? "尚未生成主题预测证据" : "Theme Prediction evidence not materialized")}</p>
+          <p>{themePrediction?.summary?.calibration_gate ? `OOS folds ${themePrediction.summary.calibration_gate.observed_oos_folds ?? 0}/${themePrediction.summary.calibration_gate.minimum_oos_folds ?? 3} / probabilities ${themePrediction.summary.display_probability ? "enabled" : "blocked"}` : (lang === "zh" ? "先积累分区回测样本，未通过校准前不显示概率。" : "Calibration evidence is required before probability display.")}</p>
         </div>
         <div className="settings-card wide">
           <strong>{text.consumerSafetyCopy}</strong>

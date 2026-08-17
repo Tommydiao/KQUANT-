@@ -24,6 +24,7 @@ from .security import SecuritySettings, generate_password_hash
 from .stock_signals import api_stock_live_data_health, api_stock_signals
 from .stock_store import default_db_path
 from .theme_taxonomy import build_theme_taxonomy, latest_theme_taxonomy
+from .theme_prediction import build_theme_prediction_dataset, latest_theme_prediction, run_theme_prediction, theme_prediction_detail
 from .validation_service import api_strategy_validation_latest, run_strategy_validation
 
 
@@ -113,6 +114,20 @@ def main() -> None:
     artifacts.add_argument("--dataset-id", default="")
     artifacts.add_argument("--artifact-id", default="")
     artifacts.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    theme_dataset = sub.add_parser("build-theme-prediction-dataset", help="Build and seal a point-in-time theme prediction dataset from a JSON item list.")
+    theme_dataset.add_argument("--items-json", required=True)
+    theme_dataset.add_argument("--dataset-id", default="")
+    theme_dataset.add_argument("--universe-registry-id", default="")
+    theme_dataset.add_argument("--source-policy-version", default="longbridge_pit_theme_v1")
+    theme_dataset.add_argument("--embargo-days", type=int, default=5)
+    theme_dataset.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    theme_prediction = sub.add_parser("run-theme-prediction", help="Run read-only Theme Prediction v1 model comparison and calibration diagnostics.")
+    theme_prediction.add_argument("--dataset-id", required=True)
+    theme_prediction.add_argument("--random-seed", type=int, default=20260817)
+    theme_prediction.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    theme_prediction_status = sub.add_parser("theme-prediction-status", help="Read the latest Theme Prediction v1 run.")
+    theme_prediction_status.add_argument("--run-id", default="")
+    theme_prediction_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -279,6 +294,14 @@ def main() -> None:
             print(json.dumps(model_artifact_detail(Path(args.db_path), args.artifact_id), indent=2))
         else:
             print(json.dumps(list_model_artifacts(Path(args.db_path), args.dataset_id or None), indent=2))
+    if args.command == "build-theme-prediction-dataset":
+        payload = json.loads(Path(args.items_json).read_text(encoding="utf-8"))
+        items = payload.get("items") if isinstance(payload, dict) else payload
+        print(json.dumps(build_theme_prediction_dataset(Path(args.db_path), items, dataset_id=args.dataset_id or None, universe_registry_id=args.universe_registry_id, source_policy_version=args.source_policy_version, embargo_days=max(0, args.embargo_days)), indent=2))
+    if args.command == "run-theme-prediction":
+        print(json.dumps(run_theme_prediction(Path(args.db_path), args.dataset_id, random_seed=args.random_seed), indent=2))
+    if args.command == "theme-prediction-status":
+        print(json.dumps(theme_prediction_detail(Path(args.db_path), args.run_id) if args.run_id else latest_theme_prediction(Path(args.db_path)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],

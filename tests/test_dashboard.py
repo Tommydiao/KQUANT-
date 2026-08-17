@@ -40,7 +40,7 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-17-quant-dataset-v1"
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-17-theme-prediction-v1"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
     assert health.json()["runtime"]["database_schema_version"] == LATEST_SCHEMA_VERSION
     assert health.json()["database_migration"]["status"] == "up_to_date"
@@ -111,6 +111,14 @@ def test_quant_model_routes_are_read_only_and_empty_before_artifacts(tmp_path: P
     client = TestClient(_app(tmp_path))
     assert client.get("/api/models/validation-runs").json() == {"artifacts": [], "read_only_research": True}
     assert client.get("/api/models/qma_unknown/metrics").status_code == 404
+
+
+def test_theme_prediction_route_is_read_only_and_empty_before_run(tmp_path: Path) -> None:
+    client = TestClient(_app(tmp_path))
+    payload = client.get("/api/models/theme-prediction/latest")
+    assert payload.status_code == 200
+    assert payload.json() == {"status": "not_materialized", "runs": [], "read_only_research": True}
+    assert client.get("/api/models/theme-prediction/tpr_unknown").status_code == 404
 
 
 def test_fixture_source_is_blocked_at_http_boundary(tmp_path: Path) -> None:
