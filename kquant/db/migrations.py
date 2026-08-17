@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 9
+LATEST_SCHEMA_VERSION = 10
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -675,6 +675,77 @@ def _leadership_checksum() -> str:
     )
 
 
+def _apply_stock_quant_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS stock_quant_runs (
+          run_id TEXT PRIMARY KEY,
+          dataset_id TEXT NOT NULL,
+          model_version TEXT NOT NULL,
+          feature_schema_version TEXT NOT NULL,
+          label_schema_version TEXT NOT NULL,
+          strategy_version TEXT NOT NULL,
+          config_json TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          read_only_research INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (dataset_id) REFERENCES quant_datasets(dataset_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_stock_quant_runs_created
+        ON stock_quant_runs(created_at DESC);
+        CREATE TABLE IF NOT EXISTS stock_quant_feature_snapshots (
+          run_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          signal_time TEXT NOT NULL,
+          feature_available_at TEXT NOT NULL,
+          feature_snapshot_hash TEXT NOT NULL,
+          source_snapshot_id TEXT NOT NULL,
+          feature_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, item_id),
+          FOREIGN KEY (run_id) REFERENCES stock_quant_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_stock_quant_features_symbol_time
+        ON stock_quant_feature_snapshots(symbol, signal_time DESC);
+        CREATE TABLE IF NOT EXISTS stock_quant_labels (
+          run_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          entry_time TEXT NOT NULL,
+          exit_time TEXT NOT NULL,
+          entry_price REAL NOT NULL,
+          exit_price REAL NOT NULL,
+          stop_price REAL NOT NULL,
+          target_price REAL NOT NULL,
+          horizon_bars INTEGER NOT NULL,
+          forward_return_pct REAL NOT NULL,
+          max_run_up_pct REAL NOT NULL,
+          max_drawdown_pct REAL NOT NULL,
+          realized_r REAL NOT NULL,
+          target_first INTEGER NOT NULL,
+          stop_first INTEGER NOT NULL,
+          outcome TEXT NOT NULL,
+          label_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (run_id, item_id),
+          FOREIGN KEY (run_id, item_id) REFERENCES stock_quant_feature_snapshots(run_id, item_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_stock_quant_labels_symbol_exit
+        ON stock_quant_labels(symbol, exit_time DESC);
+        """
+    )
+
+
+def _stock_quant_checksum() -> str:
+    return _checksum(
+        "stock_quant_model_0_v1.0.0|stock_quant_runs|"
+        "stock_quant_feature_snapshots|stock_quant_labels|"
+        "next_bar_open_stop_first_v1|legacy_historical_edge_excluded"
+    )
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
@@ -686,6 +757,7 @@ def _migrations() -> tuple[Migration, ...]:
         Migration(7, "quant_dataset_and_model_artifact_contract", _quant_dataset_checksum(), _apply_quant_dataset_contract),
         Migration(8, "theme_prediction_contract", _theme_prediction_checksum(), _apply_theme_prediction_contract),
         Migration(9, "leadership_engine_contract", _leadership_checksum(), _apply_leadership_contract),
+        Migration(10, "stock_quant_model_0_contract", _stock_quant_checksum(), _apply_stock_quant_contract),
     )
 
 

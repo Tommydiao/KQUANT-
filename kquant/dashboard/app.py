@@ -18,6 +18,7 @@ from kquant.config import KquantConfig, load_config
 from kquant.data_coverage import api_stock_data_coverage
 from kquant.capital_rotation import capital_rotation_detail, latest_capital_rotation
 from kquant.quant_dataset import DatasetIntegrityError, list_model_artifacts, model_artifact_detail
+from kquant.stock_quant import MODEL_0_VERSION, latest_stock_quant_run, stock_quant_ranking, stock_quant_symbol_detail
 from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
 from kquant.leadership import latest_leadership, theme_leaders
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
@@ -448,6 +449,7 @@ def create_app(
                 "early_trend_strategy_version": "early_trend_3_15d_v1.0.0",
                 "trigger_policy_version": TRIGGER_POLICY_VERSION,
                 "options_expression_version": OPTION_EXPRESSION_VERSION,
+                "stock_quant_model_version": MODEL_0_VERSION,
             },
             "stock_database": str(settings.db_path),
             "database_migration": migration["migration"],
@@ -735,6 +737,18 @@ def create_app(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except DatasetIntegrityError as exc:
             raise HTTPException(status_code=409, detail="Model artifact integrity check failed.") from exc
+
+    @app.get("/api/quant/stocks/ranking")
+    def stock_quant_model_ranking(limit: int = Query(default=50, ge=1, le=200)) -> dict[str, Any]:
+        return stock_quant_ranking(settings.db_path, limit=limit)
+
+    @app.get("/api/quant/stocks/{symbol}")
+    def stock_quant_model_detail(symbol: str) -> dict[str, Any]:
+        return stock_quant_symbol_detail(settings.db_path, symbol)
+
+    @app.get("/api/quant/stocks")
+    def stock_quant_model_status() -> dict[str, Any]:
+        return latest_stock_quant_run(settings.db_path)
 
     @app.get("/api/stocks/market-data/self-check")
     def market_data_self_check(symbol: str = "SPY") -> dict[str, Any]:

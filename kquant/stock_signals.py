@@ -28,6 +28,7 @@ from .manual_workflow import build_daily_candidate_board
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
+from .stock_quant import build_model0_features
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
 from .technical_features import calculate_feature_snapshot
@@ -1791,6 +1792,22 @@ def api_stock_signals(
         if confirmation["provider_status"] not in ("available", "fixture_read_only"):
             provider_errors.append(f"{symbol}: {active_profile['confirmation_timeframe']} {confirmation['provider_status']}")
         signal = build_signal(symbol, primary, confirmation, active_profile)
+        if source in {"live", "historical_replay"}:
+            signal["model0_feature_snapshot"] = build_model0_features(
+                symbol,
+                primary.get("candles") or [],
+                confirmation.get("candles") or [],
+                source=str(primary.get("source") or source),
+                confirmation_timeframe=str(active_profile.get("confirmation_timeframe") or "1H"),
+                scoring_config=dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+            )
+        else:
+            signal["model0_feature_snapshot"] = {
+                "model_version": "stock_quant_model_0_v1.0.0",
+                "status": "not_eligible_fixture",
+                "reason": "Fixture data is for deterministic UI tests and cannot enter the stock quant dataset.",
+                "read_only_research": True,
+            }
         signal["strategy_version"] = strategy_record.strategy_version
         signal["strategy_config_hash"] = strategy_record.config_hash
         signal["strategy_lifecycle"] = lifecycle
@@ -2000,10 +2017,21 @@ def api_stock_analyze(
     signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
     signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
     signal["ai_feature_packet_v3"] = build_ai_feature_packet_v3(signal, quote, market_regime)
+    closed_primary = [item for item in (primary.get("candles") or []) if item.get("bar_state") != "forming_candle"]
+    event_as_of = str(closed_primary[-1].get("open_time") or "") if closed_primary else ""
     signal["event_context"] = corporate_event_context(
         db,
         normalized_symbol,
-        as_of=str(signal.get("data_status", {}).get("daily_candle_time") or ""),
+        as_of=event_as_of,
+    )
+    signal["model0_feature_snapshot"] = build_model0_features(
+        normalized_symbol,
+        primary.get("candles") or [],
+        confirmation.get("candles") or [],
+        event_context=signal.get("event_context"),
+        source=str(primary.get("source") or source),
+        confirmation_timeframe=str(active_profile.get("confirmation_timeframe") or "1H"),
+        scoring_config=dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
     )
     factor_snapshot = build_factor_snapshot(signal, market_regime)
     persist_factor_snapshot(db, factor_snapshot)
@@ -2082,6 +2110,15 @@ def reconstruct_signal(
     sliced_daily = {**daily_payload, "symbol": normalize_symbol(symbol), "candles": daily}
     sliced_hourly = {**hourly_payload, "symbol": normalize_symbol(symbol), "candles": hourly}
     signal = build_signal(normalize_symbol(symbol), sliced_daily, sliced_hourly, active_profile)
+    signal["model0_feature_snapshot"] = build_model0_features(
+        normalize_symbol(symbol),
+        daily,
+        hourly,
+        as_of_time=historical_timestamp,
+        source=str(daily_payload.get("source") or "historical_replay"),
+        confirmation_timeframe=str(active_profile.get("confirmation_timeframe") or "1H"),
+        scoring_config=dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+    )
     signal["strategy_version"] = definition.strategy_version
     signal["strategy_config_hash"] = definition.config_hash
     return {

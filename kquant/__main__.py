@@ -15,6 +15,7 @@ from .operations import backup_local_workspace, operational_health, restore_dril
 from .market_data_backfill import create_backfill_job, run_backfill_job, run_longbridge_backfill
 from .provider_event_retention import archive_provider_events, provider_event_retention_status
 from .quant_dataset import build_quant_dataset, list_model_artifacts, model_artifact_detail, read_quant_dataset, run_baseline_suite
+from .stock_quant import build_stock_quant_dataset, latest_stock_quant_run, stock_quant_run_detail
 from .production_readiness import (
     evaluate_go_no_go,
     serialize_go_no_go,
@@ -133,6 +134,16 @@ def main() -> None:
     leadership.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     leadership_status = sub.add_parser("leadership-status", help="Read the latest Leadership Engine snapshot.")
     leadership_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    stock_quant_dataset = sub.add_parser("build-stock-quant-dataset", help="Seal a point-in-time Model 0 stock quant dataset from a JSON item list.")
+    stock_quant_dataset.add_argument("--items-json", required=True)
+    stock_quant_dataset.add_argument("--dataset-id", default="")
+    stock_quant_dataset.add_argument("--universe-registry-id", default="")
+    stock_quant_dataset.add_argument("--source-policy-version", default="longbridge_pit_stock_quant_v1")
+    stock_quant_dataset.add_argument("--embargo-days", type=int, default=5)
+    stock_quant_dataset.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    stock_quant_status = sub.add_parser("stock-quant-status", help="Read the latest sealed Model 0 stock quant run.")
+    stock_quant_status.add_argument("--run-id", default="")
+    stock_quant_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -311,6 +322,17 @@ def main() -> None:
         print(json.dumps(run_leadership(Path(args.db_path)), indent=2))
     if args.command == "leadership-status":
         print(json.dumps(latest_leadership(Path(args.db_path)), indent=2))
+    if args.command == "build-stock-quant-dataset":
+        payload = json.loads(Path(args.items_json).read_text(encoding="utf-8"))
+        items = payload.get("items") if isinstance(payload, dict) else payload
+        print(json.dumps(build_stock_quant_dataset(
+            Path(args.db_path), items, dataset_id=args.dataset_id or None,
+            universe_registry_id=args.universe_registry_id,
+            source_policy_version=args.source_policy_version,
+            embargo_days=max(0, args.embargo_days),
+        ), indent=2))
+    if args.command == "stock-quant-status":
+        print(json.dumps(stock_quant_run_detail(Path(args.db_path), args.run_id) if args.run_id else latest_stock_quant_run(Path(args.db_path)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],
