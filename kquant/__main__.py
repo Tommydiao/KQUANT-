@@ -25,6 +25,7 @@ from .stock_signals import api_stock_live_data_health, api_stock_signals
 from .stock_store import default_db_path
 from .theme_taxonomy import build_theme_taxonomy, latest_theme_taxonomy
 from .theme_prediction import build_theme_prediction_dataset, latest_theme_prediction, run_theme_prediction, theme_prediction_detail
+from .leadership import latest_leadership, run_leadership
 from .validation_service import api_strategy_validation_latest, run_strategy_validation
 
 
@@ -128,6 +129,10 @@ def main() -> None:
     theme_prediction_status = sub.add_parser("theme-prediction-status", help="Read the latest Theme Prediction v1 run.")
     theme_prediction_status.add_argument("--run-id", default="")
     theme_prediction_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    leadership = sub.add_parser("run-leadership", help="Materialize same-timestamp stock leadership from the latest Capital Rotation snapshot.")
+    leadership.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    leadership_status = sub.add_parser("leadership-status", help="Read the latest Leadership Engine snapshot.")
+    leadership_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     validation = sub.add_parser("validate-strategies", help="Run deterministic walk-forward strategy validation.")
     validation.add_argument("--profiles", default="tactical_1w_v1,high_beta_growth_v1")
     validation.add_argument("--universe", default="default")
@@ -302,6 +307,10 @@ def main() -> None:
         print(json.dumps(run_theme_prediction(Path(args.db_path), args.dataset_id, random_seed=args.random_seed), indent=2))
     if args.command == "theme-prediction-status":
         print(json.dumps(theme_prediction_detail(Path(args.db_path), args.run_id) if args.run_id else latest_theme_prediction(Path(args.db_path)), indent=2))
+    if args.command == "run-leadership":
+        print(json.dumps(run_leadership(Path(args.db_path)), indent=2))
+    if args.command == "leadership-status":
+        print(json.dumps(latest_leadership(Path(args.db_path)), indent=2))
     if args.command == "validate-strategies":
         payload = run_strategy_validation(
             profiles=[item.strip() for item in args.profiles.split(",") if item.strip()],

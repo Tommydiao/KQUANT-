@@ -19,6 +19,7 @@ from kquant.data_coverage import api_stock_data_coverage
 from kquant.capital_rotation import capital_rotation_detail, latest_capital_rotation
 from kquant.quant_dataset import DatasetIntegrityError, list_model_artifacts, model_artifact_detail
 from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
+from kquant.leadership import latest_leadership, theme_leaders
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
 from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
@@ -114,7 +115,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-17-theme-prediction-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-17-leadership-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -681,6 +682,17 @@ def create_app(
     @app.get("/api/themes/ranking")
     def theme_ranking() -> dict[str, Any]:
         return latest_capital_rotation(settings.db_path)
+
+    @app.get("/api/leadership/latest")
+    def leadership_latest() -> dict[str, Any]:
+        return latest_leadership(settings.db_path)
+
+    @app.get("/api/themes/{theme_id}/leaders")
+    def theme_leader_rows(theme_id: str) -> dict[str, Any]:
+        try:
+            return theme_leaders(settings.db_path, theme_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/themes/{theme_id:path}")
     def theme(theme_id: str) -> dict[str, Any]:

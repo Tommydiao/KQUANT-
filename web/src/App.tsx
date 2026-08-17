@@ -74,7 +74,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-theme-prediction-v1";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-leadership-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -3964,6 +3964,7 @@ function SettingsPanel({
   const [taxonomy, setTaxonomy] = useState<{ status: string; taxonomy_version?: string; as_of_date?: string; summary?: { mapped_coverage_pct?: number; unmapped_theme_symbols?: number; target_met?: boolean; registry_symbol_count?: number }; definitions?: Array<{ definition_id: string; dimension_type: string; display_name: string; membership_count: number }> } | null>(null);
   const [rotation, setRotation] = useState<{ status: string; run_id?: string; as_of_time?: string; summary?: { ranked_theme_count?: number; stress_direction_flips?: number; stress_unreasonable_flips?: number; data_source?: string }; scores?: Array<{ definition_id: string; rank_value?: number | null; score?: number | null; status: string; data_quality: string; eligible_member_count: number }> } | null>(null);
   const [themePrediction, setThemePrediction] = useState<{ status: string; gate_status?: string; prediction_version?: string; oos_fold_count?: number; summary?: { display_probability?: boolean; calibration_gate?: { observed_oos_folds?: number; minimum_oos_folds?: number } }; read_only_research?: boolean } | null>(null);
+  const [leadership, setLeadership] = useState<{ status: string; run_id?: string; as_of_time?: string; summary?: { unique_symbol_count?: number; theme_membership_count?: number; theme_count?: number; state_counts?: Record<string, number>; future_prediction_used?: boolean } } | null>(null);
   const [pushMessage, setPushMessage] = useState("");
   const [pushBusy, setPushBusy] = useState(false);
 
@@ -3988,6 +3989,9 @@ function SettingsPanel({
     });
     void apiFetch("/api/models/theme-prediction/latest").then(async (response) => {
       if (response.ok) setThemePrediction(await response.json());
+    });
+    void apiFetch("/api/leadership/latest").then(async (response) => {
+      if (response.ok) setLeadership(await response.json());
     });
   }, []);
 
@@ -4115,6 +4119,12 @@ function SettingsPanel({
           <strong>{lang === "zh" ? "Theme Prediction 证据" : "Theme Prediction evidence"}</strong>
           <p>{themePrediction?.status === "materialized" ? `${themePrediction.prediction_version ?? "v1"} / ${themePrediction.gate_status ?? "review"}` : (lang === "zh" ? "尚未生成主题预测证据" : "Theme Prediction evidence not materialized")}</p>
           <p>{themePrediction?.summary?.calibration_gate ? `OOS folds ${themePrediction.summary.calibration_gate.observed_oos_folds ?? 0}/${themePrediction.summary.calibration_gate.minimum_oos_folds ?? 3} / probabilities ${themePrediction.summary.display_probability ? "enabled" : "blocked"}` : (lang === "zh" ? "先积累分区回测样本，未通过校准前不显示概率。" : "Calibration evidence is required before probability display.")}</p>
+        </div>
+        <div className="settings-card wide">
+          <strong>{lang === "zh" ? "主题领导力" : "Theme Leadership"}</strong>
+          <p>{leadership?.status === "materialized" ? `${leadership.summary?.unique_symbol_count ?? 0} stocks / ${leadership.summary?.theme_membership_count ?? 0} theme memberships / as of ${leadership.as_of_time ?? "-"}` : (lang === "zh" ? "尚未生成主题领导力快照" : "Leadership snapshot not materialized")}</p>
+          {leadership?.summary?.state_counts ? <p>{Object.entries(leadership.summary.state_counts).map(([state, count]) => `${state}: ${count}`).join(" · ")}</p> : null}
+          <p>{leadership?.summary?.future_prediction_used ? (lang === "zh" ? "已阻断：不能使用未来主题预测。" : "Blocked: future theme prediction detected.") : (lang === "zh" ? "仅使用同一时间截面的轮动数据。" : "Uses only the same-timestamp rotation snapshot.")}</p>
         </div>
         <div className="settings-card wide">
           <strong>{text.consumerSafetyCopy}</strong>
