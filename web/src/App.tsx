@@ -41,6 +41,7 @@ import { EarlyTrendPanel as EarlyTrendPanelView } from "./features/quant/EarlyTr
 import { TodayDecisionPanel as TodayDecisionPanelView } from "./features/quant/TodayDecisionPanel";
 import { DataReliabilityPanel as DataReliabilityPanelView, RiskControlPanel as RiskControlPanelView } from "./features/operations/OperationsEvidencePanels";
 import { RealtimeCommandCenter as RealtimeCommandCenterView } from "./features/operations/RealtimeCommandCenter";
+import { SettingsPanel as SettingsPanelView } from "./features/operations/SettingsPanel";
 import { StockJournalPanel as StockJournalPanelView } from "./features/operations/StockJournalPanel";
 import { ThemeRadarPanel as ThemeRadarPanelView } from "./features/theme/ThemeRadarPanel";
 
@@ -3575,13 +3576,14 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
       </section>
       ) : null}
       {activeWorkspace === "settings" ? (
-      <SettingsPanel
+      <SettingsPanelView
         apiConnection={apiConnection}
         aiStatus={aiStatus}
         apiBaseUrl={API_BASE_URL}
         apiHealth={apiHealth}
         text={text}
         lang={lang}
+        apiFetch={apiFetch}
       />
       ) : null}
         </>
