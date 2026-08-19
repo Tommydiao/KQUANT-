@@ -15,6 +15,7 @@
   - Longbridge 覆盖、市场宽度、公司行动状态和 legacy reference 隔离说明。
   - 验证 Gate、测试交易数、选中模型和 Shadow Observation 计数。
 - 新增 `GET /api/shadow-observation/status`，统一返回当前前瞻 session、真实交易日数、结果数、冻结状态和 `NO_GO`；将最小完整观察日统一为 20 天。
+- Shadow 状态现在区分“策略未冻结”和“已冻结、可人工开启观察”；接口只读取状态，不自动创建 session，也不改变 `NO_GO`。
 - 新增 `DeepResearchChatPanel` 独立组件，Today 与右侧研究栏均使用同一研究视图；旧同名实现已从 `App.tsx` 移除，剩余领域组件继续分批迁移。
 - 新增 `features/quant/EarlyTrendPanel`，以及 `features/operations/OperationsEvidencePanels`；早期转强、数据可信度和风险 Gate 已从 `App.tsx` 移出，保持原有 props 和 CSS 契约。
 - 新增 `features/quant/TodayDecisionPanel` 与 `features/operations/RealtimeCommandCenter`；Today 工作台、主动预警和期权观察入口已从 `App.tsx` 移出，并保留完整期权候选类型契约。
@@ -38,7 +39,7 @@
 
 ## 4. 测试、构建和浏览器验收结果
 
-- Python：`199 passed`。
+- Python：`200 passed`。
 - 前端测试：`2 passed`。
 - React/Vite Production Build：通过；仍有既有单 chunk 超过 500 kB 的优化警告。
 - 只读边界扫描：通过，99 条注册路由，禁止账户、持仓、券商交易和订单提交路由均为 0。

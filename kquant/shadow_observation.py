@@ -30,6 +30,7 @@ def _count(conn: Any, table: str) -> int:
 
 def _no_session(db_path: Path) -> dict[str, Any]:
     freeze = strategy_freeze_status(db_path, DEFAULT_STRATEGY_VERSION)
+    freeze_ready = bool(freeze and freeze.get("status") == "frozen")
     return {
         "status": "not_started",
         "version": SHADOW_OBSERVATION_VERSION,
@@ -45,9 +46,13 @@ def _no_session(db_path: Path) -> dict[str, Any]:
         "minimum_market_days": MINIMUM_COMPLETE_MARKET_DAYS,
         "minimum_market_days_met": False,
         "strategy_freeze_status": freeze.get("status") if freeze else "not_frozen",
-        "start_allowed": False,
+        "start_allowed": freeze_ready,
         "go_no_go": "NO_GO",
-        "next_action": "Freeze and review the strategy manifest before opening forward observation.",
+        "next_action": (
+            "The frozen strategy manifest is ready; start a reviewed forward-observation session manually."
+            if freeze_ready
+            else "Freeze and review the strategy manifest before opening forward observation."
+        ),
         "real_money_allowed": False,
         "read_only_research": True,
         "as_of": _now(),
