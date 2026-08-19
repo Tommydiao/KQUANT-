@@ -36,6 +36,7 @@ import {
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { parseRiskReward } from "./tradingFormatters";
 import { QuantOverviewPanel, type QuantOverviewPayload } from "./components/QuantOverviewPanel";
+import { DeepResearchChatPanel as DeepResearchChatPanelView } from "./components/DeepResearchChatPanel";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -75,7 +76,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-17-stock-quant-validation-v1";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-19-v2-overview-shadow-v1";
 type ChartDrawingTool = "none" | "horizontal" | "trend";
 type ChartDrawingLabel = "Line" | "Entry" | "Stop" | "Target" | "Alert";
 type ChartDrawing = {
@@ -3402,12 +3403,14 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
           ) : null}
 
           {showDeepResearch ? (
-          <DeepResearchChatPanel
+          <DeepResearchChatPanelView
             text={text}
             lang={lang}
             selected={selected}
             aiStatus={aiStatus}
             aiDecision={aiDecision}
+            conclusion={displayTradeAction(aiDecision?.ai_decision?.action ?? "-", lang)}
+            dataStatus={displayDataQuality(selected.data_status?.data_quality, lang)}
             state={researchChatState}
             messages={researchChatMessages}
             input={researchChatInput}
@@ -3588,12 +3591,14 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
             <PanelRightClose size={17} />
           </button>
         </div>
-        <DeepResearchChatPanel
+        <DeepResearchChatPanelView
           text={text}
           lang={lang}
           selected={selected}
           aiStatus={aiStatus}
           aiDecision={aiDecision}
+          conclusion={displayTradeAction(aiDecision?.ai_decision?.action ?? "-", lang)}
+          dataStatus={displayDataQuality(selected.data_status?.data_quality, lang)}
           state={researchChatState}
           messages={researchChatMessages}
           input={researchChatInput}
@@ -3673,130 +3678,6 @@ function LoginScreen({ mode, onAuthenticated }: { mode: "login" | "setup" | "err
         )}
       </section>
     </main>
-  );
-}
-
-function DeepResearchChatPanel({
-  text,
-  lang,
-  selected,
-  aiStatus,
-  aiDecision,
-  state,
-  messages,
-  input,
-  onInputChange,
-  onSend,
-  onAsk,
-}: {
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  lang: Lang;
-  selected: StockSignal;
-  aiStatus: AiReviewStatusPayload | null;
-  aiDecision: AiDecisionPayload | null;
-  state: "idle" | "loading" | "ready" | "error";
-  messages: ResearchChatMessage[];
-  input: string;
-  onInputChange: (value: string) => void;
-  onSend: () => void;
-  onAsk: (question: string) => void;
-}) {
-  const promptIdeas = lang === "zh"
-    ? [
-        `分析 ${selected.symbol} 的风险收益与更合适的入场区。`,
-        `什么条件会改变对 ${selected.symbol} 的结论？`,
-        `对比 ${selected.symbol} 的看多与看空依据。`,
-      ]
-    : [
-        `Analyze ${selected.symbol}'s risk/reward and better entry zone.`,
-        `What would change the conclusion on ${selected.symbol}?`,
-        `Compare bullish and bearish evidence for ${selected.symbol}.`,
-      ];
-  return (
-    <section className="panel deep-research-chat" id="deep-research-chat-workspace">
-      <div className="deep-chat-head">
-        <div>
-          <span className="eyebrow">{lang === "zh" ? "股票研究" : "Stock research"}</span>
-          <h2>{lang === "zh" ? "深度研究" : "Deep Research"}</h2>
-          <p>{lang === "zh" ? "围绕当前股票的结构、风险、入场条件和图表证据展开复核。" : "Review the selected stock's structure, risks, entry conditions, and chart evidence."}</p>
-        </div>
-      </div>
-      <div className="deep-chat-context">
-        <Fact label={lang === "zh" ? "股票" : "Symbol"} value={selected.symbol} />
-        <Fact label={lang === "zh" ? "评分" : "Score"} value={`${selected.level} / ${formatNumber(selected.score)}`} />
-        <Fact label={lang === "zh" ? "研究结论" : "Conclusion"} value={displayTradeAction(aiDecision?.ai_decision?.action ?? "-", lang)} />
-        <Fact label={lang === "zh" ? "数据状态" : "Data status"} value={displayDataQuality(selected.data_status?.data_quality, lang)} />
-      </div>
-      <div className="deep-chat-messages">
-        {messages.length === 0 ? (
-          <div className="deep-chat-empty">
-            <MessageCircle size={28} />
-            <strong>{text.researchChatEmpty}</strong>
-            <div className="deep-chat-prompts">
-              {promptIdeas.map((prompt) => (
-                <button type="button" key={prompt} onClick={() => onAsk(prompt)} disabled={state === "loading" || aiStatus?.status !== "available"}>
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <article className={`deep-chat-message ${message.role}`} key={message.id}>
-              <div className="deep-chat-bubble">
-                <strong>{message.role === "user" ? (lang === "zh" ? "你" : "You") : "KQUANT"}</strong>
-                <p>{message.content}</p>
-              </div>
-              {message.payload?.answer ? <ResearchChatAnswerCard payload={message.payload} text={text} /> : null}
-            </article>
-          ))
-        )}
-        {state === "loading" ? (
-          <div className="deep-chat-message assistant">
-            <div className="deep-chat-bubble">
-              <strong>KQUANT</strong>
-              <p>{lang === "zh" ? "正在整理研究…" : "Preparing research…"}</p>
-            </div>
-          </div>
-        ) : null}
-      </div>
-      <form
-        className="deep-chat-input"
-        onSubmit={(event: FormEvent<HTMLFormElement>) => {
-          event.preventDefault();
-          onSend();
-        }}
-      >
-        <textarea
-          value={input}
-          onChange={(event) => onInputChange(event.target.value)}
-          placeholder={aiStatus?.status === "available" ? (lang === "zh" ? "询问形态、风险、入场条件或需要继续确认的证据…" : "Ask about structure, risk, entry conditions, or evidence to confirm…") : (lang === "zh" ? "研究服务暂时不可用" : "Research service is temporarily unavailable")}
-          disabled={state === "loading" || aiStatus?.status !== "available"}
-        />
-        <button type="submit" disabled={state === "loading" || aiStatus?.status !== "available" || !input.trim()}>
-          <Send size={15} />
-          {state === "loading" ? (lang === "zh" ? "整理中" : "Working") : (lang === "zh" ? "提问" : "Ask")}
-        </button>
-      </form>
-      {aiStatus?.status !== "available" ? <p className="secondary-note">{lang === "zh" ? "研究服务暂时不可用，请稍后再试。" : "Research service is temporarily unavailable. Please try again later."}</p> : null}
-    </section>
-  );
-}
-
-function ResearchChatAnswerCard({ payload, text }: { payload: AiResearchChatPayload; text: (typeof copy)["en"] | (typeof copy)["zh"] }) {
-  const answer = payload.answer;
-  const isDegraded = payload.status !== "available" || Boolean(payload.fallback_model_used);
-  return (
-    <div className={`deep-chat-answer-card ${isDegraded ? "degraded" : ""}`}>
-      {isDegraded ? <p className="secondary-note">部分研究上下文暂不可用，结论仅供人工复核。</p> : null}
-      <Fact label={text.directView} value={answer.direct_view} />
-      <Narrative title={text.keyPoints} items={answer.key_points} />
-      <Narrative title={text.risks} items={answer.risk_flags} />
-      <Narrative title={text.whatToCheckNext} items={answer.what_to_check_next} />
-      {answer.evidence_used?.length ? <Narrative title={text.evidenceUsed} items={answer.evidence_used} /> : null}
-      <Narrative title={text.followUps} items={answer.follow_up_questions} />
-      <p className="secondary-note">{answer.safety_note}</p>
-    </div>
   );
 }
 

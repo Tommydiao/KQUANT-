@@ -15,6 +15,7 @@ from .strategy_freeze import strategy_freeze_status
 FORWARD_MODES = {"paper_observation", "paper_simulation"}
 FORWARD_STATUSES = {"prepared", "active", "closed"}
 OUTCOME_STATUSES = {"pending", "not_triggered", "triggered", "stopped", "target", "time_exit", "invalidated", "skipped"}
+MINIMUM_COMPLETE_MARKET_DAYS = 20
 
 
 def _now() -> str:
@@ -86,7 +87,7 @@ def prepare_forward_pilot(
         "universe_changes_allowed": False,
         "real_money_allowed": False,
         "manual_observation_required": True,
-        "minimum_complete_market_days_for_go_no_go": 15,
+        "minimum_complete_market_days_for_go_no_go": MINIMUM_COMPLETE_MARKET_DAYS,
     }
     now = _now()
     with connect(db_path) as conn:
@@ -254,7 +255,7 @@ def forward_pilot_summary(db_path: Path, session_id: str) -> dict[str, Any]:
         "completed_outcome_count": len(completed),
         "average_r": round(sum(r_values) / len(r_values), 4) if r_values else 0.0,
         "data_incident_count": data_incidents,
-        "minimum_market_days_met": len(days) >= 15,
+        "minimum_market_days_met": len(days) >= MINIMUM_COMPLETE_MARKET_DAYS,
         "candidate_traceability_complete": all(candidate["candidate_id"] in outcome_by_id or candidate["trigger_status"] == "pending" for candidate in candidates),
         "strategy_changes_allowed": False,
         "real_money_allowed": False,

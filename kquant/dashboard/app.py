@@ -24,6 +24,7 @@ from kquant.stock_quant_validation import (
     run_stock_quant_validation,
     stock_quant_validation_detail,
 )
+from kquant.shadow_observation import latest_shadow_observation
 from kquant.v2_overview import build_v2_overview
 from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
 from kquant.leadership import latest_leadership, theme_leaders
@@ -122,7 +123,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-17-stock-quant-validation-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-19-v2-overview-shadow-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -756,6 +757,10 @@ def create_app(
     @app.get("/api/quant/overview")
     def quant_overview() -> dict[str, Any]:
         return build_v2_overview(settings.db_path)
+
+    @app.get("/api/shadow-observation/status")
+    def shadow_observation_status() -> dict[str, Any]:
+        return latest_shadow_observation(settings.db_path)
 
     @app.post("/api/quant/stocks/validation/runs")
     def stock_quant_validation_run(payload: StockQuantValidationRequest) -> dict[str, Any]:

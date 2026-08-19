@@ -9,49 +9,16 @@ from .data_coverage import api_stock_data_coverage
 from .leadership import latest_leadership
 from .stock_quant import latest_stock_quant_run
 from .stock_quant_validation import latest_stock_quant_validation
-from .stock_store import connect
+from .shadow_observation import latest_shadow_observation
 from .theme_prediction import latest_theme_prediction
 from .theme_taxonomy import latest_theme_taxonomy
 
 
 OVERVIEW_CONTRACT_VERSION = "kquant_v2_overview_v1.0.0"
-SHADOW_OBSERVATION_TARGET_DAYS = 20
 
 
 def _now() -> str:
     return datetime.now(UTC).isoformat()
-
-
-def _table_count(conn: Any, table: str, where: str = "", params: tuple[Any, ...] = ()) -> int:
-    exists = conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-        (table,),
-    ).fetchone()
-    if not exists:
-        return 0
-    clause = f" WHERE {where}" if where else ""
-    row = conn.execute(f"SELECT COUNT(*) AS count FROM {table}{clause}", params).fetchone()
-    return int(row["count"] if row else 0)
-
-
-def _shadow_observation(db_path: Path) -> dict[str, Any]:
-    with connect(db_path) as conn:
-        trading_days = _table_count(conn, "forward_pilot_days")
-        instruction_events = _table_count(conn, "trade_instructions")
-        completed_outcomes = _table_count(conn, "forward_pilot_outcomes")
-        paper_observations = _table_count(conn, "option_paper_observations")
-    status = "collecting" if trading_days else "not_started"
-    return {
-        "status": status,
-        "observed_trading_days": trading_days,
-        "target_trading_days": SHADOW_OBSERVATION_TARGET_DAYS,
-        "instruction_events": instruction_events,
-        "completed_forward_outcomes": completed_outcomes,
-        "option_paper_observations": paper_observations,
-        "go_no_go": "NO_GO",
-        "reason": "Shadow Observation is evidence collection only; it cannot unlock orders.",
-        "read_only_research": True,
-    }
 
 
 def _stage(status: str, run_id: str | None, as_of: str | None, source: str | None = None) -> dict[str, Any]:
@@ -198,5 +165,5 @@ def build_v2_overview(db_path: Path) -> dict[str, Any]:
             "display_probability": (prediction.get("summary") or {}).get("display_probability", False),
             "oos_fold_count": prediction.get("oos_fold_count", 0),
         },
-        "shadow_observation": _shadow_observation(db_path),
+        "shadow_observation": latest_shadow_observation(db_path),
     }

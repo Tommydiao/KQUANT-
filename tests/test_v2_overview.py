@@ -27,3 +27,9 @@ def test_v2_overview_is_read_only_and_preserves_evidence_chain(tmp_path: Path) -
         "not_available",
     ]
     assert payload["shadow_observation"]["go_no_go"] == "NO_GO"
+
+    shadow = client.get("/api/shadow-observation/status")
+    assert shadow.status_code == 200
+    assert shadow.json()["status"] == "not_started"
+    assert shadow.json()["target_trading_days"] == 20
+    assert shadow.json()["real_money_allowed"] is False

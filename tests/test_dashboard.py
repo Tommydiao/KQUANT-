@@ -40,7 +40,7 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-17-stock-quant-validation-v1"
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-19-v2-overview-shadow-v1"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
     assert health.json()["runtime"]["database_schema_version"] == LATEST_SCHEMA_VERSION
     assert health.json()["database_migration"]["status"] == "up_to_date"

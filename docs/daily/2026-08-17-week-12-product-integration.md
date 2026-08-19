@@ -14,8 +14,10 @@
   - 应用、数据源、主题、领导力、Stock Quant 和验证版本。
   - Longbridge 覆盖、市场宽度、公司行动状态和 legacy reference 隔离说明。
   - 验证 Gate、测试交易数、选中模型和 Shadow Observation 计数。
+- 新增 `GET /api/shadow-observation/status`，统一返回当前前瞻 session、真实交易日数、结果数、冻结状态和 `NO_GO`；将最小完整观察日统一为 20 天。
+- 新增 `DeepResearchChatPanel` 独立组件，Today 与右侧研究栏均使用同一研究视图；旧同名实现已从 `App.tsx` 移除，剩余领域组件继续分批迁移。
 - 新增 `web/src/components/QuantOverviewPanel.tsx`，在 Today 展示数据可信度、主题轮动、领导力、验证状态、NO_GO 和 Shadow 进度；领导力标的可点击回到单股分析。
-- `App.tsx` 前端 API contract 更新为 `stock-quant-validation-v1`，并加载新的聚合接口；当前不匹配时继续提示重启。
+- `App.tsx` 前端 API contract 更新为 `kquant-api-2026-08-19-v2-overview-shadow-v1`，并加载新的聚合接口；当前不匹配时继续提示重启。
 - PWA Service Worker 缓存版本更新为 `kquant-static-v2-shadow-release-v1`，只缓存静态文件，不缓存 API、行情或验证报告。
 - 新增 `tests/test_v2_overview.py`，覆盖只读字段和空库证据链状态。
 - 未新增数据库表；本周复用已有 Schema 11 和既有前瞻/指令表，避免为展示层制造重复事实源。
@@ -33,13 +35,13 @@
 
 ## 4. 测试、构建和浏览器验收结果
 
-- Python：`197 passed`。
+- Python：`199 passed`。
 - 前端测试：`2 passed`。
 - React/Vite Production Build：通过；仍有既有单 chunk 超过 500 kB 的优化警告。
-- 只读边界扫描：通过，98 条注册路由，禁止账户、持仓、券商交易和订单提交路由均为 0。
+- 只读边界扫描：通过，99 条注册路由，禁止账户、持仓、券商交易和订单提交路由均为 0。
 - `git diff --check`：通过。
-- API smoke：`/api/health`、`/api/quant/overview`、`/api/quant/stocks/ranking`、`/api/quant/stocks/validation/latest`、manifest 和 `/service-worker.js` 均返回 200。
-- 运行态：Schema 11、API contract `kquant-api-2026-08-17-stock-quant-validation-v1`、静态资源版本 `v2-shadow-release-v1`、Longbridge provider 已加载。
+- API smoke：`/api/health`、`/api/quant/overview`、`/api/shadow-observation/status`、`/api/quant/stocks/ranking`、`/api/quant/stocks/validation/latest`、manifest 和 `/service-worker.js` 均返回 200。
+- 运行态：Schema 11、API contract `kquant-api-2026-08-19-v2-overview-shadow-v1`、静态资源版本 `v2-shadow-release-v1`、Longbridge provider 已加载；Shadow 返回 0/20 个真实观察日并保持 `NO_GO`。
 - 浏览器：桌面 Today 面板出现；移动端 390px 宽度 `scrollWidth=375`，无横向溢出；深度研究栏收起/展开正常；Service Worker 已注册；浏览器错误日志为 0。
 
 ## 5. 新发现的技术债与数据泄漏风险
