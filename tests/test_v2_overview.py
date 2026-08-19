@@ -27,6 +27,8 @@ def test_v2_overview_is_read_only_and_preserves_evidence_chain(tmp_path: Path) -
         "not_available",
     ]
     assert payload["shadow_observation"]["go_no_go"] == "NO_GO"
+    assert payload["shadow_observation"]["start_allowed"] is False
+    assert payload["shadow_observation"]["next_action"]
 
     shadow = client.get("/api/shadow-observation/status")
     assert shadow.status_code == 200

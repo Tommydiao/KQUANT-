@@ -4977,6 +4977,17 @@ p {
   color: var(--text);
 }
 
+.v2-shadow-next {
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+
+.v2-shadow-next small {
+  max-width: 520px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 @media (max-width: 820px) {
   .v2-overview-head {
     align-items: flex-start;

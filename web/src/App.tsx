@@ -42,6 +42,7 @@ import { TodayDecisionPanel as TodayDecisionPanelView } from "./features/quant/T
 import { DataReliabilityPanel as DataReliabilityPanelView, RiskControlPanel as RiskControlPanelView } from "./features/operations/OperationsEvidencePanels";
 import { RealtimeCommandCenter as RealtimeCommandCenterView } from "./features/operations/RealtimeCommandCenter";
 import { StockJournalPanel as StockJournalPanelView } from "./features/operations/StockJournalPanel";
+import { ThemeRadarPanel as ThemeRadarPanelView } from "./features/theme/ThemeRadarPanel";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -3208,7 +3209,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
           void loadTodayWorkbench();
         }}
       />
-      <TerminalRadarPanel
+      <ThemeRadarPanelView
         run={run}
         universe={universe}
         selected={selected}
@@ -3216,7 +3217,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
         aiDecision={aiDecision}
         dailyMeta={dailyMeta}
         hourlyMeta={hourlyMeta}
-        mondayReadiness={mondayReadiness}
+        readiness={mondayReadiness}
         lang={lang}
         onPick={(symbol) => void analyzeSymbol(symbol)}
         onOpenStock={() => openWorkspace("stock")}

@@ -57,6 +57,10 @@ export type QuantOverviewPayload = {
     instruction_events: number;
     completed_forward_outcomes: number;
     go_no_go: string;
+    start_allowed?: boolean;
+    strategy_freeze_status?: string;
+    next_action?: string;
+    data_incident_count?: number;
   };
 };
 
@@ -155,6 +159,7 @@ export function QuantOverviewPanel({ overview, lang, onPick }: { overview: Quant
         <div><strong>{zh ? "Shadow Observation" : "Shadow Observation"}</strong><span>{statusLabel(overview.shadow_observation.status, lang)} · {overview.shadow_observation.observed_trading_days}/{overview.shadow_observation.target_trading_days} {zh ? "交易日" : "trading days"}</span></div>
         <div><span>{zh ? "指令事件" : "Instruction events"}</span><b>{number(overview.shadow_observation.instruction_events)}</b></div>
         <div><span>{zh ? "已完成前瞻结果" : "Completed outcomes"}</span><b>{number(overview.shadow_observation.completed_forward_outcomes)}</b></div>
+        <div className="v2-shadow-next"><span>{zh ? "人工启动" : "Manual start"}</span><b className={overview.shadow_observation.start_allowed ? "good" : "warn"}>{overview.shadow_observation.start_allowed ? (zh ? "已满足冻结条件" : "Freeze ready") : (zh ? "尚未满足" : "Not ready")}</b><small>{overview.shadow_observation.next_action || (zh ? "等待观察条件" : "Waiting for observation prerequisites")}</small></div>
         <strong className="warn">{overview.shadow_observation.go_no_go}</strong>
       </div>
     </section>
