@@ -3,7 +3,7 @@
 ## 1. 本周目标与完成率
 
 - 本周目标：将 Capital Rotation → Theme → Leadership → Stock Quant 串成只读证据链，并把版本、数据可信度、验证 Gate 和 Shadow Observation 放到 Today 首屏可见区域。
-- 代码完成率：约 85%。聚合接口、Today 证据面板、前后端版本契约、PWA 缓存版本、只读边界和浏览器验收已完成。
+- 代码完成率：约 90%。聚合接口、Today 证据面板、前后端版本契约、PWA 缓存版本、只读边界、浏览器验收和首批领域组件拆分已完成。
 - 未宣称完成：`App.tsx` 的全部 Theme / Research / Operations 物理拆分尚未结束；20 个真实交易日 Shadow Observation 也不能用代码提前完成。
 
 ## 2. 实际修改的模块、Schema、API 和 UI
@@ -16,6 +16,7 @@
   - 验证 Gate、测试交易数、选中模型和 Shadow Observation 计数。
 - 新增 `GET /api/shadow-observation/status`，统一返回当前前瞻 session、真实交易日数、结果数、冻结状态和 `NO_GO`；将最小完整观察日统一为 20 天。
 - 新增 `DeepResearchChatPanel` 独立组件，Today 与右侧研究栏均使用同一研究视图；旧同名实现已从 `App.tsx` 移除，剩余领域组件继续分批迁移。
+- 新增 `features/quant/EarlyTrendPanel`，以及 `features/operations/OperationsEvidencePanels`；早期转强、数据可信度和风险 Gate 已从 `App.tsx` 移出，保持原有 props 和 CSS 契约。
 - 新增 `web/src/components/QuantOverviewPanel.tsx`，在 Today 展示数据可信度、主题轮动、领导力、验证状态、NO_GO 和 Shadow 进度；领导力标的可点击回到单股分析。
 - `App.tsx` 前端 API contract 更新为 `kquant-api-2026-08-19-v2-overview-shadow-v1`，并加载新的聚合接口；当前不匹配时继续提示重启。
 - PWA Service Worker 缓存版本更新为 `kquant-static-v2-shadow-release-v1`，只缓存静态文件，不缓存 API、行情或验证报告。
@@ -46,7 +47,7 @@
 
 ## 5. 新发现的技术债与数据泄漏风险
 
-- `App.tsx` 仍是巨型文件，本周只抽出 Quant Overview，完整 Theme、Research、Operations 分区还需后续小步拆分。
+- `App.tsx` 仍是巨型文件；Quant Overview、Deep Research、Early Trend、Data Reliability 和 Risk Control 已拆出，Theme、Realtime、Journal、Chart 等组件还需后续小步迁移。
 - 当前 Stock Quant 验证只有 1 个 holdout OOS fold；模型 Gate 继续 `NO_GO`，不能把测试集结果命名为实盘胜率。
 - 50 标的验证样本不足以代表完整股票池；LightGBM 当前环境未安装，相关结果为 `not_installed`。
 - 事件日历尚未进入可交易资格；财报/公司行动窗口不能被默认视为安全。
@@ -70,7 +71,7 @@
 
 - 分支：`codex/kquant-v2-gap-analysis`。
 - Week 11 提交：`1c48ab8 feat(quant): add stock model oos validation v1`。
-- Week 12 当前改动待独立提交，回滚点为 `1c48ab8`。
+- Week 12 初始提交：`6a3696f feat(v2): integrate read-only evidence overview`；Shadow Gate 提交：`4098a31 feat(v2): formalize shadow observation gate`；本次领域拆分将再建立独立回滚点。
 - 运行数据库仍在 `work/`，未进入 Git；Week 11 备份和 manifest 保留在 `work/backups/week11-pre-validation/`。
 
 ## 9. 下一步具体任务与阻塞项
