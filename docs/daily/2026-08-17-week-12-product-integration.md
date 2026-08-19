@@ -72,7 +72,7 @@
 
 - 分支：`codex/kquant-v2-gap-analysis`。
 - Week 11 提交：`1c48ab8 feat(quant): add stock model oos validation v1`。
-- Week 12 初始提交：`6a3696f feat(v2): integrate read-only evidence overview`；Shadow Gate 提交：`4098a31 feat(v2): formalize shadow observation gate`；领域拆分提交：`c49749e refactor(v2): split quant and operations panels`；本次迁移将再建立独立回滚点。
+- Week 12 初始提交：`6a3696f feat(v2): integrate read-only evidence overview`；Shadow Gate 提交：`4098a31 feat(v2): formalize shadow observation gate`；领域拆分提交：`c49749e refactor(v2): split quant and operations panels`、`5c47c4b refactor(v2): extract today and realtime workspaces`。
 - 运行数据库仍在 `work/`，未进入 Git；Week 11 备份和 manifest 保留在 `work/backups/week11-pre-validation/`。
 
 ## 9. 下一步具体任务与阻塞项
