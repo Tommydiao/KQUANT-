@@ -38,7 +38,9 @@ import { parseRiskReward } from "./tradingFormatters";
 import { QuantOverviewPanel, type QuantOverviewPayload } from "./components/QuantOverviewPanel";
 import { DeepResearchChatPanel as DeepResearchChatPanelView } from "./components/DeepResearchChatPanel";
 import { EarlyTrendPanel as EarlyTrendPanelView } from "./features/quant/EarlyTrendPanel";
+import { TodayDecisionPanel as TodayDecisionPanelView } from "./features/quant/TodayDecisionPanel";
 import { DataReliabilityPanel as DataReliabilityPanelView, RiskControlPanel as RiskControlPanelView } from "./features/operations/OperationsEvidencePanels";
+import { RealtimeCommandCenter as RealtimeCommandCenterView } from "./features/operations/RealtimeCommandCenter";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -3183,7 +3185,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
         lang={lang}
         onPick={(symbol) => void analyzeSymbol(symbol)}
       />
-      <RealtimeCommandCenter
+      <RealtimeCommandCenterView
         instructions={tradeInstructions}
         alerts={realtimeAlerts}
         unreadCount={unreadAlertCount}
@@ -3197,7 +3199,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
         onStartPaper={(candidate) => void startOptionPaperObservation(candidate)}
         optionPaperMessage={optionPaperMessage}
       />
-      <TodayDecisionPanel
+      <TodayDecisionPanelView
         payload={todayWorkbench}
         onPick={(symbol) => void analyzeSymbol(symbol)}
         onRefresh={() => {
@@ -4013,180 +4015,6 @@ function SettingsPanel({
           {!pushStatus?.configured ? <p className="notification-note">{lang === "zh" ? "本机尚未配置 VAPID 密钥，暂时只能使用网页预警。" : "VAPID keys are not configured; web alerts remain available."}</p> : null}
           {pushMessage ? <p className="notification-note">{pushMessage}</p> : null}
         </section>
-      </div>
-    </section>
-  );
-}
-
-function RealtimeCommandCenter({
-  instructions,
-  alerts,
-  unreadCount,
-  selectedSymbol,
-  optionCandidates,
-  optionState,
-  lang,
-  onPick,
-  onAcknowledge,
-  onLoadOptions,
-  onStartPaper,
-  optionPaperMessage,
-}: {
-  instructions: TradeInstructionPayload[];
-  alerts: AlertEventPayload[];
-  unreadCount: number;
-  selectedSymbol: string;
-  optionCandidates: OptionCandidatesPayload | null;
-  optionState: "idle" | "loading" | "ready" | "error";
-  lang: Lang;
-  onPick: (symbol: string) => void;
-  onAcknowledge: (alertId: string) => void;
-  onLoadOptions: () => void;
-  onStartPaper: (candidate: OptionExpressionCandidate) => void;
-  optionPaperMessage: string;
-}) {
-  const active = instructions.find((item) => item.symbol === selectedSymbol) ?? instructions[0];
-  const instructionLabel: Record<string, string> = lang === "zh"
-    ? { MONITORING: "观察中", READY: "进入计划区", TRIGGERED: "可人工复核", INVALIDATED: "计划失效", EXPIRED: "计划过期", EXIT_REVIEW: "复核退出" }
-    : { MONITORING: "Monitoring", READY: "In plan zone", TRIGGERED: "Review now", INVALIDATED: "Invalidated", EXPIRED: "Expired", EXIT_REVIEW: "Review exit" };
-  const instructionTone = active?.state === "TRIGGERED" ? "action" : active?.state === "EXIT_REVIEW" ? "risk" : "info";
-  return (
-    <section className="realtime-command-center" aria-label={lang === "zh" ? "主动交易指令中心" : "Live instruction center"}>
-      <div className="command-center-head">
-        <div>
-          <span>{lang === "zh" ? "主动预警" : "Live alerts"}</span>
-          <h2>{lang === "zh" ? "人工复核指令中心" : "Manual review instructions"}</h2>
-          <p>{lang === "zh" ? "系统持续监控闭合 K 线与实时买卖盘，只推送需要你确认的计划，不连接账户，也不会下单。" : "KQUANT monitors closed candles and live BBO, then pushes plans for your review. It never connects to an account or submits an order."}</p>
-        </div>
-        <div className="command-live-badge"><BellRing size={17} /><strong>{unreadCount}</strong><span>{lang === "zh" ? "条未读" : "unread"}</span></div>
-      </div>
-
-      <div className="command-center-grid">
-        <div className={`instruction-focus ${instructionTone}`}>
-          <div className="command-section-title"><strong>{lang === "zh" ? "当前指令" : "Current instruction"}</strong><span>{instructions.length}</span></div>
-          {active ? (
-            <>
-              <button type="button" className="instruction-symbol" onClick={() => onPick(active.symbol)}>
-                <span>{active.symbol}</span>
-                <strong>{instructionLabel[active.state] ?? active.state}</strong>
-              </button>
-              <div className="instruction-price-grid">
-                <Fact label={lang === "zh" ? "现价" : "Last"} value={formatPrice(active.plan.observed_price)} />
-                <Fact label={lang === "zh" ? "入场区" : "Entry"} value={`${formatPrice(active.plan.entry_low)} - ${formatPrice(active.plan.entry_high)}`} />
-                <Fact label={lang === "zh" ? "止损" : "Stop"} value={formatPrice(active.plan.stop)} />
-                <Fact label={lang === "zh" ? "目标" : "Target"} value={formatPrice(active.plan.target_low)} />
-              </div>
-              <p className="instruction-next">{active.state === "TRIGGERED"
-                ? (lang === "zh" ? "下一步：核对报价、止损和日志后，由你决定是否在外部券商手工执行。" : "Next: verify BBO, stop, and journal, then decide manually outside KQUANT.")
-                : (active.evidence.blockers?.[0] ?? (lang === "zh" ? "等待价格与确认条件变化。" : "Wait for the next material state change."))}</p>
-            </>
-          ) : <p className="command-empty">{lang === "zh" ? "还没有有效指令。后台会在合格候选出现后主动推送。" : "No active instruction yet. The supervisor will push one when a qualified setup appears."}</p>}
-        </div>
-
-        <div className="alert-inbox">
-          <div className="command-section-title"><strong>{lang === "zh" ? "最新预警" : "Latest alerts"}</strong><span>{unreadCount}</span></div>
-          <div className="alert-list">
-            {alerts.slice(0, 4).map((alert) => (
-              <div className={`alert-row severity-${alert.severity.toLowerCase()} ${alert.acknowledged_at ? "acknowledged" : ""}`} key={alert.alert_id}>
-                <button type="button" className="alert-main" onClick={() => onPick(alert.symbol)}>
-                  <b>{alert.symbol}</b><span>{alert.title}</span><small>{formatDateTimeUtc8(alert.created_at, { withDate: true })}</small>
-                </button>
-                {!alert.acknowledged_at ? <button type="button" className="ack-alert" onClick={() => onAcknowledge(alert.alert_id)} title={lang === "zh" ? "标记已读" : "Acknowledge"}><CheckCircle2 size={15} /></button> : null}
-              </div>
-            ))}
-            {!alerts.length ? <p className="command-empty">{lang === "zh" ? "暂无预警。" : "No alerts yet."}</p> : null}
-          </div>
-        </div>
-
-        <div className="option-expression-panel">
-          <div className="command-section-title"><strong>{lang === "zh" ? "期权表达" : "Options expression"}</strong><span>{selectedSymbol}</span></div>
-          <p>{lang === "zh" ? "只筛选 14-45 天、流动性合格的单腿看涨期权。当前仅做一张合约的本地观察模拟。" : "Screens liquid 14-45 DTE single-leg calls. One-contract local observation only."}</p>
-          <button type="button" className="option-load-button" onClick={onLoadOptions} disabled={optionState === "loading"}>
-            {optionState === "loading" ? <RefreshCw className="spin" size={15} /> : <TrendingUp size={15} />}
-            {lang === "zh" ? "检查期权候选" : "Check option candidates"}
-          </button>
-          {optionCandidates?.candidates?.[0] ? (
-            <div className={`option-candidate-summary ${optionCandidates.candidates[0].status}`}>
-              <strong>{optionCandidates.candidates[0].contract_symbol}</strong>
-              <span>{optionCandidates.candidates[0].expiry_date} / Δ {formatNumber(optionCandidates.candidates[0].delta)}</span>
-              <small>{lang === "zh" ? "最大权利金风险" : "Max premium risk"} ${formatNumber(optionCandidates.candidates[0].max_loss)}</small>
-              {optionCandidates.candidates[0].status === "eligible" ? (
-                <button type="button" className="option-paper-button" onClick={() => onStartPaper(optionCandidates.candidates[0])}>
-                  {lang === "zh" ? "加入一张合约观察" : "Observe one contract"}
-                </button>
-              ) : null}
-            </div>
-          ) : optionCandidates ? <p className="option-blocker">{optionCandidates.blockers?.[0] ?? (lang === "zh" ? "当前没有合格期权候选。" : "No eligible option candidate.")}</p> : null}
-          {optionPaperMessage ? <p className="option-paper-message">{optionPaperMessage}</p> : null}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TodayDecisionPanel({
-  payload,
-  onPick,
-  onRefresh,
-}: {
-  payload: TodayWorkbenchPayload | null;
-  onPick: (symbol: string) => void;
-  onRefresh: () => void;
-}) {
-  const noTrade = !payload || payload.decision === "NO_TRADE";
-  const candidates = payload?.top_candidates ?? [];
-  const watches = payload?.watch_candidates ?? [];
-  return (
-    <section className={`today-decision-panel ${noTrade ? "no-trade" : "manual-review"}`} aria-label="Today decision workbench">
-      <div className="today-decision-head">
-        <div>
-          <span>Today Decision</span>
-          <h2>{payload?.headline ?? "Data check required"}</h2>
-          <p>
-            {noTrade
-              ? "Do not open a new manual trade until the displayed data, forward-evidence, and hard-veto checks clear."
-              : "Candidates are for human review only. KQUANT does not connect to an account or submit an order."}
-          </p>
-        </div>
-        <div className="today-decision-actions">
-          <Pill tone={noTrade ? "warn" : "good"} icon={<ShieldCheck size={14} />} label={payload?.decision ?? "NO TRADE"} />
-          <button className="secondary-action" type="button" onClick={onRefresh}>
-            <RefreshCw size={15} />
-            Refresh
-          </button>
-        </div>
-      </div>
-      <div className="today-decision-facts">
-        <Fact label="Market" value={`${payload?.market.label ?? "Unknown"} / ${payload?.market.score ?? 0}`} />
-        <Fact label="Data" value={`${payload?.data_trust.provider_status ?? "unknown"} / ${payload?.data_trust.source ?? "-"}`} />
-        <Fact label="研究服务" value={payload?.diagnostics.ai_status === "available" ? "已连接" : "暂不可用"} />
-        <Fact label="Forward Gate" value={`${payload?.risk.production_decision ?? "NO_GO"} / ${payload?.risk.failed_gate_count ?? 0} failed`} />
-      </div>
-      <div className="today-decision-grid">
-        <div className="today-candidate-list">
-          <div className="today-section-title"><strong>Top Manual Review</strong><span>{candidates.length}/3</span></div>
-          {candidates.length ? candidates.map((item) => (
-            <button type="button" className="today-candidate" key={`today-${item.symbol}`} onClick={() => onPick(item.symbol)}>
-              <b>#{item.rank} {item.symbol}</b>
-              <span>{item.system_action ?? item.bucket} / {item.strategy_score ?? "-"}</span>
-              <small>{item.data_status ?? "unknown"}{item.risk?.warnings?.[0] ? `: ${item.risk.warnings[0]}` : ""}</small>
-            </button>
-          )) : <p className="today-empty">No clean BUY SETUP is available.</p>}
-        </div>
-        <div className="today-candidate-list">
-          <div className="today-section-title"><strong>Watch</strong><span>{watches.length}/7</span></div>
-          {watches.length ? watches.slice(0, 4).map((item) => (
-            <button type="button" className="today-candidate watch" key={`watch-${item.symbol}`} onClick={() => onPick(item.symbol)}>
-              <b>#{item.rank} {item.symbol}</b>
-              <span>{item.system_action ?? item.bucket} / {item.strategy_score ?? "-"}</span>
-              <small>{item.invalidation?.[0] ?? "Wait for planned trigger."}</small>
-            </button>
-          )) : <p className="today-empty">No clean WATCH item is available.</p>}
-        </div>
-        <div className="today-exception-list">
-          <div className="today-section-title"><strong>Why It Is Blocked</strong><span>{payload?.exception_states.length ?? 0}</span></div>
-          {(payload?.exception_states ?? ["Today workbench has not loaded yet."]).slice(0, 5).map((reason) => <p key={reason}>{reason}</p>)}
-        </div>
       </div>
     </section>
   );
