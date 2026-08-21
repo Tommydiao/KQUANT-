@@ -45,7 +45,10 @@ export type QuantOverviewPayload = {
     model_version?: string | null;
     dataset_id?: string | null;
     validation_gate: string;
-    selected_model?: string | null;
+    research_candidate?: string | null;
+    deployment_model?: string | null;
+    deployment_status?: string;
+    deployment_blockers?: string[];
     test_trade_count: number;
     readiness: string;
   };
@@ -90,6 +93,19 @@ function statusLabel(value: string | undefined, lang: Lang): string {
     not_started: "未开始",
   };
   return labels[value ?? ""] ?? value ?? "暂无数据";
+}
+
+function deploymentBlockerLabel(value: string, lang: Lang): string {
+  const labels: Record<string, [string, string]> = {
+    minimum_test_trades: ["Need at least 100 independent test trades", "独立测试交易不足 100 笔"],
+    walk_forward_stability: ["Rolling OOS evidence is not stable", "多折 OOS 证据尚不稳定"],
+    average_r_bootstrap_lower_gt_zero: ["Mean R lower confidence bound is not positive", "平均 R 的置信下限未转正"],
+    profit_factor_at_least_1_25: ["Profit Factor is below 1.25", "Profit Factor 未达到 1.25"],
+    max_drawdown_at_most_8_r: ["Maximum drawdown exceeds 8R", "最大回撤超过 8R"],
+    no_validation_candidate: ["No validation candidate is available", "暂无可验证的研究候选"],
+  };
+  const label = labels[value];
+  return label ? label[lang === "zh" ? 1 : 0] : value;
 }
 
 export function QuantOverviewPanel({ overview, lang, onPick }: { overview: QuantOverviewPayload | null; lang: Lang; onPick: (symbol: string) => void }) {
@@ -148,8 +164,10 @@ export function QuantOverviewPanel({ overview, lang, onPick }: { overview: Quant
 
         <div className="v2-overview-card validation-card">
           <div className="v2-card-title"><ShieldCheck size={15} /><strong>{zh ? "股票量化验证" : "Stock Quant validation"}</strong><b className="warn">{statusLabel(overview.stock_quant.validation_gate, lang)}</b></div>
-          <div className="v2-validation-score"><strong>{overview.stock_quant.selected_model ?? "-"}</strong><span>{number(overview.stock_quant.test_trade_count)} {zh ? "测试交易" : "test trades"}</span></div>
+          <div className="v2-validation-score"><strong>{overview.stock_quant.deployment_model ?? (zh ? "暂无可用模型" : "No deployable model")}</strong><span>{number(overview.stock_quant.test_trade_count)} {zh ? "测试交易" : "test trades"}</span></div>
+          <div className="v2-fact-row"><span>{zh ? "研究候选" : "Research candidate"}</span><strong>{overview.stock_quant.research_candidate ?? "-"}</strong></div>
           <div className="v2-fact-row"><span>{zh ? "模型版本" : "Model"}</span><strong>{overview.stock_quant.model_version ?? "-"}</strong></div>
+          {overview.stock_quant.deployment_blockers?.length ? <small className="v2-warning">{zh ? `尚未通过：${overview.stock_quant.deployment_blockers.map((item) => deploymentBlockerLabel(item, lang)).join("、")}` : `Blocked by: ${overview.stock_quant.deployment_blockers.map((item) => deploymentBlockerLabel(item, lang)).join(", ")}`}</small> : null}
           <div className="v2-fact-row"><span>{zh ? "主题预测概率" : "Theme probability"}</span><strong>{overview.theme_prediction.display_probability ? (zh ? "已开放" : "enabled") : (zh ? "校准不足" : "blocked")}</strong></div>
           <small className="v2-muted">{zh ? "测试集不可用于调参；未通过 Gate 前只保留研究与 Shadow。" : "The test partition is never used for tuning; keep research and shadow only until the Gate passes."}</small>
         </div>

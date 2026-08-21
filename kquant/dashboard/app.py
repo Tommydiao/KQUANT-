@@ -123,7 +123,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-19-v2-overview-shadow-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v1"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -454,7 +454,7 @@ def create_app(
                 "api_contract_version": API_CONTRACT_VERSION,
                 "started_at_utc": started_at_utc,
                 "auth_routes_version": "local_email_password_v1",
-                "static_assets_version": "v2-shadow-release-v1",
+                "static_assets_version": "v2-versioned-assets-v1",
                 "database_schema_version": migration["migration"].get("schema_version", 0),
                 "database_schema_fingerprint": migration["migration"].get("schema_fingerprint", ""),
                 "strategy_version": "swing_long_v1.1.0",

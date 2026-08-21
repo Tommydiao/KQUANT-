@@ -1,12 +1,8 @@
-const STATIC_CACHE = "kquant-static-v2-shadow-release-v1";
+const STATIC_CACHE = "kquant-static-v2-versioned-assets-v1";
 
-function isStaticAsset(url) {
+function isVersionedStaticAsset(url) {
   if (url.origin !== self.location.origin) return false;
-  return url.pathname === "/" ||
-    url.pathname === "/index.html" ||
-    url.pathname === "/manifest.webmanifest" ||
-    url.pathname === "/kquant-mark.svg" ||
-    url.pathname.startsWith("/assets/");
+  return /^\/assets\/[^/]+-[A-Za-z0-9_-]+\.(?:js|css)$/.test(url.pathname);
 }
 
 self.addEventListener("install", () => {
@@ -24,7 +20,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== "GET" || !isStaticAsset(url)) return;
+  if (request.method !== "GET" || !isVersionedStaticAsset(url)) return;
   event.respondWith(
     caches.open(STATIC_CACHE).then(async (cache) => {
       const cached = await cache.match(request);
@@ -34,8 +30,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => cached || Response.error());
-      const isAppShell = url.pathname === "/" || url.pathname === "/index.html" || url.pathname === "/manifest.webmanifest";
-      return isAppShell ? network : cached || network;
+      return cached || network;
     }),
   );
 });

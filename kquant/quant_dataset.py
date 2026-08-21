@@ -215,6 +215,143 @@ def rolling_purged_splits(
     }
 
 
+def rolling_purged_oos_folds(
+    items: Iterable[dict[str, Any]],
+    *,
+    fold_count: int = 3,
+    embargo_days: int = DEFAULT_EMBARGO_DAYS,
+    min_train_dates: int = 20,
+    min_window_dates: int = 5,
+) -> dict[str, Any]:
+    """Create expanding-window walk-forward folds without mixing signal dates.
+
+    This is deliberately separate from :func:`rolling_purged_splits`. The
+    latter seals one final train/validation/test partition. This helper is
+    used only on the pre-sealed-test history to measure walk-forward stability
+    while leaving that final test partition untouched.
+    """
+
+    rows = [_normalize_item(dict(item)) for item in items]
+    if fold_count < 1:
+        raise DatasetIntegrityError("At least one walk-forward fold is required.")
+    if min_train_dates < 1 or min_window_dates < 1:
+        raise DatasetIntegrityError("Walk-forward date windows must be positive.")
+    if not rows:
+        raise DatasetIntegrityError("At least one dataset item is required for walk-forward folds.")
+
+    dates = sorted({_day(row["signal_time"]) for row in rows})
+    embargo = max(0, int(embargo_days))
+    reserved_dates = fold_count * (2 * embargo + 2 * min_window_dates)
+    if len(dates) < min_train_dates + reserved_dates:
+        raise DatasetIntegrityError(
+            "Insufficient distinct signal dates for the requested walk-forward folds with embargo."
+        )
+
+    window_dates = (len(dates) - min_train_dates - 2 * embargo * fold_count) // (2 * fold_count)
+    if window_dates < min_window_dates:
+        raise DatasetIntegrityError(
+            "Walk-forward folds would leave a validation or OOS window below the minimum size."
+        )
+    initial_train_dates = len(dates) - fold_count * (2 * embargo + 2 * window_dates)
+    if initial_train_dates < min_train_dates:
+        raise DatasetIntegrityError("Walk-forward folds would leave an insufficient initial training window.")
+
+    cursor = initial_train_dates
+    folds: list[dict[str, Any]] = []
+    for fold_index in range(fold_count):
+        validation_start = cursor + embargo
+        validation_end = validation_start + window_dates
+        test_start = validation_end + embargo
+        test_end = test_start + window_dates
+        if test_end > len(dates):
+            raise DatasetIntegrityError("Walk-forward fold construction exceeded the available date range.")
+
+        raw_ranges = {
+            "train": dates[:cursor],
+            "validation": dates[validation_start:validation_end],
+            "test": dates[test_start:test_end],
+        }
+        if not all(raw_ranges.values()):
+            raise DatasetIntegrityError("Walk-forward fold contains an empty partition.")
+        next_start = {
+            "train": raw_ranges["validation"][0],
+            "validation": raw_ranges["test"][0],
+            "test": None,
+        }
+
+        assigned: list[dict[str, Any]] = []
+        label_overlap_purged_count = 0
+        embargo_excluded_count = 0
+        future_excluded_count = 0
+        for row in rows:
+            signal_day = _day(row["signal_time"])
+            split_name = next(
+                (name for name, members in raw_ranges.items() if signal_day in members),
+                None,
+            )
+            if split_name is None:
+                if signal_day > raw_ranges["test"][-1]:
+                    future_excluded_count += 1
+                else:
+                    embargo_excluded_count += 1
+                continue
+            boundary = next_start[split_name]
+            if boundary is not None and _day(row["label_end_time"]) >= boundary:
+                label_overlap_purged_count += 1
+                continue
+            assigned.append({**row, "split_name": split_name})
+
+        partitions: dict[str, dict[str, Any]] = {}
+        for split_name in ("train", "validation", "test"):
+            members = [row for row in assigned if row["split_name"] == split_name]
+            raw_dates = raw_ranges[split_name]
+            partitions[split_name] = {
+                "start_date": raw_dates[0].isoformat(),
+                "end_date": raw_dates[-1].isoformat(),
+                "item_count": len(members),
+                "content_hash": _partition_hash(members),
+                "sealed": True,
+            }
+        if not all(partitions[name]["item_count"] for name in ("train", "validation", "test")):
+            raise DatasetIntegrityError("Purge and embargo left an empty walk-forward partition.")
+
+        folds.append({
+            "fold_id": f"walk_forward_{fold_index + 1:02d}",
+            "items": sorted(assigned, key=lambda item: (item["signal_time"], item["symbol"], item["item_id"])),
+            "partitions": partitions,
+            "purged_count": label_overlap_purged_count,
+            "excluded": {
+                "label_overlap_purged_count": label_overlap_purged_count,
+                "embargo_excluded_count": embargo_excluded_count,
+                "future_excluded_count": future_excluded_count,
+            },
+            "embargo": {
+                "train_to_validation": [
+                    dates[cursor].isoformat(),
+                    dates[validation_start - 1].isoformat(),
+                ] if embargo else [],
+                "validation_to_test": [
+                    dates[validation_end].isoformat(),
+                    dates[test_start - 1].isoformat(),
+                ] if embargo else [],
+            },
+        })
+        cursor = test_end
+
+    return {
+        "folds": folds,
+        "config": {
+            "method": "expanding_window_purged_oos",
+            "fold_count": fold_count,
+            "embargo_days": embargo,
+            "initial_train_dates": initial_train_dates,
+            "validation_window_dates": window_dates,
+            "oos_window_dates": window_dates,
+            "label_overlap_policy": "purge_if_label_end_reaches_next_partition",
+        },
+    }
+
+
 def build_quant_dataset(
     db_path: Path,
     items: Iterable[dict[str, Any]],

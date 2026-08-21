@@ -23,6 +23,7 @@ from .quant_dataset import (
     build_quant_dataset,
     read_quant_dataset,
     register_model_artifact,
+    rolling_purged_oos_folds,
 )
 from .stock_quant import (
     MODEL_0_VERSION,
@@ -34,13 +35,14 @@ from .stock_store import connect
 from .theme_prediction import _apply_isotonic, _apply_platt, _fit_isotonic, _fit_platt
 
 
-STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.0.0"
+STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.1.3"
 STOCK_QUANT_MODEL_VERSION = "stock_quant_models_v1.0.0"
 BASELINE_COMMISSION_BPS_PER_SIDE = 1.0
 BASELINE_SLIPPAGE_BPS_PER_SIDE = 5.0
 BOOTSTRAP_SAMPLES = 500
 MIN_TEST_TRADES = 100
 MAX_DRAWDOWN_GATE = 8.0
+REQUIRED_OOS_FOLD_COUNT = 3
 
 
 def _canonical(value: Any) -> str:
@@ -199,6 +201,23 @@ def _trade_metrics(rows: list[dict[str, Any]], realized_r: list[float], *, seed:
         "stop_first_rate": round(sum(bool(row["label"].get("stop_first")) for row in rows) / len(rows), 8),
         "average_r_bootstrap_95": _bootstrap_interval(realized_r, seed=seed),
         "total_r": round(sum(realized_r), 8),
+    }
+
+
+def _performance_gate_checks(metrics: dict[str, Any]) -> dict[str, bool]:
+    """Apply the same evidence thresholds to sealed and rolling OOS samples."""
+    lower, _ = metrics.get("average_r_bootstrap_95") or [None, None]
+    profit_factor = metrics.get("profit_factor")
+    max_drawdown = metrics.get("max_drawdown_r")
+    return {
+        "minimum_test_trades": int(metrics.get("sample_count") or 0) >= MIN_TEST_TRADES,
+        "average_r_bootstrap_lower_gt_zero": bool(lower is not None and float(lower) > 0.0),
+        "profit_factor_at_least_1_25": profit_factor == "infinite" or bool(
+            profit_factor is not None and float(profit_factor) >= 1.25
+        ),
+        "max_drawdown_at_most_8_r": bool(
+            max_drawdown is not None and float(max_drawdown) <= MAX_DRAWDOWN_GATE
+        ),
     }
 
 
@@ -462,6 +481,7 @@ def _build_report(
     validation_rows: list[dict[str, Any]],
     test_rows: list[dict[str, Any]],
     random_seed: int,
+    include_test_trace: bool = False,
 ) -> dict[str, Any]:
     name = str(candidate["model_name"])
     kind = str(candidate["model_kind"])
@@ -528,13 +548,8 @@ def _build_report(
         split: _prediction_interval(train_rows, float(_mean(expected[split]) or 0.0))
         for split in ("train", "validation", "test")
     }
-    gate_checks = {
-        "minimum_test_trades": selected_trade_metrics["sample_count"] >= MIN_TEST_TRADES,
-        "average_r_bootstrap_lower_gt_zero": bool(selected_trade_metrics["average_r_bootstrap_95"][0] is not None and selected_trade_metrics["average_r_bootstrap_95"][0] > 0),
-        "profit_factor_at_least_1_25": selected_trade_metrics["profit_factor"] == "infinite" or bool(selected_trade_metrics["profit_factor"] is not None and float(selected_trade_metrics["profit_factor"]) >= 1.25),
-        "max_drawdown_at_most_8_r": bool(selected_trade_metrics["max_drawdown_r"] is not None and float(selected_trade_metrics["max_drawdown_r"]) <= MAX_DRAWDOWN_GATE),
-    }
-    return {
+    gate_checks = _performance_gate_checks(selected_trade_metrics)
+    report = {
         "model_name": name,
         "model_kind": kind,
         "status": "verified",
@@ -554,20 +569,140 @@ def _build_report(
         "test_partition_used_for_selection": False,
         "model_version": STOCK_QUANT_MODEL_VERSION,
     }
+    if include_test_trace:
+        report["_selected_test_trace"] = {
+            "rows": selected_test_rows,
+            "realized_r": selected_test_values,
+        }
+    return report
 
 
-def _model_candidates(dataset: dict[str, Any], random_seed: int) -> list[dict[str, Any]]:
-    rows = dataset["items"]
-    train_rows = [row for row in rows if row["split_name"] == "train"]
-    validation_rows = [row for row in rows if row["split_name"] == "validation"]
-    test_rows = [row for row in rows if row["split_name"] == "test"]
-    feature_order = sorted({key for row in rows for key in row["features"]})
+def _model_candidates_for_rows(
+    train_rows: list[dict[str, Any]],
+    validation_rows: list[dict[str, Any]],
+    test_rows: list[dict[str, Any]],
+    *,
+    random_seed: int,
+) -> list[dict[str, Any]]:
+    feature_order = sorted({key for row in [*train_rows, *validation_rows, *test_rows] for key in row["features"]})
     logistic = _fit_logistic(train_rows, feature_order, random_seed)
     return [
         {"model_name": "model0_rule", "model_kind": "classification", "status": "available", "artifact": {"kind": "model0_score_probability", "model_version": MODEL_0_VERSION, "feature_id": "model0_total_score"}},
         {"model_name": "logistic", "model_kind": "classification", "status": "available", "artifact": logistic},
         *_available_lightgbm_models(train_rows, validation_rows, test_rows, feature_order, random_seed),
     ]
+
+
+def _model_candidates(dataset: dict[str, Any], random_seed: int) -> list[dict[str, Any]]:
+    rows = dataset["items"]
+    return _model_candidates_for_rows(
+        [row for row in rows if row["split_name"] == "train"],
+        [row for row in rows if row["split_name"] == "validation"],
+        [row for row in rows if row["split_name"] == "test"],
+        random_seed=random_seed,
+    )
+
+
+def _walk_forward_stability(dataset: dict[str, Any], *, random_seed: int) -> dict[str, Any]:
+    """Evaluate model classes across pre-test expanding-window OOS folds.
+
+    The sealed dataset test partition is explicitly excluded. Fold-local
+    calibration and threshold selection use only that fold's validation rows;
+    the later sealed test partition remains the only final selection-free
+    evaluation surface.
+    """
+
+    pretest_rows = [row for row in dataset["items"] if row["split_name"] != "test"]
+    try:
+        fold_plan = rolling_purged_oos_folds(
+            pretest_rows,
+            fold_count=REQUIRED_OOS_FOLD_COUNT,
+        )
+    except DatasetIntegrityError as exc:
+        return {
+            "status": "insufficient_history",
+            "reason": str(exc),
+            "fold_count": 0,
+            "required_fold_count": REQUIRED_OOS_FOLD_COUNT,
+            "minimum_fold_count_met": False,
+            "sealed_test_partition_used": False,
+            "models": {},
+        }
+
+    model_folds: dict[str, list[dict[str, Any]]] = {}
+    model_rows: dict[str, list[dict[str, Any]]] = {}
+    model_values: dict[str, list[float]] = {}
+    for fold_index, fold in enumerate(fold_plan["folds"]):
+        fold_rows = fold["items"]
+        train_rows = [row for row in fold_rows if row["split_name"] == "train"]
+        validation_rows = [row for row in fold_rows if row["split_name"] == "validation"]
+        test_rows = [row for row in fold_rows if row["split_name"] == "test"]
+        for candidate in _model_candidates_for_rows(
+            train_rows,
+            validation_rows,
+            test_rows,
+            random_seed=random_seed + (fold_index + 1) * 10_000,
+        ):
+            report = _build_report(
+                candidate,
+                train_rows=train_rows,
+                validation_rows=validation_rows,
+                test_rows=test_rows,
+                random_seed=random_seed + (fold_index + 1) * 10_000,
+                include_test_trace=True,
+            )
+            if report.get("status") != "verified":
+                continue
+            trace = report.pop("_selected_test_trace", {})
+            name = str(report["model_name"])
+            selected_rows = list(trace.get("rows") or [])
+            selected_values = [float(value) for value in (trace.get("realized_r") or [])]
+            model_rows.setdefault(name, []).extend(selected_rows)
+            model_values.setdefault(name, []).extend(selected_values)
+            model_folds.setdefault(name, []).append({
+                "fold_id": fold["fold_id"],
+                "partitions": fold["partitions"],
+                "purged_count": fold["purged_count"],
+                "excluded": fold["excluded"],
+                "selection": report["selection"],
+                "selected_oos_trades": report["selected_test_trades"],
+                "gate_checks": report["gate_checks"],
+                "test_partition_hash": fold["partitions"]["test"]["content_hash"],
+            })
+
+    models: dict[str, Any] = {}
+    for name, folds in sorted(model_folds.items()):
+        values = model_values.get(name, [])
+        rows = model_rows.get(name, [])
+        positive_folds = sum(
+            1
+            for fold in folds
+            if float((fold.get("selected_oos_trades") or {}).get("average_r") or 0.0) > 0.0
+        )
+        aggregate_selected_oos_trades = _trade_metrics(rows, values, seed=random_seed + 70_000)
+        aggregate_gate_checks = _performance_gate_checks(aggregate_selected_oos_trades)
+        models[name] = {
+            "fold_count": len(folds),
+            "required_fold_count": REQUIRED_OOS_FOLD_COUNT,
+            "minimum_fold_count_met": len(folds) >= REQUIRED_OOS_FOLD_COUNT,
+            "positive_average_r_fold_count": positive_folds,
+            "aggregate_selected_oos_trades": aggregate_selected_oos_trades,
+            "aggregate_gate_checks": aggregate_gate_checks,
+            "aggregate_segments": _segment_metrics(rows, values),
+            "aggregate_concentration": _concentration(rows, values),
+            "folds": folds,
+            "selection": "fold_local_validation_only",
+            "sealed_test_partition_used": False,
+        }
+    return {
+        "status": "available",
+        "fold_count": len(fold_plan["folds"]),
+        "required_fold_count": REQUIRED_OOS_FOLD_COUNT,
+        "minimum_fold_count_met": len(fold_plan["folds"]) >= REQUIRED_OOS_FOLD_COUNT,
+        "config": fold_plan["config"],
+        "sealed_test_partition_used": False,
+        "models": models,
+    }
 
 
 def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: int = 20260817) -> dict[str, Any]:
@@ -584,11 +719,33 @@ def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: i
     test_rows = [row for row in rows if row["split_name"] == "test"]
     if not train_rows or not validation_rows or not test_rows:
         raise DatasetIntegrityError("Stock Quant validation requires non-empty train, validation, and test partitions.")
+    walk_forward = _walk_forward_stability(dataset, random_seed=random_seed)
     reports: list[dict[str, Any]] = []
     artifacts: list[dict[str, Any]] = []
     for candidate in _model_candidates(dataset, random_seed):
         report = _build_report(candidate, train_rows=train_rows, validation_rows=validation_rows, test_rows=test_rows, random_seed=random_seed)
         if report["status"] == "verified":
+            model_walk_forward = (walk_forward.get("models") or {}).get(str(report["model_name"]))
+            report["walk_forward"] = model_walk_forward or {
+                "fold_count": 0,
+                "required_fold_count": REQUIRED_OOS_FOLD_COUNT,
+                "minimum_fold_count_met": False,
+                "status": walk_forward.get("status", "unavailable"),
+                "sealed_test_partition_used": False,
+            }
+            report["gate_checks"]["oos_fold_count_at_least_3"] = bool(
+                report["walk_forward"].get("minimum_fold_count_met")
+            )
+            report["gate_checks"]["walk_forward_stability"] = bool(
+                report["walk_forward"].get("minimum_fold_count_met")
+                and all((report["walk_forward"].get("aggregate_gate_checks") or {}).values())
+            )
+            report["gate_status"] = "pass" if all(report["gate_checks"].values()) else "no_go"
+            if report["walk_forward"].get("minimum_fold_count_met"):
+                if report["evidence_level"] == "robust_sample_single_oos_fold":
+                    report["evidence_level"] = "robust_sample_multi_oos_fold"
+                elif report["evidence_level"] == "limited":
+                    report["evidence_level"] = "limited_sample_multi_oos_fold"
             artifact = dict(candidate.get("artifact") or {})
             feature_order = sorted({key for row in rows for key in row["features"]})
             registered = register_model_artifact(
@@ -632,18 +789,47 @@ def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: i
             ),
         )["model_name"]
     selected_report = next((report for report in reports if report["model_name"] == selected_model), None)
+    selected_gate_checks = dict((selected_report or {}).get("gate_checks") or {})
     gate_status = "pass" if selected_report and selected_report.get("gate_status") == "pass" else "no_go"
+
+    # Model selection is deliberately validation-only. The sealed test and
+    # walk-forward gates may approve that candidate for shadow use, but they
+    # can never select a different model after the fact.
+    deployment_model = selected_model if gate_status == "pass" else None
+    deployment_status = "eligible" if deployment_model else "no_eligible_model"
+    deployment_blockers = [
+        name for name, passed in selected_gate_checks.items()
+        if not passed
+    ]
+    if selected_report is None:
+        deployment_blockers = ["no_validation_candidate"]
+    selected_walk_forward = (selected_report or {}).get("walk_forward") or {}
     summary_seed = {
         "validation_version": STOCK_QUANT_VALIDATION_VERSION,
         "model_version": STOCK_QUANT_MODEL_VERSION,
         "dataset_id": dataset_id,
         "dataset_hash": dataset["content_hash"],
         "test_partition_hash": dataset["test_partition_hash"],
-        "oos_fold_count": 1,
+        "oos_fold_count": int(selected_walk_forward.get("fold_count") or 0),
+        "walk_forward": {
+            "status": walk_forward.get("status"),
+            "required_fold_count": REQUIRED_OOS_FOLD_COUNT,
+            "selected_model": selected_model,
+            "selected_model_fold_count": int(selected_walk_forward.get("fold_count") or 0),
+            "sealed_test_partition_used": False,
+            "config": walk_forward.get("config"),
+        },
         "random_seed": random_seed,
         "models": reports,
+        "selected_model": selected_model,
         "selected_model_by_train_validation": selected_model,
         "test_partition_used_for_selection": False,
+        "deployment_model": deployment_model,
+        "deployment_status": deployment_status,
+        "deployment_blockers": deployment_blockers,
+        "selected_test_trade_count": int(
+            ((selected_report or {}).get("selected_test_trades") or {}).get("sample_count") or 0
+        ),
         "gate_status": gate_status,
         "overall_gate_checks": {
             "selected_model_exists": selected_report is not None,
@@ -651,7 +837,7 @@ def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: i
             "average_r_bootstrap_lower_gt_zero": bool(selected_report and selected_report.get("gate_checks", {}).get("average_r_bootstrap_lower_gt_zero")),
             "profit_factor_at_least_1_25": bool(selected_report and selected_report.get("gate_checks", {}).get("profit_factor_at_least_1_25")),
             "max_drawdown_at_most_8_r": bool(selected_report and selected_report.get("gate_checks", {}).get("max_drawdown_at_most_8_r")),
-            "oos_fold_count_gate": False,
+            "oos_fold_count_gate": bool(selected_report and selected_report.get("gate_checks", {}).get("oos_fold_count_at_least_3")),
         },
         "artifacts": artifacts,
         "read_only_research": True,

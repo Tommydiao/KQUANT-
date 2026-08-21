@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from kquant.quant_dataset import DatasetIntegrityError, build_quant_dataset, model_artifact_detail, read_quant_dataset, run_baseline_suite, rolling_purged_splits
+from kquant.quant_dataset import DatasetIntegrityError, build_quant_dataset, model_artifact_detail, read_quant_dataset, run_baseline_suite, rolling_purged_oos_folds, rolling_purged_splits
 from kquant.stock_store import connect
 
 
@@ -45,6 +45,32 @@ def test_rolling_split_is_date_based_and_purged(tmp_path: Path) -> None:
     assert dates_by_split["train"].isdisjoint(dates_by_split["validation"])
     assert dates_by_split["validation"].isdisjoint(dates_by_split["test"])
     assert result["config"]["label_overlap_policy"].startswith("purge")
+
+
+def test_walk_forward_folds_expand_without_crossing_label_boundaries() -> None:
+    result = rolling_purged_oos_folds(_items(), fold_count=3, embargo_days=3)
+
+    assert result["config"]["method"] == "expanding_window_purged_oos"
+    assert len(result["folds"]) == 3
+    previous_test_end = ""
+    for fold in result["folds"]:
+        rows_by_split = {
+            split_name: [row for row in fold["items"] if row["split_name"] == split_name]
+            for split_name in ("train", "validation", "test")
+        }
+        assert all(rows_by_split.values())
+        train_end = max(row["label_end_time"] for row in rows_by_split["train"])
+        validation_start = min(row["signal_time"] for row in rows_by_split["validation"])
+        validation_end = max(row["label_end_time"] for row in rows_by_split["validation"])
+        test_start = min(row["signal_time"] for row in rows_by_split["test"])
+        test_end = max(row["signal_time"] for row in rows_by_split["test"])
+        assert train_end < validation_start
+        assert validation_end < test_start
+        assert previous_test_end < test_start if previous_test_end else True
+        previous_test_end = test_end
+        assert fold["purged_count"] == fold["excluded"]["label_overlap_purged_count"]
+        assert fold["excluded"]["embargo_excluded_count"] > 0
+    assert result["folds"][0]["excluded"]["future_excluded_count"] > 0
 
 
 def test_dataset_and_test_partition_are_immutable(tmp_path: Path) -> None:

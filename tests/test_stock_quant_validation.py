@@ -92,13 +92,22 @@ def test_validation_registers_models_without_using_test_for_selection(tmp_path: 
 
     assert report["read_only_research"] is True
     assert report["summary"]["test_partition_used_for_selection"] is False
+    assert report["summary"]["oos_fold_count"] == 3
+    assert report["summary"]["overall_gate_checks"]["oos_fold_count_gate"] is True
     assert report["summary"]["gate_status"] == "no_go"
+    assert report["summary"]["selected_model_by_train_validation"] in {"model0_rule", "logistic"}
+    assert report["summary"]["deployment_model"] is None
+    assert report["summary"]["deployment_status"] == "no_eligible_model"
+    assert report["summary"]["deployment_blockers"]
     assert {item["model_name"] for item in report["reports"]} >= {"model0_rule", "logistic"}
     for model in report["summary"]["models"]:
         if model["status"] == "verified":
             assert model["test_partition_used_for_selection"] is False
             assert "cost_sensitivity" in model
             assert "concentration" in model
+            assert model["walk_forward"]["minimum_fold_count_met"] is True
+            assert model["walk_forward"]["sealed_test_partition_used"] is False
+            assert "walk_forward_stability" in model["gate_checks"]
 
 
 def test_validation_rejects_yahoo_reference_rows(tmp_path: Path) -> None:
