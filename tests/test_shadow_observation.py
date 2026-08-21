@@ -24,8 +24,7 @@ def test_forward_observation_gate_is_not_the_older_fifteen_day_threshold() -> No
     assert MINIMUM_COMPLETE_MARKET_DAYS == 20
 
 
-def test_shadow_observation_exposes_manual_start_only_after_strategy_freeze(tmp_path: Path) -> None:
-    db_path = tmp_path / "frozen-shadow.sqlite3"
+def _insert_frozen_strategy(db_path: Path, fingerprint: str = "fingerprint") -> None:
     with connect(db_path) as conn:
         conn.execute(
             """
@@ -34,11 +33,64 @@ def test_shadow_observation_exposes_manual_start_only_after_strategy_freeze(tmp_
               validation_fingerprint, evidence_score, status, manifest_json, frozen_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            ("swing_long_v1.1.0", "swing_long", "tactical", "config", "fingerprint", 80.0, "frozen", "{}", "2026-08-19T00:00:00+00:00"),
+            ("swing_long_v1.1.0", "swing_long", "tactical", "config", fingerprint, 80.0, "frozen", "{}", "2026-08-19T00:00:00+00:00"),
         )
+
+
+def _eligible_stock_quant_validation(fingerprint: str = "fingerprint") -> dict:
+    return {
+        "status": "materialized",
+        "run": {
+            "run_id": "sqv-pass",
+            "content_hash": fingerprint,
+            "validation_version": "stock_quant_validation_test",
+            "gate_status": "pass",
+            "dataset_integrity_status": "verified",
+            "summary": {
+                "deployment_status": "eligible",
+                "deployment_model": "logistic",
+                "deployment_blockers": [],
+                "overall_gate_checks": {"phase_five": True},
+            },
+        },
+    }
+
+
+def test_shadow_observation_blocks_generic_freeze_without_stock_quant_validation(tmp_path: Path) -> None:
+    db_path = tmp_path / "frozen-shadow.sqlite3"
+    _insert_frozen_strategy(db_path)
+
+    status = latest_shadow_observation(db_path)
+
+    assert status["start_allowed"] is False
+    assert status["shadow_start"]["code"] == "stock_quant_validation_not_passed"
+    assert status["go_no_go"] == "NO_GO"
+
+
+def test_shadow_observation_allows_manual_start_only_with_matching_stock_quant_validation(monkeypatch, tmp_path: Path) -> None:
+    db_path = tmp_path / "eligible-shadow.sqlite3"
+    _insert_frozen_strategy(db_path, fingerprint="matching-validation")
+    monkeypatch.setattr(
+        "kquant.forward_pilot.latest_stock_quant_validation",
+        lambda _db_path: _eligible_stock_quant_validation("matching-validation"),
+    )
 
     status = latest_shadow_observation(db_path)
 
     assert status["start_allowed"] is True
-    assert "start" in status["next_action"].lower()
-    assert status["go_no_go"] == "NO_GO"
+    assert status["shadow_start"]["code"] == "ready"
+    assert "linked" in status["next_action"].lower()
+
+
+def test_shadow_observation_blocks_mismatched_validation_manifest(monkeypatch, tmp_path: Path) -> None:
+    db_path = tmp_path / "mismatched-shadow.sqlite3"
+    _insert_frozen_strategy(db_path, fingerprint="old-validation")
+    monkeypatch.setattr(
+        "kquant.forward_pilot.latest_stock_quant_validation",
+        lambda _db_path: _eligible_stock_quant_validation("new-validation"),
+    )
+
+    status = latest_shadow_observation(db_path)
+
+    assert status["start_allowed"] is False
+    assert status["shadow_start"]["code"] == "freeze_validation_mismatch"

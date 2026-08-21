@@ -104,9 +104,15 @@ function deploymentBlockerLabel(value: string, lang: Lang): string {
     max_drawdown_at_most_8_r: ["Maximum drawdown exceeds 8R", "最大回撤超过 8R"],
     no_validation_candidate: ["No validation candidate is available", "暂无可验证的研究候选"],
   };
-  const label = labels[value];
+  const label = labels[value] ?? additionalDeploymentBlockerLabels[value];
   return label ? label[lang === "zh" ? 1 : 0] : value;
 }
+
+const additionalDeploymentBlockerLabels: Record<string, [string, string]> = {
+  conservative_profit_factor_at_least_1_05: ["Conservative-cost Profit Factor is below 1.05", "保守成本 Profit Factor 未达到 1.05"],
+  leave_best_five_symbols_positive: ["Expectancy is not positive after removing the best five symbols", "剔除表现最好的五只股票后期望值未转正"],
+  single_symbol_profit_contribution_at_most_15pct: ["One symbol contributes more than 15% of profit", "单一股票利润贡献超过 15%"],
+};
 
 export function QuantOverviewPanel({ overview, lang, onPick }: { overview: QuantOverviewPayload | null; lang: Lang; onPick: (symbol: string) => void }) {
   const zh = lang === "zh";

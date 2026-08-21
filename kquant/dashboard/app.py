@@ -123,7 +123,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v1"
+API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v2"
 
 
 FORBIDDEN_ROUTE_TOKENS = (

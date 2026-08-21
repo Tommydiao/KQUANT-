@@ -4,9 +4,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .forward_pilot import MINIMUM_COMPLETE_MARKET_DAYS, forward_pilot_summary
+from .forward_pilot import MINIMUM_COMPLETE_MARKET_DAYS, forward_pilot_summary, shadow_start_readiness
 from .stock_store import connect
-from .strategy_freeze import strategy_freeze_status
 
 
 SHADOW_OBSERVATION_VERSION = "shadow_observation_v1.0.0"
@@ -29,8 +28,9 @@ def _count(conn: Any, table: str) -> int:
 
 
 def _no_session(db_path: Path) -> dict[str, Any]:
-    freeze = strategy_freeze_status(db_path, DEFAULT_STRATEGY_VERSION)
-    freeze_ready = bool(freeze and freeze.get("status") == "frozen")
+    start_gate = shadow_start_readiness(db_path, DEFAULT_STRATEGY_VERSION)
+    freeze = start_gate.get("freeze") or {}
+    freeze_ready = bool(start_gate.get("allowed"))
     return {
         "status": "not_started",
         "version": SHADOW_OBSERVATION_VERSION,
@@ -48,11 +48,8 @@ def _no_session(db_path: Path) -> dict[str, Any]:
         "strategy_freeze_status": freeze.get("status") if freeze else "not_frozen",
         "start_allowed": freeze_ready,
         "go_no_go": "NO_GO",
-        "next_action": (
-            "The frozen strategy manifest is ready; start a reviewed forward-observation session manually."
-            if freeze_ready
-            else "Freeze and review the strategy manifest before opening forward observation."
-        ),
+        "next_action": start_gate.get("reason") or "Review Shadow Observation prerequisites.",
+        "shadow_start": start_gate,
         "real_money_allowed": False,
         "read_only_research": True,
         "as_of": _now(),

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .stock_store import connect
+from .stock_quant_validation import latest_stock_quant_validation
 from .strategy_freeze import strategy_freeze_status
 
 
@@ -57,6 +58,57 @@ def _session_payload(row: Any) -> dict[str, Any]:
     return item
 
 
+def shadow_start_readiness(db_path: Path, strategy_version: str) -> dict[str, Any]:
+    """Fail closed unless the freeze is linked to a passing Stock Quant run."""
+
+    freeze = strategy_freeze_status(db_path, strategy_version)
+    if not freeze or freeze.get("status") != "frozen":
+        return {
+            "allowed": False,
+            "code": "strategy_not_frozen",
+            "reason": "Freeze and review the strategy manifest before opening forward observation.",
+            "freeze": freeze,
+        }
+    validation_payload = latest_stock_quant_validation(db_path)
+    validation = dict(validation_payload.get("run") or validation_payload)
+    summary = dict(validation.get("summary") or {})
+    checks = dict(summary.get("overall_gate_checks") or {})
+    eligible = bool(
+        validation.get("gate_status") == "pass"
+        and validation.get("dataset_integrity_status") == "verified"
+        and summary.get("deployment_status") == "eligible"
+        and summary.get("deployment_model")
+        and checks
+        and all(bool(value) for value in checks.values())
+        and not list(summary.get("deployment_blockers") or [])
+    )
+    if not eligible:
+        return {
+            "allowed": False,
+            "code": "stock_quant_validation_not_passed",
+            "reason": "A passing, immutable Stock Quant Phase 5 validation is required before Shadow Observation.",
+            "freeze": freeze,
+            "validation_run_id": validation.get("run_id"),
+            "deployment_blockers": list(summary.get("deployment_blockers") or []),
+        }
+    if str(freeze.get("validation_fingerprint") or "") != str(validation.get("content_hash") or ""):
+        return {
+            "allowed": False,
+            "code": "freeze_validation_mismatch",
+            "reason": "The frozen strategy manifest is not linked to the current eligible Stock Quant validation run.",
+            "freeze": freeze,
+            "validation_run_id": validation.get("run_id"),
+        }
+    return {
+        "allowed": True,
+        "code": "ready",
+        "reason": "The frozen strategy is linked to an eligible Stock Quant validation run.",
+        "freeze": freeze,
+        "validation_run_id": validation.get("run_id"),
+        "deployment_model": summary.get("deployment_model"),
+    }
+
+
 def prepare_forward_pilot(
     *,
     db_path: Path,
@@ -73,14 +125,16 @@ def prepare_forward_pilot(
         raise ValueError("Unsupported forward pilot mode.")
     if not universe_snapshot_hash:
         raise ValueError("A frozen universe snapshot hash is required.")
-    freeze = strategy_freeze_status(db_path, strategy_version)
-    if not freeze or freeze.get("status") != "frozen":
+    start_gate = shadow_start_readiness(db_path, strategy_version)
+    if not start_gate["allowed"]:
         return {
             "status": "blocked",
-            "reason": "The strategy must be frozen from a reviewed validation manifest before forward observation.",
+            "reason": start_gate["reason"],
             "strategy_version": strategy_version,
+            "shadow_start": start_gate,
             "read_only_research": True,
         }
+    freeze = dict(start_gate["freeze"] or {})
     session_id = _stable_id("forward", strategy_version, universe_name, universe_snapshot_hash, start_date, normalized_mode)
     rules = {
         "strategy_changes_allowed": False,
@@ -114,6 +168,15 @@ def activate_forward_pilot(db_path: Path, session_id: str) -> dict[str, Any]:
     session = _session_row(db_path, session_id)
     if session["status"] == "closed":
         raise ValueError("A closed forward pilot cannot be reactivated.")
+    start_gate = shadow_start_readiness(db_path, str(session["strategy_version"]))
+    if not start_gate["allowed"]:
+        return {
+            "status": "blocked",
+            "reason": start_gate["reason"],
+            "session": _session_payload(session),
+            "shadow_start": start_gate,
+            "read_only_research": True,
+        }
     with connect(db_path) as conn:
         conn.execute("UPDATE forward_pilot_sessions SET status = 'active' WHERE session_id = ?", (session_id,))
         conn.commit()

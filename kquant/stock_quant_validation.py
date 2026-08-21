@@ -35,7 +35,7 @@ from .stock_store import connect
 from .theme_prediction import _apply_isotonic, _apply_platt, _fit_isotonic, _fit_platt
 
 
-STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.1.3"
+STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.2.1"
 STOCK_QUANT_MODEL_VERSION = "stock_quant_models_v1.0.0"
 BASELINE_COMMISSION_BPS_PER_SIDE = 1.0
 BASELINE_SLIPPAGE_BPS_PER_SIDE = 5.0
@@ -217,6 +217,45 @@ def _performance_gate_checks(metrics: dict[str, Any]) -> dict[str, bool]:
         ),
         "max_drawdown_at_most_8_r": bool(
             max_drawdown is not None and float(max_drawdown) <= MAX_DRAWDOWN_GATE
+        ),
+    }
+
+
+def _profit_factor_at_least(metrics: dict[str, Any], minimum: float) -> bool:
+    profit_factor = metrics.get("profit_factor")
+    return profit_factor == "infinite" or bool(
+        profit_factor is not None and float(profit_factor) >= minimum
+    )
+
+
+def _calibrated_test_brier(report: dict[str, Any]) -> float | None:
+    calibration = report.get("calibration") or {}
+    if calibration.get("status") == "validation_only":
+        selected_method = calibration.get("selected_method")
+        selected = next(
+            (item for item in calibration.get("candidates") or [] if item.get("method") == selected_method),
+            None,
+        )
+        value = (selected or {}).get("test_metrics", {}).get("brier")
+    else:
+        value = (report.get("classification_metrics") or {}).get("test", {}).get("brier")
+    return float(value) if value is not None else None
+
+
+def _phase_five_concentration_checks(
+    sensitivity: dict[str, Any],
+    concentration: dict[str, Any],
+) -> dict[str, bool]:
+    conservative = (sensitivity.get("conservative") or {}).get("trade_metrics") or {}
+    excluded_average_r = concentration.get("top_five_excluded_average_r")
+    top_symbol_contribution = concentration.get("top_symbol_profit_contribution")
+    return {
+        "conservative_profit_factor_at_least_1_05": _profit_factor_at_least(conservative, 1.05),
+        "leave_best_five_symbols_positive": bool(
+            excluded_average_r is not None and float(excluded_average_r) > 0.0
+        ),
+        "single_symbol_profit_contribution_at_most_15pct": bool(
+            top_symbol_contribution is not None and float(top_symbol_contribution) <= 0.15
         ),
     }
 
@@ -548,7 +587,12 @@ def _build_report(
         split: _prediction_interval(train_rows, float(_mean(expected[split]) or 0.0))
         for split in ("train", "validation", "test")
     }
-    gate_checks = _performance_gate_checks(selected_trade_metrics)
+    sensitivity = _sensitivity(selected_test_rows, seed=random_seed + 12)
+    concentration = _concentration(selected_test_rows, selected_test_values)
+    gate_checks = {
+        **_performance_gate_checks(selected_trade_metrics),
+        **_phase_five_concentration_checks(sensitivity, concentration),
+    }
     report = {
         "model_name": name,
         "model_kind": kind,
@@ -561,9 +605,9 @@ def _build_report(
         "expected_return_intervals": expected_intervals,
         "all_test_trades": all_test_trade_metrics,
         "selected_test_trades": selected_trade_metrics,
-        "cost_sensitivity": _sensitivity(selected_test_rows, seed=random_seed + 12),
+        "cost_sensitivity": sensitivity,
         "segments": _segment_metrics(selected_test_rows, selected_test_values),
-        "concentration": _concentration(selected_test_rows, selected_test_values),
+        "concentration": concentration,
         "gate_checks": gate_checks,
         "gate_status": "pass" if all(gate_checks.values()) else "no_go",
         "test_partition_used_for_selection": False,
@@ -774,6 +818,27 @@ def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: i
             artifacts.append({"artifact_id": registered["artifact_id"], "model_name": candidate["model_name"]})
         reports.append(report)
     verified = [report for report in reports if report["status"] == "verified"]
+    frozen_model0 = next(
+        (report for report in verified if report["model_name"] == "model0_rule"),
+        None,
+    )
+    frozen_model0_brier = _calibrated_test_brier(frozen_model0 or {})
+    for report in verified:
+        # This is a post-selection diagnostic only. It never changes the
+        # train/validation selection ranking below, and Model 0 remains a
+        # legitimate deployable baseline if it passes the explicit Phase 5
+        # performance and concentration gates.
+        candidate_brier = _calibrated_test_brier(report)
+        report["calibration_comparison"] = {
+            "frozen_model0_test_brier": frozen_model0_brier,
+            "candidate_test_brier": candidate_brier,
+            "candidate_beats_frozen_model0": (
+                None
+                if report["model_name"] == "model0_rule" or frozen_model0_brier is None or candidate_brier is None
+                else candidate_brier < frozen_model0_brier
+            ),
+            "comparison_partition_used_for_selection": False,
+        }
     selection_candidates = [
         report for report in verified
         if report["selection"].get("validation_sample_count", 0) > 0
@@ -838,6 +903,10 @@ def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: i
             "profit_factor_at_least_1_25": bool(selected_report and selected_report.get("gate_checks", {}).get("profit_factor_at_least_1_25")),
             "max_drawdown_at_most_8_r": bool(selected_report and selected_report.get("gate_checks", {}).get("max_drawdown_at_most_8_r")),
             "oos_fold_count_gate": bool(selected_report and selected_report.get("gate_checks", {}).get("oos_fold_count_at_least_3")),
+            "walk_forward_stability": bool(selected_report and selected_report.get("gate_checks", {}).get("walk_forward_stability")),
+            "conservative_profit_factor_at_least_1_05": bool(selected_report and selected_report.get("gate_checks", {}).get("conservative_profit_factor_at_least_1_05")),
+            "leave_best_five_symbols_positive": bool(selected_report and selected_report.get("gate_checks", {}).get("leave_best_five_symbols_positive")),
+            "single_symbol_profit_contribution_at_most_15pct": bool(selected_report and selected_report.get("gate_checks", {}).get("single_symbol_profit_contribution_at_most_15pct")),
         },
         "artifacts": artifacts,
         "read_only_research": True,

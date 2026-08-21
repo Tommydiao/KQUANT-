@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from kquant.config import KquantConfig
 from kquant.data_snapshots import create_market_data_snapshot
-from kquant.dashboard.app import FORBIDDEN_ROUTE_TOKENS, create_app, route_safety_report
+from kquant.dashboard.app import API_CONTRACT_VERSION, FORBIDDEN_ROUTE_TOKENS, create_app, route_safety_report
 from kquant.db import LATEST_SCHEMA_VERSION
 from kquant.stock_store import connect
 
@@ -40,7 +40,7 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-22-v2-oos-shadow-v1"
+    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-22-v2-oos-shadow-v2"
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
     assert health.json()["runtime"]["database_schema_version"] == LATEST_SCHEMA_VERSION
     assert health.json()["database_migration"]["status"] == "up_to_date"
@@ -201,3 +201,12 @@ def test_kquant_runtime_does_not_import_legacy_package() -> None:
     source = "\n".join(path.read_text(encoding="utf-8") for path in (root / "kquant").rglob("*.py"))
     assert "btc_eth_15m" not in source
     assert "TradeContext" not in source
+
+
+def test_runtime_contract_is_aligned_across_server_client_and_startup_script() -> None:
+    root = Path(__file__).resolve().parents[1]
+    frontend = (root / "web" / "src" / "App.tsx").read_text(encoding="utf-8")
+    startup = (root / "start_kquant_stock_terminal.ps1").read_text(encoding="utf-8")
+
+    assert f'FRONTEND_API_CONTRACT_VERSION = "{API_CONTRACT_VERSION}"' in frontend
+    assert f'$ExpectedApiContract = "{API_CONTRACT_VERSION}"' in startup

@@ -108,6 +108,11 @@ def test_validation_registers_models_without_using_test_for_selection(tmp_path: 
             assert model["walk_forward"]["minimum_fold_count_met"] is True
             assert model["walk_forward"]["sealed_test_partition_used"] is False
             assert "walk_forward_stability" in model["gate_checks"]
+            assert "conservative_profit_factor_at_least_1_05" in model["gate_checks"]
+            assert "leave_best_five_symbols_positive" in model["gate_checks"]
+            assert "single_symbol_profit_contribution_at_most_15pct" in model["gate_checks"]
+            assert "calibration_comparison" in model
+            assert model["calibration_comparison"]["comparison_partition_used_for_selection"] is False
 
 
 def test_validation_rejects_yahoo_reference_rows(tmp_path: Path) -> None:
