@@ -83,6 +83,38 @@ def test_backfill_queue_records_partial_longbridge_history_without_retrying(tmp_
     assert report["item_counts"] == {"completed_limited": 2}
 
 
+def test_backfill_queue_stops_the_job_when_longbridge_reports_symbol_quota_exhausted(tmp_path: Path, monkeypatch) -> None:
+    from kquant.market_data_backfill import backfill_quota_status
+
+    db_path = tmp_path / "quota.sqlite3"
+    _seed_universe(db_path)
+    job = create_backfill_job(db_path=db_path, symbols=["TEST"], pause_seconds=0, max_attempts=2)
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.load_market_data_env",
+        lambda: {"status": "test", "loaded_key_count": 0, "longbridge_credentials_configured": True},
+    )
+    calls = []
+
+    def quota_payload(*args, **kwargs):
+        calls.append(args)
+        return {
+            "source_type": "stale_longbridge_cache",
+            "provider_status": "stale_cache",
+            "candles": [{}] * 1000,
+            "provider_errors": ["OpenApiException: code=301607 history candlestick symbol count out of limit"],
+        }
+
+    monkeypatch.setattr("kquant.market_data_backfill.api_stock_candles", quota_payload)
+    report = run_backfill_job(db_path=db_path, job_id=job["job_id"], batch_size=2)
+
+    assert len(calls) == 1
+    assert report["job"]["status"] == "blocked_quota"
+    assert report["item_counts"] == {"blocked_quota": 2}
+    quota = backfill_quota_status(db_path=db_path, requested_symbols=["TEST"])
+    assert quota["status"] == "provider_quota_exhausted"
+    assert quota["allowed"] is False
+
+
 def test_provider_event_retention_is_report_only_by_default(tmp_path: Path) -> None:
     db_path = tmp_path / "retention.sqlite3"
     with connect(db_path) as conn:

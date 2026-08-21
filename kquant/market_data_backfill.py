@@ -15,7 +15,7 @@ from .stock_store import connect
 from .universe_registry import current_universe_members, ensure_current_universe_registry
 
 
-BACKFILL_VERSION = "longbridge_backfill_v1.1.0"
+BACKFILL_VERSION = "longbridge_backfill_v1.2.0"
 DEFAULT_MONTHLY_SYMBOL_QUOTA = 100
 MAX_DOCUMENTED_MONTHLY_SYMBOL_QUOTA = 3000
 BACKFILL_TIMEFRAMES = (
@@ -68,11 +68,25 @@ def backfill_quota_status(
             """,
             (month,),
         ).fetchall()
+        provider_quota_error = conn.execute(
+            """
+            SELECT 1
+            FROM market_backfill_job_items AS i
+            INNER JOIN market_backfill_jobs AS j ON j.job_id = i.job_id
+            WHERE substr(j.requested_at, 1, 7) = ?
+              AND (i.last_error LIKE '%301607%' OR i.result_json LIKE '%301607%')
+            LIMIT 1
+            """,
+            (month,),
+        ).fetchone()
     tracked = {str(row["symbol"]).upper() for row in rows}
     new_symbols = sorted(set(requested) - tracked)
     remaining = max(0, quota - len(tracked))
-    allowed = len(new_symbols) <= remaining
-    if not allowed:
+    provider_quota_locked = provider_quota_error is not None
+    allowed = not provider_quota_locked and len(new_symbols) <= remaining
+    if provider_quota_locked:
+        status = "provider_quota_exhausted"
+    elif not allowed:
         status = "blocked_new_symbols_exceed_cap"
     elif len(tracked) > quota:
         status = "tracked_usage_exceeds_default_reuse_only"
@@ -89,8 +103,14 @@ def backfill_quota_status(
         "status": status,
         "allowed": allowed,
         "provider_remaining_quota_known": False,
+        "provider_quota_lock": provider_quota_locked,
         "read_only_market_data": True,
     }
+
+
+def _is_provider_symbol_quota_error(payload: dict[str, Any]) -> bool:
+    errors = [str(item).lower() for item in payload.get("provider_errors") or []]
+    return any("301607" in item and ("symbol" in item or "candlestick" in item) for item in errors)
 
 
 def create_backfill_job(
@@ -135,7 +155,7 @@ def create_backfill_job(
                 pause_seconds,
                 max_attempts,
                 now,
-                json.dumps({"symbol_count": len(members), "quota_preflight": quota}, sort_keys=True),
+                json.dumps({"backfill_version": BACKFILL_VERSION, "symbol_count": len(members), "quota_preflight": quota}, sort_keys=True),
             ),
         )
         conn.executemany(
@@ -169,7 +189,7 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
         job = conn.execute("SELECT * FROM market_backfill_jobs WHERE job_id = ?", (job_id,)).fetchone()
         if job is None:
             raise ValueError(f"Unknown backfill job: {job_id}")
-        if job["status"] in {"completed", "cancelled"}:
+        if job["status"] in {"completed", "cancelled", "blocked_quota"}:
             return backfill_job_status(db_path=db_path, job_id=job_id)
         conn.execute("UPDATE market_backfill_jobs SET status='running', started_at=COALESCE(started_at, ?) WHERE job_id=?", (datetime.now(UTC).isoformat(), job_id))
         items = conn.execute(
@@ -184,28 +204,42 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
     quota = backfill_quota_status(db_path=db_path, requested_symbols=[str(item["symbol"]) for item in items])
     if items and not bool(quota["allowed"]):
         now = datetime.now(UTC).isoformat()
+        blocked_by_provider = bool(quota.get("provider_quota_lock"))
+        blocked_status = "blocked_quota" if blocked_by_provider else "failed"
+        reason = (
+            "Longbridge historical symbol quota is exhausted for this calendar month."
+            if blocked_by_provider
+            else "Longbridge monthly new-symbol cap preflight blocked this item."
+        )
         with connect(db_path) as conn:
             for item in items:
                 conn.execute(
                     """
                     UPDATE market_backfill_job_items
-                    SET status='failed', attempts=attempts + 1, last_error=?, result_json=?, updated_at=?
+                    SET status=?, attempts=attempts + 1, last_error=?, result_json=?, updated_at=?
                     WHERE job_id=? AND symbol=? AND interval=?
                     """,
                     (
-                        "Longbridge monthly new-symbol cap preflight blocked this item.",
-                        json.dumps({"source": "quota_preflight", "provider_status": "blocked"}, sort_keys=True),
+                        blocked_status,
+                        reason,
+                        json.dumps({"source": "quota_preflight", "provider_status": "blocked", "coverage_status": blocked_status}, sort_keys=True),
                         now,
                         job_id,
                         item["symbol"],
                         item["interval"],
                     ),
                 )
+            if blocked_by_provider:
+                conn.execute(
+                    "UPDATE market_backfill_jobs SET status='blocked_quota', completed_at=? WHERE job_id=?",
+                    (now, job_id),
+                )
             conn.commit()
         report = backfill_job_status(db_path=db_path, job_id=job_id)
         report.update({"processed_in_batch": 0, "environment": environment, "quota_preflight": quota})
         return report
     completed = 0
+    provider_quota_exhausted = False
     for item in items:
         now = datetime.now(UTC).isoformat()
         try:
@@ -224,24 +258,33 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
                 payload.get("provider_status") == "available"
                 and payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE
             )
+            quota_error = _is_provider_symbol_quota_error(payload)
             full_coverage = provider_available and count >= int(item["minimum_bars"])
             partial_history = provider_available and 0 < count < int(item["minimum_bars"])
-            success = provider_available and count > 0
+            success = provider_available and count > 0 and not quota_error
             result = {
                 "source": payload.get("source_type"),
                 "provider_status": payload.get("provider_status"),
                 "candle_count": count,
                 "minimum_bars": int(item["minimum_bars"]),
-                "coverage_status": "full" if full_coverage else "limited_history" if partial_history else "unavailable",
+                "coverage_status": "provider_quota_exhausted" if quota_error else "full" if full_coverage else "limited_history" if partial_history else "unavailable",
                 "errors": list(payload.get("provider_errors") or [])[:3],
             }
-            error = "" if full_coverage else "Longbridge history is available but below target coverage." if partial_history else "longbridge coverage remains insufficient or unavailable"
+            error = (
+                "Longbridge historical symbol quota is exhausted for this calendar month."
+                if quota_error
+                else ""
+                if full_coverage
+                else "Longbridge history is available but below target coverage."
+                if partial_history
+                else "longbridge coverage remains insufficient or unavailable"
+            )
         except Exception as exc:  # provider failures must become auditable, resumable work
-            success, partial_history, result, error = False, False, {}, f"{type(exc).__name__}: {exc}"
+            success, partial_history, quota_error, result, error = False, False, False, {}, f"{type(exc).__name__}: {exc}"
         with connect(db_path) as conn:
             attempts = int(item["attempts"]) + 1
             retry = not success and attempts < int(job["max_attempts"])
-            status = "completed" if success and not partial_history else "completed_limited" if success else ("retry" if retry else "failed")
+            status = "blocked_quota" if quota_error else "completed" if success and not partial_history else "completed_limited" if success else ("retry" if retry else "failed")
             conn.execute(
                 """
                 UPDATE market_backfill_job_items
@@ -252,11 +295,39 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
             )
             conn.commit()
         completed += 1
+        if quota_error:
+            provider_quota_exhausted = True
+            with connect(db_path) as conn:
+                conn.execute(
+                    """
+                    UPDATE market_backfill_job_items
+                    SET status='blocked_quota', last_error=?, result_json=?, updated_at=?
+                    WHERE job_id=? AND status IN ('queued', 'retry')
+                    """,
+                    (
+                        "Longbridge historical symbol quota is exhausted for this calendar month.",
+                        json.dumps({"source": "provider_quota", "provider_status": "blocked", "coverage_status": "provider_quota_exhausted"}, sort_keys=True),
+                        now,
+                        job_id,
+                    ),
+                )
+                conn.execute(
+                    "UPDATE market_backfill_jobs SET status='blocked_quota', completed_at=? WHERE job_id=?",
+                    (now, job_id),
+                )
+                conn.commit()
+            break
         if float(job["pause_seconds"]) > 0:
             time.sleep(float(job["pause_seconds"]))
     with connect(db_path) as conn:
         remaining = conn.execute("SELECT COUNT(*) FROM market_backfill_job_items WHERE job_id=? AND status IN ('queued','retry')", (job_id,)).fetchone()[0]
-        if not remaining:
+        if provider_quota_exhausted:
+            conn.execute(
+                "UPDATE market_backfill_jobs SET status='blocked_quota', completed_at=? WHERE job_id=?",
+                (datetime.now(UTC).isoformat(), job_id),
+            )
+            conn.commit()
+        elif not remaining:
             conn.execute("UPDATE market_backfill_jobs SET status='completed', completed_at=? WHERE job_id=?", (datetime.now(UTC).isoformat(), job_id))
             conn.commit()
     report = backfill_job_status(db_path=db_path, job_id=job_id)

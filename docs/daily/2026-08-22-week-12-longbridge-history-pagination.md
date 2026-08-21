@@ -25,7 +25,7 @@ historical validation window.
   `freshness=historical_backfill`, and explicit pagination metadata. They are
   intentionally not represented as live quote data.
 - The five-year daily range now requests the normal 1,260 trading-day target.
-- Advanced the resumable queue marker to `longbridge_backfill_v1.1.0`.
+- Advanced the resumable queue marker to `longbridge_backfill_v1.2.0`.
 
 ## Read-only provider verification
 
@@ -72,6 +72,12 @@ Using the configured Longbridge quote credentials, without writing to SQLite:
   requested five-year daily or two-year 1H target), and `failed` (no usable
   Longbridge result). Limited history never counts as full coverage or as a
   validation-Gate pass, but it is not misreported as a provider outage.
+- A real Longbridge `301607` response now creates a calendar-month provider
+  quota lock. The triggering item and every remaining queued item are marked
+  `blocked_quota`, the job terminates without retries, and new jobs are denied
+  until the next calendar month. This was exercised on 2026-08-21 after the
+  provider reported `requested:100 / limit:100`; no further historical
+  requests are made by KQUANT in that month.
 
 ## Verification
 
