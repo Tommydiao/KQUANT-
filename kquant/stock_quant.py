@@ -14,17 +14,22 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from .market_availability import (
+    MARKET_AVAILABILITY_CONTRACT_VERSION,
+    candle_available_at,
+    normalize_interval,
+)
 from .quant_dataset import build_quant_dataset, read_quant_dataset
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .stock_store import connect
 from .technical_features import calculate_feature_snapshot, ema_last
 
 
-MODEL_0_VERSION = "stock_quant_model_0_v1.0.0"
-STOCK_QUANT_DATASET_CONTRACT_VERSION = "stock_quant_dataset_v1.0.0"
-STOCK_QUANT_FEATURE_SCHEMA_VERSION = "stock_quant_features_v1.0.0"
-STOCK_QUANT_LABEL_SCHEMA_VERSION = "stock_quant_labels_v1.0.0"
-STOCK_QUANT_EXECUTION_VERSION = "next_bar_open_stop_first_v1"
+MODEL_0_VERSION = "stock_quant_model_0_v1.1.0"
+STOCK_QUANT_DATASET_CONTRACT_VERSION = "stock_quant_dataset_v1.1.0"
+STOCK_QUANT_FEATURE_SCHEMA_VERSION = "stock_quant_features_v1.1.0"
+STOCK_QUANT_LABEL_SCHEMA_VERSION = "stock_quant_labels_v1.1.0"
+STOCK_QUANT_EXECUTION_VERSION = "daily_close_next_bar_open_stop_first_v2"
 DEFAULT_HORIZON_BARS = 5
 DEFAULT_COMMISSION_BPS_PER_SIDE = 1.0
 DEFAULT_SLIPPAGE_BPS_PER_SIDE = 5.0
@@ -70,16 +75,25 @@ def _bar_time(bar: dict[str, Any]) -> datetime:
     return _time(bar.get("open_time"), field="bar.open_time")
 
 
-def _closed_bars(bars: Iterable[dict[str, Any]], as_of: datetime | None = None) -> list[dict[str, Any]]:
+def _bar_available_time(bar: dict[str, Any], interval: str) -> datetime:
+    return candle_available_at(bar, interval)
+
+
+def _closed_bars(
+    bars: Iterable[dict[str, Any]],
+    as_of: datetime | None = None,
+    *,
+    interval: str = "1d",
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for raw in bars:
         if str(raw.get("bar_state") or "").lower() == "forming_candle":
             continue
         try:
-            stamp = _bar_time(raw)
+            available_at = _bar_available_time(raw, interval)
         except ValueError:
             continue
-        if as_of is not None and stamp > as_of:
+        if as_of is not None and available_at > as_of:
             continue
         if all((_number(raw.get(key)) or 0.0) > 0 for key in ("open", "high", "low", "close")):
             rows.append(dict(raw))
@@ -223,7 +237,7 @@ def build_model0_features(
     """Build the same point-in-time feature vector for live and replay paths."""
 
     requested_as_of = _time(as_of_time, field="as_of_time") if as_of_time else None
-    daily = _closed_bars(daily_bars, requested_as_of)
+    daily = _closed_bars(daily_bars, requested_as_of, interval="1d")
     if not daily:
         empty_time = requested_as_of or datetime.now(UTC)
         return {
@@ -244,9 +258,10 @@ def build_model0_features(
             "read_only_research": True,
         }
 
-    signal_time = _bar_time(daily[-1])
+    signal_time = _bar_available_time(daily[-1], "1d")
     effective_as_of = min(signal_time, requested_as_of) if requested_as_of else signal_time
-    confirmation = _closed_bars(confirmation_bars, effective_as_of)
+    confirmation_interval = normalize_interval(confirmation_timeframe)
+    confirmation = _closed_bars(confirmation_bars, effective_as_of, interval=confirmation_interval)
     daily_features = calculate_feature_snapshot(daily, timeframe="1D")
     confirmation_features = calculate_feature_snapshot(
         confirmation,
@@ -270,7 +285,7 @@ def build_model0_features(
     prior_return_5d = _prior_return(daily, 5)
     benchmark_values: dict[str, float | None] = {}
     for benchmark, rows in (benchmark_bars or {}).items():
-        benchmark_rows = _closed_bars(rows, effective_as_of)
+        benchmark_rows = _closed_bars(rows, effective_as_of, interval="1d")
         benchmark_values[benchmark.upper()] = _close_return(benchmark_rows, 5)
     spy_return = benchmark_values.get("SPY")
     qqq_return = benchmark_values.get("QQQ")
@@ -369,7 +384,7 @@ def build_model0_features(
     if any(item[4] in {"future_context", "invalid_as_of"} for item in factor_specs):
         reasons.append("A context input is not point-in-time valid.")
     eligibility = {"eligible": not reasons and score is not None, "reasons": reasons, "minimum_daily_bars": 200, "minimum_confirmation_bars": 20}
-    latest_confirmation = _bar_time(confirmation[-1]) if confirmation else None
+    latest_confirmation = _bar_available_time(confirmation[-1], confirmation_interval) if confirmation else None
     feature_available_at = max([stamp for stamp in (signal_time, latest_confirmation) if stamp is not None])
     hash_payload = {
         "model_version": MODEL_0_VERSION,
@@ -401,6 +416,7 @@ def build_model0_features(
         "feature_snapshot_hash": _hash(hash_payload),
         "technical_feature_contract": daily_features.get("contract_version"),
         "confirmation_feature_contract": confirmation_features.get("contract_version"),
+        "market_availability_contract": MARKET_AVAILABILITY_CONTRACT_VERSION,
         "read_only_research": True,
     }
 
@@ -418,7 +434,7 @@ def build_model0_label(
 ) -> dict[str, Any]:
     """Create a forward label using next-bar-open execution and conservative fills."""
 
-    rows = _closed_bars(candles)
+    rows = _closed_bars(candles, interval="1d")
     entry_index = int(signal_index) + 1
     if entry_index >= len(rows):
         return {"completed": False, "outcome": "insufficient_future_bars", "label_schema_version": STOCK_QUANT_LABEL_SCHEMA_VERSION}
@@ -484,7 +500,7 @@ def build_model0_label(
         "exit_index": exit_index,
         "entry_time": _iso(_bar_time(rows[entry_index])),
         "exit_time": _iso(_bar_time(rows[exit_index])),
-        "label_end_time": _iso(_bar_time(rows[exit_index])),
+        "label_end_time": _iso(_bar_available_time(rows[exit_index], "1d")),
         "entry_price": round(entry_price, 8),
         "exit_price": round(exit_price, 8),
         "stop_price": round(stop, 8),
@@ -520,7 +536,7 @@ def build_stock_quant_item(
     event_context: dict[str, Any] | None = None,
     horizon_bars: int = DEFAULT_HORIZON_BARS,
 ) -> dict[str, Any]:
-    rows = _closed_bars(daily_bars)
+    rows = _closed_bars(daily_bars, interval="1d")
     if signal_index < 0 or signal_index >= len(rows):
         raise ValueError("signal_index is outside the completed daily-bar range.")
     snapshot = build_model0_features(
@@ -531,7 +547,7 @@ def build_stock_quant_item(
         theme_context=theme_context,
         leadership_context=leadership_context,
         event_context=event_context,
-        as_of_time=_bar_time(rows[signal_index]),
+        as_of_time=_bar_available_time(rows[signal_index], "1d"),
     )
     label = build_model0_label(rows, signal_index, stop_price, target_price, horizon_bars)
     if not label.get("completed"):

@@ -76,6 +76,7 @@ def shadow_start_readiness(db_path: Path, strategy_version: str) -> dict[str, An
     eligible = bool(
         validation.get("gate_status") == "pass"
         and validation.get("dataset_integrity_status") == "verified"
+        and validation.get("current_contract_compatible") is True
         and summary.get("deployment_status") == "eligible"
         and summary.get("deployment_model")
         and checks

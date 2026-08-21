@@ -6,12 +6,13 @@ from pathlib import Path
 from typing import Any
 
 from .data_coverage import LONG_BRIDGE_SOURCE, MODEL_REQUIRED_INTERVALS
+from .market_availability import MARKET_AVAILABILITY_CONTRACT_VERSION
 from .quant_dataset import DatasetIntegrityError, read_quant_dataset
 from .stock_quant_validation import latest_stock_quant_validation
 from .stock_store import connect
 
 
-STOCK_QUANT_READINESS_VERSION = "stock_quant_readiness_v1.0.0"
+STOCK_QUANT_READINESS_VERSION = "stock_quant_readiness_v1.1.0"
 
 
 def _date_key(value: Any) -> str | None:
@@ -25,7 +26,12 @@ def _coverage_rows(db_path: Path, *, available_at: str | None = None) -> dict[st
             """
             SELECT u.symbol, c.interval, COUNT(c.open_time) AS candle_count,
                    MIN(c.open_time) AS first_time, MAX(c.open_time) AS last_time,
-                   SUM(CASE WHEN c.open_time <= ? THEN 1 ELSE 0 END) AS available_candle_count
+                   SUM(
+                     CASE WHEN
+                       (c.interval = '1d' AND datetime(c.open_time, '+1 day') <= datetime(?))
+                       OR (c.interval = '1h' AND datetime(c.open_time, '+1 hour') <= datetime(?))
+                     THEN 1 ELSE 0 END
+                   ) AS available_candle_count
             FROM stock_universe AS u
             LEFT JOIN market_candles AS c
               ON c.symbol = u.symbol
@@ -37,7 +43,11 @@ def _coverage_rows(db_path: Path, *, available_at: str | None = None) -> dict[st
             GROUP BY u.symbol, c.interval
             ORDER BY u.symbol, c.interval
             """,
-            (available_at or "0000-01-01", LONG_BRIDGE_SOURCE),
+            (
+                available_at or "0000-01-01T00:00:00+00:00",
+                available_at or "0000-01-01T00:00:00+00:00",
+                LONG_BRIDGE_SOURCE,
+            ),
         ).fetchall()
     result: dict[str, dict[str, Any]] = {}
     for raw in rows:
@@ -148,6 +158,7 @@ def stock_quant_window_coverage(
         "additional_symbols_required": max(0, required_symbols - window_eligible),
         "reason_counts": dict(sorted(reason_counts.items())),
         "symbols": symbols,
+        "market_availability_contract": MARKET_AVAILABILITY_CONTRACT_VERSION,
         "read_only_research": True,
     }
 

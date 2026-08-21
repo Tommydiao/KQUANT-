@@ -28,7 +28,7 @@ from .manual_workflow import build_daily_candidate_board
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
-from .stock_quant import build_model0_features
+from .stock_quant import MODEL_0_VERSION, build_model0_features
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
 from .technical_features import calculate_feature_snapshot
@@ -1885,7 +1885,7 @@ def api_stock_signals(
             )
         else:
             signal["model0_feature_snapshot"] = {
-                "model_version": "stock_quant_model_0_v1.0.0",
+                "model_version": MODEL_0_VERSION,
                 "status": "not_eligible_fixture",
                 "reason": "Fixture data is for deterministic UI tests and cannot enter the stock quant dataset.",
                 "read_only_research": True,

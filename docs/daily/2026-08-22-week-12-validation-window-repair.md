@@ -49,9 +49,14 @@ signal at the start of a sealed replay window.
 
 ## 4. Leakage controls
 
-- A candle fetched today is not treated as if KQUANT had already observed it
-  at a historical signal time.
-- The readiness report uses closed bars and an explicit `available_at` cutoff.
+- This document's initial fetch-time interpretation was superseded by the
+  versioned `market_bar_close_bound_v1` contract in
+  `2026-08-22-week-12-market-availability-contract.md`. A provider historical
+  bar may inform a historical replay only after its conservative market
+  close-bound `available_at`; its later local `fetched_at` remains an audit
+  fact rather than a strategy-input cutoff.
+- The readiness report uses closed bars and the same explicit bar-close
+  availability cutoff as the Stock Quant replay engine.
 - No historical labels, strategy parameters, or model thresholds were changed
   after inspecting the sealed test result.
 - Historical data backfill, if performed next, must retain fetch/audit time and

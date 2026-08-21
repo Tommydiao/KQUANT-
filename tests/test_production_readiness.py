@@ -17,6 +17,7 @@ def _passing_stock_quant_validation() -> dict:
             "validation_version": "stock_quant_validation_test",
             "gate_status": "pass",
             "dataset_integrity_status": "verified",
+            "current_contract_compatible": True,
             "summary": {
                 "deployment_status": "eligible",
                 "deployment_model": "logistic",
@@ -60,6 +61,21 @@ def test_go_no_go_uses_stock_quant_evidence_not_legacy_descriptive_statistics(tm
     assert "historical_sample_count" not in gates
     assert report["historical"]["not_used_for_phase_five_gate"] is True
     assert report["decision"] == "NO_GO"
+
+
+def test_go_no_go_rejects_a_validation_report_from_an_incompatible_contract(tmp_path: Path) -> None:
+    legacy = _passing_stock_quant_validation()
+    legacy["run"]["current_contract_compatible"] = False
+
+    report = evaluate_go_no_go(
+        db_path=tmp_path / "legacy-readiness.sqlite3",
+        strategy_version="swing_long_v1.1.0",
+        stock_quant_validation=legacy,
+        security_report={"secrets_exposed": False, "order_submission_enabled": False},
+    )
+
+    assert report["stock_quant"]["passed"] is False
+    assert report["stock_quant"]["current_contract_compatible"] is False
 
 
 def test_launch_report_records_no_go_without_claiming_approval(tmp_path: Path) -> None:

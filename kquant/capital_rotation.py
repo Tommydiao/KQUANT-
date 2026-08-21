@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .market_availability import MARKET_AVAILABILITY_CONTRACT_VERSION, candle_is_available_at
 from .stock_store import connect
 from .theme_taxonomy import latest_theme_taxonomy
 
@@ -121,19 +122,21 @@ def _load_daily_rows(db_path: Path, symbols: set[str], cutoff: datetime) -> dict
     with connect(db_path) as conn:
         rows = conn.execute(
             f"""
-            SELECT symbol, open_time, close, volume, fetched_at, bar_state
+            SELECT symbol, interval, open_time, close, volume, fetched_at, bar_state
             FROM market_candles
             WHERE interval='1d' AND primary_source='longbridge_candles'
               AND provider_status='available' AND bar_state='closed_candle'
-              AND open_time <= ? AND fetched_at <= ?
+              AND open_time <= ?
               AND symbol IN ({placeholders})
             ORDER BY symbol, open_time
             """,
-            (cutoff.isoformat(), cutoff.isoformat(), *sorted(symbols)),
+            (cutoff.isoformat(), *sorted(symbols)),
         ).fetchall()
     result: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
-        result.setdefault(str(row["symbol"]), []).append(dict(row))
+        item = dict(row)
+        if candle_is_available_at(item, item["interval"], cutoff):
+            result.setdefault(str(item["symbol"]), []).append(item)
     return result
 
 
@@ -207,6 +210,7 @@ def run_capital_rotation(*, db_path: Path, as_of_time: str | None = None) -> dic
         "single_member_weight_cap": SINGLE_MEMBER_WEIGHT_CAP,
         "minimum_members_for_weight_cap": MIN_CAPPED_WEIGHT_MEMBERS,
         "data_source": "longbridge_candles",
+        "availability_basis": MARKET_AVAILABILITY_CONTRACT_VERSION,
         "future_data_used": False,
         "stress_direction_flips": sum(1 for row in score_rows if row["features"].get("stress_direction_flip")),
         "stress_unreasonable_flips": sum(1 for row in score_rows if row["features"].get("stress_unreasonable_flip")),

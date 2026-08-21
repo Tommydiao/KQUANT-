@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from kquant.dashboard.app import create_app
 from kquant.config import KquantConfig
+from kquant.market_availability import candle_available_iso
 from kquant.stock_quant import (
     MODEL_0_VERSION,
     build_stock_quant_dataset,
@@ -38,7 +39,7 @@ def _bars(count: int, *, base: float = 100.0, start: datetime | None = None) -> 
 def test_model0_future_bars_do_not_change_a_past_snapshot() -> None:
     daily = _bars(245)
     confirmation = _bars(30, start=datetime(2025, 8, 1, 14, 30, tzinfo=UTC))
-    as_of = daily[220]["open_time"]
+    as_of = candle_available_iso(daily[220], "1d")
     first = build_model0_features("RKLB", daily[:221], confirmation, as_of_time=as_of)
     second = build_model0_features("RKLB", daily, confirmation, as_of_time=as_of)
 
@@ -48,10 +49,21 @@ def test_model0_future_bars_do_not_change_a_past_snapshot() -> None:
     assert all(item["as_of_time"] <= as_of for item in first["factors"] if item["as_of_time"])
 
 
+def test_model0_does_not_use_a_daily_close_before_that_daily_bar_has_closed() -> None:
+    daily = _bars(240)
+    confirmation = _bars(30, start=datetime(2025, 8, 1, 14, 30, tzinfo=UTC))
+    before_daily_close = daily[220]["open_time"]
+
+    snapshot = build_model0_features("RKLB", daily, confirmation, as_of_time=before_daily_close)
+
+    assert snapshot["signal_time"] == candle_available_iso(daily[219], "1d")
+    assert snapshot["feature_available_at"] == snapshot["signal_time"]
+
+
 def test_model0_realtime_and_replay_paths_are_identical_for_same_input() -> None:
     daily = _bars(240)
     confirmation = _bars(25, start=datetime(2025, 8, 1, 14, 30, tzinfo=UTC))
-    as_of = daily[-1]["open_time"]
+    as_of = candle_available_iso(daily[-1], "1d")
     realtime = build_model0_features("NVDA", daily, confirmation, as_of_time=as_of, source="longbridge_candles")
     replay = build_model0_features("NVDA", daily[:], confirmation[:], as_of_time=as_of, source="longbridge_candles")
 

@@ -45,10 +45,13 @@ def _stock_quant_evidence(
     deployment_status = str(summary.get("deployment_status") or "not_available")
     validation_gate = str(run.get("gate_status") or "not_available")
     all_checks_passed = bool(checks) and all(bool(value) for value in checks.values())
+    current_contract_compatible = bool(run.get("current_contract_compatible"))
     return {
         "status": str(run.get("status") or payload.get("status") or "not_available"),
         "validation_run_id": run.get("run_id"),
         "validation_version": run.get("validation_version"),
+        "dataset_contract_version": run.get("dataset_contract_version"),
+        "current_contract_compatible": current_contract_compatible,
         "validation_gate": validation_gate,
         "dataset_integrity_status": run.get("dataset_integrity_status"),
         "deployment_model": deployment_model,
@@ -61,6 +64,7 @@ def _stock_quant_evidence(
             and deployment_model
             and run.get("dataset_integrity_status") == "verified"
             and all_checks_passed
+            and current_contract_compatible
         ),
     }
 

@@ -42,6 +42,7 @@ def _eligible_stock_quant_validation(fingerprint: str = "validation-content-hash
             "validation_version": "stock_quant_validation_test",
             "gate_status": "pass",
             "dataset_integrity_status": "verified",
+            "current_contract_compatible": True,
             "summary": {
                 "deployment_status": "eligible",
                 "deployment_model": "logistic",

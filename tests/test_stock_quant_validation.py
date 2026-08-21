@@ -99,6 +99,7 @@ def test_validation_registers_models_without_using_test_for_selection(tmp_path: 
     assert report["summary"]["deployment_model"] is None
     assert report["summary"]["deployment_status"] == "no_eligible_model"
     assert report["summary"]["deployment_blockers"]
+    assert report["current_contract_compatible"] is True
     assert {item["model_name"] for item in report["reports"]} >= {"model0_rule", "logistic"}
     for model in report["summary"]["models"]:
         if model["status"] == "verified":

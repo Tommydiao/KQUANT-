@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from kquant.capital_rotation import latest_capital_rotation, run_capital_rotation
+from kquant.capital_rotation import _load_daily_rows, latest_capital_rotation, run_capital_rotation
 from kquant.stock_store import connect
 from kquant.theme_taxonomy import build_theme_taxonomy
 
@@ -92,3 +92,24 @@ def test_capital_rotation_is_point_in_time_and_caps_member_concentration(tmp_pat
     after_future_perturbation = run_capital_rotation(db_path=db_path, as_of_time="2026-02-20T23:00:00+00:00")
     assert after_future_perturbation["content_hash"] == first["content_hash"]
     assert latest_capital_rotation(db_path)["status"] == "materialized"
+
+
+def test_capital_rotation_uses_market_availability_not_later_local_fetch_time(tmp_path: Path) -> None:
+    db_path = tmp_path / "availability.sqlite3"
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO market_candles(
+              symbol, interval, open_time, adjustment_mode, dataset_version,
+              primary_source, provider_symbol, provider_status, freshness_seconds,
+              bar_state, open, high, low, close, volume, fetched_at, first_seen_at, updated_at
+            ) VALUES ('NVDA', '1d', '2026-01-02T14:30:00+00:00', 'unadjusted', 'test',
+              'longbridge_candles', 'US.NVDA', 'available', 0, 'closed_candle', 100, 101, 99, 100, 1000,
+              '2026-01-10T21:00:00+00:00', '2026-01-10T21:00:00+00:00', '2026-01-10T21:00:00+00:00')
+            """
+        )
+        conn.commit()
+
+    rows = _load_daily_rows(db_path, {"NVDA"}, datetime(2026, 1, 4, tzinfo=UTC))
+
+    assert len(rows["NVDA"]) == 1

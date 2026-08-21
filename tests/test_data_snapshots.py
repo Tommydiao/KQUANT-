@@ -64,8 +64,33 @@ def test_snapshot_is_reproducible_and_future_or_forming_candles_do_not_enter(tmp
     assert first["eligibility_status"] == "eligible"
     assert first["item_count"] == 1
     assert first["details"]["exclusions"]["forming_or_unknown_bar_state"] == 1
-    assert first["items"][0]["available_at"] == "2026-01-02T21:00:00+00:00"
+    assert first["items"][0]["available_at"] == "2026-01-03T14:30:00+00:00"
+    assert first["items"][0]["fetched_at"] == "2026-01-02T21:00:00+00:00"
     assert read_data_snapshot(db_path, snapshot_id=first["snapshot_id"])["items"] == first["items"]
+
+
+def test_snapshot_records_provider_history_without_using_fetch_time_as_market_time(tmp_path: Path) -> None:
+    db_path = tmp_path / "historical-backfill.sqlite3"
+    _insert_candle(
+        db_path,
+        symbol="NVDA",
+        source="longbridge_candles",
+        open_time="2026-01-02T14:30:00+00:00",
+        fetched_at="2026-01-10T21:00:00+00:00",
+    )
+
+    snapshot = create_market_data_snapshot(
+        db_path,
+        symbol="NVDA",
+        intervals=["1d"],
+        as_of_time="2026-01-04T00:00:00+00:00",
+    )
+
+    assert snapshot["eligibility_status"] == "eligible"
+    assert snapshot["items"][0]["available_at"] == "2026-01-03T14:30:00+00:00"
+    assert snapshot["items"][0]["fetched_at"] == "2026-01-10T21:00:00+00:00"
+    assert snapshot["details"]["historical_backfill_item_count"] == 1
+    assert snapshot["details"]["provider_history_revision_risk"] is True
 
 
 def test_yahoo_reference_snapshot_is_retained_but_ineligible(tmp_path: Path) -> None:
@@ -82,7 +107,7 @@ def test_yahoo_reference_snapshot_is_retained_but_ineligible(tmp_path: Path) -> 
         db_path,
         symbol="SPY",
         intervals=["1d"],
-        as_of_time="2026-01-03T00:00:00+00:00",
+        as_of_time="2026-01-04T00:00:00+00:00",
     )
 
     assert snapshot["eligibility_status"] == "reference_only"

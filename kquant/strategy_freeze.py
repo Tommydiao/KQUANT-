@@ -101,6 +101,7 @@ def freeze_stock_quant_strategy_for_shadow(
     eligible = bool(
         run.get("gate_status") == "pass"
         and run.get("dataset_integrity_status") == "verified"
+        and run.get("current_contract_compatible") is True
         and summary.get("deployment_status") == "eligible"
         and summary.get("deployment_model")
         and checks

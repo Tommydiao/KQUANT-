@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from .market_availability import MARKET_AVAILABILITY_CONTRACT_VERSION, candle_available_at, parse_utc
 from .quant_dataset import (
     DatasetIntegrityError,
     _fit_logistic,
@@ -27,6 +28,9 @@ from .quant_dataset import (
 )
 from .stock_quant import (
     MODEL_0_VERSION,
+    STOCK_QUANT_DATASET_CONTRACT_VERSION,
+    STOCK_QUANT_FEATURE_SCHEMA_VERSION,
+    STOCK_QUANT_LABEL_SCHEMA_VERSION,
     build_stock_quant_dataset,
     build_model0_label,
     build_model0_features,
@@ -35,7 +39,7 @@ from .stock_store import connect
 from .theme_prediction import _apply_isotonic, _apply_platt, _fit_isotonic, _fit_platt
 
 
-STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.2.1"
+STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.3.0"
 STOCK_QUANT_MODEL_VERSION = "stock_quant_models_v1.0.0"
 BASELINE_COMMISSION_BPS_PER_SIDE = 1.0
 BASELINE_SLIPPAGE_BPS_PER_SIDE = 5.0
@@ -751,7 +755,7 @@ def _walk_forward_stability(dataset: dict[str, Any], *, random_seed: int) -> dic
 
 def run_stock_quant_validation(db_path: Path, dataset_id: str, *, random_seed: int = 20260817) -> dict[str, Any]:
     dataset = read_quant_dataset(db_path, dataset_id)
-    if dataset["contract_version"] != "stock_quant_dataset_v1.0.0":
+    if dataset["contract_version"] != STOCK_QUANT_DATASET_CONTRACT_VERSION:
         raise DatasetIntegrityError("Stock Quant validation requires the sealed Model 0 dataset contract.")
     if dataset["integrity_status"] != "verified":
         raise DatasetIntegrityError("Stock Quant validation is blocked by dataset integrity.")
@@ -948,6 +952,12 @@ def stock_quant_validation_detail(db_path: Path, run_id: str) -> dict[str, Any]:
     dataset = read_quant_dataset(db_path, str(row["dataset_id"]))
     if str(row["test_partition_hash"]) != dataset["test_partition_hash"]:
         raise DatasetIntegrityError("Stock Quant validation test partition hash does not match its dataset.")
+    current_contract_compatible = bool(
+        str(row["validation_version"]) == STOCK_QUANT_VALIDATION_VERSION
+        and str(dataset.get("contract_version")) == STOCK_QUANT_DATASET_CONTRACT_VERSION
+        and str(dataset.get("feature_schema_version")) == STOCK_QUANT_FEATURE_SCHEMA_VERSION
+        and str(dataset.get("label_schema_version")) == STOCK_QUANT_LABEL_SCHEMA_VERSION
+    )
     return {
         "status": row["status"],
         "run_id": row["run_id"],
@@ -959,6 +969,8 @@ def stock_quant_validation_detail(db_path: Path, run_id: str) -> dict[str, Any]:
         "content_hash": row["content_hash"],
         "test_partition_hash": row["test_partition_hash"],
         "dataset_integrity_status": dataset["integrity_status"],
+        "dataset_contract_version": dataset.get("contract_version"),
+        "current_contract_compatible": current_contract_compatible,
         "read_only_research": True,
     }
 
@@ -1014,9 +1026,14 @@ def _volatility_bucket(snapshot: dict[str, Any]) -> str:
 
 
 def _market_regime(daily_benchmarks: dict[str, list[dict[str, Any]]], as_of: str) -> str:
+    cutoff = parse_utc(as_of, field="market_regime.as_of")
     values: dict[str, float | None] = {}
     for symbol, rows in daily_benchmarks.items():
-        eligible = [row for row in rows if str(row.get("open_time")) <= as_of]
+        eligible = [
+            row
+            for row in rows
+            if candle_available_at(row, "1d") <= cutoff
+        ]
         values[symbol] = _market_return(eligible, 20)
     spy, qqq = values.get("SPY"), values.get("QQQ")
     if spy is not None and qqq is not None and spy > 0 and qqq > 0:
@@ -1071,7 +1088,7 @@ def build_stock_quant_cache_dataset(
             candidate_items: list[dict[str, Any]] = []
             metadata = _metadata(conn, symbol)
             for index in candidates:
-                signal_time = str(daily[index]["open_time"])
+                signal_time = candle_available_at(daily[index], "1d").isoformat()
                 # Build the feature snapshot first so the ATR-based plan is
                 # derived only from information available at signal time.
                 feature_snapshot = build_model0_features(
@@ -1141,10 +1158,17 @@ def build_stock_quant_cache_dataset(
         items,
         dataset_id=computed_id,
         universe_registry_id=universe_registry_id,
-        source_policy_version="longbridge_pit_stock_quant_v1",
+        source_policy_version="longbridge_pit_stock_quant_v2",
         embargo_days=embargo_days,
     )
-    return {"status": "sealed", "dataset": dataset, "build": build_stats, "source_policy": "longbridge_only_no_yahoo", "read_only_research": True}
+    return {
+        "status": "sealed",
+        "dataset": dataset,
+        "build": build_stats,
+        "source_policy": "longbridge_only_no_yahoo",
+        "market_availability_contract": MARKET_AVAILABILITY_CONTRACT_VERSION,
+        "read_only_research": True,
+    }
 
 
 __all__ = [

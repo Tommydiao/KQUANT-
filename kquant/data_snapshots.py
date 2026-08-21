@@ -6,10 +6,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from .market_availability import (
+    MARKET_AVAILABILITY_CONTRACT_VERSION,
+    candle_available_at,
+    parse_utc,
+)
 from .stock_store import connect
 
 
-DATA_SNAPSHOT_CONTRACT_VERSION = "data_snapshot_v1"
+DATA_SNAPSHOT_CONTRACT_VERSION = "data_snapshot_v1.1.0"
 SOURCE_POLICY_VERSION = "market_source_eligibility_v1"
 MODEL_ELIGIBLE_SOURCE = "longbridge_candles"
 REFERENCE_ONLY_SOURCES = {
@@ -67,9 +72,10 @@ def create_market_data_snapshot(
 ) -> dict[str, Any]:
     """Persist an immutable, point-in-time view of canonical market candles.
 
-    `available_at` conservatively equals when KQUANT fetched a closed candle.
-    Historical replay therefore cannot use a bar just because its market time was
-    earlier than a strategy decision.
+    `available_at` is the conservative end-of-bar availability bound while
+    `fetched_at` remains the local retrieval audit time. This lets historical
+    replay use provider history only after the relevant bar could have closed,
+    without pretending that a later backfill was a prospective observation.
     """
 
     normalized_symbol = str(symbol or "").upper().strip()
@@ -88,16 +94,24 @@ def create_market_data_snapshot(
         WHERE symbol = ?
           AND interval IN ({placeholders})
           AND open_time <= ?
-          AND fetched_at <= ?
         ORDER BY interval, open_time, adjustment_mode, dataset_version
     """
     with connect(db_path) as conn:
-        rows = [dict(row) for row in conn.execute(query, (normalized_symbol, *normalized_intervals, cutoff, cutoff)).fetchall()]
+        rows = [dict(row) for row in conn.execute(query, (normalized_symbol, *normalized_intervals, cutoff)).fetchall()]
 
     selected: list[dict[str, Any]] = []
     exclusions: dict[str, int] = {}
     present_intervals: set[str] = set()
+    historical_backfill_item_count = 0
     for row in rows:
+        try:
+            market_available_at = candle_available_at(row, row["interval"])
+        except ValueError:
+            exclusions["invalid_market_availability"] = exclusions.get("invalid_market_availability", 0) + 1
+            continue
+        if market_available_at > parse_utc(cutoff, field="as_of_time"):
+            exclusions["not_available_at_cutoff"] = exclusions.get("not_available_at_cutoff", 0) + 1
+            continue
         eligibility = source_eligibility(
             source=str(row["primary_source"]),
             provider_status=str(row["provider_status"]),
@@ -123,6 +137,7 @@ def create_market_data_snapshot(
             "low": row["low"],
             "close": row["close"],
             "volume": row["volume"],
+            "market_available_at": market_available_at.isoformat(),
         }
         item_key = ":".join(
             [
@@ -142,7 +157,7 @@ def create_market_data_snapshot(
                 "interval": str(row["interval"]),
                 "source": str(row["primary_source"]),
                 "as_of_time": str(row["open_time"]),
-                "available_at": str(row["fetched_at"]),
+                "available_at": market_available_at.isoformat(),
                 "fetched_at": str(row["fetched_at"]),
                 "eligibility_status": str(eligibility["status"]),
                 "exclusion_reason": str(eligibility["reason"]),
@@ -150,6 +165,11 @@ def create_market_data_snapshot(
                 "payload": item_payload,
             }
         )
+        try:
+            if parse_utc(row["fetched_at"], field="candle.fetched_at") > market_available_at:
+                historical_backfill_item_count += 1
+        except ValueError:
+            exclusions["invalid_fetched_at"] = exclusions.get("invalid_fetched_at", 0) + 1
         if not bool(eligibility["eligible"]):
             reason = str(eligibility["reason"])
             exclusions[reason] = exclusions.get(reason, 0) + 1
@@ -169,7 +189,7 @@ def create_market_data_snapshot(
         "purpose": str(purpose or "model_input"),
         "universe_reference": universe_reference or {},
         "source_policy_version": SOURCE_POLICY_VERSION,
-        "availability_basis": "observed_fetched_at",
+        "availability_basis": MARKET_AVAILABILITY_CONTRACT_VERSION,
     }
     hash_payload = {
         "contract_version": DATA_SNAPSHOT_CONTRACT_VERSION,
@@ -195,7 +215,9 @@ def create_market_data_snapshot(
         "missing_intervals": missing_intervals,
         "exclusions": exclusions,
         "eligible_for_model": eligibility_status == "eligible",
-        "availability_basis": "observed_fetched_at",
+        "availability_basis": MARKET_AVAILABILITY_CONTRACT_VERSION,
+        "historical_backfill_item_count": historical_backfill_item_count,
+        "provider_history_revision_risk": historical_backfill_item_count > 0,
     }
     created_at = _utc()
     with connect(db_path) as conn:
