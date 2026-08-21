@@ -27,6 +27,7 @@ import { DeepResearchChatPanel as DeepResearchChatPanelView } from "./components
 import { ResearchOpportunityDesk as ResearchOpportunityDeskView } from "./features/research/ResearchOpportunityDesk";
 import { EarlyTrendPanel as EarlyTrendPanelView } from "./features/quant/EarlyTrendPanel";
 import { ChartPanel as ChartPanelView } from "./features/quant/ChartPanel";
+import { ManualTradeTicketPanel as ManualTradeTicketPanelView } from "./features/quant/ManualTradeTicketPanel";
 import { TodayDecisionPanel as TodayDecisionPanelView } from "./features/quant/TodayDecisionPanel";
 import { DataReliabilityPanel as DataReliabilityPanelView, RiskControlPanel as RiskControlPanelView } from "./features/operations/OperationsEvidencePanels";
 import { RealtimeCommandCenter as RealtimeCommandCenterView } from "./features/operations/RealtimeCommandCenter";
@@ -3307,12 +3308,15 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
               onOpenJournal={() => openWorkspace("journal")}
             />
             <EarlyTrendPanelView snapshot={earlyTrend} lang={lang} />
-            <ManualTradeTicketPanel
+            <ManualTradeTicketPanelView
               ticket={manualTradeTicket}
               aiDecision={aiDecision}
               text={text}
               lang={lang}
               onOpenJournal={() => openWorkspace("journal")}
+              displayTradeAction={displayTradeAction}
+              displayPlanField={displayPlanField}
+              displayResearchText={displayResearchText}
             />
             <section className="factor-evidence-panel" aria-label={lang === "zh" ? "判断依据" : "Decision evidence"}>
               <div className="factor-evidence-head">
@@ -3662,64 +3666,6 @@ function LoginScreen({ mode, onAuthenticated }: { mode: "login" | "setup" | "err
 
 
 
-
-function ManualTradeTicketPanel({
-  ticket,
-  aiDecision,
-  text,
-  lang,
-  onOpenJournal,
-}: {
-  ticket: ManualTradeTicket;
-  aiDecision: AiDecisionPayload | null;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  lang: Lang;
-  onOpenJournal: () => void;
-}) {
-  const title =
-    ticket.status === "cleared_for_review"
-      ? (lang === "zh" ? "可进入人工复核" : "Ready for manual review")
-      : ticket.status === "journal_required"
-        ? (lang === "zh" ? "需先完成交易日志" : "Journal required")
-        : (lang === "zh" ? "当前不满足人工交易条件" : "Not ready for manual trading");
-  return (
-    <section className={`manual-ticket ${ticket.status.replace(/_/g, "-")}`}>
-      <div className="manual-ticket-head">
-        <div>
-          <span>{lang === "zh" ? "交易资格检查" : "Trade eligibility"}</span>
-          <strong>{title}</strong>
-          <p>{ticket.summary}</p>
-        </div>
-        <b>{displayTradeAction(ticket.action, lang)}</b>
-      </div>
-      <div className="manual-ticket-grid">
-        <Fact label={text.entryZone} value={displayPlanField(ticket.entryZone, "entry", lang)} />
-        <Fact label={text.stopZone} value={displayPlanField(ticket.stopZone, "stop", lang)} />
-        <Fact label={text.targetZone} value={displayPlanField(ticket.targetZone, "target", lang)} />
-        <Fact label={text.riskReward} value={displayPlanField(ticket.riskReward, "riskReward", lang)} />
-        <Fact label={text.sizeHint} value={displayPlanField(ticket.positionSizeHint, "position", lang)} />
-        <Fact label={lang === "zh" ? "风控状态" : "Risk control"} value={aiDecision?.hard_veto?.active ? (lang === "zh" ? "暂不通过" : "Not cleared") : (lang === "zh" ? "已通过" : "Cleared")} />
-      </div>
-      <div className="readiness-check-grid compact">
-        {ticket.checks.map((check) => (
-          <div className={`readiness-check ${check.ok ? "ok" : "critical"}`} key={check.label}>
-            <span>{check.label}</span>
-            <strong>{check.value}</strong>
-          </div>
-        ))}
-      </div>
-      <div className="manual-conclusion-detail">
-        <Narrative title={text.invalidation} items={(ticket.invalidatedIf.length ? ticket.invalidatedIf : [lang === "zh" ? "暂无失效条件。" : "No invalidation details yet."]).map((item) => displayResearchText(item, lang))} />
-        <Narrative title={text.blockers} items={ticket.reasons.length ? ticket.reasons : ["All ticket checks are clear."]} />
-      </div>
-      <div className="ticket-actions">
-        <button type="button" className="primary-action" onClick={onOpenJournal}>
-          {text.journalBeforeTrade}
-        </button>
-      </div>
-    </section>
-  );
-}
 
 function StockDecisionAnswerCard({
   selected,
