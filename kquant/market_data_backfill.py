@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
 from datetime import UTC, datetime
@@ -15,18 +16,90 @@ from .universe_registry import current_universe_members, ensure_current_universe
 
 
 BACKFILL_VERSION = "longbridge_backfill_v1.1.0"
+DEFAULT_MONTHLY_SYMBOL_QUOTA = 100
+MAX_DOCUMENTED_MONTHLY_SYMBOL_QUOTA = 3000
 BACKFILL_TIMEFRAMES = (
     ("daily", "5y", "1d", 900),
     ("hourly", "2y", "1h", 220),
 )
 
 
+def _month_key(now: datetime | None = None) -> str:
+    return (now or datetime.now(UTC)).astimezone(UTC).strftime("%Y-%m")
+
+
+def _monthly_symbol_quota(value: int | None = None) -> int:
+    raw = value if value is not None else os.getenv("KQUANT_LONGBRIDGE_MONTHLY_SYMBOL_CAP", DEFAULT_MONTHLY_SYMBOL_QUOTA)
+    try:
+        quota = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("KQUANT_LONGBRIDGE_MONTHLY_SYMBOL_CAP must be an integer.") from exc
+    if not 1 <= quota <= MAX_DOCUMENTED_MONTHLY_SYMBOL_QUOTA:
+        raise ValueError(
+            f"Longbridge monthly symbol cap must be between 1 and {MAX_DOCUMENTED_MONTHLY_SYMBOL_QUOTA}."
+        )
+    return quota
+
+
+def backfill_quota_status(
+    *,
+    db_path: Path,
+    requested_symbols: list[str] | None = None,
+    monthly_symbol_cap: int | None = None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Return a conservative local audit of Longbridge monthly symbol usage.
+
+    Longbridge bills historical K-line access by unique symbol per calendar
+    month. KQUANT cannot query the provider's remaining allowance, so this is
+    intentionally a local guard, not a claim about the broker-side balance.
+    """
+
+    month = _month_key(now)
+    quota = _monthly_symbol_quota(monthly_symbol_cap)
+    requested = sorted({str(symbol).upper().strip() for symbol in (requested_symbols or []) if str(symbol).strip()})
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT DISTINCT i.symbol
+            FROM market_backfill_job_items AS i
+            INNER JOIN market_backfill_jobs AS j ON j.job_id = i.job_id
+            WHERE substr(j.requested_at, 1, 7) = ?
+            """,
+            (month,),
+        ).fetchall()
+    tracked = {str(row["symbol"]).upper() for row in rows}
+    new_symbols = sorted(set(requested) - tracked)
+    remaining = max(0, quota - len(tracked))
+    allowed = len(new_symbols) <= remaining
+    if not allowed:
+        status = "blocked_new_symbols_exceed_cap"
+    elif len(tracked) > quota:
+        status = "tracked_usage_exceeds_default_reuse_only"
+    else:
+        status = "ready"
+    return {
+        "month": month,
+        "configured_monthly_symbol_cap": quota,
+        "documented_cap_range": [DEFAULT_MONTHLY_SYMBOL_QUOTA, MAX_DOCUMENTED_MONTHLY_SYMBOL_QUOTA],
+        "tracked_unique_symbols": len(tracked),
+        "requested_unique_symbols": len(requested),
+        "new_unique_symbols": len(new_symbols),
+        "remaining_new_symbol_capacity": remaining,
+        "status": status,
+        "allowed": allowed,
+        "provider_remaining_quota_known": False,
+        "read_only_market_data": True,
+    }
+
+
 def create_backfill_job(
     *,
     db_path: Path,
     symbols: list[str] | None = None,
-    pause_seconds: float = 0.2,
+    pause_seconds: float = 0.5,
     max_attempts: int = 3,
+    monthly_symbol_cap: int | None = None,
 ) -> dict[str, Any]:
     """Queue a resumable Longbridge-only backfill; no network call occurs here."""
 
@@ -35,6 +108,16 @@ def create_backfill_job(
     members = [item for item in current_universe_members(db_path) if not requested or item["symbol"] in requested]
     if requested - {item["symbol"] for item in members}:
         raise ValueError("One or more requested symbols are not in the active universe registry.")
+    quota = backfill_quota_status(
+        db_path=db_path,
+        requested_symbols=[item["symbol"] for item in members],
+        monthly_symbol_cap=monthly_symbol_cap,
+    )
+    if not bool(quota["allowed"]):
+        raise ValueError(
+            "Longbridge monthly new-symbol cap would be exceeded; resume only already-audited symbols "
+            "or set KQUANT_LONGBRIDGE_MONTHLY_SYMBOL_CAP to your verified entitlement."
+        )
     job_id = f"mbj_{uuid.uuid4().hex}"
     now = datetime.now(UTC).isoformat()
     with connect(db_path) as conn:
@@ -45,7 +128,15 @@ def create_backfill_job(
               pause_seconds, max_attempts, requested_at, details_json
             ) VALUES (?, 'longbridge', ?, 'queued', ?, ?, ?, ?, ?)
             """,
-            (job_id, registry["registry_id"], json.dumps(BACKFILL_TIMEFRAMES), pause_seconds, max_attempts, now, json.dumps({"symbol_count": len(members)}, sort_keys=True)),
+            (
+                job_id,
+                registry["registry_id"],
+                json.dumps(BACKFILL_TIMEFRAMES),
+                pause_seconds,
+                max_attempts,
+                now,
+                json.dumps({"symbol_count": len(members), "quota_preflight": quota}, sort_keys=True),
+            ),
         )
         conn.executemany(
             """
@@ -60,7 +151,14 @@ def create_backfill_job(
             ],
         )
         conn.commit()
-    return {"job_id": job_id, "status": "queued", "symbol_count": len(members), "item_count": len(members) * len(BACKFILL_TIMEFRAMES), "registry": registry}
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "symbol_count": len(members),
+        "item_count": len(members) * len(BACKFILL_TIMEFRAMES),
+        "registry": registry,
+        "quota_preflight": quota,
+    }
 
 
 def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dict[str, Any]:
@@ -83,6 +181,30 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
             (job_id, max(1, batch_size)),
         ).fetchall()
         conn.commit()
+    quota = backfill_quota_status(db_path=db_path, requested_symbols=[str(item["symbol"]) for item in items])
+    if items and not bool(quota["allowed"]):
+        now = datetime.now(UTC).isoformat()
+        with connect(db_path) as conn:
+            for item in items:
+                conn.execute(
+                    """
+                    UPDATE market_backfill_job_items
+                    SET status='failed', attempts=attempts + 1, last_error=?, result_json=?, updated_at=?
+                    WHERE job_id=? AND symbol=? AND interval=?
+                    """,
+                    (
+                        "Longbridge monthly new-symbol cap preflight blocked this item.",
+                        json.dumps({"source": "quota_preflight", "provider_status": "blocked"}, sort_keys=True),
+                        now,
+                        job_id,
+                        item["symbol"],
+                        item["interval"],
+                    ),
+                )
+            conn.commit()
+        report = backfill_job_status(db_path=db_path, job_id=job_id)
+        report.update({"processed_in_batch": 0, "environment": environment, "quota_preflight": quota})
+        return report
     completed = 0
     for item in items:
         now = datetime.now(UTC).isoformat()
@@ -127,6 +249,7 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
     report = backfill_job_status(db_path=db_path, job_id=job_id)
     report["processed_in_batch"] = completed
     report["environment"] = environment
+    report["quota_preflight"] = quota
     return report
 
 
@@ -146,7 +269,8 @@ def run_longbridge_backfill(
     universe: str = "all",
     symbols: list[str] | None = None,
     limit: int | None = None,
-    pause_seconds: float = 0.2,
+    pause_seconds: float = 0.5,
+    monthly_symbol_cap: int | None = None,
 ) -> dict[str, Any]:
     """Fill canonical candle coverage without treating a reference fallback as eligible data."""
 
@@ -156,6 +280,16 @@ def run_longbridge_backfill(
     stocks = [item for item in universe_payload.get("stocks", []) if not requested or item["symbol"] in requested]
     if limit:
         stocks = stocks[: max(1, int(limit))]
+    quota = backfill_quota_status(
+        db_path=db_path,
+        requested_symbols=[str(stock["symbol"]) for stock in stocks],
+        monthly_symbol_cap=monthly_symbol_cap,
+    )
+    if not bool(quota["allowed"]):
+        raise ValueError(
+            "Longbridge monthly new-symbol cap would be exceeded; use the resumable queue for already-audited symbols "
+            "or configure a verified entitlement cap."
+        )
     started_at = datetime.now(UTC).isoformat()
     results: list[dict[str, Any]] = []
     for stock in stocks:
@@ -213,6 +347,7 @@ def run_longbridge_backfill(
         "results": results,
         "coverage": coverage,
         "environment": environment,
+        "quota_preflight": quota,
         "reference_fallback_counts_as_eligible": False,
         "read_only_market_data": True,
     }

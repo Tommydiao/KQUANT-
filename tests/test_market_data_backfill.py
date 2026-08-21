@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 
-from kquant.market_data_backfill import run_longbridge_backfill
+import pytest
+
+from kquant.market_data_backfill import backfill_quota_status, create_backfill_job, run_longbridge_backfill
 from kquant.stock_signals import normalize_range_interval
 from kquant.stock_store import connect
 
@@ -153,3 +155,24 @@ def test_direct_backfill_fails_closed_without_longbridge_configuration(tmp_path,
     assert report["eligible_symbol_count"] == 0
     assert report["environment"]["longbridge_credentials_configured"] is False
     assert {item["source"] for item in report["results"][0]["timeframes"]} == {"longbridge_credentials_missing"}
+
+
+def test_backfill_quota_blocks_new_symbols_but_allows_resume_of_tracked_symbols(tmp_path) -> None:
+    db_path = tmp_path / "kquant.sqlite3"
+    with connect(db_path) as conn:
+        conn.executemany(
+            "INSERT INTO stock_universe(symbol, name, sector, layer, tags_json, rank, active, updated_at) VALUES (?, ?, 'Technology', 'Core', '[]', 1, 1, '2026-01-01T00:00:00+00:00')",
+            [("AAA", "AAA"), ("BBB", "BBB")],
+        )
+        conn.commit()
+
+    first = create_backfill_job(db_path=db_path, symbols=["AAA"], pause_seconds=0, monthly_symbol_cap=1)
+    assert first["quota_preflight"]["status"] == "ready"
+    repeated = backfill_quota_status(db_path=db_path, requested_symbols=["AAA"], monthly_symbol_cap=1)
+    assert repeated["allowed"] is True
+    assert repeated["new_unique_symbols"] == 0
+    blocked = backfill_quota_status(db_path=db_path, requested_symbols=["BBB"], monthly_symbol_cap=1)
+    assert blocked["allowed"] is False
+    assert blocked["status"] == "blocked_new_symbols_exceed_cap"
+    with pytest.raises(ValueError, match="monthly new-symbol cap"):
+        create_backfill_job(db_path=db_path, symbols=["BBB"], pause_seconds=0, monthly_symbol_cap=1)

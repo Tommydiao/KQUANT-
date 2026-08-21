@@ -57,6 +57,16 @@ Using the configured Longbridge quote credentials, without writing to SQLite:
   fresh backfill data.
 - The older direct `run_longbridge_backfill` operational entry point now uses
   the same strict configuration and no-fallback policy as the resumable queue.
+- KQUANT now records a local calendar-month unique-symbol ledger before any
+  new backfill job. The default safety cap is 100 symbols, the documented
+  minimum Longbridge tier. It blocks new symbols above that cap but permits
+  resume work for symbols already audited in the same month. The provider's
+  actual remaining quota is not exposed to KQUANT, so a higher verified tier
+  must be configured explicitly through
+  `KQUANT_LONGBRIDGE_MONTHLY_SYMBOL_CAP` (bounded to the documented 3,000
+  maximum). Use `python -m kquant backfill-quota-status` before widening a
+  batch; all backfill CLI commands load only the market-data allowlist rather
+  than the full local `.env`.
 
 ## Verification
 

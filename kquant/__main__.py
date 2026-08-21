@@ -12,7 +12,7 @@ from .database_migrations import apply_sqlite_schema_migrations, migration_readi
 from .data_coverage import api_stock_data_coverage, persist_data_coverage_run
 from .capital_rotation import latest_capital_rotation, run_capital_rotation
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
-from .market_data_backfill import create_backfill_job, run_backfill_job, run_longbridge_backfill
+from .market_data_backfill import backfill_quota_status, create_backfill_job, run_backfill_job, run_longbridge_backfill
 from .provider_event_retention import archive_provider_events, provider_event_retention_status
 from .quant_dataset import build_quant_dataset, list_model_artifacts, model_artifact_detail, read_quant_dataset, run_baseline_suite
 from .stock_quant import build_stock_quant_dataset, latest_stock_quant_run, stock_quant_run_detail
@@ -52,7 +52,6 @@ def load_local_environment(path: Path = Path(".env")) -> None:
 
 
 def main() -> None:
-    load_local_environment()
     parser = argparse.ArgumentParser(prog="python -m kquant")
     sub = parser.add_subparsers(dest="command", required=True)
     scan = sub.add_parser("stock-scan", help="Run the US stock signal scan.")
@@ -76,18 +75,24 @@ def main() -> None:
     backfill.add_argument("--universe", default="all")
     backfill.add_argument("--symbols", default="")
     backfill.add_argument("--limit", type=int, default=None)
-    backfill.add_argument("--pause-seconds", type=float, default=0.2)
+    backfill.add_argument("--pause-seconds", type=float, default=0.5)
+    backfill.add_argument("--monthly-symbol-cap", type=int, default=None)
     backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     backfill.add_argument("--outputs-dir", default="outputs")
     queue_backfill = sub.add_parser("queue-market-backfill", help="Create a resumable Longbridge-only market-data backfill job.")
     queue_backfill.add_argument("--symbols", default="")
-    queue_backfill.add_argument("--pause-seconds", type=float, default=0.2)
+    queue_backfill.add_argument("--pause-seconds", type=float, default=0.5)
     queue_backfill.add_argument("--max-attempts", type=int, default=3)
+    queue_backfill.add_argument("--monthly-symbol-cap", type=int, default=None)
     queue_backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     run_backfill = sub.add_parser("run-market-backfill", help="Run one bounded batch from a queued backfill job.")
     run_backfill.add_argument("--job-id", required=True)
     run_backfill.add_argument("--batch-size", type=int, default=10)
     run_backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    quota_status = sub.add_parser("backfill-quota-status", help="Show KQUANT's local Longbridge monthly unique-symbol quota audit.")
+    quota_status.add_argument("--symbols", default="")
+    quota_status.add_argument("--monthly-symbol-cap", type=int, default=None)
+    quota_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     retention = sub.add_parser("provider-event-retention", help="Inspect or explicitly archive old provider event records without deleting them.")
     retention.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     retention.add_argument("--retention-days", type=int, default=90)
@@ -200,6 +205,9 @@ def main() -> None:
     push_config = sub.add_parser("web-push-config", help="Generate a local VAPID key pair for iPhone Home Screen notifications.")
     push_config.add_argument("--write-env", action="store_true", help="Update the ignored local .env without printing key values.")
     args = parser.parse_args()
+    backfill_commands = {"backfill-market-data", "queue-market-backfill", "run-market-backfill", "backfill-quota-status"}
+    if args.command not in backfill_commands:
+        load_local_environment()
     if args.command == "local-login-config":
         email = input("KQUANT local login email: ").strip().lower()
         if not email or email.count("@") != 1 or email.startswith("@") or email.endswith("@"):
@@ -288,11 +296,13 @@ def main() -> None:
             symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
             limit=args.limit,
             pause_seconds=max(0.0, args.pause_seconds),
+            monthly_symbol_cap=args.monthly_symbol_cap,
         )
         print(json.dumps({
             "version": payload["version"],
             "requested_symbol_count": payload["requested_symbol_count"],
             "eligible_symbol_count": payload["eligible_symbol_count"],
+            "quota_preflight": payload["quota_preflight"],
             "report": str(Path(args.outputs_dir) / "longbridge-backfill-latest.json"),
         }, indent=2))
     if args.command == "queue-market-backfill":
@@ -300,9 +310,16 @@ def main() -> None:
             db_path=Path(args.db_path),
             symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
             pause_seconds=max(0.0, args.pause_seconds), max_attempts=max(1, args.max_attempts),
+            monthly_symbol_cap=args.monthly_symbol_cap,
         ), indent=2))
     if args.command == "run-market-backfill":
         print(json.dumps(run_backfill_job(db_path=Path(args.db_path), job_id=args.job_id, batch_size=max(1, args.batch_size)), indent=2))
+    if args.command == "backfill-quota-status":
+        print(json.dumps(backfill_quota_status(
+            db_path=Path(args.db_path),
+            requested_symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
+            monthly_symbol_cap=args.monthly_symbol_cap,
+        ), indent=2))
     if args.command == "provider-event-retention":
         if args.apply:
             print(json.dumps(archive_provider_events(db_path=Path(args.db_path), output_dir=Path(args.archive_dir), retention_days=max(1, args.retention_days), apply=True), indent=2))
