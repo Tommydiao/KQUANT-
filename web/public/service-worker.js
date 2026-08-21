@@ -1,4 +1,4 @@
-const STATIC_CACHE = "kquant-static-v2-versioned-assets-v1";
+const STATIC_CACHE = "kquant-static-v2-versioned-assets-v2";
 
 function isVersionedStaticAsset(url) {
   if (url.origin !== self.location.origin) return false;

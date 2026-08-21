@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 from fastapi.testclient import TestClient
 
@@ -94,6 +95,29 @@ def test_data_snapshot_route_returns_an_immutable_snapshot(tmp_path: Path) -> No
 
     assert response.status_code == 200
     assert response.json()["content_hash"] == snapshot["content_hash"]
+
+
+def test_data_coverage_route_includes_read_only_backfill_quota_status(tmp_path: Path) -> None:
+    payload = TestClient(_app(tmp_path)).get("/api/data/coverage").json()
+
+    assert payload["backfill_quota"]["read_only_market_data"] is True
+    assert payload["backfill_quota"]["provider_remaining_quota_known"] is False
+    assert payload["historical_validation"]["status"] == "not_materialized"
+    assert payload["historical_validation"]["eligible_symbols"] is None
+
+
+def test_frontend_cache_contract_keeps_html_fresh_and_hash_assets_immutable(tmp_path: Path) -> None:
+    client = TestClient(_app(tmp_path))
+    index = client.get("/")
+
+    assert index.status_code == 200
+    assert index.headers["cache-control"] == "no-cache, no-store, must-revalidate"
+    assert client.get("/service-worker.js").headers["cache-control"] == "no-cache, no-store, must-revalidate"
+    script = re.search(r'<script[^>]+src="(?P<path>/assets/[^"]+\.js)"', index.text)
+    assert script is not None
+    asset = client.get(script.group("path"))
+    assert asset.status_code == 200
+    assert asset.headers["cache-control"] == "public, max-age=31536000, immutable"
 
 
 def test_theme_taxonomy_routes_are_read_only_and_explicit_when_not_materialized(tmp_path: Path) -> None:

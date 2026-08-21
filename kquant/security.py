@@ -249,6 +249,16 @@ class ApiSecurityMiddleware(BaseHTTPMiddleware):
         self.session_auth = session_auth
         self._requests: dict[str, Deque[float]] = defaultdict(deque)
 
+    @staticmethod
+    def _cache_control(path: str) -> str:
+        """Keep the HTML shell fresh while allowing Vite content-hash assets to cache."""
+
+        if path.startswith("/api/"):
+            return "no-store"
+        if path.startswith("/assets/"):
+            return "public, max-age=31536000, immutable"
+        return "no-cache, no-store, must-revalidate"
+
     async def dispatch(self, request: Request, call_next) -> Response:  # type: ignore[no-untyped-def]
         path = request.url.path
         is_api = path.startswith("/api/")
@@ -281,7 +291,7 @@ class ApiSecurityMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        response.headers["Cache-Control"] = "no-store" if path.startswith("/api/") else "public, max-age=300"
+        response.headers["Cache-Control"] = self._cache_control(path)
         return response
 
     @staticmethod

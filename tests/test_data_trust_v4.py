@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 from kquant.data_coverage import api_stock_data_coverage, persist_data_coverage_run
@@ -113,6 +114,37 @@ def test_backfill_queue_stops_the_job_when_longbridge_reports_symbol_quota_exhau
     quota = backfill_quota_status(db_path=db_path, requested_symbols=["TEST"])
     assert quota["status"] == "provider_quota_exhausted"
     assert quota["allowed"] is False
+    assert quota["recovery_action"] == "recheck_next_calendar_month"
+
+
+def test_quota_audit_exposes_a_calendar_recheck_without_calling_longbridge(tmp_path: Path) -> None:
+    from kquant.market_data_quota import backfill_quota_status
+
+    db_path = tmp_path / "quota-audit.sqlite3"
+    _seed_universe(db_path)
+    job = create_backfill_job(db_path=db_path, symbols=["TEST"], pause_seconds=0)
+    with connect(db_path) as conn:
+        conn.execute("UPDATE market_backfill_jobs SET requested_at=? WHERE job_id=?", ("2026-08-22T00:00:00+00:00", job["job_id"]))
+        conn.execute(
+            """
+            UPDATE market_backfill_job_items
+            SET status='blocked_quota', last_error='OpenApiException: code=301607 history candlestick symbol count out of limit'
+            WHERE job_id=?
+            """,
+            (job["job_id"],),
+        )
+        conn.commit()
+
+    quota = backfill_quota_status(
+        db_path=db_path,
+        now=datetime(2026, 8, 22, 12, tzinfo=UTC),
+    )
+    coverage = api_stock_data_coverage(db_path)
+
+    assert quota["provider_quota_lock"] is True
+    assert quota["provider_error_code"] == "301607"
+    assert quota["next_recheck_at"] == "2026-09-01T00:00:00+00:00"
+    assert coverage["backfill_quota"]["read_only_market_data"] is True
 
 
 def test_provider_event_retention_is_report_only_by_default(tmp_path: Path) -> None:

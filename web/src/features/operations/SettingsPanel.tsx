@@ -21,6 +21,25 @@ type CoveragePayload = {
   universe_symbols: number;
   interval_summary: Record<string, { longbridge_eligible_symbols: number; coverage_pct: number; target_pct: number }>;
   universe_registry?: { registry_id: string };
+  backfill_quota?: {
+    status: string;
+    month: string;
+    tracked_unique_symbols: number;
+    configured_monthly_symbol_cap: number;
+    provider_quota_lock: boolean;
+    provider_error_code?: string | null;
+    next_recheck_at?: string | null;
+  };
+  historical_validation?: {
+    status: string;
+    universe_symbols?: number;
+    eligible_symbols?: number | null;
+    coverage_pct?: number | null;
+    target_symbols?: number | null;
+    target_pct?: number;
+    additional_symbols_required?: number | null;
+    target_met?: boolean;
+  };
 };
 
 type TaxonomyPayload = {
@@ -61,6 +80,12 @@ function toUint8Array(value: string): ArrayBuffer {
 
 function label(lang: Lang, zh: string, en: string): string {
   return lang === "zh" ? zh : en;
+}
+
+function localTime(value?: string | null): string {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
 }
 
 export function SettingsPanel({
@@ -173,7 +198,7 @@ export function SettingsPanel({
         <div className="settings-card"><strong>{settingText("futureSaasTarget", "Future hosted target")}</strong><p>{settingText("futureSaasCopy", "Hosted deployment remains separate from the local research runtime.")}</p><p>{settingText("paymentDisabled", "Payments disabled")}</p></div>
         <div className="settings-card"><strong>{settingText("dataSourceTitle", "Data source")}</strong><p>{settingText("dataSourceCopy", "Longbridge is the primary read-only market source; reference data stays quarantined.")}</p><p>{settingText("remoteApi", "Remote API")}: {apiBaseUrl || "not configured"}</p></div>
         <div className="settings-card"><strong>{settingText("aiStatusTitle", "Research service")}</strong><p>{aiStatus?.status === "available" ? `Connected: ${aiStatus.models?.review ?? "review model"}` : "Research service unavailable"}</p><p>{settingText("aiStatusCopy", "Research output never overrides deterministic safeguards.")}</p></div>
-        <div className="settings-card wide"><strong>{label(lang, "数据可信度", "Data trust")}</strong><p>{coverage ? `${coverage.universe_symbols} symbols / registry ${coverage.universe_registry?.registry_id ?? "pending"}` : "Loading coverage report..."}</p>{coverage ? <p>{Object.entries(coverage.interval_summary).map(([interval, item]) => `${interval}: ${item.longbridge_eligible_symbols}/${coverage.universe_symbols} (${item.coverage_pct}% / target ${item.target_pct}%)`).join(" · ")}</p> : null}</div>
+        <div className="settings-card wide"><strong>{label(lang, "数据可信度", "Data trust")}</strong><p>{coverage ? `${coverage.universe_symbols} symbols / registry ${coverage.universe_registry?.registry_id ?? "pending"}` : "Loading coverage report..."}</p>{coverage ? <p>{Object.entries(coverage.interval_summary).map(([interval, item]) => `${interval}: ${item.longbridge_eligible_symbols}/${coverage.universe_symbols} (${item.coverage_pct}% / target ${item.target_pct}%)`).join(" · ")}</p> : null}{coverage?.historical_validation?.eligible_symbols !== undefined && coverage.historical_validation.eligible_symbols !== null ? <p>{label(lang, `历史验证窗口：${coverage.historical_validation.eligible_symbols}/${coverage.historical_validation.universe_symbols ?? coverage.universe_symbols}（${coverage.historical_validation.coverage_pct ?? 0}% / 目标 ${coverage.historical_validation.target_pct ?? 90}%）；仍需 ${coverage.historical_validation.additional_symbols_required ?? 0} 只。`, `Historical validation window: ${coverage.historical_validation.eligible_symbols}/${coverage.historical_validation.universe_symbols ?? coverage.universe_symbols} (${coverage.historical_validation.coverage_pct ?? 0}% / target ${coverage.historical_validation.target_pct ?? 90}%); ${coverage.historical_validation.additional_symbols_required ?? 0} more symbols needed.`)}</p> : null}{coverage?.backfill_quota?.provider_quota_lock ? <p>{label(lang, `历史回填已因 Longbridge 本月额度限制暂停（${coverage.backfill_quota.provider_error_code ?? "provider response"}）。请在 ${localTime(coverage.backfill_quota.next_recheck_at)} 后重新预检；系统不会自动发起请求。`, `Historical backfill is paused by the Longbridge monthly quota (${coverage.backfill_quota.provider_error_code ?? "provider response"}). Recheck after ${localTime(coverage.backfill_quota.next_recheck_at)}; KQUANT will not send requests automatically.`)}</p> : null}</div>
         <div className="settings-card wide"><strong>{label(lang, "主题分类审计", "Theme taxonomy audit")}</strong><p>{taxonomy?.status === "materialized" ? `${taxonomy.taxonomy_version} / as of ${taxonomy.as_of_date} / ${taxonomy.summary?.registry_symbol_count ?? 0} symbols` : "Theme taxonomy snapshot not materialized"}</p>{taxonomy?.summary ? <p>Mapped {taxonomy.summary.mapped_coverage_pct ?? 0}% · explicit review {taxonomy.summary.unmapped_theme_symbols ?? 0} · gate {taxonomy.summary.target_met ? "PASS" : "REVIEW"}</p> : null}{taxonomy?.definitions ? <p>{taxonomy.definitions.slice(0, 8).map((item) => `${item.display_name}: ${item.membership_count}`).join(" · ")}</p> : null}</div>
         <div className="settings-card wide"><strong>{label(lang, "主题轮动基线", "Capital Rotation baseline")}</strong><p>{rotation?.status === "materialized" ? `${rotation.summary?.ranked_theme_count ?? 0} ranked themes / as of ${rotation.as_of_time ?? "-"}` : "Capital Rotation snapshot not materialized"}</p>{rotation?.summary ? <p>Source {rotation.summary.data_source ?? "-"} · stress flips {rotation.summary.stress_direction_flips ?? 0} · unreasonable {rotation.summary.stress_unreasonable_flips ?? 0}</p> : null}{rotation?.scores?.filter((item) => item.score !== null && item.score !== undefined).slice(0, 5).map((item) => <p key={item.definition_id}>{`${item.rank_value ?? "-"}. ${item.definition_id} ${Number(item.score).toFixed(1)} / ${item.eligible_member_count} members`}</p>)}</div>
         <div className="settings-card wide"><strong>Theme Prediction evidence</strong><p>{themePrediction?.status === "materialized" ? `${themePrediction.prediction_version ?? "v1"} / ${themePrediction.gate_status ?? "review"}` : "Theme prediction evidence not materialized"}</p><p>{themePrediction?.summary?.calibration_gate ? `OOS folds ${themePrediction.summary.calibration_gate.observed_oos_folds ?? 0}/${themePrediction.summary.calibration_gate.minimum_oos_folds ?? 3} / probabilities ${themePrediction.summary.display_probability ? "enabled" : "blocked"}` : "Calibration evidence is required before probability display."}</p></div>

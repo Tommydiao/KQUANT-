@@ -22,6 +22,11 @@ export type QuantOverviewPayload = {
     intervals: Record<string, { coverage_pct?: number; longbridge_eligible_symbols?: number; target_met?: boolean }>;
     event_calendar?: { status?: string; trade_eligible?: boolean };
     market_breadth?: { status?: string; participation_score?: number };
+    backfill_quota?: {
+      status?: string;
+      provider_quota_lock?: boolean;
+      next_recheck_at?: string | null;
+    };
     coverage_gate: string;
     source_policy: string;
   };
@@ -163,6 +168,7 @@ export function QuantOverviewPanel({ overview, lang, onPick }: { overview: Quant
           <div className="v2-fact-row"><span>{zh ? "主数据源" : "Primary source"}</span><strong>{overview.data_trust.primary_provider} / {overview.data_trust.canonical_validation_eligible_symbols}/{overview.data_trust.universe_symbols}</strong></div>
           <div className="v2-fact-row"><span>{zh ? "日线 / 1H 覆盖" : "Daily / 1H coverage"}</span><strong>{number(daily?.coverage_pct)}% / {number(hourly?.coverage_pct)}%</strong></div>
           <div className="v2-fact-row"><span>{zh ? "市场宽度" : "Market breadth"}</span><strong>{number(overview.data_trust.market_breadth?.participation_score)}</strong></div>
+          {overview.data_trust.backfill_quota?.provider_quota_lock ? <div className="v2-fact-row"><span>{zh ? "历史回填" : "Historical backfill"}</span><strong className="warn">{zh ? `额度待恢复 / ${date(overview.data_trust.backfill_quota.next_recheck_at)}` : `Quota recheck / ${date(overview.data_trust.backfill_quota.next_recheck_at)}`}</strong></div> : null}
           <small className="v2-muted">{overview.data_trust.source_policy}</small>
         </div>
 

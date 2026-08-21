@@ -105,6 +105,7 @@ def build_v2_overview(db_path: Path) -> dict[str, Any]:
             "intervals": interval_summary,
             "event_calendar": coverage.get("event_calendar") or {},
             "market_breadth": coverage.get("market_breadth") or {},
+            "backfill_quota": coverage.get("backfill_quota") or {},
             "coverage_gate": "PASS" if coverage_gate else "REVIEW",
             "source_policy": "Longbridge canonical data only; legacy reference data is excluded from model evidence.",
         },

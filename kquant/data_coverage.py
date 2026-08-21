@@ -8,6 +8,7 @@ from typing import Any
 
 from .stock_store import connect
 from .universe_registry import ensure_current_universe_registry
+from .market_data_quota import backfill_quota_status
 
 
 LONG_BRIDGE_SOURCE = "longbridge_candles"
@@ -227,6 +228,7 @@ def api_stock_data_coverage(db_path: Path) -> dict[str, Any]:
         "legacy_reference_observations": len(legacy_rows),
         "event_calendar": {"status": "not_ingested", "trade_eligible": False},
         "market_breadth": market_breadth_snapshot(db_path),
+        "backfill_quota": backfill_quota_status(db_path=db_path),
         "symbols": sorted(by_symbol.values(), key=lambda item: item["symbol"]),
         "read_only_research": True,
     }

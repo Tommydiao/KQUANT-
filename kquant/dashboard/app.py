@@ -455,7 +455,7 @@ def create_app(
                 "api_contract_version": API_CONTRACT_VERSION,
                 "started_at_utc": started_at_utc,
                 "auth_routes_version": "local_email_password_v1",
-                "static_assets_version": "v2-versioned-assets-v1",
+                "static_assets_version": "v2-versioned-assets-v2",
                 "database_schema_version": migration["migration"].get("schema_version", 0),
                 "database_schema_fingerprint": migration["migration"].get("schema_fingerprint", ""),
                 "strategy_version": "swing_long_v1.1.0",
@@ -681,7 +681,20 @@ def create_app(
     @app.get("/api/data/coverage")
     def data_trust_coverage() -> dict[str, Any]:
         """Canonical v2 Data Trust endpoint; legacy stock route remains compatible."""
-        return api_stock_data_coverage(settings.db_path)
+        payload = api_stock_data_coverage(settings.db_path)
+        readiness = stock_quant_validation_readiness(settings.db_path)
+        payload["historical_validation"] = {
+            "status": readiness.get("status"),
+            "universe_symbols": readiness.get("universe_symbols", payload.get("universe_symbols", 0)),
+            "eligible_symbols": readiness.get("validation_window_eligible_symbols"),
+            "coverage_pct": readiness.get("validation_window_coverage_pct"),
+            "target_symbols": readiness.get("target_symbols"),
+            "target_pct": readiness.get("target_pct", 90.0),
+            "additional_symbols_required": readiness.get("additional_symbols_required"),
+            "target_met": readiness.get("target_met", False),
+            "reason": readiness.get("reason"),
+        }
+        return payload
 
     @app.get("/api/data/snapshots/{snapshot_id}")
     def data_snapshot(snapshot_id: str) -> dict[str, Any]:
