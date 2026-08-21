@@ -85,7 +85,7 @@ function Resolve-KquantPython {
 }
 
 $Url = "http://$HostName`:$Port/"
-$ExpectedApiContract = "kquant-api-2026-08-22-v2-oos-shadow-v2"
+$ExpectedApiContract = "kquant-api-2026-08-22-v2-oos-shadow-v3"
 function Test-KquantDashboardOnline {
   try {
     $response = Invoke-WebRequest -UseBasicParsing "$Url/api/health" -TimeoutSec 3

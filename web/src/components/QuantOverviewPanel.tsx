@@ -50,6 +50,16 @@ export type QuantOverviewPayload = {
     deployment_status?: string;
     deployment_blockers?: string[];
     test_trade_count: number;
+    validation_readiness?: {
+      status: string;
+      dataset_id?: string | null;
+      universe_symbols?: number;
+      validation_window_eligible_symbols?: number;
+      validation_window_coverage_pct?: number | null;
+      target_met?: boolean;
+      additional_symbols_required?: number;
+      reason?: string | null;
+    };
     readiness: string;
   };
   theme_prediction: { status: string; gate_status?: string | null; display_probability: boolean; oos_fold_count: number };
@@ -125,6 +135,7 @@ export function QuantOverviewPanel({ overview, lang, onPick }: { overview: Quant
   }
   const daily = overview.data_trust.intervals["1d"];
   const hourly = overview.data_trust.intervals["1h"];
+  const validationReadiness = overview.stock_quant.validation_readiness;
   const chainLabels = zh ? ["主题轮动", "主题分类", "领导力", "股票量化"] : ["Capital Rotation", "Theme Taxonomy", "Leadership", "Stock Quant"];
   return (
     <section className="panel v2-overview-panel" aria-label={zh ? "研究证据总览" : "Research evidence overview"}>
@@ -171,6 +182,7 @@ export function QuantOverviewPanel({ overview, lang, onPick }: { overview: Quant
         <div className="v2-overview-card validation-card">
           <div className="v2-card-title"><ShieldCheck size={15} /><strong>{zh ? "股票量化验证" : "Stock Quant validation"}</strong><b className="warn">{statusLabel(overview.stock_quant.validation_gate, lang)}</b></div>
           <div className="v2-validation-score"><strong>{overview.stock_quant.deployment_model ?? (zh ? "暂无可用模型" : "No deployable model")}</strong><span>{number(overview.stock_quant.test_trade_count)} {zh ? "测试交易" : "test trades"}</span></div>
+          <div className="v2-fact-row"><span>{zh ? "历史验证覆盖" : "Historical validation"}</span><strong>{validationReadiness?.status === "not_materialized" ? "-" : `${number(validationReadiness?.validation_window_eligible_symbols)}/${number(validationReadiness?.universe_symbols)} (${number(validationReadiness?.validation_window_coverage_pct)}%)`}</strong></div>
           <div className="v2-fact-row"><span>{zh ? "研究候选" : "Research candidate"}</span><strong>{overview.stock_quant.research_candidate ?? "-"}</strong></div>
           <div className="v2-fact-row"><span>{zh ? "模型版本" : "Model"}</span><strong>{overview.stock_quant.model_version ?? "-"}</strong></div>
           {overview.stock_quant.deployment_blockers?.length ? <small className="v2-warning">{zh ? `尚未通过：${overview.stock_quant.deployment_blockers.map((item) => deploymentBlockerLabel(item, lang)).join("、")}` : `Blocked by: ${overview.stock_quant.deployment_blockers.map((item) => deploymentBlockerLabel(item, lang)).join(", ")}`}</small> : null}

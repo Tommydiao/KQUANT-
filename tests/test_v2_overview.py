@@ -16,7 +16,7 @@ def test_v2_overview_is_read_only_and_preserves_evidence_chain(tmp_path: Path) -
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["contract_version"] == "kquant_v2_overview_v1.0.0"
+    assert payload["contract_version"] == "kquant_v2_overview_v1.1.0"
     assert payload["read_only_research"] is True
     assert payload["automatic_execution_allowed"] is False
     assert payload["order_submission_enabled"] is False
@@ -29,6 +29,7 @@ def test_v2_overview_is_read_only_and_preserves_evidence_chain(tmp_path: Path) -
     assert payload["shadow_observation"]["go_no_go"] == "NO_GO"
     assert payload["shadow_observation"]["start_allowed"] is False
     assert payload["shadow_observation"]["next_action"]
+    assert payload["stock_quant"]["validation_readiness"]["status"] == "not_materialized"
 
     shadow = client.get("/api/shadow-observation/status")
     assert shadow.status_code == 200

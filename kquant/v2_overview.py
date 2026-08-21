@@ -8,13 +8,14 @@ from .capital_rotation import latest_capital_rotation
 from .data_coverage import api_stock_data_coverage
 from .leadership import latest_leadership
 from .stock_quant import latest_stock_quant_run
+from .stock_quant_readiness import stock_quant_validation_readiness
 from .stock_quant_validation import latest_stock_quant_validation
 from .shadow_observation import latest_shadow_observation
 from .theme_prediction import latest_theme_prediction
 from .theme_taxonomy import latest_theme_taxonomy
 
 
-OVERVIEW_CONTRACT_VERSION = "kquant_v2_overview_v1.0.0"
+OVERVIEW_CONTRACT_VERSION = "kquant_v2_overview_v1.1.0"
 
 
 def _now() -> str:
@@ -45,6 +46,7 @@ def build_v2_overview(db_path: Path) -> dict[str, Any]:
     leadership = latest_leadership(db_path)
     stock_quant = latest_stock_quant_run(db_path)
     validation = latest_stock_quant_validation(db_path)
+    validation_readiness = stock_quant_validation_readiness(db_path)
     interval_summary = coverage.get("interval_summary") or {}
     daily = interval_summary.get("1d") or {}
     hourly = interval_summary.get("1h") or {}
@@ -160,6 +162,16 @@ def build_v2_overview(db_path: Path) -> dict[str, Any]:
             "deployment_status": validation_summary.get("deployment_status", "not_available"),
             "deployment_blockers": validation_summary.get("deployment_blockers") or [],
             "test_trade_count": validation_summary.get("selected_test_trade_count", 0),
+            "validation_readiness": {
+                "status": validation_readiness.get("status"),
+                "dataset_id": (validation_readiness.get("dataset") or {}).get("dataset_id"),
+                "universe_symbols": validation_readiness.get("universe_symbols", 0),
+                "validation_window_eligible_symbols": validation_readiness.get("validation_window_eligible_symbols", 0),
+                "validation_window_coverage_pct": validation_readiness.get("validation_window_coverage_pct"),
+                "target_met": validation_readiness.get("target_met", False),
+                "additional_symbols_required": validation_readiness.get("additional_symbols_required", 0),
+                "reason": validation_readiness.get("reason"),
+            },
             "readiness": "RESEARCH_ONLY" if validation_gate != "pass" else "SHADOW_ONLY",
         },
         "theme_prediction": {

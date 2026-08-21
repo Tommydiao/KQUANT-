@@ -74,7 +74,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v2";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v3";
 type AuthSession = {
   authentication_required: boolean;
   authenticated: boolean;
