@@ -55,6 +55,8 @@ Using the configured Longbridge quote credentials, without writing to SQLite:
   Longbridge credentials are absent. Backfill calls also disable Yahoo
   reference fallback, so a failed Longbridge job cannot write fallback rows as
   fresh backfill data.
+- The older direct `run_longbridge_backfill` operational entry point now uses
+  the same strict configuration and no-fallback policy as the resumable queue.
 
 ## Verification
 

@@ -150,6 +150,7 @@ def run_longbridge_backfill(
 ) -> dict[str, Any]:
     """Fill canonical candle coverage without treating a reference fallback as eligible data."""
 
+    environment = load_market_data_env()
     universe_payload = api_stock_universe(universe=universe, db_path=db_path)
     requested = {item.strip().upper() for item in (symbols or []) if item.strip()}
     stocks = [item for item in universe_payload.get("stocks", []) if not requested or item["symbol"] in requested]
@@ -160,7 +161,22 @@ def run_longbridge_backfill(
     for stock in stocks:
         timeframe_results = []
         for name, range_value, interval, minimum_bars in BACKFILL_TIMEFRAMES:
-            payload = api_stock_candles(stock["symbol"], range_value, interval, "live", db_path)
+            if not bool(environment["longbridge_credentials_configured"]):
+                payload = {
+                    "provider_status": "unavailable",
+                    "source_type": "longbridge_credentials_missing",
+                    "candles": [],
+                    "provider_errors": ["Longbridge credentials are not configured for this backfill process."],
+                }
+            else:
+                payload = api_stock_candles(
+                    stock["symbol"],
+                    range_value,
+                    interval,
+                    "live",
+                    db_path,
+                    allow_reference_fallback=False,
+                )
             candle_count = len(payload.get("candles") or [])
             source = str(payload.get("source_type") or "unknown")
             eligible = bool(
@@ -196,6 +212,7 @@ def run_longbridge_backfill(
         "eligible_symbol_count": sum(1 for item in results if item["eligible"]),
         "results": results,
         "coverage": coverage,
+        "environment": environment,
         "reference_fallback_counts_as_eligible": False,
         "read_only_market_data": True,
     }

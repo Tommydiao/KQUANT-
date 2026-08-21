@@ -18,9 +18,15 @@ def test_backfill_never_counts_reference_fallback_as_eligible(tmp_path, monkeypa
         lambda **_: {"universe": "all", "stocks": [{"symbol": "NVDA"}]},
     )
 
-    def candles(symbol, range_value, interval, source, db_path):
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.load_market_data_env",
+        lambda: {"status": "test", "loaded_key_count": 0, "longbridge_credentials_configured": True},
+    )
+
+    def candles(symbol, range_value, interval, source, db_path, *, allow_reference_fallback=True):
         assert symbol == "NVDA"
         assert source == "live"
+        assert allow_reference_fallback is False
         count = 1000 if interval == "1d" else 500
         return {
             "provider_status": "fallback",
@@ -103,12 +109,16 @@ def test_backfill_counts_only_sufficient_longbridge_ranges(tmp_path, monkeypatch
     )
     monkeypatch.setattr(
         "kquant.market_data_backfill.api_stock_candles",
-        lambda symbol, range_value, interval, source, db_path: {
+        lambda symbol, range_value, interval, source, db_path, *, allow_reference_fallback=True: {
             "provider_status": "available",
             "source_type": "longbridge_candles",
             "candles": [{}] * (1000 if interval == "1d" else 300),
             "provider_errors": [],
         },
+    )
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.load_market_data_env",
+        lambda: {"status": "test", "loaded_key_count": 0, "longbridge_credentials_configured": True},
     )
     monkeypatch.setattr("kquant.market_data_backfill.api_stock_data_coverage", lambda _: {})
     report = run_longbridge_backfill(
@@ -117,3 +127,29 @@ def test_backfill_counts_only_sufficient_longbridge_ranges(tmp_path, monkeypatch
         pause_seconds=0,
     )
     assert report["eligible_symbol_count"] == 1
+
+
+def test_direct_backfill_fails_closed_without_longbridge_configuration(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.api_stock_universe",
+        lambda **_: {"universe": "all", "stocks": [{"symbol": "NVDA"}]},
+    )
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.load_market_data_env",
+        lambda: {"status": "env_file_missing", "loaded_key_count": 0, "longbridge_credentials_configured": False},
+    )
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.api_stock_candles",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("reference fallback must not be requested")),
+    )
+    monkeypatch.setattr("kquant.market_data_backfill.api_stock_data_coverage", lambda _: {})
+
+    report = run_longbridge_backfill(
+        db_path=tmp_path / "kquant.sqlite3",
+        outputs_dir=tmp_path / "outputs",
+        pause_seconds=0,
+    )
+
+    assert report["eligible_symbol_count"] == 0
+    assert report["environment"]["longbridge_credentials_configured"] is False
+    assert {item["source"] for item in report["results"][0]["timeframes"]} == {"longbridge_credentials_missing"}
