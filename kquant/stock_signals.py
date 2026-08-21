@@ -6,7 +6,7 @@ import math
 import os
 import sqlite3
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -55,7 +55,7 @@ RANGE_INTERVAL_SPECS = {
     ("1y", "1d"): {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
     ("2y", "1d"): {"bars": 504, "step": timedelta(days=1), "interval": "1d"},
     ("2y", "1h"): {"bars": 3500, "step": timedelta(hours=1), "interval": "1h"},
-    ("5y", "1d"): {"bars": 1000, "step": timedelta(days=1), "interval": "1d"},
+    ("5y", "1d"): {"bars": 1260, "step": timedelta(days=1), "interval": "1d"},
     ("5y", "1wk"): {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
     ("10y", "1mo"): {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
@@ -70,6 +70,7 @@ LONG_BRIDGE_STALE_SOURCE = "stale_longbridge_cache"
 YAHOO_FALLBACK_SOURCE = "yahoo_public_fallback"
 REAL_MONEY_CANDLE_SOURCE = LONG_BRIDGE_CANDLE_SOURCE
 LONG_BRIDGE_TIMEOUT_SECONDS = int(os.getenv("KQUANT_LONGBRIDGE_TIMEOUT_SECONDS", "12"))
+LONG_BRIDGE_HISTORY_PAGE_LIMIT = 1000
 LEGACY_REFERENCE_SOURCES = {
     "live_yahoo_chart",
     "stale_yahoo_chart_cache",
@@ -1005,6 +1006,99 @@ def api_stock_market_data_self_check(
     }
 
 
+def _longbridge_rows_to_candles(rows: Any) -> list[dict[str, Any]]:
+    by_time: dict[int, dict[str, Any]] = {}
+    for row in list(rows or []):
+        open_time = _parse_longbridge_time(
+            _pick_attr(row, ("timestamp", "time", "open_time", "date", "datetime"))
+        )
+        open_ = _decimal_float(_pick_attr(row, ("open", "open_price")))
+        high = _decimal_float(_pick_attr(row, ("high", "high_price")))
+        low = _decimal_float(_pick_attr(row, ("low", "low_price")))
+        close = _decimal_float(_pick_attr(row, ("close", "close_price")))
+        volume = _decimal_float(_pick_attr(row, ("volume", "turnover", "trade_volume")), 0.0)
+        if open_time is None or None in (open_, high, low, close):
+            continue
+        timestamp = int(open_time.timestamp())
+        by_time[timestamp] = {
+            "open_time": open_time.isoformat(),
+            "time": timestamp,
+            "open": round(float(open_), 4),
+            "high": round(float(high), 4),
+            "low": round(float(low), 4),
+            "close": round(float(close), 4),
+            "volume": float(volume or 0.0),
+            "source": LONG_BRIDGE_CANDLE_SOURCE,
+        }
+    return [by_time[timestamp] for timestamp in sorted(by_time)]
+
+
+def _longbridge_history_window(range_value: str, now: datetime) -> tuple[date, date] | None:
+    days = {
+        "2y": 2 * 366,
+        "5y": 5 * 366,
+    }.get(range_value)
+    if days is None:
+        return None
+    return now.date() - timedelta(days=days), now.date()
+
+
+def _longbridge_historical_candles(
+    *,
+    symbol: str,
+    range_value: str,
+    interval: str,
+    count: int,
+    now: datetime,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    window = _longbridge_history_window(range_value, now)
+    if window is None:
+        return [], {"mode": "unavailable", "page_count": 0}
+    start_date, requested_end_date = window
+    cursor_end = requested_end_date
+    period = _longbridge_period(interval)
+    adjust_type = _longbridge_adjust_type()
+    pages: list[dict[str, Any]] = []
+    page_count = 0
+    max_pages = max(1, math.ceil(count / LONG_BRIDGE_HISTORY_PAGE_LIMIT) + 2)
+    for _ in range(max_pages):
+        if cursor_end < start_date:
+            break
+        rows = longbridge_runtime().history_candlesticks_by_date(
+            symbol,
+            period,
+            adjust_type,
+            start_date,
+            cursor_end,
+            LONG_BRIDGE_TIMEOUT_SECONDS,
+        )
+        page = _longbridge_rows_to_candles(rows)
+        page_count += 1
+        if not page:
+            break
+        pages.extend(page)
+        oldest = datetime.fromisoformat(page[0]["open_time"]).date()
+        if oldest <= start_date:
+            break
+        next_end = oldest - timedelta(days=1)
+        if next_end >= cursor_end:
+            break
+        cursor_end = next_end
+    deduplicated = {int(candle["time"]): candle for candle in pages}
+    candles = [
+        candle
+        for _, candle in sorted(deduplicated.items())
+        if candle["open_time"][:10] >= start_date.isoformat()
+    ]
+    return candles[-count:], {
+        "mode": "history_candlesticks_by_date",
+        "requested_start_date": start_date.isoformat(),
+        "requested_end_date": requested_end_date.isoformat(),
+        "page_count": page_count,
+        "provider_max_bars_per_page": LONG_BRIDGE_HISTORY_PAGE_LIMIT,
+    }
+
+
 def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str, Any]:
     if not longbridge_env_ready():
         return unavailable_candles(
@@ -1027,38 +1121,26 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
     try:
         lb_symbol = longbridge_symbol(symbol)
         count = int(candle_spec(range_value, interval)["bars"])
-        rows, delivery_mode = longbridge_runtime().realtime_candlesticks(
-            lb_symbol,
-            _longbridge_period(interval),
-            count,
-            _longbridge_adjust_type(),
-            LONG_BRIDGE_TIMEOUT_SECONDS,
-        )
-        candles: list[dict[str, Any]] = []
-        for row in list(rows or []):
-            open_time = _parse_longbridge_time(
-                _pick_attr(row, ("timestamp", "time", "open_time", "date", "datetime"))
+        current = datetime.now(UTC)
+        history_pagination: dict[str, Any] | None = None
+        if count > LONG_BRIDGE_HISTORY_PAGE_LIMIT:
+            candles, history_pagination = _longbridge_historical_candles(
+                symbol=lb_symbol,
+                range_value=range_value,
+                interval=interval,
+                count=count,
+                now=current,
             )
-            open_ = _decimal_float(_pick_attr(row, ("open", "open_price")))
-            high = _decimal_float(_pick_attr(row, ("high", "high_price")))
-            low = _decimal_float(_pick_attr(row, ("low", "low_price")))
-            close = _decimal_float(_pick_attr(row, ("close", "close_price")))
-            volume = _decimal_float(_pick_attr(row, ("volume", "turnover", "trade_volume")), 0.0)
-            if open_time is None or None in (open_, high, low, close):
-                continue
-            candles.append(
-                {
-                    "open_time": open_time.isoformat(),
-                    "time": int(open_time.timestamp()),
-                    "open": round(float(open_), 4),
-                    "high": round(float(high), 4),
-                    "low": round(float(low), 4),
-                    "close": round(float(close), 4),
-                    "volume": float(volume or 0.0),
-                    "source": LONG_BRIDGE_CANDLE_SOURCE,
-                }
+            delivery_mode = "history_by_date"
+        else:
+            rows, delivery_mode = longbridge_runtime().realtime_candlesticks(
+                lb_symbol,
+                _longbridge_period(interval),
+                count,
+                _longbridge_adjust_type(),
+                LONG_BRIDGE_TIMEOUT_SECONDS,
             )
-        candles.sort(key=lambda candle: int(candle["time"]))
+            candles = _longbridge_rows_to_candles(rows)
         candles = _filter_today_intraday_candles(candles, range_value, interval)
         if not candles:
             return unavailable_candles(
@@ -1068,7 +1150,6 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
                 "Longbridge returned 0 candles.",
                 source_type=LONG_BRIDGE_CANDLE_SOURCE,
             )
-        current = datetime.now(UTC)
         candles = annotate_candle_states(candles, interval, current)
         latest_open = datetime.fromisoformat(candles[-1]["open_time"])
         bar_open_age = max(0, int((current - latest_open).total_seconds()))
@@ -1076,12 +1157,12 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
         freshness_seconds = max(0, int((current - latest_close).total_seconds()))
         clock = market_clock(current)
         realtime_lag_seconds = max(interval_seconds(interval) * 2, 180)
-        stale_during_regular = clock.session == "regular" and freshness_seconds > realtime_lag_seconds
+        stale_during_regular = not history_pagination and clock.session == "regular" and freshness_seconds > realtime_lag_seconds
         source_type = LONG_BRIDGE_STALE_SOURCE if stale_during_regular else LONG_BRIDGE_CANDLE_SOURCE
         provider_status = "stale_cache" if stale_during_regular else "available"
-        freshness = "stale_longbridge_cache" if stale_during_regular else (
+        freshness = "historical_backfill" if history_pagination else ("stale_longbridge_cache" if stale_during_regular else (
             "live" if clock.session == "regular" else "market_closed"
-        )
+        ))
         return {
             "instrument_type": "stock",
             "symbol": symbol,
@@ -1099,6 +1180,7 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "bar_open_age_seconds": bar_open_age,
             "latest_bar_state": candles[-1]["bar_state"],
             "delivery_mode": delivery_mode,
+            "history_pagination": history_pagination,
             "timestamp_contract": "utc_iso8601",
             "session": clock.session,
             "market_clock": clock.as_dict(),

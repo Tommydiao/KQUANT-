@@ -13,7 +13,7 @@ from .stock_store import connect
 from .universe_registry import current_universe_members, ensure_current_universe_registry
 
 
-BACKFILL_VERSION = "longbridge_backfill_v1.0.0"
+BACKFILL_VERSION = "longbridge_backfill_v1.1.0"
 BACKFILL_TIMEFRAMES = (
     ("daily", "5y", "1d", 900),
     ("hourly", "2y", "1h", 220),

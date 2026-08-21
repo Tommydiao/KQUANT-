@@ -148,6 +148,29 @@ class LongbridgeReadOnlyRuntime:
             timeout_seconds,
         )
 
+    def history_candlesticks_by_date(
+        self,
+        symbol: str,
+        period: Any,
+        adjust_type: Any,
+        start: Any,
+        end: Any,
+        timeout_seconds: int,
+    ) -> Any:
+        """Read a bounded historical page without creating a trade context."""
+
+        return self.call(
+            "history_candlesticks_by_date",
+            lambda context: context.history_candlesticks_by_date(
+                symbol,
+                period,
+                adjust_type,
+                start,
+                end,
+            ),
+            timeout_seconds,
+        )
+
     def realtime_candlesticks(
         self,
         symbol: str,

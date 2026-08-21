@@ -1,7 +1,8 @@
 from pathlib import Path
 import json
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
+from types import SimpleNamespace
 
 import pytest
 
@@ -26,6 +27,7 @@ from kquant.stock_signals import (
     api_stock_signals_latest,
     archive_legacy_reference_report,
     ai_hard_veto,
+    longbridge_candles,
 )
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
@@ -224,7 +226,54 @@ def test_fixture_higher_timeframe_candles_match_declared_timeframe(tmp_path: Pat
 
     coerced = api_stock_candles("SPY", "5y", "1d", "fixture", db_path)
     assert coerced["interval"] == "1d"
-    assert len(coerced["candles"]) == 1000
+    assert len(coerced["candles"]) == 1260
+
+
+def test_longbridge_history_ranges_page_back_from_latest_data(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeHistoryRuntime:
+        def __init__(self) -> None:
+            self.calls: list[tuple[date, date]] = []
+
+        def history_candlesticks_by_date(self, symbol, period, adjust_type, start, end, timeout_seconds):
+            assert symbol == "AAPL.US"
+            assert timeout_seconds > 0
+            self.calls.append((start, end))
+            if end == date(2024, 6, 30):
+                return [
+                    SimpleNamespace(timestamp="2024-05-01T14:30:00+00:00", open=10, high=12, low=9, close=11, volume=100),
+                    SimpleNamespace(timestamp="2024-06-30T14:30:00+00:00", open=11, high=13, low=10, close=12, volume=120),
+                ]
+            assert end == date(2024, 4, 30)
+            return [
+                SimpleNamespace(timestamp="2024-01-01T14:30:00+00:00", open=8, high=10, low=7, close=9, volume=80),
+                SimpleNamespace(timestamp="2024-04-30T14:30:00+00:00", open=9, high=11, low=8, close=10, volume=90),
+            ]
+
+    runtime = FakeHistoryRuntime()
+    monkeypatch.setattr("kquant.stock_signals.longbridge_env_ready", lambda: True)
+    monkeypatch.setattr("kquant.stock_signals.longbridge_runtime", lambda: runtime)
+    monkeypatch.setattr(
+        "kquant.stock_signals._longbridge_history_window",
+        lambda range_value, now: (date(2024, 1, 1), date(2024, 6, 30)),
+    )
+
+    payload = longbridge_candles("AAPL", "2y", "1h")
+
+    assert payload["provider_status"] == "available"
+    assert payload["delivery_mode"] == "history_by_date"
+    assert payload["freshness"] == "historical_backfill"
+    assert payload["history_pagination"] == {
+        "mode": "history_candlesticks_by_date",
+        "requested_start_date": "2024-01-01",
+        "requested_end_date": "2024-06-30",
+        "page_count": 2,
+        "provider_max_bars_per_page": 1000,
+    }
+    assert [item["close"] for item in payload["candles"]] == [9.0, 10.0, 11.0, 12.0]
+    assert runtime.calls == [
+        (date(2024, 1, 1), date(2024, 6, 30)),
+        (date(2024, 1, 1), date(2024, 4, 30)),
+    ]
 
 
 def test_longbridge_market_data_status_is_read_only(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

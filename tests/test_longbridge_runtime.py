@@ -35,6 +35,9 @@ class FakeQuoteContext:
     def realtime_candlesticks(self, symbol, period, count):
         return [SimpleNamespace(close=100)]
 
+    def history_candlesticks_by_date(self, symbol, period, adjust_type, start, end):
+        return [SimpleNamespace(symbol=symbol, period=period, adjust_type=adjust_type, start=start, end=end)]
+
     def unsubscribe_candlesticks(self, symbol, period):
         self.candle_unsubscribed.append((symbol, period))
 
@@ -61,4 +64,19 @@ def test_depth_uses_subscription_cache() -> None:
     assert mode == "subscription_cache"
     assert depth.bids[0].price == 99.9
     assert runtime.health()["depth_subscription_count"] == 1
+    runtime._executor.shutdown(wait=True)
+
+
+def test_history_candlesticks_stays_inside_quote_runtime() -> None:
+    runtime = LongbridgeReadOnlyRuntime()
+    runtime._context = FakeQuoteContext()
+
+    rows = runtime.history_candlesticks_by_date(
+        "NVDA.US", "Min_60", "NoAdjust", "2025-01-01", "2025-03-31", 2
+    )
+
+    assert rows[0].symbol == "NVDA.US"
+    assert rows[0].start == "2025-01-01"
+    assert rows[0].end == "2025-03-31"
+    assert runtime.health()["trade_context_enabled"] is False
     runtime._executor.shutdown(wait=True)

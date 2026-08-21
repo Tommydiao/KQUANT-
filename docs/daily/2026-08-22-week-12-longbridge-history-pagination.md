@@ -1,0 +1,63 @@
+# KQUANT v2 Week 12 Gate Repair: Longbridge Historical Pagination
+
+Date: 2026-08-22
+Branch: `codex/kquant-v2-gap-analysis`
+Scope: read-only Longbridge historical market-data retrieval. No broker,
+account, position, order, or execution capability was added.
+
+## Objective
+
+Repair the false historical-coverage result caused by the standard Longbridge
+candlestick endpoint's maximum of 1,000 rows per request. The existing
+backfill requested 3,500 two-year 1H bars but received only the latest 1,000,
+which was enough for the operational display but not enough for a sealed
+historical validation window.
+
+## Delivered change
+
+- Added `LongbridgeReadOnlyRuntime.history_candlesticks_by_date()` to the
+  existing persistent quote-only context.
+- `longbridge_candles()` now selects date-based historical pagination whenever
+  the requested bar count exceeds 1,000.
+- Each page is normalized, de-duplicated by UTC opening time, and fetched from
+  the latest page backwards until the requested date window is covered.
+- Historical results report `delivery_mode=history_by_date`,
+  `freshness=historical_backfill`, and explicit pagination metadata. They are
+  intentionally not represented as live quote data.
+- The five-year daily range now requests the normal 1,260 trading-day target.
+- Advanced the resumable queue marker to `longbridge_backfill_v1.1.0`.
+
+## Read-only provider verification
+
+Using the configured Longbridge quote credentials, without writing to SQLite:
+
+- `AAPL`, `2y`, `1h`: 3,500 candles across four pages, from
+  2024-08-19 through 2026-08-21.
+- `AAPL`, `5y`, `1d`: 1,259 provider candles across two pages, from
+  2021-08-17 through 2026-08-21. The one-bar difference from the nominal
+  1,260 target reflects the provider's actual trading-calendar history.
+
+## Leakage and operational controls
+
+- The adapter uses the persistent `QuoteContext` only. It never initializes a
+  Longbridge trade context.
+- Historical pagination carries a separate freshness state, so a chart or
+  strategy cannot mistake backfilled history for a current quote.
+- Yahoo remains outside this path; a Longbridge failure is still handled by
+  the existing explicit reference-data policy.
+- A full-universe run is not started by this code change. The existing
+  restart-safe queue must first run bounded batches and retain provider result
+  metadata, limits, and failures.
+
+## Verification
+
+- New quote-runtime confinement test: passed.
+- New multi-page/de-duplication/freshness test: passed.
+- Real provider read-only range checks: passed as documented above.
+
+## Gate status
+
+The historical range capability is now available, but the Stock Quant
+historical coverage and Phase 5 release Gate remain `NO_GO` until controlled
+backfill, immutable dataset rebuilding, and fresh walk-forward validation are
+complete.
