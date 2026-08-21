@@ -67,6 +67,11 @@ Using the configured Longbridge quote credentials, without writing to SQLite:
   maximum). Use `python -m kquant backfill-quota-status` before widening a
   batch; all backfill CLI commands load only the market-data allowlist rather
   than the full local `.env`.
+- Queue audit now distinguishes `completed` (target history reached),
+  `completed_limited` (genuine Longbridge history persisted but below the
+  requested five-year daily or two-year 1H target), and `failed` (no usable
+  Longbridge result). Limited history never counts as full coverage or as a
+  validation-Gate pass, but it is not misreported as a provider outage.
 
 ## Verification
 

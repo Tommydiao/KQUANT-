@@ -59,6 +59,30 @@ def test_backfill_queue_retries_reference_fallback_without_counting_it_as_comple
     assert second["item_counts"]["failed"] == 2
 
 
+def test_backfill_queue_records_partial_longbridge_history_without_retrying(tmp_path: Path, monkeypatch) -> None:
+    db_path = tmp_path / "partial.sqlite3"
+    _seed_universe(db_path)
+    job = create_backfill_job(db_path=db_path, symbols=["TEST"], pause_seconds=0, max_attempts=2)
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.load_market_data_env",
+        lambda: {"status": "test", "loaded_key_count": 0, "longbridge_credentials_configured": True},
+    )
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.api_stock_candles",
+        lambda *args, **kwargs: {
+            "source_type": "longbridge_candles",
+            "provider_status": "available",
+            "candles": [{}] * 10,
+            "provider_errors": [],
+        },
+    )
+
+    report = run_backfill_job(db_path=db_path, job_id=job["job_id"], batch_size=2)
+
+    assert report["job"]["status"] == "completed"
+    assert report["item_counts"] == {"completed_limited": 2}
+
+
 def test_provider_event_retention_is_report_only_by_default(tmp_path: Path) -> None:
     db_path = tmp_path / "retention.sqlite3"
     with connect(db_path) as conn:

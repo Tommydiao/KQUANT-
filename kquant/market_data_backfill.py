@@ -220,15 +220,28 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
                 allow_reference_fallback=False,
             )
             count = len(payload.get("candles") or [])
-            success = bool(payload.get("provider_status") == "available" and payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE and count >= int(item["minimum_bars"]))
-            result = {"source": payload.get("source_type"), "provider_status": payload.get("provider_status"), "candle_count": count, "errors": list(payload.get("provider_errors") or [])[:3]}
-            error = "" if success else "longbridge coverage remains insufficient or unavailable"
+            provider_available = bool(
+                payload.get("provider_status") == "available"
+                and payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE
+            )
+            full_coverage = provider_available and count >= int(item["minimum_bars"])
+            partial_history = provider_available and 0 < count < int(item["minimum_bars"])
+            success = provider_available and count > 0
+            result = {
+                "source": payload.get("source_type"),
+                "provider_status": payload.get("provider_status"),
+                "candle_count": count,
+                "minimum_bars": int(item["minimum_bars"]),
+                "coverage_status": "full" if full_coverage else "limited_history" if partial_history else "unavailable",
+                "errors": list(payload.get("provider_errors") or [])[:3],
+            }
+            error = "" if full_coverage else "Longbridge history is available but below target coverage." if partial_history else "longbridge coverage remains insufficient or unavailable"
         except Exception as exc:  # provider failures must become auditable, resumable work
-            success, result, error = False, {}, f"{type(exc).__name__}: {exc}"
+            success, partial_history, result, error = False, False, {}, f"{type(exc).__name__}: {exc}"
         with connect(db_path) as conn:
             attempts = int(item["attempts"]) + 1
             retry = not success and attempts < int(job["max_attempts"])
-            status = "completed" if success else ("retry" if retry else "failed")
+            status = "completed" if success and not partial_history else "completed_limited" if success else ("retry" if retry else "failed")
             conn.execute(
                 """
                 UPDATE market_backfill_job_items
@@ -322,12 +335,13 @@ def run_longbridge_backfill(
                 "name": name,
                 "range": range_value,
                 "interval": interval,
-                "minimum_bars": minimum_bars,
-                "candle_count": candle_count,
-                "source": source,
-                "provider_status": payload.get("provider_status"),
-                "eligible": eligible,
-                "errors": list(payload.get("provider_errors") or [])[:3],
+            "minimum_bars": minimum_bars,
+            "candle_count": candle_count,
+            "source": source,
+            "provider_status": payload.get("provider_status"),
+            "eligible": eligible,
+            "coverage_status": "full" if eligible else "limited_history" if source == LONG_BRIDGE_CANDLE_SOURCE and candle_count > 0 else "unavailable",
+            "errors": list(payload.get("provider_errors") or [])[:3],
             })
             if pause_seconds > 0:
                 time.sleep(pause_seconds)
