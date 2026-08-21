@@ -12,7 +12,13 @@ from .database_migrations import apply_sqlite_schema_migrations, migration_readi
 from .data_coverage import api_stock_data_coverage, persist_data_coverage_run
 from .capital_rotation import latest_capital_rotation, run_capital_rotation
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
-from .market_data_backfill import backfill_quota_status, create_backfill_job, run_backfill_job, run_longbridge_backfill
+from .market_data_backfill import (
+    backfill_quota_status,
+    create_backfill_job,
+    create_quota_recovery_job,
+    run_backfill_job,
+    run_longbridge_backfill,
+)
 from .provider_event_retention import archive_provider_events, provider_event_retention_status
 from .quant_dataset import build_quant_dataset, list_model_artifacts, model_artifact_detail, read_quant_dataset, run_baseline_suite
 from .stock_quant import build_stock_quant_dataset, latest_stock_quant_run, stock_quant_run_detail
@@ -93,6 +99,13 @@ def main() -> None:
     quota_status.add_argument("--symbols", default="")
     quota_status.add_argument("--monthly-symbol-cap", type=int, default=None)
     quota_status.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
+    recover_backfill = sub.add_parser(
+        "resume-quota-backfill",
+        help="Create a new manual Longbridge queue from 301607 quota-blocked work after a fresh preflight.",
+    )
+    recover_backfill.add_argument("--source-job-id", required=True)
+    recover_backfill.add_argument("--monthly-symbol-cap", type=int, default=None)
+    recover_backfill.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     retention = sub.add_parser("provider-event-retention", help="Inspect or explicitly archive old provider event records without deleting them.")
     retention.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     retention.add_argument("--retention-days", type=int, default=90)
@@ -205,7 +218,7 @@ def main() -> None:
     push_config = sub.add_parser("web-push-config", help="Generate a local VAPID key pair for iPhone Home Screen notifications.")
     push_config.add_argument("--write-env", action="store_true", help="Update the ignored local .env without printing key values.")
     args = parser.parse_args()
-    backfill_commands = {"backfill-market-data", "queue-market-backfill", "run-market-backfill", "backfill-quota-status"}
+    backfill_commands = {"backfill-market-data", "queue-market-backfill", "run-market-backfill", "backfill-quota-status", "resume-quota-backfill"}
     if args.command not in backfill_commands:
         load_local_environment()
     if args.command == "local-login-config":
@@ -318,6 +331,12 @@ def main() -> None:
         print(json.dumps(backfill_quota_status(
             db_path=Path(args.db_path),
             requested_symbols=[item.strip().upper() for item in args.symbols.split(",") if item.strip()] or None,
+            monthly_symbol_cap=args.monthly_symbol_cap,
+        ), indent=2))
+    if args.command == "resume-quota-backfill":
+        print(json.dumps(create_quota_recovery_job(
+            db_path=Path(args.db_path),
+            source_job_id=args.source_job_id,
             monthly_symbol_cap=args.monthly_symbol_cap,
         ), indent=2))
     if args.command == "provider-event-retention":

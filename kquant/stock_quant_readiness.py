@@ -64,6 +64,12 @@ def _coverage_rows(db_path: Path, *, available_at: str | None = None) -> dict[st
     return result
 
 
+def _active_universe_count(db_path: Path) -> int:
+    with connect(db_path) as conn:
+        row = conn.execute("SELECT COUNT(*) AS count FROM stock_universe WHERE active = 1").fetchone()
+    return int(row["count"] or 0)
+
+
 def _interval_reasons(
     observation: dict[str, Any] | None,
     *,
@@ -176,12 +182,11 @@ def stock_quant_validation_readiness(db_path: Path, dataset_id: str | None = Non
     validation_run = dict(latest.get("run") or {})
     resolved_dataset = requested_dataset or str(validation_run.get("dataset_id") or "")
     if not resolved_dataset:
-        current = _coverage_rows(db_path)
         return {
             "status": "not_materialized",
             "contract_version": STOCK_QUANT_READINESS_VERSION,
             "dataset": None,
-            "universe_symbols": len(current),
+            "universe_symbols": _active_universe_count(db_path),
             "reason": "Materialize an immutable Stock Quant dataset before measuring its historical validation window.",
             "read_only_research": True,
         }

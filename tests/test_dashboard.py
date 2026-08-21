@@ -98,12 +98,23 @@ def test_data_snapshot_route_returns_an_immutable_snapshot(tmp_path: Path) -> No
 
 
 def test_data_coverage_route_includes_read_only_backfill_quota_status(tmp_path: Path) -> None:
-    payload = TestClient(_app(tmp_path)).get("/api/data/coverage").json()
+    client = TestClient(_app(tmp_path))
+    payload = client.get("/api/data/coverage?detail=summary").json()
 
+    assert payload["detail"] == "summary"
+    assert payload["symbol_details_included"] is False
+    assert payload["symbols"] == []
     assert payload["backfill_quota"]["read_only_market_data"] is True
     assert payload["backfill_quota"]["provider_remaining_quota_known"] is False
+    assert payload["backfill_quota"]["quota_recovery"]["manual_action_required"] is False
     assert payload["historical_validation"]["status"] == "not_materialized"
     assert payload["historical_validation"]["eligible_symbols"] is None
+
+    full = client.get("/api/data/coverage")
+    assert full.status_code == 200
+    assert full.json()["detail"] == "full"
+    assert full.json()["symbol_details_included"] is True
+    assert client.get("/api/data/coverage?detail=unexpected").status_code == 400
 
 
 def test_frontend_cache_contract_keeps_html_fresh_and_hash_assets_immutable(tmp_path: Path) -> None:

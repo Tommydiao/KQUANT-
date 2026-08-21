@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 
 import pytest
 
-from kquant.market_data_backfill import backfill_quota_status, create_backfill_job, run_longbridge_backfill
+from kquant.market_data_backfill import (
+    backfill_quota_status,
+    create_backfill_job,
+    create_quota_recovery_job,
+    run_longbridge_backfill,
+)
 from kquant.stock_signals import normalize_range_interval
 from kquant.stock_store import connect
 
@@ -176,3 +182,52 @@ def test_backfill_quota_blocks_new_symbols_but_allows_resume_of_tracked_symbols(
     assert blocked["status"] == "blocked_new_symbols_exceed_cap"
     with pytest.raises(ValueError, match="monthly new-symbol cap"):
         create_backfill_job(db_path=db_path, symbols=["BBB"], pause_seconds=0, monthly_symbol_cap=1)
+
+
+def test_quota_recovery_clones_legacy_301607_items_only_after_a_new_month(tmp_path, monkeypatch) -> None:
+    db_path = tmp_path / "kquant.sqlite3"
+    with connect(db_path) as conn:
+        conn.execute(
+            "INSERT INTO stock_universe(symbol, name, sector, layer, tags_json, rank, active, updated_at) "
+            "VALUES ('AAA', 'AAA', 'Technology', 'Core', '[]', 1, 1, '2026-01-01T00:00:00+00:00')"
+        )
+        conn.commit()
+    source = create_backfill_job(db_path=db_path, symbols=["AAA"], pause_seconds=0, max_attempts=2)
+    with connect(db_path) as conn:
+        conn.execute("UPDATE market_backfill_jobs SET status='completed', requested_at=? WHERE job_id=?", ("2026-08-22T00:00:00+00:00", source["job_id"]))
+        conn.execute(
+            "UPDATE market_backfill_job_items SET status='completed' WHERE job_id=? AND interval='1d'",
+            (source["job_id"],),
+        )
+        conn.execute(
+            """
+            UPDATE market_backfill_job_items
+            SET status='failed', result_json='{"errors":["OpenApiException: code=301607 history candlestick symbol count out of limit"]}'
+            WHERE job_id=? AND interval='1h'
+            """,
+            (source["job_id"],),
+        )
+        conn.commit()
+    monkeypatch.setattr(
+        "kquant.market_data_backfill.api_stock_candles",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("recovery must not request market data")),
+    )
+
+    august = datetime(2026, 8, 22, 12, tzinfo=UTC)
+    with pytest.raises(ValueError, match="quota preflight is not ready"):
+        create_quota_recovery_job(db_path=db_path, source_job_id=source["job_id"], now=august)
+
+    september = datetime(2026, 9, 1, 0, tzinfo=UTC)
+    recovery = create_quota_recovery_job(db_path=db_path, source_job_id=source["job_id"], now=september)
+
+    assert recovery["resumed_from_job_id"] == source["job_id"]
+    assert recovery["item_count"] == 1
+    assert recovery["network_started"] is False
+    assert recovery["manual_run_required"] is True
+    with connect(db_path) as conn:
+        source_status = conn.execute("SELECT status FROM market_backfill_jobs WHERE job_id=?", (source["job_id"],)).fetchone()["status"]
+        item = conn.execute("SELECT status, attempts, interval FROM market_backfill_job_items WHERE job_id=?", (recovery["job_id"],)).fetchone()
+    assert source_status == "completed"
+    assert dict(item) == {"status": "queued", "attempts": 0, "interval": "1h"}
+    with pytest.raises(ValueError, match="active quota-recovery job"):
+        create_quota_recovery_job(db_path=db_path, source_job_id=source["job_id"], now=september)

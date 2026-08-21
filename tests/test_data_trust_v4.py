@@ -37,6 +37,15 @@ def test_data_coverage_tracks_1m_gaps_and_persists_registry(tmp_path: Path) -> N
     assert observed["gap_count"] == 1
     saved = persist_data_coverage_run(db_path)
     assert saved["coverage_run_id"].startswith("dcr_")
+    summary = api_stock_data_coverage(
+        db_path,
+        include_symbols=False,
+        prefer_materialized_summary=True,
+    )
+    assert summary["coverage_snapshot"]["status"] == "materialized"
+    assert summary["coverage_snapshot"]["coverage_run_id"] == saved["coverage_run_id"]
+    assert summary["symbols"] == []
+    assert summary["market_breadth"]["status"] == "not_loaded_in_coverage_summary"
     with connect(db_path) as conn:
         assert conn.execute("SELECT COUNT(*) FROM data_coverage_items").fetchone()[0] == 3
 

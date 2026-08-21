@@ -39,7 +39,7 @@ def build_v2_overview(db_path: Path) -> dict[str, Any]:
     into an execution permission.
     """
 
-    coverage = api_stock_data_coverage(db_path)
+    coverage = api_stock_data_coverage(db_path, include_symbols=False, prefer_materialized_summary=True)
     taxonomy = latest_theme_taxonomy(db_path)
     rotation = latest_capital_rotation(db_path)
     prediction = latest_theme_prediction(db_path)

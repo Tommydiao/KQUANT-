@@ -103,16 +103,23 @@ def _age_seconds(value: str | None) -> int | None:
     return max(0, int((datetime.now(UTC) - stamp).total_seconds()))
 
 
-def _coverage_rows(db_path: Path) -> list[dict[str, Any]]:
+def _coverage_rows(db_path: Path, *, include_open_times: bool = True) -> list[dict[str, Any]]:
+    """Read coverage aggregations without changing stored evidence.
+
+    Full audits need every timestamp to calculate observed gaps. Operational
+    summary views do not, so avoid collecting all timestamps for them.
+    """
+
+    open_times_select = "GROUP_CONCAT(c.open_time, '|') AS open_times" if include_open_times else "NULL AS open_times"
     with connect(db_path) as conn:
         rows = conn.execute(
-            """
+            f"""
             SELECT u.symbol, u.name, u.sector, u.layer, 'unclassified' AS liquidity_tier,
                    c.interval, c.primary_source AS source, c.adjustment_mode,
                    c.provider_status, COUNT(*) AS candle_count,
                    MIN(c.open_time) AS first_time, MAX(c.open_time) AS last_time,
                    MAX(c.fetched_at) AS fetched_at,
-                   GROUP_CONCAT(c.open_time, '|') AS open_times
+                   {open_times_select}
             FROM stock_universe u
             LEFT JOIN market_candles c ON c.symbol = u.symbol
             WHERE u.active=1
@@ -143,11 +150,114 @@ def _gap_summary(open_times: str | None, interval: str) -> tuple[int, int | None
     return len(significant), max(significant, default=None)
 
 
-def api_stock_data_coverage(db_path: Path) -> dict[str, Any]:
+def _latest_materialized_summary(db_path: Path, *, current_registry_id: str) -> dict[str, Any] | None:
+    """Read a previously recorded coverage snapshot for an operational summary.
+
+    Coverage runs are explicit, immutable audit artifacts. They are a better
+    source for the lightweight UI summary than rescanning every historical bar
+    on every page load. A changed universe invalidates the shortcut so callers
+    safely fall back to a fresh aggregation instead.
+    """
+
+    with connect(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT r.coverage_run_id, r.registry_id, r.contract_version, r.as_of_time,
+                   r.summary_json, r.created_at, u.symbol_count
+            FROM data_coverage_runs AS r
+            LEFT JOIN universe_registry_versions AS u ON u.registry_id = r.registry_id
+            ORDER BY r.created_at DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None or str(row["registry_id"]) != current_registry_id:
+            return None
+        summary_rows = conn.execute(
+            """
+            SELECT
+              COUNT(DISTINCT CASE
+                WHEN source IN ('live_yahoo_chart', 'stale_yahoo_chart_cache', 'yahoo_public_fallback', 'yahoo_public')
+                THEN symbol || '|' || interval
+              END) AS legacy_reference_observations
+            FROM data_coverage_items
+            WHERE coverage_run_id = ?
+            """,
+            (str(row["coverage_run_id"]),),
+        ).fetchone()
+        canonical_rows = conn.execute(
+            """
+            SELECT COUNT(*) AS eligible_symbols
+            FROM (
+              SELECT symbol
+              FROM data_coverage_items
+              WHERE coverage_run_id = ?
+                AND interval IN ('1d', '1h')
+                AND eligibility_status = 'eligible'
+              GROUP BY symbol
+              HAVING COUNT(DISTINCT interval) = 2
+            )
+            """,
+            (str(row["coverage_run_id"]),),
+        ).fetchone()
+    try:
+        interval_summary = json.loads(str(row["summary_json"]))
+    except json.JSONDecodeError:
+        return None
+    universe_symbols = int(row["symbol_count"] or 0)
+    return {
+        "product": "KQUANT US Stock Signal Terminal",
+        "as_of": str(row["as_of_time"]),
+        "contract_version": str(row["contract_version"]),
+        "universe_registry": {
+            "registry_id": str(row["registry_id"]),
+            "symbol_count": universe_symbols,
+            "source": "materialized_coverage_run",
+        },
+        "primary_provider": "longbridge",
+        "universe_symbols": universe_symbols,
+        "required_intervals": MODEL_REQUIRED_INTERVALS,
+        "tracked_intervals": TRACKED_INTERVALS,
+        "interval_summary": interval_summary,
+        "canonical_validation_eligible_symbols": int(canonical_rows["eligible_symbols"] or 0),
+        "legacy_reference_observations": int(summary_rows["legacy_reference_observations"] or 0),
+        "event_calendar": {"status": "not_ingested", "trade_eligible": False},
+        "coverage_snapshot": {
+            "status": "materialized",
+            "coverage_run_id": str(row["coverage_run_id"]),
+            "as_of_time": str(row["as_of_time"]),
+            "created_at": str(row["created_at"]),
+            "source": "data_coverage_runs",
+            "current_registry_matches": True,
+        },
+        "symbol_details_included": False,
+        "symbols": [],
+        "read_only_research": True,
+    }
+
+
+def api_stock_data_coverage(
+    db_path: Path,
+    *,
+    include_symbols: bool = True,
+    prefer_materialized_summary: bool = False,
+) -> dict[str, Any]:
     """Return a source-aware, audit-friendly coverage matrix without fetching data."""
 
     registry = ensure_current_universe_registry(db_path)
-    rows = _coverage_rows(db_path)
+    if not include_symbols and prefer_materialized_summary:
+        materialized = _latest_materialized_summary(db_path, current_registry_id=str(registry["registry_id"]))
+        if materialized is not None:
+            # Breadth is a separate all-history calculation, not a coverage
+            # fact. Keep it off the operational coverage hot path rather than
+            # delaying the page or presenting a stale value as current.
+            materialized["market_breadth"] = {
+                "status": "not_loaded_in_coverage_summary",
+                "source": LONG_BRIDGE_SOURCE,
+                "note": "Load a dedicated breadth snapshot before using breadth as model evidence.",
+            }
+            materialized["backfill_quota"] = backfill_quota_status(db_path=db_path)
+            return materialized
+    rows = _coverage_rows(db_path, include_open_times=include_symbols)
     by_symbol: dict[str, dict[str, Any]] = {}
     for row in rows:
         symbol = str(row["symbol"])
@@ -166,7 +276,7 @@ def api_stock_data_coverage(db_path: Path) -> dict[str, Any]:
         if not interval:
             continue
         current = item["intervals"].get(interval)
-        gap_count, max_gap_seconds = _gap_summary(row.get("open_times"), str(interval))
+        gap_count, max_gap_seconds = _gap_summary(row.get("open_times"), str(interval)) if include_symbols else (None, None)
         candidate = {
             "source": row.get("source") or "missing",
             "adjustment_mode": row.get("adjustment_mode") or "unknown",
@@ -229,7 +339,9 @@ def api_stock_data_coverage(db_path: Path) -> dict[str, Any]:
         "event_calendar": {"status": "not_ingested", "trade_eligible": False},
         "market_breadth": market_breadth_snapshot(db_path),
         "backfill_quota": backfill_quota_status(db_path=db_path),
-        "symbols": sorted(by_symbol.values(), key=lambda item: item["symbol"]),
+        "coverage_snapshot": {"status": "live_aggregation", "current_registry_matches": True},
+        "symbol_details_included": include_symbols,
+        "symbols": sorted(by_symbol.values(), key=lambda item: item["symbol"]) if include_symbols else [],
         "read_only_research": True,
     }
 

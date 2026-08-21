@@ -30,3 +30,8 @@ def test_data_coverage_requires_longbridge_and_required_bar_counts(tmp_path: Pat
     assert nvda["eligible_for_canonical_validation"] is True
     assert payload["interval_summary"]["1d"]["longbridge_eligible_symbols"] == 1
     assert payload["event_calendar"]["trade_eligible"] is False
+
+    summary = api_stock_data_coverage(db_path, include_symbols=False)
+    assert summary["symbol_details_included"] is False
+    assert summary["symbols"] == []
+    assert summary["canonical_validation_eligible_symbols"] == payload["canonical_validation_eligible_symbols"]

@@ -77,6 +77,23 @@ def backfill_quota_status(
             """,
             (month,),
         ).fetchone()
+        recovery_rows = conn.execute(
+            """
+            SELECT i.job_id AS source_job_id, j.status AS source_job_status,
+                   j.requested_at AS source_requested_at,
+                   COUNT(*) AS item_count, COUNT(DISTINCT i.symbol) AS symbol_count
+            FROM market_backfill_job_items AS i
+            INNER JOIN market_backfill_jobs AS j ON j.job_id = i.job_id
+            WHERE j.provider = 'longbridge'
+              AND (
+                i.status = 'blocked_quota'
+                OR i.last_error LIKE '%301607%'
+                OR i.result_json LIKE '%301607%'
+              )
+            GROUP BY i.job_id, j.status, j.requested_at
+            ORDER BY j.requested_at ASC, i.job_id ASC
+            """
+        ).fetchall()
     tracked = {str(row["symbol"]).upper() for row in rows}
     new_symbols = sorted(set(requested) - tracked)
     remaining = max(0, quota - len(tracked))
@@ -90,6 +107,16 @@ def backfill_quota_status(
         status = "tracked_usage_exceeds_default_reuse_only"
     else:
         status = "ready"
+    recovery_candidates = [
+        {
+            "source_job_id": str(row["source_job_id"]),
+            "source_job_status": str(row["source_job_status"]),
+            "source_requested_at": str(row["source_requested_at"]),
+            "item_count": int(row["item_count"]),
+            "symbol_count": int(row["symbol_count"]),
+        }
+        for row in recovery_rows
+    ]
     return {
         "month": month,
         "configured_monthly_symbol_cap": quota,
@@ -105,6 +132,13 @@ def backfill_quota_status(
         "provider_error_code": "301607" if provider_quota_locked else None,
         "next_recheck_at": _next_month_start(now) if provider_quota_locked else None,
         "recovery_action": "recheck_next_calendar_month" if provider_quota_locked else "bounded_preflight_available",
+        "quota_recovery": {
+            "manual_action_required": bool(recovery_candidates),
+            "candidate_job_count": len(recovery_candidates),
+            "candidate_item_count": sum(item["item_count"] for item in recovery_candidates),
+            "candidate_symbol_count": sum(item["symbol_count"] for item in recovery_candidates),
+            "candidates": recovery_candidates,
+        },
         "read_only_market_data": True,
     }
 

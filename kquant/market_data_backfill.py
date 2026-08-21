@@ -19,7 +19,7 @@ from .stock_store import connect
 from .universe_registry import current_universe_members, ensure_current_universe_registry
 
 
-BACKFILL_VERSION = "longbridge_backfill_v1.2.0"
+BACKFILL_VERSION = "longbridge_backfill_v1.3.0"
 BACKFILL_TIMEFRAMES = (
     ("daily", "5y", "1d", 900),
     ("hourly", "2y", "1h", 220),
@@ -96,6 +96,142 @@ def create_backfill_job(
         "item_count": len(members) * len(BACKFILL_TIMEFRAMES),
         "registry": registry,
         "quota_preflight": quota,
+    }
+
+
+def create_quota_recovery_job(
+    *,
+    db_path: Path,
+    source_job_id: str,
+    monthly_symbol_cap: int | None = None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Clone only provider-quota-blocked work into a new manual queue.
+
+    The source job remains immutable. This function never calls Longbridge;
+    the operator must separately run a bounded batch after the fresh-month
+    preflight reports that it is allowed.
+    """
+
+    source_id = str(source_job_id or "").strip()
+    if not source_id:
+        raise ValueError("A source backfill job id is required.")
+    with connect(db_path) as conn:
+        source = conn.execute("SELECT * FROM market_backfill_jobs WHERE job_id=?", (source_id,)).fetchone()
+        if source is None:
+            raise ValueError(f"Unknown backfill job: {source_id}")
+        if str(source["provider"]) != "longbridge":
+            raise ValueError("Only Longbridge market-data jobs can be recovered.")
+        items = conn.execute(
+            """
+            SELECT symbol, interval, range_value, minimum_bars
+            FROM market_backfill_job_items
+            WHERE job_id=?
+              AND (
+                status='blocked_quota'
+                OR last_error LIKE '%301607%'
+                OR result_json LIKE '%301607%'
+              )
+            ORDER BY symbol, interval
+            """,
+            (source_id,),
+        ).fetchall()
+        active_recovery = conn.execute(
+            """
+            SELECT job_id FROM market_backfill_jobs
+            WHERE status IN ('queued', 'running')
+              AND details_json LIKE ?
+            LIMIT 1
+            """,
+            (f'%"resumed_from_job_id": "{source_id}"%',),
+        ).fetchone()
+    if active_recovery is not None:
+        raise ValueError(f"An active quota-recovery job already exists: {active_recovery['job_id']}")
+    if not items:
+        raise ValueError("The source job has no provider-quota-blocked items to recover.")
+    symbols = sorted({str(item["symbol"]) for item in items})
+    quota = backfill_quota_status(
+        db_path=db_path,
+        requested_symbols=symbols,
+        monthly_symbol_cap=monthly_symbol_cap,
+        now=now,
+    )
+    if not bool(quota["allowed"]):
+        raise ValueError(
+            "Longbridge quota preflight is not ready for recovery: "
+            f"{quota['status']}. Recheck the provider entitlement before creating a new queue."
+        )
+    requested_at = (now or datetime.now(UTC)).astimezone(UTC).isoformat()
+    job_id = f"mbj_{uuid.uuid4().hex}"
+    details = {
+        "backfill_version": BACKFILL_VERSION,
+        "resumed_from_job_id": source_id,
+        "source_job_status": str(source["status"]),
+        "recovery_reason": "provider_quota_301607",
+        "symbol_count": len(symbols),
+        "item_count": len(items),
+        "quota_preflight": quota,
+        "network_started": False,
+        "manual_run_required": True,
+    }
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO market_backfill_jobs(
+              job_id, provider, registry_id, status, requested_intervals_json,
+              pause_seconds, max_attempts, requested_at, details_json
+            ) VALUES (?, ?, ?, 'queued', ?, ?, ?, ?, ?)
+            """,
+            (
+                job_id,
+                source["provider"],
+                source["registry_id"],
+                source["requested_intervals_json"],
+                source["pause_seconds"],
+                source["max_attempts"],
+                requested_at,
+                json.dumps(details, sort_keys=True),
+            ),
+        )
+        conn.executemany(
+            """
+            INSERT INTO market_backfill_job_items(
+              job_id, symbol, interval, range_value, minimum_bars, status,
+              attempts, next_attempt_at, last_error, result_json, updated_at
+            ) VALUES (?, ?, ?, ?, ?, 'queued', 0, NULL, '', ?, ?)
+            """,
+            [
+                (
+                    job_id,
+                    item["symbol"],
+                    item["interval"],
+                    item["range_value"],
+                    item["minimum_bars"],
+                    json.dumps(
+                        {
+                            "resumed_from_job_id": source_id,
+                            "recovery_reason": "provider_quota_301607",
+                            "network_started": False,
+                        },
+                        sort_keys=True,
+                    ),
+                    requested_at,
+                )
+                for item in items
+            ],
+        )
+        conn.commit()
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "resumed_from_job_id": source_id,
+        "source_job_status": str(source["status"]),
+        "symbol_count": len(symbols),
+        "item_count": len(items),
+        "quota_preflight": quota,
+        "network_started": False,
+        "manual_run_required": True,
+        "read_only_market_data": True,
     }
 
 

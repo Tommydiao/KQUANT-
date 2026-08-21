@@ -679,9 +679,21 @@ def create_app(
         return api_stock_data_coverage(settings.db_path)
 
     @app.get("/api/data/coverage")
-    def data_trust_coverage() -> dict[str, Any]:
-        """Canonical v2 Data Trust endpoint; legacy stock route remains compatible."""
-        payload = api_stock_data_coverage(settings.db_path)
+    def data_trust_coverage(detail: str = "full") -> dict[str, Any]:
+        """Canonical v2 Data Trust endpoint; legacy stock route remains compatible.
+
+        The default retains the original complete audit representation. The UI
+        explicitly requests ``detail=summary`` for the light operational view.
+        """
+
+        normalized_detail = detail.strip().lower()
+        if normalized_detail not in {"summary", "full"}:
+            raise HTTPException(status_code=400, detail="detail must be 'summary' or 'full'")
+        payload = api_stock_data_coverage(
+            settings.db_path,
+            include_symbols=normalized_detail == "full",
+            prefer_materialized_summary=normalized_detail == "summary",
+        )
         readiness = stock_quant_validation_readiness(settings.db_path)
         payload["historical_validation"] = {
             "status": readiness.get("status"),
@@ -694,6 +706,7 @@ def create_app(
             "target_met": readiness.get("target_met", False),
             "reason": readiness.get("reason"),
         }
+        payload["detail"] = normalized_detail
         return payload
 
     @app.get("/api/data/snapshots/{snapshot_id}")
