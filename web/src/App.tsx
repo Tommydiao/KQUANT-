@@ -30,6 +30,7 @@ import { ChartPanel as ChartPanelView } from "./features/quant/ChartPanel";
 import { TodayDecisionPanel as TodayDecisionPanelView } from "./features/quant/TodayDecisionPanel";
 import { DataReliabilityPanel as DataReliabilityPanelView, RiskControlPanel as RiskControlPanelView } from "./features/operations/OperationsEvidencePanels";
 import { RealtimeCommandCenter as RealtimeCommandCenterView } from "./features/operations/RealtimeCommandCenter";
+import { ReadinessPanel as ReadinessPanelView } from "./features/operations/ReadinessPanel";
 import { SettingsPanel as SettingsPanelView } from "./features/operations/SettingsPanel";
 import { StockJournalPanel as StockJournalPanelView } from "./features/operations/StockJournalPanel";
 import { ThemeRadarPanel as ThemeRadarPanelView } from "./features/theme/ThemeRadarPanel";
@@ -3198,7 +3199,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
           <strong>{mondayReadiness.status}</strong>
           <small>{text.systemStatusSummary}</small>
         </summary>
-        <MondayReadinessPanel readiness={mondayReadiness} text={text} />
+        <ReadinessPanelView readiness={mondayReadiness} text={text} />
       </details>
       <ResearchOpportunityDeskView
         report={aiDailyReport}
@@ -3661,60 +3662,6 @@ function LoginScreen({ mode, onAuthenticated }: { mode: "login" | "setup" | "err
 
 
 
-function MondayReadinessPanel({
-  readiness,
-  text,
-}: {
-  readiness: MondayReadiness;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-}) {
-  const statusLabel =
-    readiness.status === "READY"
-      ? text.readinessReady
-      : readiness.status === "CAUTION"
-        ? text.readinessCaution
-        : text.readinessNoTrade;
-  return (
-    <section className={`panel live-readiness-panel ${readiness.status.toLowerCase().replace(/_/g, "-")}`}>
-      <div className="readiness-head">
-        <div>
-          <span className="eyebrow">{text.realMoneyPilot}</span>
-          <h2>{text.mondayReadiness}</h2>
-          <p>{readiness.summary}</p>
-        </div>
-        <b>{statusLabel}</b>
-      </div>
-      {readiness.status === "NO_TRADE" ? <p className="compare-error">{text.noRealMoneyTrade}</p> : null}
-      <div className="readiness-check-grid">
-        {readiness.checks.map((check) => (
-          <div className={`readiness-check ${check.ok ? "ok" : check.critical ? "critical" : "warn"}`} key={check.label}>
-            <span>{check.label}</span>
-            <strong>{check.value}</strong>
-          </div>
-        ))}
-      </div>
-      {readiness.reasons.length ? (
-        <div className="readiness-reasons">
-          {readiness.reasons.map((reason) => (
-            <span key={reason}>{reason}</span>
-          ))}
-        </div>
-      ) : null}
-      <div className="pilot-runbook">
-        <strong>{text.firstDayRiskRules}</strong>
-        {readiness.riskRules.map((rule) => (
-          <span key={rule}>{rule}</span>
-        ))}
-      </div>
-      <div className="pilot-runbook compact">
-        <strong>{text.mondayRunbook}</strong>
-        {[text.runbookPremarket, text.runbookOpen, text.runbookEntry, text.runbookClose].map((step) => (
-          <span key={step}>{step}</span>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function ManualTradeTicketPanel({
   ticket,
