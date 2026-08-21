@@ -1394,6 +1394,8 @@ def api_stock_candles(
     interval: str = "1d",
     source: str = "live",
     db_path: Path | None = None,
+    *,
+    allow_reference_fallback: bool = True,
 ) -> dict[str, Any]:
     def with_data_quality(result: dict[str, Any]) -> dict[str, Any]:
         result["data_quality"] = assess_candle_payload(result, db_path=db_path)
@@ -1426,7 +1428,7 @@ def api_stock_candles(
             )
             if cached:
                 return with_data_quality(cached)
-            if provider == "longbridge":
+            if provider == "longbridge" and allow_reference_fallback:
                 fallback = yahoo_candles(symbol, range_value, interval)
                 if fallback["provider_status"] == "available":
                     fallback["source_type"] = YAHOO_FALLBACK_SOURCE

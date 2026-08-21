@@ -48,6 +48,13 @@ Using the configured Longbridge quote credentials, without writing to SQLite:
 - A full-universe run is not started by this code change. The existing
   restart-safe queue must first run bounded batches and retain provider result
   metadata, limits, and failures.
+- Follow-up repair: resumable backfill jobs explicitly load only missing
+  Longbridge market-data settings from the local `.env` through
+  `kquant.local_env`. They never load research-model credentials, never expose
+  values in their audit payload, and fail before a candle request when the
+  Longbridge credentials are absent. Backfill calls also disable Yahoo
+  reference fallback, so a failed Longbridge job cannot write fallback rows as
+  fresh backfill data.
 
 ## Verification
 

@@ -45,6 +45,10 @@ def test_backfill_queue_retries_reference_fallback_without_counting_it_as_comple
     _seed_universe(db_path)
     job = create_backfill_job(db_path=db_path, symbols=["TEST"], pause_seconds=0, max_attempts=2)
     monkeypatch.setattr(
+        "kquant.market_data_backfill.load_market_data_env",
+        lambda: {"status": "test", "loaded_key_count": 0, "longbridge_credentials_configured": True},
+    )
+    monkeypatch.setattr(
         "kquant.market_data_backfill.api_stock_candles",
         lambda *args, **kwargs: {"source_type": "live_yahoo_chart", "provider_status": "available", "candles": [{}] * 999, "provider_errors": []},
     )

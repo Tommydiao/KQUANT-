@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .data_coverage import api_stock_data_coverage
+from .local_env import load_market_data_env
 from .stock_signals import LONG_BRIDGE_CANDLE_SOURCE, api_stock_candles, api_stock_universe
 from .stock_store import connect
 from .universe_registry import current_universe_members, ensure_current_universe_registry
@@ -65,6 +66,7 @@ def create_backfill_job(
 def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dict[str, Any]:
     """Run one bounded, restart-safe batch. Reference fallback is a failed item."""
 
+    environment = load_market_data_env()
     with connect(db_path) as conn:
         job = conn.execute("SELECT * FROM market_backfill_jobs WHERE job_id = ?", (job_id,)).fetchone()
         if job is None:
@@ -85,7 +87,16 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
     for item in items:
         now = datetime.now(UTC).isoformat()
         try:
-            payload = api_stock_candles(str(item["symbol"]), str(item["range_value"]), str(item["interval"]), "live", db_path)
+            if not bool(environment["longbridge_credentials_configured"]):
+                raise RuntimeError("Longbridge credentials are not configured for this backfill process.")
+            payload = api_stock_candles(
+                str(item["symbol"]),
+                str(item["range_value"]),
+                str(item["interval"]),
+                "live",
+                db_path,
+                allow_reference_fallback=False,
+            )
             count = len(payload.get("candles") or [])
             success = bool(payload.get("provider_status") == "available" and payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE and count >= int(item["minimum_bars"]))
             result = {"source": payload.get("source_type"), "provider_status": payload.get("provider_status"), "candle_count": count, "errors": list(payload.get("provider_errors") or [])[:3]}
@@ -115,6 +126,7 @@ def run_backfill_job(*, db_path: Path, job_id: str, batch_size: int = 10) -> dic
             conn.commit()
     report = backfill_job_status(db_path=db_path, job_id=job_id)
     report["processed_in_batch"] = completed
+    report["environment"] = environment
     return report
 
 
