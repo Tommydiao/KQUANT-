@@ -113,3 +113,21 @@ def test_capital_rotation_uses_market_availability_not_later_local_fetch_time(tm
     rows = _load_daily_rows(db_path, {"NVDA"}, datetime(2026, 1, 4, tzinfo=UTC))
 
     assert len(rows["NVDA"]) == 1
+
+
+def test_latest_rotation_is_marked_stale_when_taxonomy_run_changes(tmp_path: Path) -> None:
+    db_path = tmp_path / "stale-rotation.sqlite3"
+    _seed(db_path)
+    first_taxonomy = build_theme_taxonomy(db_path=db_path, as_of_date="2026-02-20")
+    rotation = run_capital_rotation(db_path=db_path, as_of_time="2026-02-20T23:00:00+00:00")
+    assert rotation["summary"]["taxonomy_run_id"] == first_taxonomy["run_id"]
+
+    with connect(db_path) as conn:
+        conn.execute("UPDATE stock_universe SET name='Changed after rotation' WHERE symbol='AI1'")
+        conn.commit()
+    build_theme_taxonomy(db_path=db_path, as_of_date="2026-02-21")
+
+    latest = latest_capital_rotation(db_path)
+
+    assert latest["status"] == "stale_taxonomy"
+    assert latest["taxonomy_alignment"]["aligned"] is False

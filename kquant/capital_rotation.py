@@ -229,12 +229,27 @@ def latest_capital_rotation(db_path: Path) -> dict[str, Any]:
         if run is None:
             return {"status": "not_materialized", "scores": [], "summary": {}}
         rows = conn.execute("SELECT * FROM capital_rotation_scores WHERE run_id=? ORDER BY rank_value IS NULL, rank_value, definition_id", (run["run_id"],)).fetchall()
+    taxonomy = latest_theme_taxonomy(db_path)
+    taxonomy_aligned = str(run["taxonomy_run_id"]) == str(taxonomy.get("run_id") or "") and taxonomy.get("status") == "materialized"
     scores = []
     for row in rows:
         item = dict(row)
         item["features"] = json.loads(item.pop("features_json"))
         scores.append(item)
-    return {"status": run["status"], "run_id": run["run_id"], "taxonomy_run_id": run["taxonomy_run_id"], "as_of_time": run["as_of_time"], "summary": json.loads(run["summary_json"]), "scores": scores}
+    return {
+        "status": str(run["status"]) if taxonomy_aligned else "stale_taxonomy",
+        "run_id": run["run_id"],
+        "taxonomy_run_id": run["taxonomy_run_id"],
+        "as_of_time": run["as_of_time"],
+        "summary": json.loads(run["summary_json"]),
+        "scores": scores,
+        "taxonomy_alignment": {
+            "aligned": taxonomy_aligned,
+            "rotation_taxonomy_run_id": run["taxonomy_run_id"],
+            "latest_taxonomy_run_id": taxonomy.get("run_id"),
+        },
+        "read_only_research": True,
+    }
 
 
 def capital_rotation_detail(db_path: Path, definition_id: str) -> dict[str, Any]:
