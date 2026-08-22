@@ -312,33 +312,6 @@ def strategy_lifecycle(profile: str | None = None) -> dict[str, str | bool]:
 def api_stock_universe(universe: str = "default", db_path: Path | None = None) -> dict[str, Any]:
     payload = stock_universe_payload(universe)
     if db_path:
-        now = iso_now()
-        with connect(db_path) as conn:
-            for stock in payload["stocks"]:
-                conn.execute(
-                    """
-                    INSERT INTO stock_universe(symbol, name, sector, layer, tags_json, rank, active, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, 1, ?)
-                    ON CONFLICT(symbol) DO UPDATE SET
-                      name=excluded.name,
-                      sector=excluded.sector,
-                      layer=excluded.layer,
-                      tags_json=excluded.tags_json,
-                      rank=excluded.rank,
-                      active=1,
-                      updated_at=excluded.updated_at
-                    """,
-                    (
-                        stock["symbol"],
-                        stock["name"],
-                        stock["sector"],
-                        stock["layer"],
-                        json.dumps(stock["tags"]),
-                        stock["rank"],
-                        now,
-                    ),
-                )
-            conn.commit()
         market_date = market_clock().market_date
         snapshot = persist_universe_snapshot(
             db_path,

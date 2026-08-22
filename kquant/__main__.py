@@ -39,6 +39,7 @@ from .stock_store import default_db_path
 from .theme_taxonomy import build_theme_taxonomy, latest_theme_taxonomy
 from .theme_prediction import build_theme_prediction_dataset, latest_theme_prediction, run_theme_prediction, theme_prediction_detail
 from .leadership import latest_leadership, run_leadership
+from .universe_registry import restore_universe_from_registry
 from .validation_service import api_strategy_validation_latest, run_strategy_validation
 
 
@@ -77,6 +78,13 @@ def main() -> None:
     coverage = sub.add_parser("data-coverage", help="Report source-aware cached candle coverage without fetching market data.")
     coverage.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     coverage.add_argument("--record", action="store_true", help="Persist an immutable coverage-run record.")
+    repair_registry = sub.add_parser(
+        "repair-universe-registry",
+        help="Explicitly restore stock_universe from an existing sealed Registry and write an audit event.",
+    )
+    repair_registry.add_argument("--registry-id", required=True)
+    repair_registry.add_argument("--reason", default="operator_requested_registry_repair")
+    repair_registry.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     backfill = sub.add_parser("backfill-market-data", help="Backfill 5y daily and 2y hourly Longbridge candles; reference fallback is never eligible.")
     backfill.add_argument("--universe", default="all")
     backfill.add_argument("--symbols", default="")
@@ -301,6 +309,10 @@ def main() -> None:
             "market_breadth": payload["market_breadth"],
             "canonical_validation_eligible_symbols": payload["canonical_validation_eligible_symbols"],
         }, indent=2))
+    if args.command == "repair-universe-registry":
+        print(json.dumps(restore_universe_from_registry(
+            Path(args.db_path), args.registry_id, reason=args.reason
+        ), indent=2))
     if args.command == "backfill-market-data":
         payload = run_longbridge_backfill(
             db_path=Path(args.db_path),

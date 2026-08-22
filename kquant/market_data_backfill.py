@@ -16,7 +16,7 @@ from .market_data_quota import (
 )
 from .stock_signals import LONG_BRIDGE_CANDLE_SOURCE, api_stock_candles, api_stock_universe
 from .stock_store import connect
-from .universe_registry import current_universe_members, ensure_current_universe_registry
+from .universe_registry import current_universe_members, ensure_current_universe_registry, ensure_stock_universe_catalog
 
 
 BACKFILL_VERSION = "longbridge_backfill_v1.3.0"
@@ -41,6 +41,7 @@ def create_backfill_job(
 ) -> dict[str, Any]:
     """Queue a resumable Longbridge-only backfill; no network call occurs here."""
 
+    ensure_stock_universe_catalog(db_path)
     registry = ensure_current_universe_registry(db_path)
     requested = {item.strip().upper() for item in (symbols or []) if item.strip()}
     members = [item for item in current_universe_members(db_path) if not requested or item["symbol"] in requested]
@@ -412,6 +413,7 @@ def run_longbridge_backfill(
 ) -> dict[str, Any]:
     """Fill canonical candle coverage without treating a reference fallback as eligible data."""
 
+    ensure_stock_universe_catalog(db_path)
     environment = load_market_data_env()
     universe_payload = api_stock_universe(universe=universe, db_path=db_path)
     requested = {item.strip().upper() for item in (symbols or []) if item.strip()}

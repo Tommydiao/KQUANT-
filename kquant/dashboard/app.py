@@ -32,6 +32,7 @@ from kquant.leadership import latest_leadership, theme_leaders
 from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
 from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
+from kquant.universe_registry import ensure_stock_universe_catalog
 from kquant.decision_ledger import (
     create_decision_ledger_entry,
     list_decision_ledger,
@@ -376,6 +377,7 @@ def create_app(
 ) -> FastAPI:
     settings = config or load_config(config_path)
     apply_sqlite_schema_migrations(settings.db_path)
+    ensure_stock_universe_catalog(settings.db_path)
     security = SecuritySettings.from_environment()
     session_auth = LocalSessionAuth(security)
     started_at_utc = datetime.now(timezone.utc).isoformat()
