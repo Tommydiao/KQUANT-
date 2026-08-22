@@ -38,6 +38,8 @@ surface.
   hot path. It is a separate all-history input and is reported as unloaded
   until a dedicated breadth snapshot is available; KQUANT never substitutes a
   stale breadth number as current model evidence.
+- Recovery candidates are idempotent: once a source job has a recovery child,
+  it is removed from the manual candidate list and cannot be cloned again.
 
 ## Current evidence
 

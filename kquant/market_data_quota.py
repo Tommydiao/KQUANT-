@@ -85,6 +85,13 @@ def backfill_quota_status(
             FROM market_backfill_job_items AS i
             INNER JOIN market_backfill_jobs AS j ON j.job_id = i.job_id
             WHERE j.provider = 'longbridge'
+              AND j.details_json NOT LIKE '%"resumed_from_job_id": "%'
+              AND NOT EXISTS (
+                SELECT 1
+                FROM market_backfill_jobs AS recovery
+                WHERE recovery.provider = 'longbridge'
+                  AND recovery.details_json LIKE '%"resumed_from_job_id": "' || j.job_id || '"%'
+              )
               AND (
                 i.status = 'blocked_quota'
                 OR i.last_error LIKE '%301607%'

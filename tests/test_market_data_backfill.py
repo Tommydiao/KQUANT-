@@ -229,5 +229,8 @@ def test_quota_recovery_clones_legacy_301607_items_only_after_a_new_month(tmp_pa
         item = conn.execute("SELECT status, attempts, interval FROM market_backfill_job_items WHERE job_id=?", (recovery["job_id"],)).fetchone()
     assert source_status == "completed"
     assert dict(item) == {"status": "queued", "attempts": 0, "interval": "1h"}
+    quota_after_recovery = backfill_quota_status(db_path=db_path, now=september)
+    assert quota_after_recovery["quota_recovery"]["manual_action_required"] is False
+    assert quota_after_recovery["quota_recovery"]["candidate_item_count"] == 0
     with pytest.raises(ValueError, match="active quota-recovery job"):
         create_quota_recovery_job(db_path=db_path, source_job_id=source["job_id"], now=september)
