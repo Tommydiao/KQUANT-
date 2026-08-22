@@ -142,6 +142,14 @@ def test_theme_taxonomy_routes_are_read_only_and_explicit_when_not_materialized(
     assert client.get("/api/themes/theme.unknown").status_code == 404
 
 
+def test_theme_taxonomy_audit_route_is_read_only(tmp_path: Path) -> None:
+    client = TestClient(_app(tmp_path))
+    response = client.get("/api/themes/audit")
+    assert response.status_code == 200
+    assert response.json()["status"] == "not_materialized"
+    assert response.json()["read_only_research"] is True
+
+
 def test_quant_model_routes_are_read_only_and_empty_before_artifacts(tmp_path: Path) -> None:
     client = TestClient(_app(tmp_path))
     assert client.get("/api/models/validation-runs").json() == {"artifacts": [], "read_only_research": True}

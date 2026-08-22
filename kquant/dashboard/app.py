@@ -29,7 +29,7 @@ from kquant.shadow_observation import latest_shadow_observation
 from kquant.v2_overview import build_v2_overview
 from kquant.theme_prediction import latest_theme_prediction, theme_prediction_detail
 from kquant.leadership import latest_leadership, theme_leaders
-from kquant.theme_taxonomy import latest_theme_taxonomy, theme_detail
+from kquant.theme_taxonomy import latest_theme_taxonomy, taxonomy_audit, theme_detail
 from kquant.data_snapshots import read_data_snapshot
 from kquant.database_migrations import apply_sqlite_schema_migrations, migration_readiness
 from kquant.universe_registry import ensure_stock_universe_catalog
@@ -725,6 +725,10 @@ def create_app(
     @app.get("/api/themes/ranking")
     def theme_ranking() -> dict[str, Any]:
         return latest_capital_rotation(settings.db_path)
+
+    @app.get("/api/themes/audit")
+    def theme_taxonomy_audit() -> dict[str, Any]:
+        return taxonomy_audit(settings.db_path)
 
     @app.get("/api/leadership/latest")
     def leadership_latest() -> dict[str, Any]:

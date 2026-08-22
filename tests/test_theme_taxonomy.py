@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from kquant.stock_store import connect
-from kquant.theme_taxonomy import build_theme_taxonomy, latest_theme_taxonomy, theme_detail
+from kquant.theme_taxonomy import build_theme_taxonomy, latest_theme_taxonomy, taxonomy_audit, theme_detail
 
 
 def _seed(db_path: Path) -> None:
@@ -77,3 +77,24 @@ def test_taxonomy_materialization_is_versioned_and_explicitly_marks_unmapped(tmp
     with connect(db_path) as conn:
         assert conn.execute("SELECT COUNT(*) FROM theme_taxonomy_runs").fetchone()[0] == 1
         assert conn.execute("SELECT COUNT(*) FROM theme_membership_audit").fetchone()[0] == 1
+    audit = taxonomy_audit(db_path)
+    assert audit["status"] == "review"
+    assert audit["registry_alignment"]["aligned"] is True
+    assert audit["checks"]["unmapped_is_explicit"] is True
+
+
+def test_taxonomy_latest_is_marked_stale_when_the_canonical_registry_changes(tmp_path: Path) -> None:
+    db_path = tmp_path / "stale-taxonomy.sqlite3"
+    _seed(db_path)
+    config = _config(tmp_path)
+    first = build_theme_taxonomy(db_path=db_path, config_path=config, as_of_date="2026-08-17")
+    with connect(db_path) as conn:
+        conn.execute("UPDATE stock_universe SET name='Changed after taxonomy' WHERE symbol='NVDA'")
+        conn.commit()
+
+    latest = latest_theme_taxonomy(db_path)
+
+    assert latest["run_id"] == first["run_id"]
+    assert latest["status"] == "stale_registry"
+    assert latest["registry_alignment"]["aligned"] is False
+    assert taxonomy_audit(db_path)["status"] == "review"

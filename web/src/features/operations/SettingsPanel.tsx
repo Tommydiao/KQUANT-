@@ -56,6 +56,14 @@ type TaxonomyPayload = {
   definitions?: Array<{ definition_id: string; display_name: string; membership_count: number }>;
 };
 
+type TaxonomyAuditPayload = {
+  status: string;
+  taxonomy_version?: string;
+  definition_count?: number;
+  membership_review_statuses?: Record<string, number>;
+  registry_alignment?: { aligned?: boolean; snapshot_registry_id?: string; current_registry_id?: string };
+};
+
 type RotationPayload = {
   status: string;
   as_of_time?: string;
@@ -115,6 +123,7 @@ export function SettingsPanel({
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [coverage, setCoverage] = useState<CoveragePayload | null>(null);
   const [taxonomy, setTaxonomy] = useState<TaxonomyPayload | null>(null);
+  const [taxonomyAudit, setTaxonomyAudit] = useState<TaxonomyAuditPayload | null>(null);
   const [rotation, setRotation] = useState<RotationPayload | null>(null);
   const [themePrediction, setThemePrediction] = useState<ThemePredictionPayload | null>(null);
   const [leadership, setLeadership] = useState<LeadershipPayload | null>(null);
@@ -133,6 +142,7 @@ export function SettingsPanel({
     void loadPushStatus();
     void apiFetch("/api/data/coverage?detail=summary").then(async (response) => { if (response.ok) setCoverage(await response.json() as CoveragePayload); });
     void apiFetch("/api/themes").then(async (response) => { if (response.ok) setTaxonomy(await response.json() as TaxonomyPayload); });
+    void apiFetch("/api/themes/audit").then(async (response) => { if (response.ok) setTaxonomyAudit(await response.json() as TaxonomyAuditPayload); });
     void apiFetch("/api/themes/ranking").then(async (response) => { if (response.ok) setRotation(await response.json() as RotationPayload); });
     void apiFetch("/api/models/theme-prediction/latest").then(async (response) => { if (response.ok) setThemePrediction(await response.json() as ThemePredictionPayload); });
     void apiFetch("/api/leadership/latest").then(async (response) => { if (response.ok) setLeadership(await response.json() as LeadershipPayload); });
@@ -211,6 +221,7 @@ export function SettingsPanel({
         <div className="settings-card wide"><strong>{label(lang, "主题领导力", "Theme leadership")}</strong><p>{leadership?.status === "materialized" ? `${leadership.summary?.unique_symbol_count ?? 0} stocks / ${leadership.summary?.theme_membership_count ?? 0} memberships / as of ${leadership.as_of_time ?? "-"}` : "Leadership snapshot not materialized"}</p>{leadership?.summary?.state_counts ? <p>{Object.entries(leadership.summary.state_counts).map(([state, count]) => `${state}: ${count}`).join(" · ")}</p> : null}<p>{leadership?.summary?.future_prediction_used ? "Blocked: future theme prediction detected." : "Uses only the same-timestamp rotation snapshot."}</p></div>
         <div className="settings-card wide"><strong>{settingText("consumerSafetyCopy", "Safety boundary")}</strong><p>{settingText("consumerSafetyText", "KQUANT is a read-only research terminal. It does not read accounts or submit orders.")}</p></div>
         <div className="settings-card wide"><strong>{settingText("journalDesign", "Journal")}</strong><p>{settingText("journalDesignText", "Manual notes and review evidence stay local to this research workspace.")}</p></div>
+        {taxonomyAudit ? <div className="settings-card wide"><strong>Taxonomy consistency</strong><p>{taxonomyAudit.status} · {taxonomyAudit.definition_count ?? 0} definitions · Registry {taxonomyAudit.registry_alignment?.aligned ? "aligned" : "review required"}</p><p>Review statuses: {Object.entries(taxonomyAudit.membership_review_statuses ?? {}).map(([status, count]) => `${status} ${count}`).join(" · ") || "none"}</p></div> : null}
         <section className="notification-settings-band">
           <div className="notification-settings-head"><div><BellRing size={18} /><strong>{label(lang, "iPhone 主动提醒", "iPhone notifications")}</strong><p>{label(lang, "将 KQUANT 添加到 iPhone 主屏幕后，可在锁屏和通知中心收到提醒。", "Add KQUANT to the iPhone Home Screen to receive lock-screen alerts.")}</p></div><span className={pushStatus?.active_subscriptions ? "push-status active" : "push-status"}>{pushStatus?.active_subscriptions ? label(lang, "已连接", "Connected") : label(lang, "未连接", "Not connected")}</span></div>
           <div className="notification-preferences"><label>{label(lang, "静默开始", "Quiet from")}<input type="time" value={preferences?.quiet_start ?? "22:30"} onChange={(event) => setPreferences((current) => current ? { ...current, quiet_start: event.target.value } : current)} /></label><label>{label(lang, "静默结束", "Quiet until")}<input type="time" value={preferences?.quiet_end ?? "08:00"} onChange={(event) => setPreferences((current) => current ? { ...current, quiet_end: event.target.value } : current)} /></label><label>{label(lang, "每日普通提醒上限", "Daily routine limit")}<input type="number" min="1" max="20" value={preferences?.daily_routine_limit ?? 5} onChange={(event) => setPreferences((current) => current ? { ...current, daily_routine_limit: Number(event.target.value) } : current)} /></label></div>

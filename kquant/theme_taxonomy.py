@@ -12,6 +12,8 @@ from .universe_registry import current_universe_members, ensure_current_universe
 
 DEFAULT_TAXONOMY_PATH = Path("config/theme_taxonomy_v1.yml")
 TAXONOMY_CONTRACT_VERSION = "theme_taxonomy_contract_v1"
+TAXONOMY_DIMENSIONS = {"theme", "industry", "risk_style", "liquidity", "instrument"}
+TAXONOMY_STATUSES = {"active", "fallback", "draft", "deprecated"}
 
 
 def _now() -> str:
@@ -37,7 +39,30 @@ def load_taxonomy(path: Path = DEFAULT_TAXONOMY_PATH) -> dict[str, Any]:
         definition_id = str(definition["id"])
         if definition_id in seen:
             raise ValueError(f"Duplicate theme definition: {definition_id}")
+        dimension_type = str(definition["dimension_type"])
+        if dimension_type not in TAXONOMY_DIMENSIONS:
+            raise ValueError(f"Unsupported taxonomy dimension: {dimension_type}")
+        if str(definition["status"]) not in TAXONOMY_STATUSES:
+            raise ValueError(f"Unsupported taxonomy status: {definition['status']}")
+        if not isinstance(definition.get("rule"), dict):
+            raise ValueError(f"Taxonomy rule must be an object: {definition_id}")
+        aliases = definition.get("aliases") or []
+        if not isinstance(aliases, list):
+            raise ValueError(f"Taxonomy aliases must be a list: {definition_id}")
+        aliases_seen: set[str] = set()
+        for alias in aliases:
+            alias_key = str(alias).strip().lower()
+            if alias_key:
+                if alias_key in aliases_seen:
+                    raise ValueError(f"Duplicate taxonomy alias: {alias_key}")
+                aliases_seen.add(alias_key)
         seen.add(definition_id)
+    for definition in definitions:
+        parent_id = definition.get("parent_id")
+        if parent_id is not None and str(parent_id) not in seen:
+            raise ValueError(f"Unknown taxonomy parent: {parent_id}")
+        if parent_id is not None and str(parent_id) == str(definition["id"]):
+            raise ValueError(f"Taxonomy definition cannot parent itself: {definition['id']}")
     return payload
 
 
@@ -122,7 +147,7 @@ def build_theme_taxonomy(
         for definition, confidence, evidence in symbol_matches:
             definition_id = str(definition["id"])
             dimension_type = str(definition["dimension_type"])
-            review_status = "needs_review" if definition_id == fallback_id else "auto_mapped"
+            review_status = str(definition.get("review_status") or ("needs_review" if definition_id == fallback_id else "auto_mapped"))
             weight = 1.0 if dimension_type == "theme" else 0.5
             membership_rows.append((run_id, version, registry["registry_id"], definition_id, symbol, dimension_type, weight, confidence, json.dumps({"rule_evidence": evidence, "legacy_tags": member.get("tags", []), "layer": member.get("layer"), "sector": member.get("sector")}, ensure_ascii=True, sort_keys=True), review_status, effective_date, None, created_at))
             dimension_counts[dimension_type] = dimension_counts.get(dimension_type, 0) + 1
@@ -160,7 +185,7 @@ def build_theme_taxonomy(
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
-                (version, str(item["id"]), str(item["dimension_type"]), item.get("parent_id"), str(item["slug"]), str(item["display_name"]), json.dumps(item.get("aliases") or [], ensure_ascii=True, sort_keys=True), json.dumps(item.get("rule") or {}, ensure_ascii=True, sort_keys=True), str(item["status"]), str(taxonomy.get("effective_from") or effective_date), taxonomy.get("effective_to"), _definition_hash(item, version), created_at)
+                (version, str(item["id"]), str(item["dimension_type"]), item.get("parent_id"), str(item["slug"]), str(item["display_name"]), json.dumps(item.get("aliases") or [], ensure_ascii=True, sort_keys=True), json.dumps(item.get("rule") or {}, ensure_ascii=True, sort_keys=True), str(item["status"]), str(item.get("effective_from") or taxonomy.get("effective_from") or effective_date), item.get("effective_to", taxonomy.get("effective_to")), _definition_hash(item, version), created_at)
                 for item in definitions
             ],
         )
@@ -195,7 +220,69 @@ def latest_theme_taxonomy(db_path: Path) -> dict[str, Any]:
             definition["aliases"] = json.loads(definition.pop("aliases_json"))
             definition["rule"] = json.loads(definition.pop("rule_json"))
             definition["membership_count"] = int(conn.execute("SELECT COUNT(*) FROM theme_memberships WHERE run_id=? AND definition_id=?", (run["run_id"], definition["definition_id"])).fetchone()[0])
-    return {"status": run["status"], "run_id": run["run_id"], "taxonomy_version": run["taxonomy_version"], "taxonomy_hash": run["taxonomy_hash"], "registry_id": run["registry_id"], "as_of_date": run["as_of_date"], "summary": json.loads(run["summary_json"]), "definitions": definitions}
+    current_registry = ensure_current_universe_registry(db_path)
+    registry_aligned = str(run["registry_id"]) == str(current_registry["registry_id"])
+    return {
+        "status": str(run["status"]) if registry_aligned else "stale_registry",
+        "run_id": run["run_id"],
+        "taxonomy_version": run["taxonomy_version"],
+        "taxonomy_hash": run["taxonomy_hash"],
+        "registry_id": run["registry_id"],
+        "as_of_date": run["as_of_date"],
+        "summary": json.loads(run["summary_json"]),
+        "definitions": definitions,
+        "registry_alignment": {
+            "aligned": registry_aligned,
+            "snapshot_registry_id": run["registry_id"],
+            "current_registry_id": current_registry["registry_id"],
+        },
+        "read_only_research": True,
+    }
+
+
+def taxonomy_audit(db_path: Path) -> dict[str, Any]:
+    """Return an explicit, read-only taxonomy and Registry consistency audit."""
+
+    payload = latest_theme_taxonomy(db_path)
+    if payload.get("status") == "not_materialized":
+        return {"status": "not_materialized", "checks": {}, "read_only_research": True}
+    with connect(db_path) as conn:
+        review_counts = {
+            str(row["review_status"]): int(row["count"])
+            for row in conn.execute(
+                "SELECT review_status, COUNT(*) AS count FROM theme_memberships WHERE run_id=? GROUP BY review_status",
+                (payload["run_id"],),
+            ).fetchall()
+        }
+        definition_statuses = {
+            str(row["status"]): int(row["count"])
+            for row in conn.execute(
+                "SELECT status, COUNT(*) AS count FROM theme_definitions WHERE taxonomy_version=? GROUP BY status",
+                (payload["taxonomy_version"],),
+            ).fetchall()
+        }
+    summary = payload.get("summary") or {}
+    checks = {
+        "registry_aligned": bool((payload.get("registry_alignment") or {}).get("aligned")),
+        "mapped_coverage_target": bool(summary.get("target_met")),
+        "unmapped_is_explicit": bool(summary.get("unmapped_is_explicit")),
+        "point_in_time": bool(summary.get("point_in_time")),
+        "effective_dates_present": all(bool(item.get("effective_from")) for item in payload.get("definitions") or []),
+        "aliases_present": all(isinstance(item.get("aliases"), list) for item in payload.get("definitions") or []),
+    }
+    return {
+        "status": "pass" if all(checks.values()) and payload.get("status") == "materialized" else "review",
+        "taxonomy_version": payload.get("taxonomy_version"),
+        "run_id": payload.get("run_id"),
+        "registry_alignment": payload.get("registry_alignment"),
+        "definition_count": len(payload.get("definitions") or []),
+        "definition_statuses": definition_statuses,
+        "membership_review_statuses": review_counts,
+        "unmapped_theme_symbols": summary.get("unmapped_theme_symbols"),
+        "mapped_coverage_pct": summary.get("mapped_coverage_pct"),
+        "checks": checks,
+        "read_only_research": True,
+    }
 
 
 def theme_detail(db_path: Path, definition_id: str) -> dict[str, Any]:
