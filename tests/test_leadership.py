@@ -77,3 +77,21 @@ def test_future_candles_do_not_change_leadership_snapshot(tmp_path: Path) -> Non
         conn.commit()
     after = run_leadership(db_path)
     assert after["content_hash"] == before["content_hash"]
+
+
+def test_latest_leadership_is_stale_when_rotation_lineage_changes(tmp_path: Path) -> None:
+    db_path = tmp_path / "leadership-lineage.sqlite3"
+    _seed(db_path)
+    build_theme_taxonomy(db_path=db_path, as_of_date="2026-02-20")
+    first_rotation = run_capital_rotation(db_path=db_path, as_of_time="2026-02-20T23:00:00+00:00")
+    first_leadership = run_leadership(db_path)
+    assert first_leadership["rotation_run_id"] == first_rotation["run_id"]
+
+    build_theme_taxonomy(db_path=db_path, as_of_date="2026-02-21")
+    second_rotation = run_capital_rotation(db_path=db_path, as_of_time="2026-02-21T23:00:00+00:00")
+    latest = latest_leadership(db_path)
+
+    assert second_rotation["run_id"] != first_rotation["run_id"]
+    assert latest["status"] == "stale_rotation"
+    assert latest["leaders"] == []
+    assert latest["lineage_alignment"]["latest_rotation_run_id"] == second_rotation["run_id"]

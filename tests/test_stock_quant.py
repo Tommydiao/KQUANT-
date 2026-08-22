@@ -14,7 +14,11 @@ from kquant.stock_quant import (
     build_stock_quant_item,
     build_model0_features,
     build_model0_label,
+    latest_stock_quant_run,
+    stock_quant_ranking,
 )
+from kquant.stock_store import connect
+from kquant.universe_registry import ensure_current_universe_registry
 
 
 def _bars(count: int, *, base: float = 100.0, start: datetime | None = None) -> list[dict]:
@@ -123,6 +127,45 @@ def test_stock_quant_dataset_seals_model0_feature_and_label_audit(tmp_path: Path
     assert result["model_version"] == MODEL_0_VERSION
     assert result["feature_count"] == result["label_count"]
     assert result["feature_count"] > 0
+
+
+def test_stock_quant_reads_block_a_dataset_from_an_old_universe_registry(tmp_path: Path) -> None:
+    db_path = tmp_path / "stale-registry.sqlite3"
+    with connect(db_path) as conn:
+        conn.execute(
+            "INSERT INTO stock_universe(symbol, name, sector, layer, tags_json, rank, active, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
+            ("RKLB", "Rocket Lab", "Industrials", "Space", "[]", 1, "2026-01-01T00:00:00+00:00"),
+        )
+        conn.commit()
+    items = [
+        build_stock_quant_item(
+            "RKLB",
+            _bars(390),
+            _bars(40, start=datetime(2025, 1, 2, 14, 30, tzinfo=UTC)),
+            signal_index=220 + index * 5,
+            stop_price=_bars(390)[220 + index * 5]["close"] - 2.0,
+            target_price=_bars(390)[220 + index * 5]["close"] + 4.0,
+            source_snapshot_id=f"snapshot-stale-{index}",
+            horizon_bars=3,
+        )
+        for index in range(30)
+    ]
+    build_stock_quant_dataset(
+        db_path,
+        items,
+        dataset_id="stock-model0-stale-registry",
+        universe_registry_id="legacy-registry-v1",
+    )
+    current = ensure_current_universe_registry(db_path)
+
+    latest = latest_stock_quant_run(db_path)
+    ranking = stock_quant_ranking(db_path)
+
+    assert current["registry_id"] != "legacy-registry-v1"
+    assert latest["status"] == "stale_registry"
+    assert latest["registry_alignment"]["aligned"] is False
+    assert ranking["status"] == "stale_registry"
+    assert ranking["ranking"] == []
 
 
 def test_stock_quant_api_is_read_only_and_empty_before_dataset(tmp_path: Path) -> None:

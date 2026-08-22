@@ -37,6 +37,7 @@ from .stock_quant import (
 )
 from .stock_store import connect
 from .theme_prediction import _apply_isotonic, _apply_platt, _fit_isotonic, _fit_platt
+from .universe_registry import current_universe_registry_id_read_only, ensure_current_universe_registry
 
 
 STOCK_QUANT_VALIDATION_VERSION = "stock_quant_validation_v1.3.0"
@@ -958,8 +959,11 @@ def stock_quant_validation_detail(db_path: Path, run_id: str) -> dict[str, Any]:
         and str(dataset.get("feature_schema_version")) == STOCK_QUANT_FEATURE_SCHEMA_VERSION
         and str(dataset.get("label_schema_version")) == STOCK_QUANT_LABEL_SCHEMA_VERSION
     )
+    current_registry_id = current_universe_registry_id_read_only(db_path)
+    dataset_registry_id = str(dataset.get("universe_registry_id") or "")
+    registry_aligned = not current_registry_id or not dataset_registry_id or dataset_registry_id == current_registry_id
     return {
-        "status": row["status"],
+        "status": row["status"] if registry_aligned else "stale_registry",
         "run_id": row["run_id"],
         "dataset_id": row["dataset_id"],
         "validation_version": row["validation_version"],
@@ -971,6 +975,11 @@ def stock_quant_validation_detail(db_path: Path, run_id: str) -> dict[str, Any]:
         "dataset_integrity_status": dataset["integrity_status"],
         "dataset_contract_version": dataset.get("contract_version"),
         "current_contract_compatible": current_contract_compatible,
+        "registry_alignment": {
+            "aligned": registry_aligned,
+            "dataset_registry_id": dataset_registry_id or None,
+            "current_registry_id": current_registry_id,
+        },
         "read_only_research": True,
     }
 
@@ -980,7 +989,8 @@ def latest_stock_quant_validation(db_path: Path) -> dict[str, Any]:
         row = conn.execute("SELECT run_id FROM stock_quant_validation_runs ORDER BY created_at DESC LIMIT 1").fetchone()
     if row is None:
         return {"status": "not_materialized", "runs": [], "read_only_research": True}
-    return {"status": "materialized", "run": stock_quant_validation_detail(db_path, str(row["run_id"])), "read_only_research": True}
+    detail = stock_quant_validation_detail(db_path, str(row["run_id"]))
+    return {"status": detail.get("status", "materialized"), "run": detail, "read_only_research": True}
 
 
 def _market_rows(conn: Any, symbol: str, interval: str) -> list[dict[str, Any]]:
@@ -1048,7 +1058,7 @@ def build_stock_quant_cache_dataset(
     *,
     symbols: Iterable[str] | None = None,
     dataset_id: str = "",
-    universe_registry_id: str = "stock_universe_active_v1",
+    universe_registry_id: str = "",
     max_items_per_symbol: int = 40,
     stride: int = 5,
     min_daily_bars: int = 220,
@@ -1064,6 +1074,9 @@ def build_stock_quant_cache_dataset(
     universe membership or corporate-action data.
     """
 
+    resolved_registry_id = str(universe_registry_id or "").strip()
+    if not resolved_registry_id:
+        resolved_registry_id = str(ensure_current_universe_registry(db_path)["registry_id"])
     requested = {str(symbol).upper().strip() for symbol in (symbols or ()) if str(symbol).strip()}
     with connect(db_path) as conn:
         universe = [str(row["symbol"]).upper() for row in conn.execute("SELECT symbol FROM stock_universe WHERE active = 1 ORDER BY rank, symbol").fetchall()]
@@ -1157,7 +1170,7 @@ def build_stock_quant_cache_dataset(
         db_path,
         items,
         dataset_id=computed_id,
-        universe_registry_id=universe_registry_id,
+        universe_registry_id=resolved_registry_id,
         source_policy_version="longbridge_pit_stock_quant_v2",
         embargo_days=embargo_days,
     )

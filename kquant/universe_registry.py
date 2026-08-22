@@ -283,6 +283,26 @@ def ensure_current_universe_registry(db_path: Path, registry_name: str = "active
     }
 
 
+def current_universe_registry_id_read_only(db_path: Path) -> str | None:
+    """Return the registry matching the active catalogue without writing."""
+
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT symbol, name, sector, layer, tags_json, rank, active
+            FROM stock_universe WHERE active = 1 ORDER BY symbol
+            """
+        ).fetchall()
+        if not rows:
+            return None
+        content_hash = _hash([_canonical_member(dict(row)) for row in rows])
+        record = conn.execute(
+            "SELECT registry_id FROM universe_registry_versions WHERE content_hash = ?",
+            (content_hash,),
+        ).fetchone()
+    return str(record["registry_id"]) if record else None
+
+
 def current_universe_members(db_path: Path) -> list[dict[str, Any]]:
     registry = ensure_current_universe_registry(db_path)
     with connect(db_path) as conn:

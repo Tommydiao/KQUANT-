@@ -23,6 +23,7 @@ from .quant_dataset import build_quant_dataset, read_quant_dataset
 from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
 from .stock_store import connect
 from .technical_features import calculate_feature_snapshot, ema_last
+from .universe_registry import current_universe_registry_id_read_only
 
 
 MODEL_0_VERSION = "stock_quant_model_0_v1.1.0"
@@ -660,10 +661,31 @@ def latest_stock_quant_run(db_path: Path) -> dict[str, Any]:
     if not row:
         return {"status": "not_materialized", "runs": [], "read_only_research": True}
     detail = stock_quant_run_detail(db_path, str(row["run_id"]))
-    return {"status": "materialized", "run": detail, "read_only_research": True}
+    dataset = read_quant_dataset(db_path, str(detail["dataset_id"]))
+    current_registry_id = current_universe_registry_id_read_only(db_path)
+    recorded_registry_id = str(dataset.get("universe_registry_id") or "")
+    aligned = not current_registry_id or not recorded_registry_id or recorded_registry_id == current_registry_id
+    return {
+        "status": "materialized" if aligned else "stale_registry",
+        "run": detail,
+        "registry_alignment": {
+            "aligned": aligned,
+            "dataset_registry_id": recorded_registry_id or None,
+            "current_registry_id": current_registry_id,
+        },
+        "read_only_research": True,
+    }
 
 
 def stock_quant_ranking(db_path: Path, limit: int = 50) -> dict[str, Any]:
+    latest = latest_stock_quant_run(db_path)
+    if latest.get("status") != "materialized":
+        return {
+            "status": latest.get("status", "not_materialized"),
+            "ranking": [],
+            "registry_alignment": latest.get("registry_alignment"),
+            "read_only_research": True,
+        }
     with connect(db_path) as conn:
         run = conn.execute("SELECT * FROM stock_quant_runs ORDER BY created_at DESC LIMIT 1").fetchone()
         if run is None:
@@ -678,11 +700,19 @@ def stock_quant_ranking(db_path: Path, limit: int = 50) -> dict[str, Any]:
         values = payload.get("values") if isinstance(payload.get("values"), dict) else payload
         ranking.append({"symbol": row["symbol"], "signal_time": row["signal_time"], "model0_score": values.get("model0_total_score"), "feature_snapshot_hash": row["feature_snapshot_hash"], "source_snapshot_id": row["source_snapshot_id"]})
     ranking.sort(key=lambda item: (float(item["model0_score"] or -1), item["symbol"]), reverse=True)
-    return {"status": "materialized", "run_id": run["run_id"], "model_version": run["model_version"], "ranking": ranking[: max(1, min(int(limit), 200))], "read_only_research": True}
+    return {"status": "materialized", "run_id": run["run_id"], "model_version": run["model_version"], "ranking": ranking[: max(1, min(int(limit), 200))], "registry_alignment": latest.get("registry_alignment"), "read_only_research": True}
 
 
 def stock_quant_symbol_detail(db_path: Path, symbol: str) -> dict[str, Any]:
     normalized = str(symbol or "").upper().strip()
+    latest = latest_stock_quant_run(db_path)
+    if latest.get("status") != "materialized":
+        return {
+            "status": latest.get("status", "not_materialized"),
+            "symbol": normalized,
+            "registry_alignment": latest.get("registry_alignment"),
+            "read_only_research": True,
+        }
     with connect(db_path) as conn:
         run = conn.execute("SELECT * FROM stock_quant_runs ORDER BY created_at DESC LIMIT 1").fetchone()
         if run is None:
@@ -704,6 +734,7 @@ def stock_quant_symbol_detail(db_path: Path, symbol: str) -> dict[str, Any]:
         "model_version": run["model_version"],
         "feature_snapshot": json.loads(row["feature_json"]),
         "label": json.loads(label["label_json"]) if label else None,
+        "registry_alignment": latest.get("registry_alignment"),
         "read_only_research": True,
     }
 

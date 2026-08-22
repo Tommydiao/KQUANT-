@@ -209,7 +209,28 @@ def latest_leadership(db_path: Path) -> dict[str, Any]:
         run = conn.execute("SELECT run_id FROM leadership_runs ORDER BY as_of_time DESC, created_at DESC LIMIT 1").fetchone()
     if run is None:
         return {"status": "not_materialized", "leaders": [], "summary": {}, "read_only_research": True}
-    return leadership_detail(db_path, str(run["run_id"]))
+    detail = leadership_detail(db_path, str(run["run_id"]))
+    rotation = latest_capital_rotation(db_path)
+    aligned = (
+        rotation.get("status") == "materialized"
+        and str(detail.get("rotation_run_id") or "") == str(rotation.get("run_id") or "")
+        and str(detail.get("taxonomy_run_id") or "") == str(rotation.get("taxonomy_run_id") or "")
+    )
+    if aligned:
+        return detail
+    return {
+        **detail,
+        "status": "stale_rotation",
+        "leaders": [],
+        "lineage_alignment": {
+            "aligned": False,
+            "leadership_rotation_run_id": detail.get("rotation_run_id"),
+            "latest_rotation_run_id": rotation.get("run_id"),
+            "leadership_taxonomy_run_id": detail.get("taxonomy_run_id"),
+            "latest_taxonomy_run_id": rotation.get("taxonomy_run_id"),
+        },
+        "read_only_research": True,
+    }
 
 
 def theme_leaders(db_path: Path, definition_id: str) -> dict[str, Any]:

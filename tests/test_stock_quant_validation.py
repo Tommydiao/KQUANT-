@@ -9,10 +9,11 @@ from kquant.market_store import persist_canonical_candles
 from kquant.stock_quant import build_stock_quant_dataset
 from kquant.stock_quant_validation import (
     build_stock_quant_cache_dataset,
+    latest_stock_quant_validation,
     run_stock_quant_validation,
 )
 from kquant.stock_store import connect
-from kquant.quant_dataset import DatasetIntegrityError
+from kquant.quant_dataset import DatasetIntegrityError, read_quant_dataset
 
 
 def _items(count: int = 210) -> list[dict]:
@@ -124,6 +125,44 @@ def test_validation_rejects_yahoo_reference_rows(tmp_path: Path) -> None:
 
     with pytest.raises(DatasetIntegrityError, match="Yahoo"):
         run_stock_quant_validation(db_path, dataset["dataset_id"])
+
+
+def test_validation_read_is_blocked_after_universe_registry_changes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    db_path = tmp_path / "validation-stale-registry.sqlite3"
+    dataset = build_stock_quant_dataset(
+        db_path,
+        _items(40),
+        dataset_id="stock-validation-stale-registry",
+        universe_registry_id="legacy-registry-v1",
+    )
+    sealed = read_quant_dataset(db_path, dataset["dataset_id"])
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO stock_quant_validation_runs(
+              run_id, dataset_id, validation_version, status, gate_status,
+              summary_json, content_hash, test_partition_hash, created_at
+            ) VALUES (?, ?, ?, 'materialized', 'no_go', '{}', ?, ?, ?)
+            """,
+            (
+                "sqv-stale-registry",
+                dataset["dataset_id"],
+                "stock_quant_validation_test",
+                "validation-stale-content",
+                sealed["test_partition_hash"],
+                "2026-08-22T00:00:00+00:00",
+            ),
+        )
+        conn.commit()
+    monkeypatch.setattr(
+        "kquant.stock_quant_validation.current_universe_registry_id_read_only",
+        lambda _db_path: "current-registry-v2",
+    )
+
+    latest = latest_stock_quant_validation(db_path)
+
+    assert latest["status"] == "stale_registry"
+    assert latest["run"]["registry_alignment"]["aligned"] is False
 
 
 def test_cache_builder_uses_longbridge_only_and_excludes_forming_bars(tmp_path: Path) -> None:

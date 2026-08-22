@@ -225,6 +225,12 @@ def stock_quant_validation_readiness(db_path: Path, dataset_id: str | None = Non
             ),
         }
     )
+    if latest.get("status") == "stale_registry":
+        coverage["status"] = "stale_registry"
+        coverage["registry_alignment"] = (validation_run.get("registry_alignment") or {})
+        coverage["reason"] = (
+            "The validation dataset belongs to an older universe Registry and is blocked until a new aligned dataset is sealed."
+        )
     return coverage
 
 
