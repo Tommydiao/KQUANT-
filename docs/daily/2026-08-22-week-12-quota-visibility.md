@@ -53,7 +53,7 @@ The local audit for August 2026 is:
 | Local configured cap | 100 |
 | Next safe action | Recheck eligibility after 2026-09-01 00:00 UTC |
 | Manual recovery candidates | 2 source jobs / 31 time windows |
-| Latest aligned coverage snapshot | 2026-08-21T21:55:17Z |
+| Latest aligned coverage snapshot | 2026-08-22T04:52:33Z |
 
 The provider-side remaining balance is intentionally reported as unknown.
 The calendar boundary only clears KQUANT's local lock; the next bounded
