@@ -19,3 +19,4 @@ tests/
 docs/
 config/
 *.ps1
+crypto/

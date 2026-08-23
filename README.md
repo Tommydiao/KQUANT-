@@ -1,24 +1,35 @@
 # KQUANT
 
-KQUANT is a local, single-user US stock and ETF research terminal. It combines
-read-only Longbridge market data, deterministic technical features, guided
-manual review, a journal, and reproducible strategy validation.
+KQUANT is a read-only research workspace containing two independent terminals:
+
+| Project | Scope | Local URL | Source directory |
+| --- | --- | --- | --- |
+| KQUANT US Stocks | Longbridge stock/ETF market data, transparent factors, strategy validation, journal and manual research | http://127.0.0.1:8001/ | repository root |
+| KQUANT CRYPTO | CEX, DEX and MEME monitoring, EVAL Agent review, Paper/Shadow research and alerts | http://127.0.0.1:8010/ | [`crypto/`](crypto/) |
+
+The stock project stays at the repository root so its existing Windows launchers,
+Vercel configuration and local paths remain compatible. The crypto project is a
+separate Python package, database, frontend and runtime under `crypto/`; it does
+not import the stock package or share runtime data.
 
 ## Safety Boundary
 
-- Market data only. The runtime creates a Longbridge `QuoteContext` and never a trade context.
-- No account, holdings, broker, execution, or derivative-order endpoints.
-- Yahoo data is display/reference fallback only and hard-vetoes buy-class AI actions.
-- Forming candles may update charts but never confirm rules, AI actions, or backtests.
-- AI ranks and explains research candidates; it cannot execute a trade.
+Both terminals are research-only:
 
-Run the boundary audit at any time:
+- no exchange or broker account access;
+- no wallet, private-key or signing access;
+- no holdings, positions or order submission endpoints;
+- no automatic trading;
+- provider credentials, login material and notification secrets are environment-only;
+- forming candles, stale data, unknown security data and failed evidence gates fail closed.
 
-```powershell
-python scripts/verify_read_only_boundary.py
-```
+The Crypto EVAL Agent is the final deterministic review layer for crypto trade
+plan drafts. LLM output is advisory and cannot change an EVAL decision, alter
+Entry/Stop/Target, bypass a security blocker or send an alert directly.
 
-## Local Start
+## US Stock Terminal
+
+Run from the repository root:
 
 ```powershell
 python -m venv .venv
@@ -29,110 +40,73 @@ npm.cmd run build
 cd ..
 .\start_kquant_stock_terminal.ps1 -KillExisting
 ```
+Open [http://127.0.0.1:8001/](http://127.0.0.1:8001/).
 
-Open `http://127.0.0.1:8001/`.
+The stock terminal uses Longbridge for read-only market data. Yahoo is retained
+only as reference history and cannot satisfy a buy-class data gate. Detailed
+stock operations remain in [`docs/US_STOCK_README.md`](docs/US_STOCK_README.md).
 
-### Optional Local Login
+## Crypto Terminal
 
-Create the local email identity, password hash, and signing secret without placing a
-plaintext password in `.env`:
-
-```powershell
-.\.venv\Scripts\python -m kquant local-login-config
-```
-
-Set the printed `KQUANT_LOGIN_*` values in the private `.env` file, then restart the
-terminal. Once enabled, all research APIs require the local browser session; neither
-the email, password, nor password hash is returned by the API.
-
-Optional environment variables are read from `.env` by the Windows launcher:
-
-```text
-KQUANT_MARKET_DATA_PROVIDER=longbridge
-LONGBRIDGE_APP_KEY=...
-LONGBRIDGE_APP_SECRET=...
-LONGBRIDGE_ACCESS_TOKEN=...
-OPENAI_API_KEY=...
-```
-
-Values are never returned by health/self-check APIs. Rotate a credential before
-using realtime mode if it has appeared in a screenshot, log, or shared file.
-
-## Main APIs
-
-- `GET /api/health`
-- `GET /api/stocks/realtime-snapshot?symbol=NVDA`
-- `GET /api/stocks/analyze?symbol=NVDA&source=live&profile=swing_long_v1`
-- `GET /api/stocks/RKLB/early-trend`
-- `GET /api/instructions/current`
-- `GET /api/alerts/stream`
-- `GET /api/notifications/status`
-- `POST /api/notifications/web-push/subscribe`
-- `POST /api/stocks/ai-decision`
-- `POST /api/stocks/strategy-validation/runs`
-- `GET /api/stocks/strategy-validation/latest`
-- `GET /api/stocks/strategy-validation/actions/{action}`
-
-The realtime snapshot returns BBO, spread, UTC quote time, quote/bar age,
-forming and closed 1m/5m bars, exchange-calendar state, and a trust label.
-
-## Strategy Validation
-
-Historical validation uses a deterministic, versioned action policy. Actual AI
-outputs are tracked prospectively in a separate evidence chain and are never
-mixed into historical statistics. The active canonical research strategy is
-`swing_long_v1.1.0`. It can only be frozen for forward observation from a
-reviewed validation fingerprint and Evidence Score; missing evidence remains
-`NO_GO`, not a silent upgrade to production readiness.
+Run from `crypto/`:
 
 ```powershell
-python -m kquant validate-strategies `
-  --profiles tactical_1w_v1,high_beta_growth_v1,early_trend_3_15d_v1 `
-  --universe default
+cd crypto
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+Copy-Item .env.example .env
+.\.venv\Scripts\python.exe -m kquant_crypto db migrate
+.\.venv\Scripts\python.exe -m pytest -q
+cd web
+npm.cmd ci
+npm.cmd run build
+cd ..
+.\start_kquant_crypto.ps1 -KillExisting
 ```
 
-Signals use closed bars only, enter no earlier than the next bar, apply costs
-and gap handling, use conservative stop-first treatment, and split data 60/20/20
-with a maximum-horizon embargo.
+Open [http://127.0.0.1:8010/](http://127.0.0.1:8010/). This is the latest local
+Crypto website; it is reachable on this computer while the Crypto dashboard is
+running. No public hosted Crypto URL is claimed by this repository yet.
 
-The early-trend strategy reports daily setup evidence separately from closed
-1H/5m trigger evidence. It remains paper-only until the sealed validation and
-prospective observation gates pass. See `docs/early_trend_strategy.md`.
-
-For optional iPhone Home Screen notifications, generate local VAPID values with
-`python -m kquant web-push-config`, then follow `docs/iphone_web_push.md`.
+The current Crypto foundation includes public CEX market ingestion, closed-candle
+storage, Data Trust, market regime, transparent factors, DEX/MEME discovery,
+security snapshots, Paper cost estimation, validation and the deterministic EVAL
+review chain. The release authority remains closed by default. See
+[`crypto/README.md`](crypto/README.md) and
+[`crypto/docs/daily/2026-08-23-validation-and-collection-gates.md`](crypto/docs/daily/2026-08-23-validation-and-collection-gates.md)
+for the latest evidence and remaining gates.
 
 ## Verification
 
 ```powershell
+# US stock project
 python -m pytest -q
 cd web
+npm.cmd test -- --run
+npm.cmd run build
+cd ..
+python scripts/verify_read_only_boundary.py
+
+# Crypto project
+cd crypto
+python -m pytest -q
+cd web
+npm.cmd test -- --run
 npm.cmd run build
 cd ..
 python scripts/verify_read_only_boundary.py
 ```
 
-Or use the Windows verification entry point after the environment is installed:
+GitHub Actions runs both suites without real credentials. Runtime databases,
+Parquet data, `outputs/`, `work/`, `.env` files, virtual environments and
+frontend build output are excluded from version control.
 
-```powershell
-.\scripts\verify_all.ps1
+## Repository Layout
+
+```text
+KQUANT-/
+├─ kquant/, web/, tests/, docs/, scripts/     # US stock terminal
+├─ crypto/                                    # independent Crypto terminal
+├─ .github/workflows/ci.yml                   # stock + crypto CI
+└─ README.md                                  # this project index
 ```
-
-GitHub Actions runs the same checks on Windows without real credentials.
-
-## Forward Observation And Release Gate
-
-The Today workspace shows a `NO TRADE` state whenever data, operations, hard
-vetoes, or forward-evidence gates are not clear. KQUANT includes a Decision
-Ledger, forward pilot protocol, and cash-only paper simulation, but none of
-them accesses an account or submits an order.
-
-Use [the forward pilot protocol](docs/forward_pilot_protocol.md) and run the
-Release Candidate check before a local release:
-
-```powershell
-.\scripts\verify_release_candidate.ps1
-```
-
-The full frozen scope and current day-by-day progress are tracked in
-[`docs/KQUANT_84_DAY_CODEX_PLAN.md`](docs/KQUANT_84_DAY_CODEX_PLAN.md).
