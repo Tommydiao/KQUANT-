@@ -1,0 +1,44 @@
+version: crypto_universe_v1.1.0
+
+# Public CEX observation universe. This is a research watchlist, not a
+# recommendation or an orderable universe.
+cex:
+  CORE:
+    - BTCUSDT
+    - ETHUSDT
+    - SOLUSDT
+  MAJOR_ALT:
+    - BNBUSDT
+    - XRPUSDT
+    - ADAUSDT
+    - AVAXUSDT
+    - LINKUSDT
+    - DOTUSDT
+    - TRXUSDT
+    - LTCUSDT
+    - BCHUSDT
+    - UNIUSDT
+    - AAVEUSDT
+    - NEARUSDT
+    - ATOMUSDT
+  CEX_HIGH_BETA:
+    - SUIUSDT
+    - INJUSDT
+    - SEIUSDT
+    - APTUSDT
+    - ARBUSDT
+    - OPUSDT
+    - TIAUSDT
+  MEME:
+    - DOGEUSDT
+    - SHIBUSDT
+    - PEPEUSDT
+    - WIFUSDT
+    - BONKUSDT
+    - FLOKIUSDT
+
+dex_chains:
+  - solana
+  - ethereum
+  - base
+  - bsc

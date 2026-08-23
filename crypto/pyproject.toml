@@ -1,0 +1,36 @@
+[project]
+name = "kquant-crypto"
+version = "0.1.0"
+description = "Read-only crypto market monitoring and early-start research terminal."
+requires-python = ">=3.11"
+dependencies = [
+  "duckdb>=1.1",
+  "fastapi>=0.115",
+  "httpx>=0.28",
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "pyarrow>=17.0",
+  "pywebpush>=2.0",
+  "PyYAML>=6.0",
+  "requests>=2.32",
+  "uvicorn[standard]>=0.30",
+  "websockets>=14.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+quant = [
+  "lightgbm>=4.0",
+]
+
+[project.scripts]
+kquant-crypto = "kquant_crypto.__main__:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+include = ["kquant_crypto*"]

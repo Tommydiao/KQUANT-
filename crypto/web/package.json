@@ -1,0 +1,23 @@
+{
+  "name": "kquant-crypto-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "jsdom": "latest"
+  },
+  "devDependencies": {}
+}
