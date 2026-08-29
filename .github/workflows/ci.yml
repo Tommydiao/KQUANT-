@@ -141,6 +141,6 @@ jobs:
         run: python -m pytest tests/test_operations.py -q
       - name: Scan tracked files for credentials
         working-directory: .
-        run: python ../scripts/scan_tracked_secrets.py --root ..
+        run: python scripts/scan_tracked_secrets.py --root .
       - name: Verify Crypto read-only runtime boundary
         run: python scripts/verify_read_only_boundary.py
