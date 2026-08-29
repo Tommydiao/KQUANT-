@@ -123,19 +123,19 @@ jobs:
         working-directory: crypto/web
         run: npm run build
       - name: Install unified platform frontend
-        working-directory: ../platform/web
+        working-directory: platform/web
         run: npm ci
       - name: Audit unified platform frontend
-        working-directory: ../platform/web
+        working-directory: platform/web
         run: npm audit --omit=dev --audit-level=high
       - name: Run unified platform static checks
-        working-directory: ../platform/web
+        working-directory: platform/web
         run: npm run lint
       - name: Run unified platform tests
-        working-directory: ../platform/web
+        working-directory: platform/web
         run: npm test -- --run
       - name: Build unified platform frontend
-        working-directory: ../platform/web
+        working-directory: platform/web
         run: npm run build
       - name: Verify gateway with unified platform build
         run: python -m pytest tests/test_operations.py -q
