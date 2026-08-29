@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 
 from kquant_crypto.config import load_settings
+from kquant_crypto.collection_session import read_collection_gate
 from kquant_crypto.parquet_store import ParquetMarketStore
 
 
@@ -33,31 +34,7 @@ def main() -> int:
         "eligible_symbols": sorted(eligible_symbols),
         "reason": None if persisted_gate_passed else "coverage index, stream span or required core symbol coverage is incomplete",
     }
-    report_path = settings.outputs_dir / "crypto_collection_latest.json"
-    running_path = settings.outputs_dir / "crypto_collection_running.json"
-    if report_path.exists():
-        try:
-            report = json.loads(report_path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            report = None
-        coverage["continuous_collection_gate"] = (report or {}).get("collection_gate") or {
-            "status": "NO_GO",
-            "evidence_scope": "independent_collector_session",
-            "failed_checks": ["invalid_collection_report"],
-        }
-    else:
-        heartbeat = None
-        if running_path.exists():
-            try:
-                heartbeat = json.loads(running_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                heartbeat = None
-        coverage["continuous_collection_gate"] = {
-            "status": "PENDING",
-            "evidence_scope": "independent_collector_session",
-            "failed_checks": ["collector_report_pending"],
-            "heartbeat": heartbeat,
-        }
+    coverage["continuous_collection_gate"] = read_collection_gate(settings.outputs_dir)
     continuous = coverage["continuous_collection_gate"]
     coverage["gate"] = {
         "status": "PASS" if continuous.get("status") == "PASS" else "NO_GO",

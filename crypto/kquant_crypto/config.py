@@ -8,9 +8,9 @@ from pathlib import Path
 from .universe_catalog import DEFAULT_CEX_SYMBOLS, configured_cex_symbols
 
 
-APP_VERSION = "0.2.0"
-API_CONTRACT_VERSION = "kquant-crypto-api-2026-08-23-eval-regime-v1"
-FRONTEND_CONTRACT_VERSION = "kquant-crypto-web-2026-08-22-foundation-v1"
+APP_VERSION = "0.3.3"
+API_CONTRACT_VERSION = "kquant-crypto-api-2026-08-24-evidence-v5"
+FRONTEND_CONTRACT_VERSION = "kquant-crypto-web-2026-08-23-roll-research-v1"
 
 
 class RuntimeMode(StrEnum):
@@ -65,6 +65,7 @@ class ProviderFlags:
     goplus: bool = False
     birdeye: bool = False
     coinglass: bool = False
+    defillama: bool = False
 
     def as_dict(self) -> dict[str, bool]:
         return {
@@ -76,6 +77,7 @@ class ProviderFlags:
             "goplus": self.goplus,
             "birdeye": self.birdeye,
             "coinglass": self.coinglass,
+            "defillama": self.defillama,
         }
 
 
@@ -98,12 +100,21 @@ class Settings:
     telegram_enabled: bool
     providers: ProviderFlags
     core_symbols: tuple[str, ...] = DEFAULT_CEX_SYMBOLS
+    high_frequency_symbols: tuple[str, ...] = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
     web_push_public_key: str = ""
     web_push_private_key: str = ""
     web_push_subject: str = ""
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
     goplus_api_key: str = ""
+    coinglass_api_key: str = ""
+    etf_evidence_url: str = ""
+    onchain_evidence_url: str = ""
+    staging_database_url: str = ""
+    market_trade_bucket_seconds: int = 60
+    market_quote_sample_seconds: float = 5.0
+    market_ticker_sample_seconds: float = 10.0
+    market_storage_flush_every: int = 5000
 
     @property
     def auth_configured(self) -> bool:
@@ -130,6 +141,7 @@ def load_settings(root_dir: Path | None = None) -> Settings:
         goplus=_bool("KQUANT_CRYPTO_ENABLE_GOPLUS"),
         birdeye=_bool("KQUANT_CRYPTO_ENABLE_BIRDEYE"),
         coinglass=_bool("KQUANT_CRYPTO_ENABLE_COINGLASS"),
+        defillama=_bool("KQUANT_CRYPTO_ENABLE_DEFILLAMA"),
     )
     default_symbols = configured_cex_symbols(root)
     settings = Settings(
@@ -154,12 +166,25 @@ def load_settings(root_dir: Path | None = None) -> Settings:
             for value in os.getenv("KQUANT_CRYPTO_CORE_SYMBOLS", ",".join(default_symbols)).split(",")
             if value.strip()
         ),
+        high_frequency_symbols=tuple(
+            value.strip().upper()
+            for value in os.getenv("KQUANT_CRYPTO_HIGH_FREQUENCY_SYMBOLS", "BTCUSDT,ETHUSDT,SOLUSDT").split(",")
+            if value.strip()
+        ),
         web_push_public_key=os.getenv("KQUANT_CRYPTO_WEB_PUSH_PUBLIC_KEY", "").strip(),
         web_push_private_key=os.getenv("KQUANT_CRYPTO_WEB_PUSH_PRIVATE_KEY", "").strip(),
         web_push_subject=os.getenv("KQUANT_CRYPTO_WEB_PUSH_SUBJECT", "").strip(),
         telegram_bot_token=os.getenv("KQUANT_CRYPTO_TELEGRAM_BOT_TOKEN", "").strip(),
         telegram_chat_id=os.getenv("KQUANT_CRYPTO_TELEGRAM_CHAT_ID", "").strip(),
         goplus_api_key=os.getenv("GOPLUS_API_KEY", "").strip(),
+        coinglass_api_key=os.getenv("COINGLASS_API_KEY", "").strip(),
+        etf_evidence_url=os.getenv("KQUANT_CRYPTO_ETF_EVIDENCE_URL", "").strip(),
+        onchain_evidence_url=os.getenv("KQUANT_CRYPTO_ONCHAIN_EVIDENCE_URL", "").strip(),
+        staging_database_url=os.getenv("KQUANT_CRYPTO_STAGING_DATABASE_URL", "").strip(),
+        market_trade_bucket_seconds=max(1, int(os.getenv("KQUANT_CRYPTO_TRADE_BUCKET_SECONDS", "60"))),
+        market_quote_sample_seconds=max(0.0, float(os.getenv("KQUANT_CRYPTO_QUOTE_SAMPLE_SECONDS", "5"))),
+        market_ticker_sample_seconds=max(0.0, float(os.getenv("KQUANT_CRYPTO_TICKER_SAMPLE_SECONDS", "10"))),
+        market_storage_flush_every=max(1, int(os.getenv("KQUANT_CRYPTO_STORAGE_FLUSH_EVERY", "5000"))),
     )
     settings.db_path.parent.mkdir(parents=True, exist_ok=True)
     settings.data_dir.mkdir(parents=True, exist_ok=True)

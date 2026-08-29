@@ -6,6 +6,8 @@ from .kraken import KrakenPublicAdapter, normalize_kraken_message
 from .okx import OKXPublicAdapter, normalize_okx_message
 from .dexscreener import DexScreenerProviderError, DexScreenerPublicAdapter
 from .goplus import GoPlusProviderError, GoPlusPublicAdapter
+from .coinglass import CoinGlassEvidenceResult, CoinGlassProviderError, CoinGlassPublicAdapter
+from .defillama import DefiLlamaEvidenceResult, DefiLlamaProviderError, DefiLlamaPublicAdapter
 
 __all__ = [
     "BinancePublicAdapter",
@@ -16,6 +18,12 @@ __all__ = [
     "DexScreenerProviderError",
     "GoPlusPublicAdapter",
     "GoPlusProviderError",
+    "CoinGlassEvidenceResult",
+    "CoinGlassProviderError",
+    "CoinGlassPublicAdapter",
+    "DefiLlamaEvidenceResult",
+    "DefiLlamaProviderError",
+    "DefiLlamaPublicAdapter",
     "normalize_binance_message",
     "normalize_coinbase_message",
     "normalize_kraken_message",

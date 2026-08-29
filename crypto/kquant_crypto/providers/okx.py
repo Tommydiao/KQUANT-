@@ -85,17 +85,29 @@ def normalize_okx_message(message: dict[str, Any], *, received_at: datetime | No
     return result
 
 
-def build_subscription(symbols: list[str], *, include_derivatives: bool = True) -> dict[str, Any]:
+def build_subscription(
+    symbols: list[str],
+    *,
+    include_derivatives: bool = True,
+    high_frequency_symbols: set[str] | None = None,
+) -> dict[str, Any]:
     args: list[dict[str, str]] = []
+    normalized_high_frequency = {
+        _symbol(item) for item in high_frequency_symbols
+    } if high_frequency_symbols is not None else None
     for value in symbols:
         inst = _instrument(value)
         args.extend([
             {"channel": "tickers", "instId": inst},
-            {"channel": "books5", "instId": inst},
-            {"channel": "trades", "instId": inst},
             {"channel": "candle1m", "instId": inst},
         ])
-        if include_derivatives:
+        high_frequency = normalized_high_frequency is None or _symbol(inst) in normalized_high_frequency
+        if high_frequency:
+            args.extend([
+                {"channel": "books5", "instId": inst},
+                {"channel": "trades", "instId": inst},
+            ])
+        if include_derivatives and high_frequency:
             swap = inst.removesuffix("-SPOT") + "-SWAP"
             args.extend([{ "channel": "mark-price", "instId": swap }, {"channel": "funding-rate", "instId": swap}])
     return {"op": "subscribe", "args": args}
@@ -105,8 +117,11 @@ class OKXPublicAdapter:
     name = "okx"
     url = PUBLIC_WS_URL
 
+    def __init__(self, *, high_frequency_symbols: set[str] | None = None):
+        self.high_frequency_symbols = high_frequency_symbols
+
     def subscription(self, symbols: list[str]) -> dict[str, Any]:
-        return build_subscription(symbols)
+        return build_subscription(symbols, high_frequency_symbols=self.high_frequency_symbols)
 
     async def stream(self, symbols: list[str], callback: Callable[[NormalizedMarketEvent], Awaitable[None]]) -> None:
         import websockets

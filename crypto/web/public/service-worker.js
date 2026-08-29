@@ -1,5 +1,5 @@
-const CACHE = "kquant-crypto-static-v2";
-const STATIC_PATHS = ["/", "/manifest.webmanifest", "/favicon.svg"];
+const CACHE = "kquant-crypto-static-v3";
+const STATIC_PATHS = ["/manifest.webmanifest", "/favicon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(STATIC_PATHS)));
@@ -25,6 +25,7 @@ self.addEventListener("notificationclick", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+  if (event.request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+  if (!(url.pathname.startsWith("/assets/") || STATIC_PATHS.includes(url.pathname))) return;
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
 });

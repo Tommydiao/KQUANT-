@@ -222,6 +222,9 @@ def load_parquet_validation_dataset(
             symbol=item["symbol"],
             bars=bars,
             benchmark_bars=dict(benchmark_map),
+            instrument_id=instrument_id,
+            asset_type="crypto_spot" if str(instrument_id).startswith("binance:spot:") else "",
+            instrument_data_status="actual" if str(instrument_id).startswith("binance:spot:") else "",
             derivative_series=(
                 align_derivatives_to_bars(bars, derivative_dataset.for_symbol(item["symbol"]))
                 if derivative_dataset is not None

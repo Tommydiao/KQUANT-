@@ -107,6 +107,10 @@ class ValidationSeries:
     bars: tuple[BacktestBar, ...]
     benchmark_bars: Mapping[str, Sequence[BacktestBar]] | None = None
     derivative_series: Sequence[Mapping[str, float | None]] | None = None
+    instrument_id: str = ""
+    asset_type: str = "crypto_spot"
+    instrument_data_status: str = ""
+    underlying_proxy_used: bool = False
 
 
 @dataclass(frozen=True)

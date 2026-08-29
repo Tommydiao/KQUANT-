@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import asyncio
+import os
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -53,6 +55,56 @@ from ..model_registry import ModelArtifactRegistry
 from ..model_baselines import run_model_benchmark
 from ..llm_advisor import list_advisory_reviews, save_advisory_review
 from ..universe import UniverseRegistry
+from ..bayesian_model import PointInTimeFeatureSnapshot, infer_bayesian_posterior
+from ..monte_carlo import MonteCarloConfig, simulate_monte_carlo
+from ..research_store import (
+    get_bayesian_posterior,
+    get_monte_carlo_result,
+    latest_bayesian_posterior,
+    latest_monte_carlo_result,
+    save_bayesian_posterior,
+    save_monte_carlo_result,
+)
+from ..roll_engine import RollInput, evaluate_roll
+from ..roll_store import (
+    get_roll_decision,
+    list_current_roll_decisions,
+    list_roll_decisions,
+    list_roll_ledger,
+    record_roll_ledger_event,
+    save_roll_decision,
+)
+from ..roll_validation import RollBar, RollValidationConfig, build_roll_series_from_validation, run_roll_walk_forward
+from ..roll_validation_store import get_roll_validation_report, latest_roll_validation_report, save_roll_validation_report
+from ..roll_packet import build_roll_feature_packet_from_db
+from ..roll_journal import preview_roll_journal_text
+from ..roll_journal_store import confirm_roll_journal_preview, save_roll_journal_preview
+from ..shadow_store import (
+    get_shadow_observation,
+    list_shadow_audit_events,
+    list_shadow_observations,
+    record_shadow_outcome,
+    review_shadow_observation,
+    save_shadow_observation,
+    shadow_summary,
+)
+from ..external_evidence import (
+    SUPPORTED_EVIDENCE_ASSETS,
+    evidence_coverage,
+    evidence_bundle,
+    list_latest_evidence,
+    save_evidence_snapshot,
+)
+from ..backup import latest_backup_status
+from ..evidence_collectors import evidence_source_capabilities, fetch_configured_evidence, normalize_provider_evidence
+from ..public_evidence import fetch_binance_derivatives_evidence, fetch_okx_derivatives_evidence
+from ..market_structure_evidence import fetch_binance_market_structure_evidence
+from ..providers.coinglass import CoinGlassPublicAdapter
+from ..providers.defillama import DefiLlamaPublicAdapter
+from ..observability import build_observability_summary
+from ..staging import staging_status
+from ..readiness import evaluate_readiness
+from ..collection_session import read_collection_gate, read_collection_session
 
 
 class LoginRequest(BaseModel):
@@ -80,6 +132,7 @@ class NotificationPreferencesRequest(BaseModel):
 
 PUBLIC_API_PATHS = {
     "/api/health",
+    "/api/version",
     "/api/auth/login",
     "/api/auth/logout",
     "/api/auth/session",
@@ -113,7 +166,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         factor_registry.register()
         meme_factor_registry.register()
         supervisor = ProviderSupervisor(resolved)
-        runtime = MarketDataRuntime(resolved.data_dir, db_path=resolved.db_path)
+        runtime = MarketDataRuntime(
+            resolved.data_dir,
+            db_path=resolved.db_path,
+            flush_every=resolved.market_storage_flush_every,
+            trade_bucket_seconds=resolved.market_trade_bucket_seconds,
+            quote_sample_seconds=resolved.market_quote_sample_seconds,
+            ticker_sample_seconds=resolved.market_ticker_sample_seconds,
+        )
         instruction_supervisor = RealtimeSupervisor(resolved.db_path, hub, resolved)
         universe_snapshot = UniverseRegistry(resolved.db_path).ensure_cex_snapshot(
             resolved.core_symbols,
@@ -174,9 +234,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if dex_task:
                 dex_task.cancel()
                 await asyncio.gather(dex_task, return_exceptions=True)
-            runtime.flush()
+            runtime.flush(force=True)
 
     app = FastAPI(title="KQUANT CRYPTO", version=APP_VERSION, lifespan=lifespan)
+    app.state.started_at = datetime.now(UTC).isoformat()
     app.state.settings = resolved
     app.state.auth = auth
     app.state.notification_hub = hub
@@ -199,6 +260,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
         return values
 
+    def _collector_session_status() -> dict[str, Any]:
+        """Expose the separate public collector without merging runtimes."""
+
+        configured_collector_providers = [
+            name for name, enabled in resolved.providers.as_dict().items()
+            if enabled and name in {"binance", "okx", "coinbase", "kraken"}
+        ]
+        value = read_collection_session(resolved.outputs_dir)
+        # Older collector sessions predate the provider field. Recover it from
+        # local public-provider configuration; this never grants capabilities.
+        value["providers"] = list(value.get("providers") or configured_collector_providers)
+        value.setdefault("market_data_only", True)
+        value.setdefault("paper_or_order_access", False)
+        return value
+
     @app.middleware("http")
     async def require_local_session(request: Request, call_next):
         path = request.url.path
@@ -212,15 +288,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
         universe = getattr(app.state, "universe_snapshot", None) or {}
+        schema = migration_status(resolved.db_path)
         return {
             "status": "ok",
             "app_version": APP_VERSION,
             "api_contract_version": API_CONTRACT_VERSION,
             "frontend_contract_version": FRONTEND_CONTRACT_VERSION,
-            "schema": migration_status(resolved.db_path),
+            "build_sha": os.getenv("KQUANT_CRYPTO_BUILD_SHA", "local")[:80],
+            "started_at": app.state.started_at,
+            "schema": schema,
+            "version_matrix": {
+                "application": APP_VERSION,
+                "api": API_CONTRACT_VERSION,
+                "frontend": FRONTEND_CONTRACT_VERSION,
+                "schema": schema.get("current_version", 0),
+                "strategy": "crypto_roll_v1.0.0",
+                "eval_policy": EVAL_POLICY_VERSION,
+            },
             "runtime_mode": resolved.mode.value,
             "auth": {"configured": auth.configured, "session_cookie": SessionAuth.cookie_name},
             "providers": _current_provider_health(),
+            "collector_session": _collector_session_status(),
             "dex_discovery": getattr(getattr(app.state, "dex_discovery_runtime", None), "status", lambda: {"status": "disabled"})(),
             "instruction_supervisor": getattr(getattr(app.state, "realtime_supervisor", None), "status", lambda: {"status": "not_started"})(),
             "signal_runtime": getattr(getattr(app.state, "signal_runtime", None), "status", lambda: {"status": "not_started"})(),
@@ -239,6 +327,110 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "wallet_access": False,
             "order_submission": False,
             "eval_policy_version": EVAL_POLICY_VERSION,
+            "research_layers": {
+                "crypto_roll_strategy_version": "crypto_roll_v1.0.0",
+                "bayesian_model_version": "crypto_bayesian_v1.0.0",
+                "monte_carlo_model_version": "crypto_monte_carlo_v1.0.0",
+                "roll_execution_enabled": False,
+                "research_only": True,
+            },
+            "shadow_observation": shadow_summary(resolved.db_path, validation_gate_status="NO_GO"),
+        }
+
+    @app.get("/api/version")
+    async def version() -> dict[str, Any]:
+        """Return the same build contract as health without runtime details."""
+
+        schema = migration_status(resolved.db_path)
+        return {
+            "application": APP_VERSION,
+            "api": API_CONTRACT_VERSION,
+            "frontend": FRONTEND_CONTRACT_VERSION,
+            "schema": schema.get("current_version", 0),
+            "strategy": "crypto_roll_v1.0.0",
+            "bayesian": "crypto_bayesian_v1.0.0",
+            "monte_carlo": "crypto_monte_carlo_v1.0.0",
+            "eval_policy": EVAL_POLICY_VERSION,
+            "build_sha": os.getenv("KQUANT_CRYPTO_BUILD_SHA", "local")[:80],
+            "research_only": True,
+            "order_submission": False,
+        }
+
+    @app.get("/api/operations/observability")
+    async def operations_observability():
+        report = latest_roll_validation_report(resolved.db_path)
+        validation_status = str((report or {}).get("validation_gate", {}).get("status") or "NO_GO")
+        return build_observability_summary(
+            resolved.db_path,
+            settings=resolved,
+            providers=_current_provider_health(),
+            runtime={
+                "started_at": app.state.started_at,
+                "signal": getattr(getattr(app.state, "signal_runtime", None), "status", lambda: {})(),
+                "instruction": getattr(getattr(app.state, "realtime_supervisor", None), "status", lambda: {})(),
+            },
+            shadow=shadow_summary(resolved.db_path, validation_gate_status=validation_status),
+        )
+
+    @app.get("/api/operations/staging")
+    async def operations_staging():
+        return staging_status(resolved)
+
+    @app.get("/api/operations/go-no-go")
+    async def operations_go_no_go():
+        """Return the complete, secret-free 999 research readiness report."""
+
+        validation = latest_roll_validation_report(resolved.db_path) or {}
+        validation_gate = validation.get("validation_gate") if isinstance(validation, dict) else None
+        runtime = getattr(app.state, "market_runtime", None)
+        runtime_coverage = runtime.coverage() if runtime else {}
+        storage = (runtime_coverage.get("storage") or {}) if isinstance(runtime_coverage, dict) else {}
+        continuous_gate = read_collection_gate(resolved.outputs_dir)
+        coverage_gate = {
+            "coverage_index_status": storage.get("coverage_index_status", "unknown"),
+            "continuous_collection_gate": continuous_gate,
+        }
+        staging = staging_status(resolved)
+        if staging.get("postgres_configured") and staging.get("driver_available"):
+            from ..staging import verify_staging
+
+            staging = verify_staging(resolved)
+        shadow = shadow_summary(
+            resolved.db_path,
+            validation_gate_status=str((validation_gate or {}).get("status") or "NO_GO"),
+        )
+        readiness = evaluate_readiness(
+            validation_gate=validation_gate,
+            coverage_gate=coverage_gate,
+            evidence_coverage=evidence_coverage(resolved.db_path),
+            staging=staging,
+            shadow=shadow,
+            backup=latest_backup_status(resolved.root_dir / "work" / "backups"),
+            raw_index_repair_required=bool(storage.get("raw_index_repair_required", True)),
+            research_only=True,
+            order_submission=False,
+        )
+        return {
+            "readiness": readiness,
+            "components": {
+                "validation": validation_gate,
+                "coverage": coverage_gate,
+                "staging": staging,
+                "shadow": shadow,
+            },
+            "research_only": True,
+            "order_submission": False,
+        }
+
+    @app.get("/api/operations/backup/status")
+    async def operations_backup_status():
+        backup = latest_backup_status(resolved.root_dir / "work" / "backups")
+        return {
+            **backup,
+            "backup_command": "python scripts/backup_crypto_state.py",
+            "restore_command": "python scripts/restore_crypto_state.py --help",
+            "research_only": True,
+            "secrets_exposed": False,
         }
 
     @app.post("/api/auth/login")
@@ -330,6 +522,355 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="交易计划不存在。")
         return value
 
+    @app.get("/api/crypto/roll/current")
+    async def current_rolls():
+        return {"items": list_current_roll_decisions(resolved.db_path, 100), "strategy_version": "crypto_roll_v1.0.0", "research_only": True}
+
+    @app.get("/api/crypto/roll/history")
+    async def roll_history():
+        return {"items": list_roll_decisions(resolved.db_path, 200), "research_only": True}
+
+    @app.get("/api/crypto/roll-journal")
+    @app.get("/api/crypto/roll/ledger")
+    async def roll_ledger():
+        return {"items": list_roll_ledger(resolved.db_path, 200), "research_only": True}
+
+    @app.post("/api/crypto/roll/evaluate")
+    async def evaluate_crypto_roll(payload: dict[str, Any]):
+        try:
+            roll_input = RollInput.from_mapping(payload)
+            decision = evaluate_roll(roll_input)
+            saved, created = save_roll_decision(resolved.db_path, decision)
+            evaluation = None
+            trade_plan = payload.get("trade_plan")
+            if isinstance(trade_plan, dict):
+                plan_payload = dict(trade_plan)
+                plan_payload.setdefault("asset_id", roll_input.asset_id)
+                plan_payload.setdefault("symbol", roll_input.symbol)
+                plan_payload.setdefault("asset_type", roll_input.asset_type)
+                plan_payload.setdefault("strategy_version", "crypto_roll_v1.0.0")
+                plan_payload.setdefault("factor_snapshot_hash", roll_input.feature_snapshot_id)
+                plan_payload.setdefault("source_snapshot_ids", list(roll_input.source_snapshot_ids))
+                evaluation = EvaluationAgent(
+                    resolved.db_path,
+                    factor_registry,
+                    model_registry,
+                    additional_factor_ids=meme_factor_registry.ids,
+                ).evaluate(TradePlanDraft.from_mapping(plan_payload)).to_mapping()
+            return {
+                "decision": saved,
+                "evaluation": evaluation,
+                "created": created,
+                "execution_enabled": False,
+                "research_only": True,
+                "eval_authority": "EVAL only",
+            }
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"roll input invalid: {exc}") from exc
+
+    @app.post("/api/crypto/roll/feature-packet")
+    async def create_roll_feature_packet(payload: dict[str, Any]):
+        try:
+            input_payload = dict(payload.get("roll_input") or payload)
+            decision = evaluate_roll(RollInput.from_mapping(input_payload))
+            packet = build_roll_feature_packet_from_db(
+                resolved.db_path,
+                input_payload,
+                decision=decision,
+                bayesian=payload.get("bayesian"),
+                monte_carlo=payload.get("monte_carlo"),
+                validation=payload.get("validation"),
+                model=payload.get("model"),
+                journal=payload.get("journal"),
+            )
+            return packet.to_mapping()
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"roll feature packet invalid: {exc}") from exc
+
+    @app.post("/api/crypto/roll-journal/ocr-preview")
+    @app.post("/api/crypto/roll/ledger/ocr-preview")
+    async def preview_roll_journal(payload: dict[str, Any]):
+        text = str(payload.get("text") or payload.get("ocr_text") or "")
+        if not text.strip():
+            raise HTTPException(status_code=422, detail="ocr preview text is required")
+        preview = preview_roll_journal_text(text).to_mapping()
+        return save_roll_journal_preview(resolved.db_path, preview)
+
+    @app.post("/api/crypto/roll-journal/confirm")
+    @app.post("/api/crypto/roll/ledger")
+    async def append_roll_ledger(payload: dict[str, Any]):
+        try:
+            confirmation = None
+            preview_id = str(payload.get("preview_id") or "")
+            if preview_id:
+                confirmation = confirm_roll_journal_preview(resolved.db_path, preview_id, payload)
+            elif not bool(payload.get("confirm_write")):
+                raise HTTPException(status_code=409, detail="journal write requires explicit confirmation")
+            result = record_roll_ledger_event(
+                resolved.db_path,
+                asset_id=str(payload.get("asset_id") or ""),
+                symbol=str(payload.get("symbol") or ""),
+                event_type=str(payload.get("event_type") or "research_note"),
+                realized_profit=float(payload.get("realized_profit")),
+                rolled_capital=float(payload.get("rolled_capital")),
+                remaining_risk=float(payload.get("remaining_risk")),
+                occurred_at=str(payload.get("occurred_at") or ""),
+                roll_id=str(payload.get("roll_id") or "") or None,
+                user_note=str(payload.get("user_note") or ""),
+            )
+            return {"entry": result, "confirmation": confirmation, "execution_enabled": False, "research_only": True}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"roll ledger input invalid: {exc}") from exc
+
+    @app.get("/api/crypto/roll/{roll_id}")
+    async def roll_detail(roll_id: str):
+        value = get_roll_decision(resolved.db_path, roll_id)
+        if value is None:
+            raise HTTPException(status_code=404, detail="roll decision not found")
+        return value
+
+    @app.post("/api/crypto/research/bayesian")
+    async def create_bayesian_snapshot(payload: dict[str, Any]):
+        try:
+            snapshot = PointInTimeFeatureSnapshot.create(
+                asset_id=str(payload.get("asset_id") or ""),
+                symbol=str(payload.get("symbol") or ""),
+                signal_time=str(payload.get("signal_time") or ""),
+                available_at=str(payload.get("available_at") or ""),
+                source_status=str(payload.get("source_status") or "unknown"),
+                features=dict(payload.get("features") or {}),
+                source_snapshot_ids=tuple(str(item) for item in (payload.get("source_snapshot_ids") or ())),
+                required_features=tuple(str(item) for item in (payload.get("required_features") or ())),
+            )
+            posterior = infer_bayesian_posterior(
+                snapshot,
+                training_window_start=str(payload.get("training_window_start") or "") or None,
+                training_window_end=str(payload.get("training_window_end") or "") or None,
+                training_dataset_hash=str(payload.get("training_dataset_hash") or ""),
+                random_seed=payload.get("random_seed"),
+            )
+            saved = save_bayesian_posterior(resolved.db_path, snapshot, posterior)
+            return {**saved, "research_only": True, "eval_authority": "EVAL only"}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"bayesian snapshot invalid: {exc}") from exc
+
+    @app.get("/api/crypto/research/bayesian/snapshots/{snapshot_id}")
+    async def bayesian_detail(snapshot_id: str):
+        value = get_bayesian_posterior(resolved.db_path, snapshot_id)
+        if value is None:
+            raise HTTPException(status_code=404, detail="bayesian snapshot not found")
+        return value
+
+    @app.get("/api/crypto/research/bayesian/{asset_id:path}")
+    async def latest_bayesian(asset_id: str):
+        item = latest_bayesian_posterior(resolved.db_path, asset_id)
+        return {"status": "available" if item else "not_collected", "item": item, "research_only": True}
+
+    @app.post("/api/crypto/research/monte-carlo")
+    async def create_monte_carlo(payload: dict[str, Any]):
+        try:
+            raw_config = dict(payload.get("config") or {})
+            allowed_config = {key: raw_config[key] for key in (
+                "horizons_days", "paths", "block_size", "seed", "target_return", "stop_return",
+                "ruin_return", "instrument_type", "instrument_id", "instrument_data_status",
+                "underlying_proxy_used", "daily_leverage", "management_fee_bps",
+                "tracking_error_bps", "spread_bps", "slippage_bps",
+            ) if key in raw_config}
+            regime_labels = [str(item) for item in (payload.get("regime_labels") or ())]
+            target_regime = str(payload.get("target_regime") or "") or None
+            result = simulate_monte_carlo(
+                list(payload.get("returns") or ()),
+                config=MonteCarloConfig(**allowed_config),
+                regime_labels=regime_labels or None,
+                target_regime=target_regime,
+            )
+            saved = save_monte_carlo_result(
+                resolved.db_path,
+                asset_id=str(payload.get("asset_id") or ""),
+                symbol=str(payload.get("symbol") or ""),
+                as_of_time=str(payload.get("as_of_time") or "") or None,
+                result=result,
+            )
+            return {**saved, "research_only": True, "eval_authority": "EVAL only"}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"monte carlo input invalid: {exc}") from exc
+
+    @app.get("/api/crypto/research/monte-carlo/runs/{run_id}")
+    async def monte_carlo_detail(run_id: str):
+        value = get_monte_carlo_result(resolved.db_path, run_id)
+        if value is None:
+            raise HTTPException(status_code=404, detail="monte carlo run not found")
+        return value
+
+    @app.get("/api/crypto/research/monte-carlo/{asset_id:path}")
+    async def latest_monte_carlo(asset_id: str):
+        item = latest_monte_carlo_result(resolved.db_path, asset_id)
+        return {"status": "available" if item else "not_collected", "item": item, "research_only": True}
+
+    @app.post("/api/crypto/validation/roll-runs")
+    async def create_roll_validation_run(payload: dict[str, Any]):
+        try:
+            raw_series = payload.get("series") or {}
+            if not isinstance(raw_series, dict) or not raw_series:
+                raise ValueError("series must be a non-empty symbol to bars mapping")
+            series = {
+                str(symbol): tuple(RollBar.from_mapping(item) for item in values)
+                for symbol, values in raw_series.items()
+                if isinstance(values, list)
+            }
+            raw_config = dict(payload.get("config") or {})
+            allowed_config = {key: raw_config[key] for key in (
+                "target_return", "stop_return", "max_hold_bars", "fee_bps_per_side",
+                "slippage_bps_per_side", "train_ratio", "validation_ratio", "embargo_bars",
+                "bootstrap_iterations", "bootstrap_seed", "oos_folds",
+            ) if key in raw_config}
+            report = run_roll_walk_forward(series, config=RollValidationConfig(**allowed_config))
+            run_id = save_roll_validation_report(resolved.db_path, report)
+            return {"status": "created", "run_id": run_id, "report": report, "research_only": True}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"roll validation input invalid: {exc}") from exc
+
+    @app.post("/api/crypto/validation/roll-runs/from-parquet")
+    async def create_roll_validation_run_from_parquet(payload: dict[str, Any]):
+        """Run the frozen roll policy from persisted closed bars only."""
+
+        try:
+            raw_symbols = payload.get("symbols")
+            symbols = tuple(str(item).upper() for item in raw_symbols) if isinstance(raw_symbols, list) else None
+            interval = str(payload.get("interval") or "1h").strip().lower()
+            min_bars = max(55, int(payload.get("min_bars") or 220))
+            max_hold_bars = max(1, int(payload.get("max_hold_bars") or 24))
+            include_derivatives = bool(payload.get("include_derivatives"))
+            dataset = load_parquet_validation_dataset(
+                resolved.data_dir,
+                symbols=symbols,
+                interval=interval,
+                min_bars=min_bars,
+                include_derivatives=include_derivatives,
+            )
+            if not dataset.series:
+                return {
+                    "status": "NO_GO",
+                    "reason": "no eligible closed-bar series",
+                    "dataset_coverage": dataset.coverage,
+                    "research_only": True,
+                }
+            suffix = interval[-1:].lower()
+            unit_minutes = {"m": 1, "h": 60, "d": 1440}.get(suffix)
+            if unit_minutes is None:
+                raise ValueError("interval must end with m, h or d")
+            interval_minutes = max(1, int(interval[:-1]) * unit_minutes)
+            roll_series, roll_coverage = build_roll_series_from_validation(
+                dataset.series,
+                source_dataset_id=str(dataset.coverage.get("dataset_hash") or "unknown"),
+                interval_minutes=interval_minutes,
+                min_history_bars=min_bars,
+            )
+            report = run_roll_walk_forward(
+                roll_series,
+                config=RollValidationConfig(
+                    max_hold_bars=max_hold_bars,
+                    bootstrap_iterations=max(100, int(payload.get("bootstrap_iterations") or 1000)),
+                ),
+            )
+            report["dataset_coverage"] = dataset.coverage
+            report["roll_input_coverage"] = roll_coverage
+            report["source_contract"] = "closed_binance_spot_parquet_only"
+            run_id = save_roll_validation_report(resolved.db_path, report)
+            return {
+                "status": "created",
+                "run_id": run_id,
+                "report": report,
+                "research_only": True,
+            }
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"roll Parquet validation input invalid: {exc}") from exc
+
+    @app.get("/api/crypto/validation/roll-latest")
+    async def roll_validation_latest():
+        report = latest_roll_validation_report(resolved.db_path)
+        return {"status": "available" if report else "not_collected", "report": report, "research_only": True}
+
+    @app.get("/api/crypto/validation/roll-runs/{run_id}")
+    async def roll_validation_detail(run_id: str):
+        report = get_roll_validation_report(resolved.db_path, run_id)
+        if report is None:
+            raise HTTPException(status_code=404, detail="roll validation run not found")
+        return {"run_id": run_id, "report": report, "research_only": True}
+
+    @app.get("/api/crypto/shadow/summary")
+    async def shadow_observation_summary():
+        report = latest_roll_validation_report(resolved.db_path)
+        validation_status = str((report or {}).get("validation_gate", {}).get("status") or "NO_GO")
+        return shadow_summary(resolved.db_path, validation_gate_status=validation_status)
+
+    @app.get("/api/crypto/shadow/observations")
+    async def shadow_observations(limit: int = 100):
+        report = latest_roll_validation_report(resolved.db_path)
+        validation_status = str((report or {}).get("validation_gate", {}).get("status") or "NO_GO")
+        return {
+            "items": list_shadow_observations(resolved.db_path, limit),
+            "summary": shadow_summary(resolved.db_path, validation_gate_status=validation_status),
+            "research_only": True,
+        }
+
+    @app.post("/api/crypto/shadow/observations")
+    async def create_shadow_observation(payload: dict[str, Any]):
+        try:
+            action = str(payload.get("action") or "").upper()
+            # Blocked/waiting/invalidated rows are useful audit observations,
+            # but an active shadow action must be explicitly released by EVAL.
+            if action not in {"DATA_BLOCKED", "WAIT", "INVALIDATED"}:
+                evaluation_id = str(payload.get("evaluation_id") or "")
+                evaluation = get_evaluation(resolved.db_path, evaluation_id) if evaluation_id else None
+                if not evaluation or not bool(evaluation.get("allowed_shadow")):
+                    raise HTTPException(status_code=409, detail="shadow observation requires an EVAL-approved shadow decision")
+            value, created = save_shadow_observation(resolved.db_path, payload)
+            return {"observation": value, "created": created, "research_only": True}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"shadow observation invalid: {exc}") from exc
+
+    @app.get("/api/crypto/shadow/{observation_id}/audit")
+    async def shadow_observation_audit(observation_id: str):
+        if get_shadow_observation(resolved.db_path, observation_id) is None:
+            raise HTTPException(status_code=404, detail="shadow observation not found")
+        return {"items": list_shadow_audit_events(resolved.db_path, observation_id), "research_only": True}
+
+    @app.get("/api/crypto/shadow/{observation_id}")
+    async def shadow_observation_detail(observation_id: str):
+        value = get_shadow_observation(resolved.db_path, observation_id)
+        if value is None:
+            raise HTTPException(status_code=404, detail="shadow observation not found")
+        return value
+
+    @app.post("/api/crypto/shadow/{observation_id}/review")
+    async def review_shadow(observation_id: str, payload: dict[str, Any]):
+        try:
+            return review_shadow_observation(
+                resolved.db_path,
+                observation_id,
+                user_status=str(payload.get("user_status") or ""),
+                user_note=str(payload.get("user_note") or ""),
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="shadow observation not found") from exc
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"shadow review invalid: {exc}") from exc
+
+    @app.post("/api/crypto/shadow/{observation_id}/outcome")
+    async def complete_shadow_outcome(observation_id: str, payload: dict[str, Any]):
+        try:
+            return record_shadow_outcome(
+                resolved.db_path,
+                observation_id,
+                outcome_status=str(payload.get("outcome_status") or ""),
+                outcome=dict(payload.get("outcome") or {}),
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="shadow observation not found") from exc
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"shadow outcome invalid: {exc}") from exc
+
     @app.get("/api/crypto/evaluations/latest")
     async def evaluations_latest():
         return {"items": latest_evaluations(resolved.db_path, 50)}
@@ -398,6 +939,165 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def providers_status():
         return {"providers": _current_provider_health(), "dex_discovery": getattr(getattr(app.state, "dex_discovery_runtime", None), "status", lambda: {"status": "disabled"})(), "symbols": list(resolved.core_symbols), "market_data_only": True}
 
+    @app.get("/api/crypto/evidence/capabilities")
+    async def evidence_capabilities():
+        return evidence_source_capabilities()
+
+    @app.get("/api/crypto/evidence/coverage")
+    async def external_evidence_coverage():
+        return evidence_coverage(
+            resolved.db_path,
+            tuple(f"asset:{symbol.lower()}" for symbol in SUPPORTED_EVIDENCE_ASSETS),
+        )
+
+    @app.post("/api/crypto/evidence")
+    async def save_external_evidence(payload: dict[str, Any]):
+        try:
+            snapshot = normalize_provider_evidence(
+                dict(payload.get("values") or {}),
+                asset_id=str(payload.get("asset_id") or ""),
+                symbol=str(payload.get("symbol") or ""),
+                category=str(payload.get("category") or ""),
+                source=str(payload.get("source") or ""),
+                source_status=str(payload.get("source_status") or "unknown"),
+                source_time=str(payload.get("source_time") or "") or None,
+                published_at=str(payload.get("published_at") or "") or None,
+                available_at=str(payload.get("available_at") or ""),
+            )
+            return {"snapshot": save_evidence_snapshot(resolved.db_path, snapshot), "research_only": True}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"external evidence invalid: {exc}") from exc
+
+    @app.post("/api/crypto/evidence/fetch-configured")
+    async def fetch_configured_external_evidence(payload: dict[str, Any]):
+        """Fetch an optional research feed; missing fields remain N/A."""
+
+        source = str(payload.get("source") or "")
+        category = str(payload.get("category") or "")
+        symbol = str(payload.get("symbol") or "")
+        asset_id = str(payload.get("asset_id") or f"asset:{symbol.lower()}")
+        if source == "official_etf_feed":
+            url = resolved.etf_evidence_url
+        elif source == "onchain_metrics_feed":
+            url = resolved.onchain_evidence_url
+        else:
+            url = ""
+        try:
+            result = await asyncio.to_thread(
+                fetch_configured_evidence,
+                url=url,
+                source=source,
+                category=category,
+                asset_id=asset_id,
+                symbol=symbol,
+            )
+            snapshot = result.get("snapshot") or {}
+            if snapshot:
+                save_evidence_snapshot(resolved.db_path, normalize_provider_evidence(
+                    snapshot.get("values") or {},
+                    source=source,
+                    category=category,
+                    asset_id=asset_id,
+                    symbol=symbol,
+                source_status=snapshot.get("source_status") or "provider_unavailable",
+                source_version=snapshot.get("source_version") or source,
+                available_at=snapshot.get("available_at") or "",
+                source_time=snapshot.get("source_time"),
+                published_at=snapshot.get("published_at"),
+                collected_at=snapshot.get("collected_at"),
+                ))
+            return result
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"configured evidence invalid: {exc}") from exc
+
+    @app.post("/api/crypto/evidence/fetch-public")
+    async def fetch_public_external_evidence(payload: dict[str, Any]):
+        """Fetch a registered public source without account credentials."""
+
+        source = str(payload.get("source") or "binance_public_derivatives")
+        default_category = "market_structure" if source == "binance_public_market_structure" else "exchange_derivatives"
+        category = str(payload.get("category") or default_category)
+        symbol = str(payload.get("symbol") or ("BTC" if source == "binance_public_market_structure" else ""))
+        asset_id = str(payload.get("asset_id") or f"asset:{symbol.lower()}")
+        if source == "binance_public_market_structure":
+            if category != "market_structure":
+                raise HTTPException(status_code=422, detail="Binance market structure source supports market_structure only")
+            latest_regime = getattr(getattr(app.state, "market_regime_runtime", None), "latest", lambda: None)() or {}
+            result = await asyncio.to_thread(
+                fetch_binance_market_structure_evidence,
+                asset_id=asset_id or "asset:btc",
+                symbol=symbol or "BTC",
+                universe_symbols=resolved.core_symbols,
+            )
+            saved = save_evidence_snapshot(resolved.db_path, result.snapshot)
+            return {
+                **result.to_mapping(),
+                "snapshot": saved,
+                "regime_context": {
+                    "regime": latest_regime.get("regime"),
+                    "as_of_time": latest_regime.get("as_of_time"),
+                    "source": "market_regime_runtime",
+                },
+            }
+        if source == "defillama_public":
+            if category not in {"onchain", "protocol_metric"}:
+                raise HTTPException(status_code=422, detail="DefiLlama public source supports on-chain and protocol metrics only")
+            result = await asyncio.to_thread(
+                DefiLlamaPublicAdapter().fetch,
+                asset_id=asset_id,
+                symbol=symbol,
+                category=category,
+                enabled=resolved.providers.defillama,
+            )
+            saved = save_evidence_snapshot(resolved.db_path, result.snapshot)
+            return {**result.to_mapping(), "snapshot": saved, "provider_enabled": resolved.providers.defillama}
+        if source not in {"binance_public_derivatives", "okx_public_derivatives"} or category != "exchange_derivatives":
+            raise HTTPException(status_code=422, detail="only registered public evidence sources are available")
+        try:
+            collector = fetch_binance_derivatives_evidence if source == "binance_public_derivatives" else fetch_okx_derivatives_evidence
+            result = await asyncio.to_thread(
+                collector,
+                asset_id=asset_id,
+                symbol=symbol,
+            )
+            saved = save_evidence_snapshot(resolved.db_path, result.snapshot)
+            return {**result.to_mapping(), "snapshot": saved, "research_only": True}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"public evidence invalid: {exc}") from exc
+
+    @app.post("/api/crypto/evidence/fetch-coinglass")
+    async def fetch_coinglass_external_evidence(payload: dict[str, Any]):
+        """Fetch optional CoinGlass evidence without exposing credentials."""
+
+        category = str(payload.get("category") or "exchange_derivatives").lower()
+        symbol = str(payload.get("symbol") or "").upper()
+        asset_id = str(payload.get("asset_id") or f"asset:{symbol.lower()}")
+        if category not in {"exchange_derivatives", "etf_flow", "onchain", "whale"} or not symbol or not asset_id:
+            raise HTTPException(status_code=422, detail="CoinGlass requires a supported category and symbol")
+        api_key = resolved.coinglass_api_key if resolved.providers.coinglass else ""
+        adapter = CoinGlassPublicAdapter(api_key=api_key)
+        result = await asyncio.to_thread(
+            adapter.fetch,
+            asset_id=asset_id,
+            symbol=symbol,
+            category=category,
+        )
+        saved = save_evidence_snapshot(resolved.db_path, result.snapshot)
+        return {
+            **result.to_mapping(),
+            "snapshot": saved,
+            "provider_enabled": resolved.providers.coinglass,
+            "research_only": True,
+        }
+
+    @app.get("/api/crypto/assets/{asset_id:path}/evidence/history")
+    async def asset_evidence_history(asset_id: str, limit: int = 50):
+        return {"items": list_latest_evidence(resolved.db_path, asset_id, limit), "research_only": True}
+
+    @app.get("/api/crypto/assets/{asset_id:path}/evidence")
+    async def asset_evidence(asset_id: str):
+        return evidence_bundle(resolved.db_path, asset_id)
+
     @app.get("/api/crypto/data/coverage")
     async def data_coverage():
         runtime = getattr(app.state, "market_runtime", None)
@@ -464,31 +1164,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "note": "This is storage coverage evidence; it is not proof of one uninterrupted collector session.",
         }
         continuous_gate: dict[str, Any]
-        collection_report_path = resolved.outputs_dir / "crypto_collection_latest.json"
-        running_collection_path = resolved.outputs_dir / "crypto_collection_running.json"
-        try:
-            if collection_report_path.exists():
-                report = json.loads(collection_report_path.read_text(encoding="utf-8"))
-                continuous_gate = report.get("collection_gate") or {
-                    "status": "NO_GO",
-                    "evidence_scope": "independent_collector_session",
-                    "failed_checks": ["invalid_collection_report"],
-                }
-            else:
-                heartbeat = None
-                if running_collection_path.exists():
-                    heartbeat = json.loads(running_collection_path.read_text(encoding="utf-8"))
-                continuous_gate = {
-                    "status": "PENDING",
-                    "evidence_scope": "independent_collector_session",
-                    "failed_checks": ["collector_report_pending"],
-                    "heartbeat": heartbeat,
-                }
-        except (OSError, TypeError, ValueError):
-            continuous_gate = {
+        session = read_collection_session(resolved.outputs_dir)
+        if session.get("status") == "completed":
+            continuous_gate = session.get("collection_gate") or {
                 "status": "NO_GO",
                 "evidence_scope": "independent_collector_session",
                 "failed_checks": ["invalid_collection_report"],
+            }
+        elif session.get("status") == "stale":
+            continuous_gate = {
+                "status": "NO_GO",
+                "evidence_scope": "independent_collector_session",
+                "failed_checks": list(session.get("failed_checks") or ["collector_stale"]),
+                "heartbeat": session,
+            }
+        else:
+            continuous_gate = {
+                "status": "PENDING",
+                "evidence_scope": "independent_collector_session",
+                "failed_checks": ["collector_report_pending"],
+                "heartbeat": session,
             }
         return {
             "status": storage.get("storage", {}).get("status", "not_collected"),

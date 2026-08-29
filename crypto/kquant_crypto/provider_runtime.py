@@ -38,6 +38,7 @@ class ProviderSupervisor:
     def __init__(self, settings: Settings, *, on_event: Callable[[NormalizedMarketEvent], Awaitable[None]] | None = None):
         self.settings = settings
         self.on_event = on_event or self._default_handler
+        self.high_frequency_symbols = set(settings.high_frequency_symbols)
         self.health = {name: ProviderHealth(name, enabled, status="disabled" if not enabled else "configured_pending") for name, enabled in settings.providers.as_dict().items()}
         self.sequence = SequenceTracker()
         self._stop = asyncio.Event()
@@ -50,9 +51,12 @@ class ProviderSupervisor:
 
     def _adapters(self, name: str):
         if name == "binance":
-            return [BinancePublicAdapter(futures=False), BinancePublicAdapter(futures=True)]
+            return [
+                BinancePublicAdapter(futures=False, high_frequency_symbols=self.high_frequency_symbols),
+                BinancePublicAdapter(futures=True, high_frequency_symbols=self.high_frequency_symbols),
+            ]
         return {
-            "okx": OKXPublicAdapter(),
+            "okx": OKXPublicAdapter(high_frequency_symbols=self.high_frequency_symbols),
             "coinbase": CoinbasePublicAdapter(),
             "kraken": KrakenPublicAdapter(),
         }.get(name, None)
@@ -97,7 +101,12 @@ class ProviderSupervisor:
             return
         health.last_source_time = event.source_time
         health.last_received_at = event.received_at
-        await self.on_event(event)
+        try:
+            await self.on_event(event)
+        except Exception:
+            health.handler_errors += 1
+            raise
+        health.accepted_events += 1
 
     async def _run_adapter(self, name: str, adapter: Any, symbols: list[str]) -> None:
         delay = 1.0

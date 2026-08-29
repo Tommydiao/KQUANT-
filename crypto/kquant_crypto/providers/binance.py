@@ -79,30 +79,52 @@ def normalize_binance_message(message: dict[str, Any], *, received_at: datetime 
     return _event(symbol, market_type, event_type, source, received.isoformat(), sequence, payload)
 
 
-def build_stream_names(symbols: list[str], *, futures: bool = False) -> list[str]:
+def build_stream_names(
+    symbols: list[str],
+    *,
+    futures: bool = False,
+    high_frequency_symbols: set[str] | None = None,
+) -> list[str]:
     names: list[str] = []
     for value in symbols:
         symbol = value.replace("/", "").replace("-", "").lower()
-        names.extend([f"{symbol}@ticker", f"{symbol}@bookTicker", f"{symbol}@trade", f"{symbol}@kline_1m"])
-        if futures:
+        names.extend([f"{symbol}@ticker", f"{symbol}@kline_1m"])
+        high_frequency = high_frequency_symbols is None or symbol.upper() in high_frequency_symbols
+        if high_frequency:
+            names.extend([f"{symbol}@bookTicker", f"{symbol}@trade"])
+        if futures and high_frequency:
             names.append(f"{symbol}@markPrice@1s")
     return names
 
 
-def build_stream_url(symbols: list[str], *, futures: bool = False) -> str:
+def build_stream_url(
+    symbols: list[str],
+    *,
+    futures: bool = False,
+    high_frequency_symbols: set[str] | None = None,
+) -> str:
     base = FUTURES_STREAM_URL if futures else SPOT_STREAM_URL
-    streams = "/".join(build_stream_names(symbols, futures=futures))
+    streams = "/".join(build_stream_names(
+        symbols,
+        futures=futures,
+        high_frequency_symbols=high_frequency_symbols,
+    ))
     return f"{base}?streams={streams}"
 
 
 class BinancePublicAdapter:
     name = "binance"
 
-    def __init__(self, *, futures: bool = False):
+    def __init__(self, *, futures: bool = False, high_frequency_symbols: set[str] | None = None):
         self.futures = futures
+        self.high_frequency_symbols = high_frequency_symbols
 
     def subscription_url(self, symbols: list[str]) -> str:
-        return build_stream_url(symbols, futures=self.futures)
+        return build_stream_url(
+            symbols,
+            futures=self.futures,
+            high_frequency_symbols=self.high_frequency_symbols,
+        )
 
     async def stream(self, symbols: list[str], callback: Callable[[NormalizedMarketEvent], Awaitable[None]]) -> None:
         import websockets

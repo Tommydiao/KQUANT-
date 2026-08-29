@@ -98,6 +98,8 @@ class ProviderHealth:
     sequence_gaps: int = 0
     duplicate_events: int = 0
     out_of_order_events: int = 0
+    accepted_events: int = 0
+    handler_errors: int = 0
     last_source_time: str | None = None
     last_received_at: str | None = None
     last_error: str | None = None
@@ -105,6 +107,16 @@ class ProviderHealth:
     clock_source: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
+        quality_errors = self.sequence_gaps + self.duplicate_events + self.out_of_order_events + self.handler_errors
+        observed_events = self.accepted_events + quality_errors
+        ingestion_lag_seconds: float | None = None
+        if self.last_source_time:
+            try:
+                source = datetime.fromisoformat(self.last_source_time.replace("Z", "+00:00"))
+                source = source if source.tzinfo else source.replace(tzinfo=UTC)
+                ingestion_lag_seconds = round(max(0.0, (datetime.now(UTC) - source).total_seconds()), 3)
+            except ValueError:
+                ingestion_lag_seconds = None
         return {
             "provider": self.provider,
             "enabled": self.enabled,
@@ -114,8 +126,13 @@ class ProviderHealth:
             "sequence_gaps": self.sequence_gaps,
             "duplicate_events": self.duplicate_events,
             "out_of_order_events": self.out_of_order_events,
+            "accepted_events": self.accepted_events,
+            "handler_errors": self.handler_errors,
+            "quality_error_count": quality_errors,
+            "quality_error_rate": round(quality_errors / observed_events, 6) if observed_events else None,
             "last_source_time": self.last_source_time,
             "last_received_at": self.last_received_at,
+            "ingestion_lag_seconds": ingestion_lag_seconds,
             "last_error": self.last_error,
             "clock_offset_seconds": self.clock_offset_seconds,
             "clock_source": self.clock_source,

@@ -23,6 +23,7 @@ from .calibration import (
     fit_platt_calibrator,
 )
 from .evaluation_models import stable_hash
+from .quantile_model import fit_quantile_regression, quantile_partition_metrics
 
 
 MODEL_BENCHMARK_VERSION = "crypto_model_benchmark_v1.0.0"
@@ -330,6 +331,37 @@ def run_model_benchmark(
             }
         logistic_report["calibration"] = calibration_rows
         reports.append(logistic_report)
+
+    quantile = fit_quantile_regression(train, feature_order=feature_order, quantile=0.5)
+    if quantile is None:
+        reports.append({
+            "model_type": "quantile_regression",
+            "status": "insufficient",
+            "model_hash": None,
+            "quantile": 0.5,
+            "test_is_locked": True,
+            "notes": ["train needs at least ten complete rows with finite realized R"],
+            "partitions": {
+                name: quantile_partition_metrics(by_partition[name], [], 0.5)
+                for name in ("train", "validation", "test")
+            },
+        })
+    else:
+        reports.append({
+            "model_type": "quantile_regression",
+            "status": "available_non_authoritative",
+            "model_hash": quantile.model_hash,
+            "quantile": quantile.quantile,
+            "test_is_locked": True,
+            "calibration_gate": "closed",
+            "notes": ["fit on train only; median realized R baseline; no model selection from test"],
+            "partitions": {
+                name: quantile_partition_metrics(
+                    by_partition[name], quantile.predict(by_partition[name]), quantile.quantile
+                )
+                for name in ("train", "validation", "test")
+            },
+        })
 
     try:
         import lightgbm  # type: ignore  # noqa: F401

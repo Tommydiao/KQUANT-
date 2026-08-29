@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from kquant_crypto.market_models import SequenceTracker
+from kquant_crypto.market_models import ProviderHealth, SequenceTracker
 from kquant_crypto.provider_runtime import ProviderSupervisor
 from kquant_crypto.providers.binance import build_stream_names, normalize_binance_message
 from kquant_crypto.providers.coinbase import build_subscription as coinbase_subscription, normalize_coinbase_message
@@ -27,6 +27,20 @@ def test_binance_kline_marks_forming_bar_without_treating_it_as_closed():
     event = normalize_binance_message({"data": {"e": "kline", "E": 1000, "s": "ETHUSDT", "k": {"t": 1000, "s": "ETHUSDT", "i": "1m", "o": "1", "h": "2", "l": "0.5", "c": "1.5", "v": "10", "x": False}}}, received_at=NOW)
     assert event is not None
     assert event.payload["closed"] is False
+
+
+def test_high_frequency_subscription_is_limited_to_core_symbols():
+    names = build_stream_names(
+        ["BTCUSDT", "AAVEUSDT"],
+        futures=True,
+        high_frequency_symbols={"BTCUSDT"},
+    )
+    assert len(names) == 7
+    assert "btcusdt@trade" in names
+    assert "aaveusdt@trade" not in names
+    subscription = okx_subscription(["BTCUSDT", "AAVEUSDT"], high_frequency_symbols={"BTCUSDT"})
+    assert len(subscription["args"]) == 8
+    assert not any(item["instId"] == "AAVE-USDT" and item["channel"] == "trades" for item in subscription["args"])
 
 
 def test_okx_and_reference_messages_normalize_without_credentials():
@@ -59,6 +73,22 @@ def test_non_strict_provider_sequence_can_jump_without_being_a_gap():
     assert tracker.observe("ticker", 10, strict=False) == "first"
     assert tracker.observe("ticker", 100, strict=False) == "ok"
     assert tracker.gaps == 0
+
+
+def test_provider_health_exposes_lag_and_quality_error_rate():
+    health = ProviderHealth(
+        "binance",
+        True,
+        status="connected",
+        last_source_time=(datetime.now(UTC) - timedelta(seconds=3)).isoformat(),
+        accepted_events=97,
+        sequence_gaps=2,
+        duplicate_events=1,
+    )
+    body = health.as_dict()
+    assert body["ingestion_lag_seconds"] >= 2.0
+    assert body["quality_error_count"] == 3
+    assert body["quality_error_rate"] == 0.03
 
 
 def test_binance_supervisor_runs_spot_and_perpetual_adapters(settings):

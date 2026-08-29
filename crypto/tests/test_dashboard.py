@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import json
+from dataclasses import replace
+
 from fastapi.testclient import TestClient
 
 from kquant_crypto.dashboard.app import create_app
+from kquant_crypto.config import ProviderFlags
 from kquant_crypto.dex_models import DexMarketStore, DexPairSnapshot, DexSecurityStore, TokenSecurityInput, assess_token_security
+from kquant_crypto.market_structure_evidence import fetch_binance_market_structure_evidence
 
 
 def test_health_is_public_but_research_is_authenticated(settings):
@@ -11,8 +16,30 @@ def test_health_is_public_but_research_is_authenticated(settings):
     health = client.get("/api/health")
     assert health.status_code == 200
     assert health.json()["read_only"] is True
+    version = client.get("/api/version")
+    assert version.status_code == 200
+    assert version.json()["strategy"] == "crypto_roll_v1.0.0"
     assert client.get("/api/crypto/evaluations/latest").status_code == 401
     assert client.get("/api/auth/session").json()["authenticated"] is False
+
+
+def test_health_backfills_public_collector_providers_for_older_session_file(settings):
+    settings = replace(settings, providers=ProviderFlags(binance=True, okx=True))
+    (settings.outputs_dir / "crypto_collection_running.json").write_text(
+        json.dumps({
+            "status": "running",
+            "started_at": "2026-08-24T00:00:00+00:00",
+            "providers": [],
+            "market_data_only": True,
+            "paper_or_order_access": False,
+        }),
+        encoding="utf-8",
+    )
+    client = TestClient(create_app(settings))
+    body = client.get("/api/health").json()["collector_session"]
+    assert body["providers"] == ["binance", "okx"]
+    assert body["market_data_only"] is True
+    assert body["paper_or_order_access"] is False
 
 
 def test_login_unlocks_read_only_routes(settings):
@@ -51,6 +78,7 @@ def test_data_coverage_exposes_canonical_registry(settings):
 
 def test_parquet_validation_endpoint_fails_closed_without_closed_dataset(settings):
     client = TestClient(create_app(settings))
+    assert client.post("/api/crypto/validation/roll-runs/from-parquet", json={}).status_code == 401
     client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
     response = client.post("/api/crypto/validation/runs/from-parquet", json={"symbols": ["SOLUSDT"]})
     assert response.status_code == 200
@@ -105,6 +133,72 @@ def test_security_coverage_is_explicit_when_provider_is_disabled(settings):
     body = response.json()
     assert body["status"] == "provider_disabled"
     assert body["unknown_security_eval_allowed"] is False
+
+
+def test_coinglass_evidence_route_is_authenticated_and_fail_closed_when_disabled(settings):
+    client = TestClient(create_app(settings))
+    assert client.post("/api/crypto/evidence/fetch-coinglass", json={"symbol": "BTC"}).status_code == 401
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    response = client.post(
+        "/api/crypto/evidence/fetch-coinglass",
+        json={"category": "exchange_derivatives", "symbol": "BTC"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider_enabled"] is False
+    assert body["status"] == "provider_unavailable"
+    assert body["snapshot"]["trust_status"] == "data_caution"
+    assert "CG-API-KEY" not in str(body)
+
+
+def test_defillama_public_evidence_is_disabled_without_explicit_provider_flag(settings):
+    client = TestClient(create_app(settings))
+    assert client.post(
+        "/api/crypto/evidence/fetch-public",
+        json={"source": "defillama_public", "category": "onchain", "symbol": "BTC"},
+    ).status_code == 401
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    response = client.post(
+        "/api/crypto/evidence/fetch-public",
+        json={"source": "defillama_public", "category": "onchain", "symbol": "BTC"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider_enabled"] is False
+    assert body["status"] == "provider_disabled"
+    assert body["snapshot"]["trust_status"] == "data_caution"
+
+
+def test_market_structure_public_evidence_is_authenticated_and_keeps_missing_fields(monkeypatch, settings):
+    class Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return [
+                {"symbol": "BTCUSDT", "lastPrice": "100", "closeTime": 1724457600000},
+                {"symbol": "ETHUSDT", "lastPrice": "5", "closeTime": 1724457600000},
+                {"symbol": "SOLUSDT", "lastPrice": "1", "closeTime": 1724457600000},
+                {"symbol": "AAVEUSDT", "lastPrice": "10", "priceChangePercent": "1", "closeTime": 1724457600000},
+            ]
+
+    class Client:
+        def get(self, *_args, **_kwargs):
+            return Response()
+
+    fake = fetch_binance_market_structure_evidence(
+        asset_id="asset:btc", symbol="BTC", universe_symbols=("AAVEUSDT",), client=Client()
+    )
+    monkeypatch.setattr("kquant_crypto.dashboard.app.fetch_binance_market_structure_evidence", lambda **_: fake)
+    client = TestClient(create_app(settings))
+    assert client.post("/api/crypto/evidence/fetch-public", json={"source": "binance_public_market_structure"}).status_code == 401
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    response = client.post("/api/crypto/evidence/fetch-public", json={"source": "binance_public_market_structure", "symbol": "BTC"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["snapshot"]["category"] == "market_structure"
+    assert body["snapshot"]["trust_status"] == "data_caution"
+    assert "btc_dominance" in body["snapshot"]["missing_fields"]
 
 
 def test_meme_factors_use_point_in_time_security_and_holder_snapshots(settings):

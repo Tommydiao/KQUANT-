@@ -1,6 +1,6 @@
 [project]
 name = "kquant-crypto"
-version = "0.1.0"
+version = "0.3.3"
 description = "Read-only crypto market monitoring and early-start research terminal."
 requires-python = ">=3.11"
 dependencies = [
@@ -23,6 +23,9 @@ dev = [
 ]
 quant = [
   "lightgbm>=4.0",
+]
+staging = [
+  "psycopg[binary]>=3.2",
 ]
 
 [project.scripts]

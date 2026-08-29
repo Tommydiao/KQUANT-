@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Callable
 
 
-LATEST_SCHEMA_VERSION = 12
+LATEST_SCHEMA_VERSION = 17
 
 
 class MigrationError(RuntimeError):
@@ -588,6 +588,186 @@ ON crypto_model_artifacts(model_version, created_at DESC);
 """
 
 
+ROLL_RESEARCH_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_roll_plans (
+  roll_id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  asset_type TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  policy_version TEXT NOT NULL,
+  action TEXT NOT NULL,
+  status TEXT NOT NULL,
+  as_of_time TEXT NOT NULL,
+  data_cutoff_time TEXT NOT NULL,
+  source_status TEXT NOT NULL,
+  coverage REAL NOT NULL,
+  hard_veto INTEGER NOT NULL,
+  roll_capital REAL NOT NULL,
+  remaining_risk REAL NOT NULL,
+  feature_snapshot_id TEXT,
+  model_version TEXT,
+  source_snapshot_ids_json TEXT NOT NULL,
+  blockers_json TEXT NOT NULL,
+  warnings_json TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  content_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_roll_plans_asset_time
+ON crypto_roll_plans(asset_id, as_of_time DESC);
+
+CREATE TABLE IF NOT EXISTS crypto_roll_ledger (
+  ledger_id TEXT PRIMARY KEY,
+  roll_id TEXT,
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  realized_profit REAL NOT NULL,
+  rolled_capital REAL NOT NULL,
+  remaining_risk REAL NOT NULL,
+  user_note TEXT NOT NULL DEFAULT '',
+  occurred_at TEXT NOT NULL,
+  content_hash TEXT NOT NULL UNIQUE
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_roll_ledger_asset_time
+ON crypto_roll_ledger(asset_id, occurred_at DESC);
+
+CREATE TABLE IF NOT EXISTS crypto_bayesian_snapshots (
+  snapshot_id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  model_version TEXT NOT NULL,
+  signal_time TEXT NOT NULL,
+  available_at TEXT NOT NULL,
+  source_status TEXT NOT NULL,
+  evidence_status TEXT NOT NULL,
+  content_hash TEXT NOT NULL UNIQUE,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_bayesian_asset_time
+ON crypto_bayesian_snapshots(asset_id, signal_time DESC);
+
+CREATE TABLE IF NOT EXISTS crypto_monte_carlo_runs (
+  run_id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  model_version TEXT NOT NULL,
+  status TEXT NOT NULL,
+  sample_count INTEGER NOT NULL,
+  as_of_time TEXT,
+  config_json TEXT NOT NULL,
+  result_hash TEXT NOT NULL UNIQUE,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_monte_carlo_asset_time
+ON crypto_monte_carlo_runs(asset_id, created_at DESC);
+"""
+
+
+EXTERNAL_EVIDENCE_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_external_evidence (
+  evidence_id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  category TEXT NOT NULL CHECK(category IN ('etf_flow','exchange_derivatives','onchain','whale','market_structure','protocol_metric')),
+  source TEXT NOT NULL,
+  source_status TEXT NOT NULL,
+  source_time TEXT,
+  published_at TEXT,
+  available_at TEXT NOT NULL,
+  trust_status TEXT NOT NULL,
+  content_hash TEXT NOT NULL UNIQUE,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_external_evidence_asset_category_time
+ON crypto_external_evidence(asset_id, category, available_at DESC);
+"""
+
+
+ROLL_VALIDATION_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_roll_validation_runs (
+  run_id TEXT PRIMARY KEY,
+  strategy_version TEXT NOT NULL,
+  validation_version TEXT NOT NULL,
+  dataset_hash TEXT NOT NULL,
+  status TEXT NOT NULL,
+  report_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_roll_validation_created
+ON crypto_roll_validation_runs(created_at DESC);
+"""
+
+
+SHADOW_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_shadow_observations (
+  observation_id TEXT PRIMARY KEY,
+  asset_scope TEXT NOT NULL CHECK(asset_scope IN ('crypto','stock')),
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  action TEXT NOT NULL,
+  strategy_stage TEXT NOT NULL,
+  as_of_time TEXT NOT NULL,
+  data_cutoff_time TEXT NOT NULL,
+  source_status TEXT NOT NULL,
+  coverage REAL NOT NULL,
+  hard_veto INTEGER NOT NULL,
+  feature_snapshot_id TEXT,
+  model_version TEXT,
+  factor_snapshot_hash TEXT,
+  source_snapshot_ids_json TEXT NOT NULL,
+  entry_zone_json TEXT NOT NULL,
+  stop_zone_json TEXT NOT NULL,
+  target_zone_json TEXT NOT NULL,
+  bayesian_json TEXT NOT NULL,
+  monte_carlo_json TEXT NOT NULL,
+  ai_rank REAL,
+  evaluation_id TEXT,
+  roll_id TEXT,
+  user_status TEXT NOT NULL CHECK(user_status IN ('pending','reviewed','skipped','paper_observed','manual_note')),
+  user_note TEXT NOT NULL DEFAULT '',
+  outcome_status TEXT NOT NULL CHECK(outcome_status IN ('pending','completed','invalidated','unavailable')),
+  outcome_json TEXT NOT NULL DEFAULT '{}',
+  content_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_shadow_asset_time
+ON crypto_shadow_observations(asset_id, as_of_time DESC);
+CREATE INDEX IF NOT EXISTS idx_crypto_shadow_date_scope
+ON crypto_shadow_observations(asset_scope, substr(as_of_time, 1, 10));
+
+CREATE TABLE IF NOT EXISTS crypto_shadow_audit_events (
+  event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  observation_id TEXT NOT NULL REFERENCES crypto_shadow_observations(observation_id),
+  event_type TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_shadow_audit_time
+ON crypto_shadow_audit_events(observation_id, created_at ASC, event_id ASC);
+"""
+
+
+ROLL_JOURNAL_PREVIEW_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_roll_journal_previews (
+  preview_id TEXT PRIMARY KEY,
+  content_hash TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL CHECK(status IN ('preview_ready','confirmed','expired')),
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  confirmed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_roll_journal_previews_status_time
+ON crypto_roll_journal_previews(status, created_at DESC);
+"""
+
+
 VALIDATION_OOS_SQL = """
 -- The apply hook adds evidence partition columns to existing validation rows.
 -- Keeping this migration additive preserves all v1 validation history.
@@ -637,6 +817,11 @@ MIGRATIONS = (
     Migration(10, "crypto_model_artifacts_v1", MODEL_ARTIFACT_SQL),
     Migration(11, "crypto_validation_oos_evidence_v1", VALIDATION_OOS_SQL, _apply_validation_oos_columns),
     Migration(12, "crypto_validation_factor_values_v1", VALIDATION_FACTOR_VALUES_SQL, _apply_validation_factor_values_column),
+    Migration(13, "crypto_roll_bayesian_monte_carlo_v1", ROLL_RESEARCH_SQL),
+    Migration(14, "crypto_external_evidence_v1", EXTERNAL_EVIDENCE_SQL),
+    Migration(15, "crypto_roll_validation_v1", ROLL_VALIDATION_SQL),
+    Migration(16, "crypto_shadow_observation_v1", SHADOW_SQL),
+    Migration(17, "crypto_roll_journal_preview_v1", ROLL_JOURNAL_PREVIEW_SQL),
 )
 
 

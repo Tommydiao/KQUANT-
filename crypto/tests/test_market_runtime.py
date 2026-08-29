@@ -91,6 +91,43 @@ def test_parquet_and_duckdb_round_trip(tmp_path):
     assert runtime.coverage()["storage"]["file_count"] >= 1
 
 
+def test_high_frequency_trades_are_persisted_as_bounded_summaries(tmp_path):
+    runtime = MarketDataRuntime(tmp_path / "data", flush_every=1, trade_bucket_seconds=60)
+    from dataclasses import replace
+    import asyncio
+    import json
+
+    first = event(0, event_type="trade", side="buy", size="10")
+    second = replace(
+        event(0, event_type="trade", side="sell", size="4"),
+        source_time="2026-08-22T00:00:30+00:00",
+        received_at="2026-08-22T00:00:31+00:00",
+        sequence=2,
+    )
+    next_bucket = replace(
+        event(0, event_type="trade", side="buy", size="2"),
+        source_time="2026-08-22T00:01:00+00:00",
+        received_at="2026-08-22T00:01:01+00:00",
+        sequence=3,
+    )
+
+    async def write():
+        await runtime.ingest(first)
+        await runtime.ingest(second)
+        await runtime.ingest(next_bucket)
+        runtime.flush(force=True)
+
+    asyncio.run(write())
+    rows = runtime.query(venue="binance", market_type="spot", symbol="BTCUSDT", limit=10)
+    summaries = [row for row in rows if row["event_type"] == "trade_summary"]
+    assert len(summaries) == 2
+    first_payload = json.loads(next(row["payload_json"] for row in summaries if "00:00:00" in row["source_time"]))
+    assert first_payload["trade_count"] == 2
+    assert first_payload["cvd"] == 6.0
+    assert first_payload["provenance"] == "runtime_trade_aggregation"
+    assert all(row["event_type"] != "trade" for row in rows)
+
+
 def test_store_symbol_filter_is_bounded_to_requested_partition(tmp_path):
     runtime = MarketDataRuntime(tmp_path / "data", flush_every=100)
 
