@@ -6,6 +6,7 @@ param(
   [int]$TopN = 8,
   [switch]$SkipAiDaily,
   [switch]$RestartBackend,
+  [switch]$AllowYahooReference,
   [switch]$NoBrowser
 )
 
@@ -48,6 +49,22 @@ function Test-KquantOnline {
 }
 
 function Start-KquantBackend {
+  if (-not $AllowYahooReference) {
+    $missingLongbridge = @(
+      "LONGBRIDGE_APP_KEY",
+      "LONGBRIDGE_APP_SECRET",
+      "LONGBRIDGE_ACCESS_TOKEN"
+    ) | Where-Object {
+      -not [Environment]::GetEnvironmentVariable($_, "Process") -and
+      -not [Environment]::GetEnvironmentVariable($_, "User")
+    }
+    if ($missingLongbridge.Count -gt 0) {
+      Write-Host "Monday Pilot requires Longbridge realtime market data." -ForegroundColor Red
+      Write-Host "Missing: $($missingLongbridge -join ', ')" -ForegroundColor Yellow
+      throw "Monday preflight blocked: Longbridge credentials are missing."
+    }
+  }
+
   if ($RestartBackend) {
     $listeners = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
     foreach ($listenerPid in @($listeners | Select-Object -ExpandProperty OwningProcess -Unique)) {
@@ -66,7 +83,7 @@ function Start-KquantBackend {
   }
 
   Write-Host "Starting KQUANT backend in the background..." -ForegroundColor Cyan
-  Start-Process -FilePath "powershell" -ArgumentList @(
+  $startArguments = @(
     "-NoProfile",
     "-ExecutionPolicy",
     "Bypass",
@@ -77,7 +94,11 @@ function Start-KquantBackend {
     "-HostName",
     $HostName,
     "-NoBrowser"
-  ) -WorkingDirectory $Root -WindowStyle Hidden | Out-Null
+  )
+  if (-not $AllowYahooReference) {
+    $startArguments += "-RequireLongbridge"
+  }
+  Start-Process -FilePath "powershell" -ArgumentList $startArguments -WorkingDirectory $Root -WindowStyle Hidden | Out-Null
 
   for ($i = 1; $i -le 30; $i++) {
     Start-Sleep -Seconds 1

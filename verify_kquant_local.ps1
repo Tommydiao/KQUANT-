@@ -1,6 +1,7 @@
 param(
   [int]$Port = 8001,
   [switch]$SkipBuild,
+  [switch]$SkipReadiness,
   [switch]$SkipPytest,
   [switch]$Strict
 )
@@ -127,17 +128,21 @@ if ($SkipBuild) {
   }
 }
 
-try {
-  & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "check_kquant_monday_pilot.ps1") -Port $Port
-  if ($LASTEXITCODE -eq 0) {
-    Add-Result "monday_readiness" "passed" "Critical live/AI/safety checks passed."
-  } elseif ($LASTEXITCODE -eq 2) {
-    Add-Result "monday_readiness" "warning" "Critical checks passed with warnings." $false
-  } else {
-    Add-Result "monday_readiness" "failed" "Readiness check exited with code $LASTEXITCODE."
+if ($SkipReadiness) {
+  Add-Result "monday_readiness" "skipped" "Skipped by -SkipReadiness." $false
+} else {
+  try {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "check_kquant_monday_pilot.ps1") -Port $Port
+    if ($LASTEXITCODE -eq 0) {
+      Add-Result "monday_readiness" "passed" "Critical live/AI/safety checks passed."
+    } elseif ($LASTEXITCODE -eq 2) {
+      Add-Result "monday_readiness" "warning" "Critical checks passed with warnings." $false
+    } else {
+      Add-Result "monday_readiness" "failed" "Readiness check exited with code $LASTEXITCODE."
+    }
+  } catch {
+    Add-Result "monday_readiness" "failed" $_.Exception.Message
   }
-} catch {
-  Add-Result "monday_readiness" "failed" $_.Exception.Message
 }
 
 if ($SkipPytest) {

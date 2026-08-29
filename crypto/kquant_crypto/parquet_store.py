@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from contextlib import contextmanager, nullcontext
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -238,7 +239,12 @@ class ParquetMarketStore:
         written: list[Path] = []
         with self._writer_lock():
             for directory, rows in grouped.items():
-                stem = f"events-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}"
+                # Windows clocks can return the same timestamp for adjacent writes.
+                # A random suffix keeps append-only fragments from replacing each other.
+                stem = (
+                    f"events-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}"
+                    f"-{os.getpid()}-{uuid.uuid4().hex[:12]}"
+                )
                 file = directory / f"{stem}.parquet"
                 temporary = directory / f".{stem}.tmp"
                 try:

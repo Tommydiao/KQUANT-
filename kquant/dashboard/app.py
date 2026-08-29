@@ -467,6 +467,10 @@ def create_app(
             "product": settings.product,
             "status": "online" if safety["status"] == "pass" else "unsafe",
             "backend": "kquant.dashboard.fastapi",
+            **build,
+            "broker_order_wiring_enabled": False,
+            "account_access_enabled": False,
+            "order_submission_enabled": False,
             "runtime": {
                 "api_contract_version": API_CONTRACT_VERSION,
                 "started_at_utc": started_at_utc,
