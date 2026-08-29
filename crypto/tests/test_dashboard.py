@@ -11,7 +11,8 @@ from kquant_crypto.dex_models import DexMarketStore, DexPairSnapshot, DexSecurit
 from kquant_crypto.market_structure_evidence import fetch_binance_market_structure_evidence
 
 
-def test_health_is_public_but_research_is_authenticated(settings):
+def test_health_is_public_but_research_is_authenticated(settings, monkeypatch):
+    monkeypatch.setenv("KQUANT_BUILD_SHA", "local")
     client = TestClient(create_app(settings))
     health = client.get("/api/health")
     assert health.status_code == 200

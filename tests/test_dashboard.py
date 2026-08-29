@@ -22,6 +22,7 @@ def _app(tmp_path: Path):
 
 
 def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("KQUANT_BUILD_SHA", "local")
     monkeypatch.setattr(
         "kquant.dashboard.app.api_stock_market_data_status",
         lambda db_path=None: {"provider": "yahoo", "status": "standby"},

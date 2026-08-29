@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
 
@@ -10,6 +11,15 @@ from kquant_crypto.dashboard.app import create_app
 from kquant_crypto.gateway import GATEWAY_VERSION, create_gateway_app
 from kquant_crypto.observability import build_observability_summary
 from kquant_crypto.staging import staging_status
+
+
+def _expected_gateway_build_sha() -> str:
+    return (
+        os.getenv("KQUANT_BUILD_SHA")
+        or os.getenv("GITHUB_SHA")
+        or os.getenv("VERCEL_GIT_COMMIT_SHA")
+        or "local"
+    )[:80]
 
 
 def _client(settings) -> TestClient:
@@ -46,7 +56,7 @@ def test_gateway_exposes_separate_mode_config_without_proxying_sessions():
     assert {item["id"] for item in config["modes"]} == {"stocks", "crypto"}
     assert config["data_mixing"] is False
     assert config["secrets_exposed"] is False
-    assert config["build_sha"] == "local"
+    assert config["build_sha"] == _expected_gateway_build_sha()
 
 
 def test_backup_and_restore_preserve_sqlite_content(settings, tmp_path):
@@ -88,7 +98,7 @@ def test_gateway_keeps_backends_separate():
     assert health["data_mixing"] is False
     assert health["session_mode"] == "separate_backend_sessions"
     assert health["order_submission"] is False
-    assert health["build_sha"] == "local"
+    assert health["build_sha"] == _expected_gateway_build_sha()
     assert client.get("/api/version").json()["order_submission"] is False
     platform_health = client.get("/api/platform/health").json()
     assert platform_health["status"] == "degraded"
