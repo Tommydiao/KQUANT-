@@ -13,5 +13,21 @@ work/
 *.sqlite3-wal
 web/node_modules/
 web/dist/
+KQUANT-github-main/
+
+# Independent crypto runtime (source is committed under crypto/)
+crypto/.env
+crypto/.venv/
+crypto/.venv-win/
+crypto/data/
+crypto/outputs/
+crypto/work/
+crypto/*.sqlite3
+crypto/*.sqlite3-shm
+crypto/*.sqlite3-wal
+crypto/web/node_modules/
+crypto/web/dist/
+platform/web/node_modules/
+platform/web/dist/
 
 .vercel

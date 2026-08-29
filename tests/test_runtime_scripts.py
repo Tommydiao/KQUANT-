@@ -42,3 +42,10 @@ def test_realtime_check_uses_read_only_market_data_endpoints() -> None:
     assert "longbridge_account_enabled" in realtime_check
     assert "longbridge_trade_enabled" in realtime_check
     assert "-RequireLongbridge" in preflight
+
+
+def test_reproducible_verification_can_skip_runtime_readiness() -> None:
+    verifier = read_script("verify_kquant_local.ps1")
+
+    assert "[switch]$SkipReadiness" in verifier
+    assert 'Skipped by -SkipReadiness.' in verifier

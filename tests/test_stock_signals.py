@@ -1,11 +1,12 @@
 from pathlib import Path
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import date, datetime
+from types import SimpleNamespace
 
 import pytest
 
-from btc_eth_15m.dashboard.stdlib_server import stock_live_only_source
+from kquant.dashboard.app import stock_live_only_source
 from kquant.stock_signals import (
     api_stock_ai_daily_agent,
     api_stock_ai_daily_report_latest,
@@ -15,8 +16,8 @@ from kquant.stock_signals import (
     api_stock_analyze,
     api_stock_candles,
     api_stock_live_data_health,
+    api_stock_live_data_health_latest,
     api_stock_market_data_status,
-    classify_market_data_state,
     api_stock_monday_readiness_latest,
     api_stock_quote,
     api_stock_research_chat,
@@ -24,11 +25,44 @@ from kquant.stock_signals import (
     api_stock_signal_journal_entry,
     api_stock_signals,
     api_stock_signals_latest,
+    archive_legacy_reference_report,
     ai_hard_veto,
-    enrich_ai_daily_report_freshness,
+    longbridge_candles,
 )
 from kquant.stock_store import connect
 from kquant.stock_universe import stock_universe
+
+
+def test_longbridge_isolates_legacy_yahoo_reports(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("KQUANT_MARKET_DATA_PROVIDER", "longbridge")
+    legacy_signal = {
+        "run_id": "old-yahoo-signal",
+        "source": "live",
+        "universe": "default",
+        "profile": {"name": "swing_long_v1"},
+        "cache_source": "live_yahoo_chart",
+        "signals": [],
+    }
+    legacy_health = {
+        "run_id": "old-yahoo-health",
+        "source": "live",
+        "universes_detail": [{"symbols": [{"timeframes": [{"source_type": "live_yahoo_chart"}]}]}],
+    }
+    (tmp_path / "stock-signals-report.json").write_text(json.dumps(legacy_signal), encoding="utf-8")
+    (tmp_path / "stock-live-data-health.json").write_text(json.dumps(legacy_health), encoding="utf-8")
+
+    signals = api_stock_signals_latest(outputs_dir=tmp_path)
+    health = api_stock_live_data_health_latest(outputs_dir=tmp_path)
+
+    assert signals["latest_cache_status"] == "legacy_reference"
+    assert signals["signals"] == []
+    assert health["latest_cache_status"] == "legacy_reference"
+    assert health["summary"]["provider_status"] == "not_scanned"
+
+    archive_legacy_reference_report(tmp_path, "stock-signals-report.json")
+    archived = list((tmp_path / "legacy-reference").glob("stock-signals-report-*.json"))
+    assert len(archived) == 1
+    assert json.loads(archived[0].read_text(encoding="utf-8"))["run_id"] == "old-yahoo-signal"
 
 
 def test_default_stock_universe_has_200_symbols() -> None:
@@ -191,7 +225,55 @@ def test_fixture_higher_timeframe_candles_match_declared_timeframe(tmp_path: Pat
     assert len(monthly_dates) == 120
 
     coerced = api_stock_candles("SPY", "5y", "1d", "fixture", db_path)
-    assert coerced["interval"] == "1wk"
+    assert coerced["interval"] == "1d"
+    assert len(coerced["candles"]) == 1260
+
+
+def test_longbridge_history_ranges_page_back_from_latest_data(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeHistoryRuntime:
+        def __init__(self) -> None:
+            self.calls: list[tuple[date, date]] = []
+
+        def history_candlesticks_by_date(self, symbol, period, adjust_type, start, end, timeout_seconds):
+            assert symbol == "AAPL.US"
+            assert timeout_seconds > 0
+            self.calls.append((start, end))
+            if end == date(2024, 6, 30):
+                return [
+                    SimpleNamespace(timestamp="2024-05-01T14:30:00+00:00", open=10, high=12, low=9, close=11, volume=100),
+                    SimpleNamespace(timestamp="2024-06-30T14:30:00+00:00", open=11, high=13, low=10, close=12, volume=120),
+                ]
+            assert end == date(2024, 4, 30)
+            return [
+                SimpleNamespace(timestamp="2024-01-01T14:30:00+00:00", open=8, high=10, low=7, close=9, volume=80),
+                SimpleNamespace(timestamp="2024-04-30T14:30:00+00:00", open=9, high=11, low=8, close=10, volume=90),
+            ]
+
+    runtime = FakeHistoryRuntime()
+    monkeypatch.setattr("kquant.stock_signals.longbridge_env_ready", lambda: True)
+    monkeypatch.setattr("kquant.stock_signals.longbridge_runtime", lambda: runtime)
+    monkeypatch.setattr(
+        "kquant.stock_signals._longbridge_history_window",
+        lambda range_value, now: (date(2024, 1, 1), date(2024, 6, 30)),
+    )
+
+    payload = longbridge_candles("AAPL", "2y", "1h")
+
+    assert payload["provider_status"] == "available"
+    assert payload["delivery_mode"] == "history_by_date"
+    assert payload["freshness"] == "historical_backfill"
+    assert payload["history_pagination"] == {
+        "mode": "history_candlesticks_by_date",
+        "requested_start_date": "2024-01-01",
+        "requested_end_date": "2024-06-30",
+        "page_count": 2,
+        "provider_max_bars_per_page": 1000,
+    }
+    assert [item["close"] for item in payload["candles"]] == [9.0, 10.0, 11.0, 12.0]
+    assert runtime.calls == [
+        (date(2024, 1, 1), date(2024, 6, 30)),
+        (date(2024, 1, 1), date(2024, 4, 30)),
+    ]
 
 
 def test_longbridge_market_data_status_is_read_only(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -206,23 +288,6 @@ def test_longbridge_market_data_status_is_read_only(monkeypatch: pytest.MonkeyPa
     assert payload["longbridge_account_enabled"] is False
     assert payload["longbridge_trade_enabled"] is False
     assert payload["real_money_requires_longbridge_live"] is True
-    assert payload["trust_state"] == "unavailable"
-
-
-def test_market_data_trust_state_distinguishes_live_stale_and_reference() -> None:
-    now = datetime(2026, 8, 1, 12, 0, tzinfo=timezone.utc)
-    live_state, live_age = classify_market_data_state(
-        "longbridge", True, True, "2026-08-01T11:59:30+00:00", now=now
-    )
-    stale_state, stale_age = classify_market_data_state(
-        "longbridge", True, True, "2026-08-01T11:30:00+00:00", now=now
-    )
-    reference_state, reference_age = classify_market_data_state(
-        "yahoo", False, False, None, now=now
-    )
-    assert (live_state, live_age) == ("live_primary", 30)
-    assert (stale_state, stale_age) == ("stale_primary", 1800)
-    assert (reference_state, reference_age) == ("reference_only", None)
 
 
 def test_stock_quote_without_longbridge_is_safe(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -481,7 +546,7 @@ def test_stock_analyze_returns_single_symbol_profile_payload(tmp_path: Path) -> 
     assert packet_v2["market_and_data_guardrails"]["daily_provider_status"] == "fixture_read_only"
     assert packet_v2["market_and_data_guardrails"]["data_clean"] is False
     packet_v3 = payload["signal"]["ai_feature_packet_v3"]
-    assert packet_v3["version"] == "ai_feature_packet_v3"
+    assert packet_v3["version"] == "ai_feature_packet_v3_1"
     assert packet_v3["base_packet_version"] == "ai_feature_packet_v2"
     assert packet_v3["realtime_market_state"]["provider_status"] == "not_requested"
     assert packet_v3["model_refresh_policy"]["quote_updates_alone_do_not_call_the_model"] is True
@@ -626,7 +691,7 @@ def test_ai_decision_hard_veto_blocks_model_buy(tmp_path: Path, monkeypatch) -> 
         assert context["ai_feature_packet_v1"]["confirmation_structure"]["ema9"] > 0
         assert context["ai_feature_packet_v2"]["version"] == "ai_feature_packet_v2"
         assert context["ai_feature_packet_v2"]["technical_state"]["daily"]["vwap20"] > 0
-        assert context["ai_feature_packet_v3"]["version"] == "ai_feature_packet_v3"
+        assert context["ai_feature_packet_v3"]["version"] == "ai_feature_packet_v3_1"
         assert context["ai_feature_packet_v3"]["realtime_market_state"]["forming_bars_are_not_closed_signals"] is True
         assert context["rule_trade_plans"]["entry_plan"]["zone"]
         return Response()
@@ -1014,69 +1079,11 @@ def test_ai_daily_agent_without_key_writes_read_only_report(tmp_path: Path, monk
     assert payload["status"] == "ai_unavailable"
     assert payload["broker_order_wiring_enabled"] is False
     assert payload["ai_report"]["top_buy_candidates"] == []
-    assert payload["validation_by_ai_action"]
-    first_action_stats = next(iter(payload["validation_by_ai_action"].values()))
-    assert "avg_expected_value_r" in first_action_stats
-    assert "money_pilot_eligible_count" in first_action_stats
+    assert payload["ai_context_candidate_count"] == 0
+    assert payload["validation_by_ai_action"] == {}
     assert (tmp_path / "outputs" / "ai-daily-opportunities.json").exists()
     latest = api_stock_ai_daily_report_latest(outputs_dir=tmp_path / "outputs")
     assert latest["run_id"] == payload["run_id"]
-
-
-def test_ai_daily_agent_rate_limit_retries_then_preserves_rule_watchlist(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-    monkeypatch.setenv("KQUANT_AI_DAILY_MAX_ATTEMPTS", "2")
-    monkeypatch.setenv("KQUANT_AI_DAILY_RETRY_DELAY_SECONDS", "0")
-    signal = api_stock_analyze("NVDA", source="fixture", profile="tactical_1w_v1", db_path=tmp_path / "kquant_us.sqlite3")["signal"]
-    calls: list[int] = []
-
-    class RateLimitedResponse:
-        status_code = 429
-        headers = {"Retry-After": "0"}
-
-        def raise_for_status(self) -> None:
-            raise AssertionError("429 must be handled before raise_for_status")
-
-    monkeypatch.setattr(
-        "kquant.stock_signals.api_stock_signals",
-        lambda *args, **kwargs: {"signals": [signal], "provider_errors": []},
-    )
-    monkeypatch.setattr(
-        "kquant.stock_signals.api_stock_market_regime",
-        lambda *args, **kwargs: {"regime": "RISK_ON", "score": 70, "high_confidence_allowed": True, "reasons": []},
-    )
-
-    def fake_post(*args, **kwargs):
-        calls.append(1)
-        return RateLimitedResponse()
-
-    monkeypatch.setattr("kquant.stock_signals.requests.post", fake_post)
-    payload = api_stock_ai_daily_agent(
-        {"universe": "default", "limit": 5, "top_n": 3, "profiles": ["tactical_1w_v1"]},
-        db_path=tmp_path / "kquant_us.sqlite3",
-        outputs_dir=tmp_path / "outputs",
-    )
-    assert len(calls) == 2
-    assert payload["status"] == "ai_degraded"
-    assert payload["ai_generation"]["status"] == "rate_limited"
-    assert payload["ai_generation"]["retryable"] is True
-    assert payload["ai_report"]["top_buy_candidates"] == []
-    assert payload["ai_report"]["watch_for_pullback"] or payload["ai_report"]["avoid_or_risk_elevated"]
-
-
-def test_ai_daily_report_from_prior_market_day_is_stale() -> None:
-    now = datetime(2026, 7, 14, 15, 0, tzinfo=timezone.utc)
-    latest = enrich_ai_daily_report_freshness(
-        {
-            "status": "available",
-            "market_date": "2026-07-13",
-            "generated_at": "2026-07-14T14:55:00+00:00",
-            "ai_generation": {"status": "available", "retryable": False},
-        },
-        now=now,
-    )
-    assert latest["is_stale"] is True
-    assert latest["auto_run_recommended"] is True
 
 
 def test_live_stock_candles_use_stale_cache_without_fixture_fallback(tmp_path: Path, monkeypatch) -> None:

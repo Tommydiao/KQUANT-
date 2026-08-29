@@ -6,7 +6,7 @@ import math
 import os
 import sqlite3
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -15,11 +15,26 @@ from zoneinfo import ZoneInfo
 import requests
 
 from .longbridge_provider import longbridge_runtime
+from .market_calendar import market_schedule
 from .market_clock import active_regular_session_start, is_trading_day, market_clock, session_bounds_utc
+from .data_quality import assess_candle_payload, assess_realtime_market_data
+from .data_coverage import corporate_event_context, market_breadth_snapshot
+from .factor_engine import build_factor_snapshot, decision_evidence, persist_factor_snapshot
+from .entry_confirmation import analyze_confirmation
+from .hard_veto import HARD_VETO_POLICY_VERSION, evaluate_hard_veto
+from .historical_replay import replay_metadata, slice_completed_candles_as_of
+from .market_store import persist_canonical_candles
+from .manual_workflow import build_daily_candidate_board
+from .scoring import CANONICAL_SCORING_CONFIG, calculate_score_components
+from .strategy_registry import definition_for_profile, register_strategy_version
 from .strategy_validation import BacktestConfig, evaluate_long_trade, summarize_by_dimensions, summarize_outcomes, walk_forward_split
+from .stock_quant import MODEL_0_VERSION, build_model0_features
 from .stock_store import connect, default_db_path
 from .stock_universe import stock_universe, stock_universe_payload
-from .strategy_versions import ensure_strategy_version, strategy_version
+from .technical_features import calculate_feature_snapshot
+from .trade_risk import assess_trade_risk
+from .trend_analysis import analyze_daily_trend
+from .universe_store import persist_universe_snapshot, universe_snapshot_status
 
 UTC = timezone.utc
 RANGES = {
@@ -28,6 +43,7 @@ RANGES = {
     "1mo": {"bars": 22, "step": timedelta(days=1), "interval": "1d"},
     "3mo": {"bars": 66, "step": timedelta(days=1), "interval": "1d"},
     "1y": {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
+    "2y": {"bars": 504, "step": timedelta(days=1), "interval": "1d"},
     "5y": {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
     "10y": {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
@@ -37,6 +53,9 @@ RANGE_INTERVAL_SPECS = {
     ("5d", "15m"): {"bars": 130, "step": timedelta(minutes=15), "interval": "15m"},
     ("5d", "1h"): {"bars": 35, "step": timedelta(hours=1), "interval": "1h"},
     ("1y", "1d"): {"bars": 252, "step": timedelta(days=1), "interval": "1d"},
+    ("2y", "1d"): {"bars": 504, "step": timedelta(days=1), "interval": "1d"},
+    ("2y", "1h"): {"bars": 3500, "step": timedelta(hours=1), "interval": "1h"},
+    ("5y", "1d"): {"bars": 1260, "step": timedelta(days=1), "interval": "1d"},
     ("5y", "1wk"): {"bars": 260, "step": timedelta(days=7), "interval": "1wk"},
     ("10y", "1mo"): {"bars": 120, "step": timedelta(days=30), "interval": "1mo"},
 }
@@ -51,63 +70,13 @@ LONG_BRIDGE_STALE_SOURCE = "stale_longbridge_cache"
 YAHOO_FALLBACK_SOURCE = "yahoo_public_fallback"
 REAL_MONEY_CANDLE_SOURCE = LONG_BRIDGE_CANDLE_SOURCE
 LONG_BRIDGE_TIMEOUT_SECONDS = int(os.getenv("KQUANT_LONGBRIDGE_TIMEOUT_SECONDS", "12"))
-LONG_BRIDGE_QUOTE_FRESH_SECONDS = 15
-LONG_BRIDGE_MAX_BAR_LAG_SECONDS = 180
-
-
-class OpenAIRateLimitError(RuntimeError):
-    """A bounded AI Daily retry sequence exhausted OpenAI's rate limit."""
-
-    def __init__(self, attempts: int, retry_after_seconds: float) -> None:
-        super().__init__(f"OpenAI rate limit after {attempts} attempts.")
-        self.attempts = attempts
-        self.retry_after_seconds = retry_after_seconds
-
-
-def _openai_daily_retry_settings() -> tuple[int, float]:
-    try:
-        attempts = int(os.getenv("KQUANT_AI_DAILY_MAX_ATTEMPTS", "2"))
-    except ValueError:
-        attempts = 2
-    try:
-        delay_seconds = float(os.getenv("KQUANT_AI_DAILY_RETRY_DELAY_SECONDS", "2"))
-    except ValueError:
-        delay_seconds = 2.0
-    return min(max(attempts, 1), 3), min(max(delay_seconds, 0.0), 15.0)
-
-
-def _openai_retry_after_seconds(response: Any, fallback_seconds: float) -> float:
-    headers = getattr(response, "headers", {}) or {}
-    raw = headers.get("retry-after") or headers.get("Retry-After")
-    try:
-        return min(max(float(raw), 0.0), 15.0)
-    except (TypeError, ValueError):
-        return fallback_seconds
-
-
-def post_openai_daily_agent(api_key: str, request_payload: dict[str, Any], timeout: int = 90) -> tuple[Any, int]:
-    """Call the Daily Agent with a short, bounded retry on HTTP 429 only."""
-
-    max_attempts, fallback_delay = _openai_daily_retry_settings()
-    for attempt in range(1, max_attempts + 1):
-        response = requests.post(
-            "https://api.openai.com/v1/responses",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json=request_payload,
-            timeout=timeout,
-        )
-        if getattr(response, "status_code", None) == 429:
-            retry_after = _openai_retry_after_seconds(response, fallback_delay)
-            if attempt < max_attempts:
-                time.sleep(retry_after)
-                continue
-            raise OpenAIRateLimitError(attempt, retry_after)
-        response.raise_for_status()
-        return response, attempt
-    raise RuntimeError("Daily Agent request did not run.")
+LONG_BRIDGE_HISTORY_PAGE_LIMIT = 1000
+LEGACY_REFERENCE_SOURCES = {
+    "live_yahoo_chart",
+    "stale_yahoo_chart_cache",
+    YAHOO_FALLBACK_SOURCE,
+    "yahoo_public",
+}
 PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
     "swing_long_v1": {
         "name": "swing_long_v1",
@@ -133,6 +102,8 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
         "focus_win_rate_min": 55.0,
         "focus_avg_return_min": 0.4,
         "stop_loss_pct": 3.5,
+        "scoring": CANONICAL_SCORING_CONFIG,
+        "hard_veto_policy_version": HARD_VETO_POLICY_VERSION,
         "formula": "daily trend + 1h trigger + volume confirmation + short risk window",
     },
     "tactical_1w_v1": {
@@ -267,8 +238,36 @@ PROFILE_CONFIGS: dict[str, dict[str, Any]] = {
         "high_beta_growth": True,
         "formula": "high-beta growth pullback + 1h momentum turn + looser volume + wider ATR risk",
     },
+    "early_trend_3_15d_v1": {
+        "name": "early_trend_3_15d_v1",
+        "label": "Early Trend 3-15D",
+        "holding_period": "3-15 trading days",
+        "buy_setup_threshold": 72,
+        "strict_buy_gate_score": 72,
+        "watch_threshold": 60,
+        "direction": "long_only",
+        "primary_range": "1y",
+        "primary_interval": "1d",
+        "confirmation_range": "2y",
+        "confirmation_interval": "1h",
+        "primary_timeframe": "1D",
+        "confirmation_timeframe": "1H",
+        "focus_window": "15D",
+        "focus_horizon_bars": 15,
+        "target_return_pct": 6.0,
+        "max_atr_pct": 12.0,
+        "max_extension_pct": 10.0,
+        "confirmation_momentum_min": 0.3,
+        "volume_ratio_min": 1.0,
+        "focus_win_rate_min": 0.0,
+        "focus_avg_return_min": 0.0,
+        "stop_loss_pct": 6.0,
+        "formula": "daily early trend setup + closed 1h trigger + closed 5m execution confirmation",
+        "separate_strategy_engine": "early_trend.evaluate.v1",
+    },
 }
 PROFILE = PROFILE_CONFIGS["swing_long_v1"]
+CANONICAL_STRATEGY_PROFILE = "swing_long_v1"
 MARKET_REGIME_SYMBOLS = {
     "SPY": "S&P 500",
     "QQQ": "Nasdaq 100",
@@ -291,40 +290,45 @@ MANUAL_ENTRY_JOURNAL_STATUSES = {"manual-traded", "entered-manually"}
 
 
 def profile_config(profile: str | None = None) -> dict[str, Any]:
-    key = str(profile or "swing_long_v1")
-    return PROFILE_CONFIGS.get(key, PROFILE_CONFIGS["swing_long_v1"])
+    key = str(profile or CANONICAL_STRATEGY_PROFILE)
+    return PROFILE_CONFIGS.get(key, PROFILE_CONFIGS[CANONICAL_STRATEGY_PROFILE])
+
+
+def strategy_lifecycle(profile: str | None = None) -> dict[str, str | bool]:
+    active = str(profile_config(profile)["name"])
+    canonical = active == CANONICAL_STRATEGY_PROFILE
+    return {
+        "profile": active,
+        "canonical": canonical,
+        "mode": "canonical" if canonical else "legacy_comparison_only",
+        "operator_message": (
+            "Current KQUANT decision policy."
+            if canonical
+            else "Legacy comparison profile; not selectable in the current decision workflow."
+        ),
+    }
 
 
 def api_stock_universe(universe: str = "default", db_path: Path | None = None) -> dict[str, Any]:
     payload = stock_universe_payload(universe)
     if db_path:
-        now = iso_now()
-        with connect(db_path) as conn:
-            for stock in payload["stocks"]:
-                conn.execute(
-                    """
-                    INSERT INTO stock_universe(symbol, name, sector, layer, tags_json, rank, active, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, 1, ?)
-                    ON CONFLICT(symbol) DO UPDATE SET
-                      name=excluded.name,
-                      sector=excluded.sector,
-                      layer=excluded.layer,
-                      tags_json=excluded.tags_json,
-                      rank=excluded.rank,
-                      active=1,
-                      updated_at=excluded.updated_at
-                    """,
-                    (
-                        stock["symbol"],
-                        stock["name"],
-                        stock["sector"],
-                        stock["layer"],
-                        json.dumps(stock["tags"]),
-                        stock["rank"],
-                        now,
-                    ),
-                )
-            conn.commit()
+        market_date = market_clock().market_date
+        snapshot = persist_universe_snapshot(
+            db_path,
+            universe=str(payload["universe"]),
+            as_of_date=market_date,
+            stocks=payload["stocks"],
+        )
+        payload["point_in_time"] = {
+            **universe_snapshot_status(db_path, universe=str(payload["universe"]), as_of_date=market_date),
+            "current_snapshot": snapshot,
+        }
+    else:
+        payload["point_in_time"] = {
+            "historical_membership_complete": False,
+            "survivorship_limited": True,
+            "limitation": "No local database was supplied, so this is an unsaved current runtime universe only.",
+        }
     return payload
 
 
@@ -363,7 +367,6 @@ SEARCH_QUERY_ALIASES: dict[str, tuple[str, ...]] = {
     "网络安全": ("security", "cybersecurity", "ai security"),
     "能源": ("energy", "power", "nuclear", "grid"),
     "核电": ("nuclear", "uranium", "power", "ai energy"),
-    "比特币": ("bitcoin", "btc", "crypto", "mstr", "coin"),
 }
 
 STOCK_SEARCH_ALIASES: dict[str, tuple[str, ...]] = {
@@ -372,7 +375,7 @@ STOCK_SEARCH_ALIASES: dict[str, tuple[str, ...]] = {
     "GOOGL": ("谷歌", "google", "alphabet", "gemini"),
     "AMZN": ("亚马逊", "amazon", "aws"),
     "TSLA": ("特斯拉", "tesla", "robotaxi", "autonomy"),
-    "MSTR": ("microstrategy", "strategy", "比特币", "bitcoin", "btc"),
+    "MSTR": ("microstrategy", "strategy"),
     "RKLB": ("rocket lab", "火箭", "太空", "space"),
     "ASTS": ("satellite", "space mobile", "太空", "卫星"),
     "LUNR": ("moon", "lunar", "space", "太空"),
@@ -520,6 +523,70 @@ def preferred_market_data_provider() -> str:
     return "yahoo"
 
 
+def report_data_sources(payload: dict[str, Any]) -> set[str]:
+    """Return concrete data-source fields without treating policy prose as evidence."""
+    sources: set[str] = set()
+    source_keys = {"source_type", "cache_source", "default_source_type", "market_data_source"}
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key in source_keys and isinstance(child, str) and child:
+                    sources.add(child.strip().lower())
+                elif key == "provider" and isinstance(child, str) and child.strip().lower() == "yahoo_public":
+                    sources.add("yahoo_public")
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(payload)
+    return sources
+
+
+def report_data_class(payload: dict[str, Any]) -> str:
+    sources = report_data_sources(payload)
+    has_longbridge = any(source in {LONG_BRIDGE_CANDLE_SOURCE, LONG_BRIDGE_STALE_SOURCE} for source in sources)
+    has_yahoo = any(source in LEGACY_REFERENCE_SOURCES or "yahoo" in source for source in sources)
+    if has_yahoo and not has_longbridge:
+        return "legacy_reference"
+    if has_yahoo and has_longbridge:
+        return "mixed_reference"
+    if has_longbridge:
+        return "longbridge_primary"
+    return "unknown"
+
+
+def legacy_reference_summary(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "report_data_class": report_data_class(payload),
+        "run_id": payload.get("run_id"),
+        "completed_at": payload.get("completed_at") or payload.get("generated_at_utc"),
+        "source_types": sorted(report_data_sources(payload)),
+        "preserved_for_audit": True,
+    }
+
+
+def archive_legacy_reference_report(outputs_dir: Path, filename: str) -> None:
+    """Preserve an old Yahoo report without allowing it to remain the current result."""
+    report = outputs_dir / filename
+    if not report.exists():
+        return
+    try:
+        contents = report.read_bytes()
+        payload = json.loads(contents.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return
+    if report_data_class(payload) != "legacy_reference":
+        return
+    archive_dir = outputs_dir / "legacy-reference"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(contents).hexdigest()[:12]
+    target = archive_dir / f"{report.stem}-{digest}.json"
+    if not target.exists():
+        target.write_bytes(contents)
+
+
 def longbridge_env_ready() -> bool:
     return all(
         bool(os.getenv(name))
@@ -588,6 +655,18 @@ def _parse_market_time(value: Any) -> datetime | None:
         return None
 
 
+def _parse_longbridge_time(value: Any) -> datetime | None:
+    """Normalize the Longbridge SDK's naive local datetime objects.
+
+    The SDK build used by the local runtime exposes candlestick and quote
+    timestamps as naive Asia/Shanghai datetimes, while Unix timestamps and
+    timezone-aware values follow the normal UTC contract.
+    """
+    if isinstance(value, datetime) and value.tzinfo is None:
+        return value.replace(tzinfo=ZoneInfo("Asia/Shanghai")).astimezone(UTC)
+    return _parse_market_time(value)
+
+
 def _current_us_regular_session_start(now: datetime | None = None) -> datetime:
     return active_regular_session_start(now)
 
@@ -596,28 +675,16 @@ def _filter_today_intraday_candles(
     candles: list[dict[str, Any]],
     range_value: str,
     interval: str,
-    now: datetime | None = None,
 ) -> list[dict[str, Any]]:
     if range_value != "1d" or interval not in {"1m", "5m"}:
         return candles
-    session_start = _current_us_regular_session_start(now)
-    return [
+    session_start = _current_us_regular_session_start()
+    filtered = [
         candle
         for candle in candles
         if (parsed := _parse_market_time(candle.get("open_time"))) is not None and parsed >= session_start
     ]
-
-
-def _timestamp_age_seconds(value: Any, now: datetime | None = None) -> tuple[int | None, str]:
-    """Return a UTC timestamp age without treating future provider data as fresh."""
-    parsed = _parse_market_time(value)
-    if parsed is None:
-        return None, "missing_timestamp"
-    current = (now or datetime.now(UTC)).astimezone(UTC)
-    raw_age = int((current - parsed).total_seconds())
-    if raw_age < -60:
-        return None, "future_timestamp"
-    return max(0, raw_age), "valid"
+    return filtered or candles
 
 
 def interval_seconds(interval: str) -> int:
@@ -769,33 +836,6 @@ def _longbridge_adjust_type() -> Any:
     return None
 
 
-def classify_market_data_state(
-    provider: str,
-    configured: bool,
-    sdk_installed: bool,
-    latest_primary_success: str | None,
-    *,
-    now: datetime | None = None,
-    live_threshold_seconds: int = 120,
-) -> tuple[str, int | None]:
-    """Classify market data without confusing configuration with health."""
-
-    if provider != "longbridge":
-        return "reference_only", None
-    if not configured or not sdk_installed:
-        return "unavailable", None
-    if not latest_primary_success:
-        return "unavailable", None
-    try:
-        parsed = datetime.fromisoformat(str(latest_primary_success).replace("Z", "+00:00"))
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=UTC)
-        age_seconds = max(0, int(((now or datetime.now(UTC)) - parsed.astimezone(UTC)).total_seconds()))
-    except (TypeError, ValueError):
-        return "unavailable", None
-    return ("live_primary" if age_seconds <= live_threshold_seconds else "stale_primary"), age_seconds
-
-
 def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
     provider = preferred_market_data_provider()
     longbridge_ready = longbridge_env_ready()
@@ -821,12 +861,6 @@ def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
             latest_longbridge_cache = row["value"] if row else None
     except (OSError, sqlite3.Error):
         latest_longbridge_cache = None
-    trust_state, freshness_seconds = classify_market_data_state(
-        provider,
-        longbridge_ready,
-        sdk_status == "installed",
-        latest_longbridge_cache,
-    )
     return {
         "provider": provider,
         "status": status,
@@ -837,9 +871,6 @@ def api_stock_market_data_status(db_path: Path | None = None) -> dict[str, Any]:
         "longbridge_trade_enabled": False,
         "default_source_type": LONG_BRIDGE_CANDLE_SOURCE if provider == "longbridge" else "live_yahoo_chart",
         "latest_longbridge_cache": latest_longbridge_cache,
-        "last_successful_market_data_at": latest_longbridge_cache,
-        "freshness_seconds": freshness_seconds,
-        "trust_state": trust_state,
         "yahoo_public_fallback": True,
         "real_money_requires_longbridge_live": True,
         "runtime": longbridge_runtime().health(),
@@ -898,6 +929,28 @@ def api_stock_market_data_self_check(
         }
     )
     clock = market_clock()
+    depth_ready = quote.get("depth_status") == "available"
+    checks.append(
+        {
+            "name": "depth_entitlement",
+            "status": "pass" if depth_ready else "fail",
+            "delivery_mode": quote.get("depth_mode"),
+            "reason": "; ".join(quote.get("depth_errors", [])) if not depth_ready else None,
+        }
+    )
+    calendar = market_schedule(
+        datetime.fromisoformat(clock.market_date).date(),
+        path,
+        timeout_seconds=min(LONG_BRIDGE_TIMEOUT_SECONDS, 5),
+    )
+    checks.append(
+        {
+            "name": "market_calendar",
+            "status": "pass" if calendar.get("calendar_source") else "fail",
+            "source": calendar.get("calendar_source"),
+            "market_date": calendar.get("market_date"),
+        }
+    )
     regular_quote_fresh = bool(
         quote_status == "available"
         and isinstance(quote.get("freshness_seconds"), (int, float))
@@ -907,6 +960,7 @@ def api_stock_market_data_self_check(
         db_ok
         and market_data["status"] == "available"
         and quote_status == "available"
+        and depth_ready
         and (clock.session != "regular" or regular_quote_fresh)
     )
     return {
@@ -914,6 +968,7 @@ def api_stock_market_data_self_check(
         "symbol": normalize_symbol(symbol),
         "checked_at": iso_now(),
         "market_clock": clock.as_dict(),
+        "calendar": calendar,
         "quote": quote,
         "checks": checks,
         "realtime_buy_data_ready": bool(clock.session == "regular" and ready_for_realtime),
@@ -921,6 +976,99 @@ def api_stock_market_data_self_check(
         if clock.session != "regular"
         else None,
         "no_account_or_order_path": True,
+    }
+
+
+def _longbridge_rows_to_candles(rows: Any) -> list[dict[str, Any]]:
+    by_time: dict[int, dict[str, Any]] = {}
+    for row in list(rows or []):
+        open_time = _parse_longbridge_time(
+            _pick_attr(row, ("timestamp", "time", "open_time", "date", "datetime"))
+        )
+        open_ = _decimal_float(_pick_attr(row, ("open", "open_price")))
+        high = _decimal_float(_pick_attr(row, ("high", "high_price")))
+        low = _decimal_float(_pick_attr(row, ("low", "low_price")))
+        close = _decimal_float(_pick_attr(row, ("close", "close_price")))
+        volume = _decimal_float(_pick_attr(row, ("volume", "turnover", "trade_volume")), 0.0)
+        if open_time is None or None in (open_, high, low, close):
+            continue
+        timestamp = int(open_time.timestamp())
+        by_time[timestamp] = {
+            "open_time": open_time.isoformat(),
+            "time": timestamp,
+            "open": round(float(open_), 4),
+            "high": round(float(high), 4),
+            "low": round(float(low), 4),
+            "close": round(float(close), 4),
+            "volume": float(volume or 0.0),
+            "source": LONG_BRIDGE_CANDLE_SOURCE,
+        }
+    return [by_time[timestamp] for timestamp in sorted(by_time)]
+
+
+def _longbridge_history_window(range_value: str, now: datetime) -> tuple[date, date] | None:
+    days = {
+        "2y": 2 * 366,
+        "5y": 5 * 366,
+    }.get(range_value)
+    if days is None:
+        return None
+    return now.date() - timedelta(days=days), now.date()
+
+
+def _longbridge_historical_candles(
+    *,
+    symbol: str,
+    range_value: str,
+    interval: str,
+    count: int,
+    now: datetime,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    window = _longbridge_history_window(range_value, now)
+    if window is None:
+        return [], {"mode": "unavailable", "page_count": 0}
+    start_date, requested_end_date = window
+    cursor_end = requested_end_date
+    period = _longbridge_period(interval)
+    adjust_type = _longbridge_adjust_type()
+    pages: list[dict[str, Any]] = []
+    page_count = 0
+    max_pages = max(1, math.ceil(count / LONG_BRIDGE_HISTORY_PAGE_LIMIT) + 2)
+    for _ in range(max_pages):
+        if cursor_end < start_date:
+            break
+        rows = longbridge_runtime().history_candlesticks_by_date(
+            symbol,
+            period,
+            adjust_type,
+            start_date,
+            cursor_end,
+            LONG_BRIDGE_TIMEOUT_SECONDS,
+        )
+        page = _longbridge_rows_to_candles(rows)
+        page_count += 1
+        if not page:
+            break
+        pages.extend(page)
+        oldest = datetime.fromisoformat(page[0]["open_time"]).date()
+        if oldest <= start_date:
+            break
+        next_end = oldest - timedelta(days=1)
+        if next_end >= cursor_end:
+            break
+        cursor_end = next_end
+    deduplicated = {int(candle["time"]): candle for candle in pages}
+    candles = [
+        candle
+        for _, candle in sorted(deduplicated.items())
+        if candle["open_time"][:10] >= start_date.isoformat()
+    ]
+    return candles[-count:], {
+        "mode": "history_candlesticks_by_date",
+        "requested_start_date": start_date.isoformat(),
+        "requested_end_date": requested_end_date.isoformat(),
+        "page_count": page_count,
+        "provider_max_bars_per_page": LONG_BRIDGE_HISTORY_PAGE_LIMIT,
     }
 
 
@@ -946,71 +1094,48 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
     try:
         lb_symbol = longbridge_symbol(symbol)
         count = int(candle_spec(range_value, interval)["bars"])
-        rows, delivery_mode = longbridge_runtime().realtime_candlesticks(
-            lb_symbol,
-            _longbridge_period(interval),
-            count,
-            _longbridge_adjust_type(),
-            LONG_BRIDGE_TIMEOUT_SECONDS,
-        )
-        candles: list[dict[str, Any]] = []
-        for row in list(rows or []):
-            open_time = _parse_market_time(
-                _pick_attr(row, ("timestamp", "time", "open_time", "date", "datetime"))
-            )
-            open_ = _decimal_float(_pick_attr(row, ("open", "open_price")))
-            high = _decimal_float(_pick_attr(row, ("high", "high_price")))
-            low = _decimal_float(_pick_attr(row, ("low", "low_price")))
-            close = _decimal_float(_pick_attr(row, ("close", "close_price")))
-            volume = _decimal_float(_pick_attr(row, ("volume", "turnover", "trade_volume")), 0.0)
-            if open_time is None or None in (open_, high, low, close):
-                continue
-            candles.append(
-                {
-                    "open_time": open_time.isoformat(),
-                    "time": int(open_time.timestamp()),
-                    "open": round(float(open_), 4),
-                    "high": round(float(high), 4),
-                    "low": round(float(low), 4),
-                    "close": round(float(close), 4),
-                    "volume": float(volume or 0.0),
-                    "source": LONG_BRIDGE_CANDLE_SOURCE,
-                }
-            )
-        candles.sort(key=lambda candle: int(candle["time"]))
         current = datetime.now(UTC)
-        clock = market_clock(current)
-        candles = _filter_today_intraday_candles(candles, range_value, interval, current)
+        history_pagination: dict[str, Any] | None = None
+        if count > LONG_BRIDGE_HISTORY_PAGE_LIMIT:
+            candles, history_pagination = _longbridge_historical_candles(
+                symbol=lb_symbol,
+                range_value=range_value,
+                interval=interval,
+                count=count,
+                now=current,
+            )
+            delivery_mode = "history_by_date"
+        else:
+            rows, delivery_mode = longbridge_runtime().realtime_candlesticks(
+                lb_symbol,
+                _longbridge_period(interval),
+                count,
+                _longbridge_adjust_type(),
+                LONG_BRIDGE_TIMEOUT_SECONDS,
+            )
+            candles = _longbridge_rows_to_candles(rows)
+        candles = _filter_today_intraday_candles(candles, range_value, interval)
         if not candles:
             return unavailable_candles(
                 symbol,
                 range_value,
                 interval,
-                "Longbridge returned no candles for the current US regular-session reference. Older bars are not shown as live data.",
+                "Longbridge returned 0 candles.",
                 source_type=LONG_BRIDGE_CANDLE_SOURCE,
             )
         candles = annotate_candle_states(candles, interval, current)
         latest_open = datetime.fromisoformat(candles[-1]["open_time"])
-        bar_open_age, timestamp_integrity = _timestamp_age_seconds(latest_open, current)
-        if timestamp_integrity != "valid":
-            return unavailable_candles(
-                symbol,
-                range_value,
-                interval,
-                f"Longbridge latest candle timestamp is {timestamp_integrity}; it cannot be treated as realtime.",
-                source_type=LONG_BRIDGE_CANDLE_SOURCE,
-            )
+        bar_open_age = max(0, int((current - latest_open).total_seconds()))
         latest_close = latest_open + timedelta(seconds=interval_seconds(interval))
-        freshness_seconds, close_integrity = _timestamp_age_seconds(latest_close, current)
-        if close_integrity == "future_timestamp":
-            freshness_seconds = 0
-        realtime_lag_seconds = max(interval_seconds(interval) * 2, LONG_BRIDGE_MAX_BAR_LAG_SECONDS)
-        stale_during_regular = clock.session == "regular" and freshness_seconds > realtime_lag_seconds
+        freshness_seconds = max(0, int((current - latest_close).total_seconds()))
+        clock = market_clock(current)
+        realtime_lag_seconds = max(interval_seconds(interval) * 2, 180)
+        stale_during_regular = not history_pagination and clock.session == "regular" and freshness_seconds > realtime_lag_seconds
         source_type = LONG_BRIDGE_STALE_SOURCE if stale_during_regular else LONG_BRIDGE_CANDLE_SOURCE
         provider_status = "stale_cache" if stale_during_regular else "available"
-        freshness = "stale_longbridge_cache" if stale_during_regular else (
-            "live" if clock.session == "regular" else "reference_outside_regular_session"
-        )
+        freshness = "historical_backfill" if history_pagination else ("stale_longbridge_cache" if stale_during_regular else (
+            "live" if clock.session == "regular" else "market_closed"
+        ))
         return {
             "instrument_type": "stock",
             "symbol": symbol,
@@ -1021,12 +1146,14 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "provider_status": provider_status,
             "provider_errors": [],
             "provider": "longbridge",
+            "adjustment_mode": "unadjusted",
+            "dataset_version": "market_data_contract_v1",
             "freshness": freshness,
             "freshness_seconds": freshness_seconds,
             "bar_open_age_seconds": bar_open_age,
-            "timestamp_integrity": timestamp_integrity,
             "latest_bar_state": candles[-1]["bar_state"],
             "delivery_mode": delivery_mode,
+            "history_pagination": history_pagination,
             "timestamp_contract": "utc_iso8601",
             "session": clock.session,
             "market_clock": clock.as_dict(),
@@ -1034,8 +1161,7 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
             "display_timezone": clock.display_timezone,
             "candle_time": candles[-1]["open_time"],
             "candles": candles[-count:],
-            "real_money_data_source": bool(clock.session == "regular" and not stale_during_regular),
-            "realtime_trigger_eligible": bool(clock.session == "regular" and not stale_during_regular),
+            "real_money_data_source": True,
             "read_only_market_data": True,
         }
     except Exception as exc:  # pragma: no cover - depends on provider/network
@@ -1076,16 +1202,30 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         quote = list(rows or [None])[0]
         if quote is None:
             raise RuntimeError("Longbridge returned no quote.")
-        quote_time = _parse_market_time(
+        quote_time = _parse_longbridge_time(
             _pick_attr(quote, ("timestamp", "time", "quote_time", "trade_time"))
         )
         last = _decimal_float(_pick_attr(quote, ("last_done", "last", "price", "current_price", "close")))
         bid = _decimal_float(_pick_attr(quote, ("bid", "bid_price")))
         ask = _decimal_float(_pick_attr(quote, ("ask", "ask_price")))
+        bid_size = ask_size = None
+        depth_mode = "quote_fields"
+        depth_errors: list[str] = []
+        try:
+            depth, depth_mode = longbridge_runtime().depth(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+            bids = list(_pick_attr(depth, ("bids", "bid")) or [])
+            asks = list(_pick_attr(depth, ("asks", "ask")) or [])
+            if bids:
+                bid = _decimal_float(_pick_attr(bids[0], ("price", "bid_price")), bid)
+                bid_size = _decimal_float(_pick_attr(bids[0], ("volume", "size", "quantity")), 0.0)
+            if asks:
+                ask = _decimal_float(_pick_attr(asks[0], ("price", "ask_price")), ask)
+                ask_size = _decimal_float(_pick_attr(asks[0], ("volume", "size", "quantity")), 0.0)
+        except Exception as exc:
+            depth_errors.append(str(exc))
+        spread = ask - bid if bid is not None and ask is not None and ask >= bid else None
+        spread_pct = spread / ((ask + bid) / 2) * 100 if spread is not None and ask and bid else None
         clock = market_clock()
-        freshness_seconds, timestamp_integrity = _timestamp_age_seconds(quote_time)
-        if timestamp_integrity != "valid":
-            raise RuntimeError(f"Longbridge quote timestamp is {timestamp_integrity}.")
         return {
             "symbol": symbol,
             "provider_symbol": lb_symbol,
@@ -1095,13 +1235,19 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             "last": last,
             "bid": bid,
             "ask": ask,
+            "bid_size": bid_size,
+            "ask_size": ask_size,
+            "spread": round(spread, 6) if spread is not None else None,
+            "spread_pct": round(spread_pct, 6) if spread_pct is not None else None,
+            "depth_mode": depth_mode,
+            "depth_status": "available" if bid is not None and ask is not None else "unavailable",
+            "depth_errors": depth_errors,
             "quote_time": quote_time.isoformat() if quote_time else None,
             "session": clock.session,
             "market_clock": clock.as_dict(),
             "exchange_timezone": clock.exchange_timezone,
             "display_timezone": clock.display_timezone,
-            "freshness_seconds": freshness_seconds,
-            "timestamp_integrity": timestamp_integrity,
+            "freshness_seconds": max(0, int((datetime.now(UTC) - quote_time).total_seconds())) if quote_time else None,
             "read_only_market_data": True,
         }
     except Exception as exc:  # pragma: no cover - optional SDK/provider
@@ -1139,32 +1285,42 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         else []
     )
     quote_age = quote.get("freshness_seconds")
-    quote_fresh = isinstance(quote_age, (int, float)) and quote_age <= LONG_BRIDGE_QUOTE_FRESH_SECONDS
+    quote_fresh = isinstance(quote_age, (int, float)) and quote_age <= 15
     longbridge_candles_live = (
         minute_payload.get("provider_status") == "available"
         and minute_payload.get("source_type") == LONG_BRIDGE_CANDLE_SOURCE
-        and minute_payload.get("realtime_trigger_eligible") is True
     )
-    realtime_trigger_eligible = bool(
-        clock.session == "regular"
-        and quote.get("provider_status") == "available"
-        and quote_fresh
-        and longbridge_candles_live
-    )
-    provider_status = "available" if realtime_trigger_eligible else (
-        "stale" if quote.get("provider_status") == "available" and longbridge_candles_live else "degraded"
+    provider_status = (
+        "available"
+        if quote.get("provider_status") == "available" and longbridge_candles_live
+        else "degraded"
     )
     provider_errors = list(quote.get("provider_errors") or []) + list(minute_payload.get("provider_errors") or [])
-    if clock.session != "regular":
-        trust_reason = "US regular session is closed; Longbridge values are reference-only until the next regular session."
-    elif quote.get("provider_status") != "available":
-        trust_reason = "Longbridge live quote is unavailable."
-    elif not quote_fresh:
-        trust_reason = f"Longbridge quote is {quote_age}s old; realtime trigger limit is {LONG_BRIDGE_QUOTE_FRESH_SECONDS}s."
-    elif not longbridge_candles_live:
-        trust_reason = "Longbridge current-session 1m candles are unavailable or stale."
+    current_1m = minute_candles[-1] if minute_candles else None
+    current_5m = five_minute_candles[-1] if five_minute_candles else None
+    current_1m_time = _parse_market_time((current_1m or {}).get("open_time"))
+    current_5m_time = _parse_market_time((current_5m or {}).get("open_time"))
+    source_type = str(minute_payload.get("source_type") or "")
+    if quote_fresh and longbridge_candles_live and quote.get("provider_status") == "available":
+        trust_state = "live_quote"
+    elif source_type == LONG_BRIDGE_STALE_SOURCE:
+        trust_state = "stale_longbridge_cache"
+    elif source_type == YAHOO_FALLBACK_SOURCE or minute_payload.get("provider") == "yahoo_public":
+        trust_state = "yahoo_reference_only"
     else:
-        trust_reason = "Fresh Longbridge quote and current-session 1m candles are available."
+        trust_state = "unavailable"
+    calendar = market_schedule(
+        datetime.fromisoformat(clock.market_date).date(),
+        db_path or default_db_path(),
+        timeout_seconds=min(LONG_BRIDGE_TIMEOUT_SECONDS, 5),
+    )
+    candle_quality = dict(minute_payload.get("data_quality") or assess_candle_payload(minute_payload, db_path=db_path))
+    realtime_quality = assess_realtime_market_data(
+        candle_quality=candle_quality,
+        quote=quote,
+        session=clock.session,
+        trust=trust_state,
+    )
     return {
         "symbol": symbol,
         "provider": "longbridge",
@@ -1174,25 +1330,26 @@ def api_stock_realtime_snapshot(symbol: str, db_path: Path | None = None) -> dic
         "quote": quote,
         "candles_1m": minute_candles,
         "candles_5m": five_minute_candles,
-        "current_1m_bar": minute_candles[-1] if minute_candles else None,
-        "current_5m_bar": five_minute_candles[-1] if five_minute_candles else None,
+        "current_1m_bar": current_1m,
+        "current_5m_bar": current_5m,
+        "bar_age_seconds": {
+            "1m": max(0, int((snapshot_time - current_1m_time).total_seconds())) if current_1m_time else None,
+            "5m": max(0, int((snapshot_time - current_5m_time).total_seconds())) if current_5m_time else None,
+        },
+        "component_count": {
+            "1m": int((current_1m or {}).get("component_count") or 1) if current_1m else 0,
+            "5m": int((current_5m or {}).get("component_count") or 0) if current_5m else 0,
+        },
         "quote_fresh": quote_fresh,
+        "trust": trust_state,
+        "data_quality": realtime_quality,
+        "calendar": calendar,
         "session": clock.session,
         "market_clock": clock.as_dict(),
         "exchange_timezone": clock.exchange_timezone,
         "display_timezone": clock.display_timezone,
-        "buy_actions_allowed_by_data": realtime_trigger_eligible,
-        "real_money_data_source": realtime_trigger_eligible,
-        "data_trust": {
-            "state": "live_trade_eligible" if realtime_trigger_eligible else (
-                "reference_only" if clock.session != "regular" else "delayed_or_incomplete"
-            ),
-            "reason": trust_reason,
-            "quote_age_seconds": quote_age,
-            "candle_age_seconds": minute_payload.get("freshness_seconds"),
-            "current_bar_state": (minute_candles[-1] or {}).get("bar_state") if minute_candles else "missing",
-            "requires_longbridge": True,
-        },
+        "buy_actions_allowed_by_data": realtime_quality["buy_data_eligible"],
+        "real_money_data_source": longbridge_candles_live,
         "read_only_market_data": True,
         "account_access_enabled": False,
         "trade_context_enabled": False,
@@ -1210,7 +1367,13 @@ def api_stock_candles(
     interval: str = "1d",
     source: str = "live",
     db_path: Path | None = None,
+    *,
+    allow_reference_fallback: bool = True,
 ) -> dict[str, Any]:
+    def with_data_quality(result: dict[str, Any]) -> dict[str, Any]:
+        result["data_quality"] = assess_candle_payload(result, db_path=db_path)
+        return result
+
     symbol = normalize_symbol(symbol)
     range_value, interval = normalize_range_interval(range_value, interval)
     if source == "live":
@@ -1237,8 +1400,8 @@ def api_stock_candles(
                 source_types=(LONG_BRIDGE_CANDLE_SOURCE,) if provider == "longbridge" else ("live_yahoo_chart",),
             )
             if cached:
-                return cached
-            if provider == "longbridge":
+                return with_data_quality(cached)
+            if provider == "longbridge" and allow_reference_fallback:
                 fallback = yahoo_candles(symbol, range_value, interval)
                 if fallback["provider_status"] == "available":
                     fallback["source_type"] = YAHOO_FALLBACK_SOURCE
@@ -1259,7 +1422,7 @@ def api_stock_candles(
             payload["cache_write_status"] = "ok"
         except (OSError, sqlite3.Error) as exc:
             annotate_cache_write_failure(payload, exc)
-    return payload
+    return with_data_quality(payload)
 
 
 def api_stock_provider_health(db_path: Path | None = None) -> dict[str, Any]:
@@ -1362,7 +1525,7 @@ def api_stock_market_regime(source: str = "live", db_path: Path | None = None) -
         "provider_error_count": len(provider_errors),
         "provider_errors": provider_errors,
         "reasons": reasons,
-        "live_only_policy": "market regime uses live Yahoo public chart or stale real cache only",
+        "live_only_policy": "Longbridge is primary; Yahoo reference data cannot support buy eligibility.",
         "fixture_user_visible": False,
     }
 
@@ -1381,7 +1544,7 @@ def empty_market_regime(reason: str = "No market regime scan yet.") -> dict[str,
         "provider_error_count": 1,
         "provider_errors": [reason],
         "reasons": [reason],
-        "live_only_policy": "market regime uses live Yahoo public chart or stale real cache only",
+        "live_only_policy": "Longbridge is primary; Yahoo reference data cannot support buy eligibility.",
         "fixture_user_visible": False,
     }
 
@@ -1487,10 +1650,12 @@ def api_stock_live_data_health(
         "summary": summary,
         "daily_usability": live_health_usability(summary),
         "database": database_health_summary(db),
-        "live_only_policy": "live Yahoo public chart or stale real cache only; fixture is not user-visible",
+        "market_data_provider": preferred_market_data_provider(),
+        "live_only_policy": "Longbridge is primary; Yahoo reference data is audit-only and cannot support buy eligibility.",
         "fixture_user_visible": False,
         "universes_detail": universe_reports,
     }
+    payload["report_data_class"] = report_data_class(payload)
     write_stock_live_data_health_report(outputs, payload)
     return payload
 
@@ -1501,10 +1666,25 @@ def api_stock_live_data_health_latest(outputs_dir: Path | None = None) -> dict[s
     if report.exists():
         try:
             payload = json.loads(report.read_text(encoding="utf-8"))
+            if preferred_market_data_provider() == "longbridge" and report_data_class(payload) == "legacy_reference":
+                current = api_stock_live_data_health_latest_empty()
+                current.update(
+                    {
+                        "market_data_provider": "longbridge",
+                        "latest_cache_status": "legacy_reference",
+                        "legacy_reference": legacy_reference_summary(payload),
+                    }
+                )
+                return current
             payload["latest_cache_status"] = "available"
+            payload.setdefault("report_data_class", report_data_class(payload))
             return payload
         except json.JSONDecodeError:
             pass
+    return api_stock_live_data_health_latest_empty()
+
+
+def api_stock_live_data_health_latest_empty() -> dict[str, Any]:
     summary = {
         "symbol_count": 0,
         "timeframe_checks": 0,
@@ -1525,7 +1705,9 @@ def api_stock_live_data_health_latest(outputs_dir: Path | None = None) -> dict[s
         "summary": summary,
         "daily_usability": live_health_usability(summary),
         "database": {},
-        "live_only_policy": "latest health reads the last report only and never hits Yahoo",
+        "market_data_provider": preferred_market_data_provider(),
+        "report_data_class": "not_scanned",
+        "live_only_policy": "Latest health reads only a current report; Yahoo legacy records are audit-only.",
         "fixture_user_visible": False,
         "universes_detail": [],
         "latest_cache_status": "not_scanned",
@@ -1629,7 +1811,8 @@ def api_stock_signals(
     db = db_path or default_db_path()
     outputs = outputs_dir or Path("outputs")
     active_profile = profile_config(profile)
-    version_metadata = strategy_version(active_profile)
+    lifecycle = strategy_lifecycle(active_profile["name"])
+    strategy_record = register_strategy_version(db, definition_for_profile(active_profile["name"], active_profile))
     stocks = stock_universe(universe)
     scan_layer = str(layer or "").strip()
     if scan_layer:
@@ -1645,6 +1828,7 @@ def api_stock_signals(
     provider_errors: list[str] = []
     label_samples_by_symbol: dict[str, list[dict[str, Any]]] = {}
     market_regime = api_stock_market_regime(source=source, db_path=db)
+    market_regime = {**market_regime, "breadth": market_breadth_snapshot(db)}
     for symbol in symbols:
         primary = api_stock_candles(
             symbol,
@@ -1665,6 +1849,25 @@ def api_stock_signals(
         if confirmation["provider_status"] not in ("available", "fixture_read_only"):
             provider_errors.append(f"{symbol}: {active_profile['confirmation_timeframe']} {confirmation['provider_status']}")
         signal = build_signal(symbol, primary, confirmation, active_profile)
+        if source in {"live", "historical_replay"}:
+            signal["model0_feature_snapshot"] = build_model0_features(
+                symbol,
+                primary.get("candles") or [],
+                confirmation.get("candles") or [],
+                source=str(primary.get("source") or source),
+                confirmation_timeframe=str(active_profile.get("confirmation_timeframe") or "1H"),
+                scoring_config=dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+            )
+        else:
+            signal["model0_feature_snapshot"] = {
+                "model_version": MODEL_0_VERSION,
+                "status": "not_eligible_fixture",
+                "reason": "Fixture data is for deterministic UI tests and cannot enter the stock quant dataset.",
+                "read_only_research": True,
+            }
+        signal["strategy_version"] = strategy_record.strategy_version
+        signal["strategy_config_hash"] = strategy_record.config_hash
+        signal["strategy_lifecycle"] = lifecycle
         stock_meta = stock_by_symbol.get(symbol)
         if stock_meta:
             signal["primary_layer"] = stock_meta.layer
@@ -1675,6 +1878,7 @@ def api_stock_signals(
     for signal in signals:
         signal["review_bucket"] = signal_review_bucket(signal)
         signal["downgraded_reasons"] = downgraded_reasons(signal)
+        signal["hard_veto"] = evaluate_hard_veto(signal, market_regime)
         signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
         signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
     signals = sort_signals_for_review(signals)
@@ -1707,14 +1911,17 @@ def api_stock_signals(
         "provider_coverage": provider_coverage,
         "downgraded_by_data_count": data_downgraded_count,
         "profile": active_profile,
-        "strategy_version": version_metadata.as_payload(),
+        "strategy_lifecycle": lifecycle,
+        "strategy_version": strategy_record.strategy_version,
+        "strategy_config_hash": strategy_record.config_hash,
         "started_at": started,
         "completed_at": completed,
         "provider_status": provider_status,
         "provider_error_count": len(provider_errors),
         "provider_errors": provider_errors[:30],
         "market_regime": market_regime,
-        "live_only_policy": "user-facing stock terminal uses live Yahoo public chart or stale real cache only",
+        "market_data_provider": preferred_market_data_provider(),
+        "live_only_policy": "Longbridge is primary; Yahoo reference data is audit-only and cannot support buy eligibility.",
         "fixture_user_visible": False,
         "cache_source": LONG_BRIDGE_STALE_SOURCE
         if any(
@@ -1736,6 +1943,7 @@ def api_stock_signals(
         "validation_by_level": summarize_validation_by_level(signals),
         "review_counts": summarize_review_counts(signals),
         "trade_conclusion_counts": summarize_trade_conclusions(signals),
+        "daily_candidates": build_daily_candidate_board(signals),
         "high_priority_policy": "BUY SETUP requires clean live data, positive profile-specific historical edge, clear exit risk, and market-regime approval",
         "counts": {
             "buy_setup": sum(1 for signal in signals if signal["level"] == "BUY SETUP"),
@@ -1744,12 +1952,11 @@ def api_stock_signals(
             "total": len(signals),
         },
         "signals": signals,
-        "btc_eth_removed_from_main_path": True,
-        "options_are_secondary": True,
         "llm_signal_core_enabled": False,
         "broker_order_wiring_enabled": False,
         "_label_samples_by_symbol": label_samples_by_symbol,
     }
+    payload["report_data_class"] = report_data_class(payload)
     persist_signal_run(db, payload)
     write_reports(outputs, payload)
     return payload
@@ -1768,6 +1975,23 @@ def api_stock_signals_latest(
         try:
             payload = json.loads(report.read_text(encoding="utf-8"))
             if payload.get("source") == source and payload.get("universe") == universe and payload.get("profile", {}).get("name") == profile:
+                if preferred_market_data_provider() == "longbridge" and report_data_class(payload) == "legacy_reference":
+                    current = empty_signal_run(
+                        source=source,
+                        universe=universe,
+                        profile=profile,
+                        reason="A legacy Yahoo report was isolated. Run a Longbridge live scan.",
+                    )
+                    current.update(
+                        {
+                            "latest_cache_status": "legacy_reference",
+                            "legacy_reference": legacy_reference_summary(payload),
+                            "market_data_provider": "longbridge",
+                        }
+                    )
+                    return current
+                payload.setdefault("report_data_class", report_data_class(payload))
+                payload["latest_cache_status"] = "available"
                 return payload
         except json.JSONDecodeError:
             pass
@@ -1785,7 +2009,8 @@ def api_stock_analyze(
 ) -> dict[str, Any]:
     db = db_path or default_db_path()
     active_profile = profile_config(profile)
-    version_metadata = strategy_version(active_profile)
+    strategy_definition = definition_for_profile(active_profile["name"], active_profile)
+    lifecycle = strategy_lifecycle(active_profile["name"])
     normalized_symbol = normalize_symbol(symbol)
     all_stocks = stock_universe("all")
     stock_meta = next((stock for stock in all_stocks if stock.symbol == normalized_symbol), None)
@@ -1805,6 +2030,9 @@ def api_stock_analyze(
     )
     market_regime = api_stock_market_regime(source=source, db_path=db)
     signal = build_signal(normalized_symbol, primary, confirmation, active_profile)
+    signal["strategy_version"] = strategy_definition.strategy_version
+    signal["strategy_config_hash"] = strategy_definition.config_hash
+    signal["strategy_lifecycle"] = lifecycle
     if stock_meta:
         signal["primary_layer"] = stock_meta.layer
         signal["tags"] = list(stock_meta.tags)
@@ -1842,13 +2070,45 @@ def api_stock_analyze(
             "market_session": quote.get("session") or market_regime.get("session") or market_session_now(),
         }
     )
+    signal["hard_veto"] = evaluate_hard_veto(signal, market_regime)
+    signal["readiness_gate"] = build_trade_readiness(signal, market_regime)
+    signal["trade_conclusion"] = build_trade_conclusion(signal, market_regime)
     signal["ai_feature_packet_v3"] = build_ai_feature_packet_v3(signal, quote, market_regime)
+    closed_primary = [item for item in (primary.get("candles") or []) if item.get("bar_state") != "forming_candle"]
+    event_as_of = str(closed_primary[-1].get("open_time") or "") if closed_primary else ""
+    signal["event_context"] = corporate_event_context(
+        db,
+        normalized_symbol,
+        as_of=event_as_of,
+    )
+    signal["model0_feature_snapshot"] = build_model0_features(
+        normalized_symbol,
+        primary.get("candles") or [],
+        confirmation.get("candles") or [],
+        event_context=signal.get("event_context"),
+        source=str(primary.get("source") or source),
+        confirmation_timeframe=str(active_profile.get("confirmation_timeframe") or "1H"),
+        scoring_config=dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+    )
+    factor_snapshot = build_factor_snapshot(signal, market_regime)
+    persist_factor_snapshot(db, factor_snapshot)
+    signal["factor_snapshot"] = factor_snapshot
+    signal["decision_evidence"] = decision_evidence(factor_snapshot, signal)
+    signal["ai_feature_packet_v3"]["factor_snapshot"] = {
+        "factor_snapshot_hash": factor_snapshot["factor_snapshot_hash"],
+        "registry_version": factor_snapshot["registry_version"],
+        "supporting_factors": factor_snapshot["supporting_factors"],
+        "opposing_factors": factor_snapshot["opposing_factors"],
+        "unavailable_factors": factor_snapshot["unavailable_factors"],
+    }
     return {
         "product": "KQUANT US Stock Signal Terminal",
         "symbol": normalized_symbol,
         "source": source,
         "profile": active_profile,
-        "strategy_version": version_metadata.as_payload(),
+        "strategy_lifecycle": lifecycle,
+        "strategy_version": strategy_definition.strategy_version,
+        "strategy_config_hash": strategy_definition.config_hash,
         "universe_match": stock_meta is not None,
         "universe_meta": (
             {
@@ -1874,12 +2134,56 @@ def api_stock_analyze(
         "primary_candles": candle_payload_meta(primary),
         "confirmation_candles": candle_payload_meta(confirmation),
         "signal": signal,
+        "factor_snapshot": factor_snapshot,
+        "decision_evidence": signal["decision_evidence"],
         "market_regime": market_regime,
         "realtime_quote": quote,
         "journal_summary": api_stock_signal_journal(db_path=db, symbol=normalized_symbol, limit=10)["summary"],
         "fixture_user_visible": False,
         "broker_order_wiring_enabled": False,
         "llm_signal_core_enabled": False,
+    }
+
+
+def reconstruct_signal(
+    symbol: str,
+    historical_timestamp: str,
+    strategy_version: str,
+    *,
+    daily_payload: dict[str, Any],
+    hourly_payload: dict[str, Any],
+    profile: str = CANONICAL_STRATEGY_PROFILE,
+) -> dict[str, Any]:
+    """Rebuild a historical signal strictly from candles available at `historical_timestamp`."""
+    active_profile = profile_config(profile)
+    definition = definition_for_profile(str(active_profile["name"]), active_profile)
+    if strategy_version != definition.strategy_version:
+        raise ValueError(
+            f"Requested {strategy_version}, but the supplied profile resolves to {definition.strategy_version}. "
+            "Use the matching immutable strategy definition for historical replay."
+        )
+    daily = slice_completed_candles_as_of(list(daily_payload.get("candles") or []), historical_timestamp)
+    hourly = slice_completed_candles_as_of(list(hourly_payload.get("candles") or []), historical_timestamp)
+    sliced_daily = {**daily_payload, "symbol": normalize_symbol(symbol), "candles": daily}
+    sliced_hourly = {**hourly_payload, "symbol": normalize_symbol(symbol), "candles": hourly}
+    signal = build_signal(normalize_symbol(symbol), sliced_daily, sliced_hourly, active_profile)
+    signal["model0_feature_snapshot"] = build_model0_features(
+        normalize_symbol(symbol),
+        daily,
+        hourly,
+        as_of_time=historical_timestamp,
+        source=str(daily_payload.get("source") or "historical_replay"),
+        confirmation_timeframe=str(active_profile.get("confirmation_timeframe") or "1H"),
+        scoring_config=dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+    )
+    signal["strategy_version"] = definition.strategy_version
+    signal["strategy_config_hash"] = definition.config_hash
+    return {
+        "symbol": normalize_symbol(symbol),
+        "strategy_version": definition.strategy_version,
+        "strategy_config_hash": definition.config_hash,
+        "reconstruction": replay_metadata(as_of=historical_timestamp, daily=daily, hourly=hourly),
+        "signal": signal,
     }
 
 
@@ -1906,6 +2210,7 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
     context = ai_review_context(symbol, profile, signal_payload, profile_comparison, journal)
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not api_key:
+        record_ai_runtime_health("missing_key", "OPENAI_API_KEY is not configured on the backend.")
         return {
             "product": "KQUANT AI Review Assistant",
             "status": "ai_review_unavailable",
@@ -1933,10 +2238,13 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
         review = sanitize_ai_review(json.loads(text), signal_payload)
         status = "available"
         reason = "ok"
+        record_ai_runtime_health("available", "Model request completed successfully.")
     except Exception as exc:
         review = unavailable_ai_review(signal_payload, f"AI review request failed: {type(exc).__name__}")
         status = "ai_review_unavailable"
         reason = str(exc)[:240]
+        runtime_status, runtime_reason = classify_ai_failure(exc)
+        record_ai_runtime_health(runtime_status, runtime_reason)
     return {
         "product": "KQUANT AI Review Assistant",
         "status": status,
@@ -1948,6 +2256,71 @@ def api_stock_ai_review(payload: dict[str, Any], db_path: Path | None = None) ->
         "ai_review": review,
         "safety_policy": safety,
     }
+
+
+AI_DECISION_COOLDOWN_SECONDS = 900
+
+
+def _ai_material_state_hash(signal: dict[str, Any], veto: dict[str, Any]) -> str:
+    packet = signal.get("ai_feature_packet_v3") or {}
+    payload = {
+        "packet": packet.get("material_state_hash") or packet.get("trigger_fingerprint"),
+        "veto_active": bool(veto.get("active")),
+        "veto_reasons": sorted(str(item) for item in veto.get("reasons", [])),
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()[:24]
+
+
+def _load_ai_decision_cache(
+    db_path: Path,
+    *,
+    symbol: str,
+    profile: str,
+    model: str,
+    material_state_hash: str,
+) -> tuple[dict[str, Any] | None, int | None]:
+    with connect(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT response_json, created_at FROM ai_decision_cache
+            WHERE symbol=? AND profile=? AND model=? AND material_state_hash=?
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (symbol, profile, model, material_state_hash),
+        ).fetchone()
+    if not row:
+        return None, None
+    try:
+        created = datetime.fromisoformat(str(row["created_at"]).replace("Z", "+00:00")).astimezone(UTC)
+        age = max(0, int((datetime.now(UTC) - created).total_seconds()))
+        return json.loads(row["response_json"]), age
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return None, None
+
+
+def _store_ai_decision_cache(
+    db_path: Path,
+    *,
+    symbol: str,
+    profile: str,
+    model: str,
+    material_state_hash: str,
+    response: dict[str, Any],
+) -> None:
+    created_at = iso_now()
+    cache_key = hashlib.sha256(
+        f"{symbol}|{profile}|{model}|{material_state_hash}|{created_at}".encode("utf-8")
+    ).hexdigest()[:32]
+    with connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO ai_decision_cache(
+              cache_key, symbol, profile, model, material_state_hash, response_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (cache_key, symbol, profile, model, material_state_hash, json.dumps(response), created_at),
+        )
+        conn.commit()
 
 
 def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) -> dict[str, Any]:
@@ -1983,8 +2356,37 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
     context = ai_decision_context(symbol, profile, signal_payload, profile_comparison, journal, market_regime, research_context)
     veto = ai_hard_veto(signal_payload, market_regime)
     safety = ai_agent_safety_policy(veto)
+    material_state_hash = _ai_material_state_hash(signal_payload, veto)
+    model_audit = {
+        "model": model,
+        "prompt_version": "transparent_factor_decision_v1",
+        "factor_snapshot_hash": (signal_payload.get("factor_snapshot") or {}).get("factor_snapshot_hash"),
+        "permitted_actions": sorted(ai_agent_safety_policy(veto).get("allowed_actions") or []),
+        "material_state_hash": material_state_hash,
+    }
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    force_regenerate = bool(payload.get("force_regenerate"))
+    if api_key and not force_regenerate:
+        cached, cache_age = _load_ai_decision_cache(
+            db,
+            symbol=symbol,
+            profile=profile,
+            model=model,
+            material_state_hash=material_state_hash,
+        )
+        if cached is not None and cache_age is not None and cache_age < AI_DECISION_COOLDOWN_SECONDS:
+            return {
+                **cached,
+                "cache": {
+                    "hit": True,
+                    "age_seconds": cache_age,
+                    "cooldown_seconds": AI_DECISION_COOLDOWN_SECONDS,
+                    "material_state_hash": material_state_hash,
+                    "manual_regenerate_available": True,
+                },
+            }
     if not api_key:
+        record_ai_runtime_health("missing_key", "OPENAI_API_KEY is not configured on the backend.")
         decision = unavailable_ai_decision(signal_payload, veto, "OPENAI_API_KEY is not configured.")
         result = {
             "product": "KQUANT AI Trading Agent",
@@ -2008,6 +2410,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
             "probe_blockers": decision.get("probe_blockers", signal_payload.get("probe_blockers", [])),
             "hard_veto": veto,
             "safety_policy": safety,
+            "model_audit": {**model_audit, "request_status": "missing_key"},
         }
         result["action_event_key"] = persist_ai_action_event(
             db,
@@ -2016,6 +2419,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
             signal=signal_payload,
             decision=decision,
             market_regime=market_regime,
+            model_audit=result["model_audit"],
         )
         return result
     try:
@@ -2034,10 +2438,13 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         decision = sanitize_ai_decision(json.loads(text), signal_payload, veto)
         status = "available"
         reason = "ok"
+        record_ai_runtime_health("available", "Model request completed successfully.")
     except Exception as exc:
         decision = unavailable_ai_decision(signal_payload, veto, f"AI decision request failed: {type(exc).__name__}")
         status = "ai_unavailable"
         reason = str(exc)[:240]
+        runtime_status, runtime_reason = classify_ai_failure(exc)
+        record_ai_runtime_health(runtime_status, runtime_reason)
     result = {
         "product": "KQUANT AI Trading Agent",
         "status": status,
@@ -2060,6 +2467,7 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         "probe_blockers": decision.get("probe_blockers", signal_payload.get("probe_blockers", [])),
         "hard_veto": veto,
         "safety_policy": safety,
+        "model_audit": {**model_audit, "request_status": status},
     }
     result["action_event_key"] = persist_ai_action_event(
         db,
@@ -2068,7 +2476,24 @@ def api_stock_ai_decision(payload: dict[str, Any], db_path: Path | None = None) 
         signal=signal_payload,
         decision=decision,
         market_regime=market_regime,
+        model_audit=result["model_audit"],
     )
+    result["cache"] = {
+        "hit": False,
+        "age_seconds": 0,
+        "cooldown_seconds": AI_DECISION_COOLDOWN_SECONDS,
+        "material_state_hash": material_state_hash,
+        "manual_regenerate": force_regenerate,
+    }
+    if status == "available":
+        _store_ai_decision_cache(
+            db,
+            symbol=symbol,
+            profile=profile,
+            model=model,
+            material_state_hash=material_state_hash,
+            response=result,
+        )
     return result
 
 
@@ -2254,6 +2679,10 @@ def api_stock_ai_daily_agent(
         for signal in run.get("signals", []):
             if not isinstance(signal, dict):
                 continue
+            if ai_hard_veto(signal, market_regime).get("active"):
+                continue
+            if ai_opportunity_rank(signal)["data_quality_factor"] <= 0:
+                continue
             existing = candidate_map.get(signal["symbol"])
             if existing is None or ai_candidate_sort_key(signal) > ai_candidate_sort_key(existing):
                 candidate_map[signal["symbol"]] = signal
@@ -2266,17 +2695,15 @@ def api_stock_ai_daily_agent(
         ai_report = unavailable_daily_ai_report(candidate_context, "OPENAI_API_KEY is not configured.")
         status = "ai_unavailable"
         reason = "OPENAI_API_KEY is not configured."
-        ai_generation = {
-            "status": "missing_key",
-            "attempts": 0,
-            "retryable": False,
-            "retry_after_seconds": None,
-        }
     else:
         try:
-            response, attempts = post_openai_daily_agent(
-                api_key,
-                openai_daily_agent_request(model, {
+            response = requests.post(
+                "https://api.openai.com/v1/responses",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=openai_daily_agent_request(model, {
                     "run_id": run_id,
                     "universe": universe,
                     "profiles": profiles,
@@ -2284,38 +2711,18 @@ def api_stock_ai_daily_agent(
                     "candidates": candidate_context,
                     "provider_errors": provider_errors[:20],
                 }),
+                timeout=90,
             )
+            response.raise_for_status()
             raw = response.json()
             text = extract_openai_text(raw)
             ai_report = sanitize_daily_ai_report(json.loads(text), candidates, market_regime)
             status = "available"
             reason = "ok"
-            ai_generation = {
-                "status": "available",
-                "attempts": attempts,
-                "retryable": False,
-                "retry_after_seconds": None,
-            }
-        except OpenAIRateLimitError as exc:
-            reason = str(exc)
-            ai_report = unavailable_daily_ai_report(candidate_context, reason)
-            status = "ai_degraded"
-            ai_generation = {
-                "status": "rate_limited",
-                "attempts": exc.attempts,
-                "retryable": True,
-                "retry_after_seconds": exc.retry_after_seconds,
-            }
         except Exception as exc:
             ai_report = unavailable_daily_ai_report(candidate_context, f"AI daily agent failed: {type(exc).__name__}")
-            status = "ai_degraded"
+            status = "ai_unavailable"
             reason = str(exc)[:240]
-            ai_generation = {
-                "status": "request_failed",
-                "attempts": 1,
-                "retryable": True,
-                "retry_after_seconds": None,
-            }
     payload_out = {
         "product": "KQUANT AI Daily Opportunity Agent",
         "run_id": run_id,
@@ -2330,7 +2737,6 @@ def api_stock_ai_daily_agent(
         "age_seconds": 0,
         "auto_run_recommended": False,
         "last_error": None if status == "available" else reason,
-        "ai_generation": ai_generation,
         "source": source,
         "universe": universe,
         "profiles": profiles,
@@ -2391,37 +2797,63 @@ def ai_market_date(now: datetime | None = None) -> str:
     reports generated after China midnight attached to the US trading session.
     """
 
-    eastern = ZoneInfo("America/New_York")
-    return (now or datetime.now(UTC)).astimezone(eastern).date().isoformat()
+    return (now or datetime.now(UTC)).astimezone(ZoneInfo("America/New_York")).date().isoformat()
 
 
-def enrich_ai_daily_report_freshness(
-    payload: dict[str, Any],
-    max_age_seconds: int = 21600,
-    now: datetime | None = None,
-) -> dict[str, Any]:
+def enrich_ai_daily_report_freshness(payload: dict[str, Any], max_age_seconds: int = 21600) -> dict[str, Any]:
     generated_at = str(payload.get("generated_at") or "")
     age_seconds: int | None = None
     try:
         generated = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
-        age_seconds = max(0, int(((now or datetime.now(UTC)) - generated.astimezone(UTC)).total_seconds()))
+        age_seconds = max(0, int((datetime.now(UTC) - generated.astimezone(UTC)).total_seconds()))
     except ValueError:
         age_seconds = None
     market_date = str(payload.get("market_date") or ai_market_date())
-    today = ai_market_date(now)
+    today = ai_market_date()
+    is_stale = market_date != today or age_seconds is None or age_seconds > max_age_seconds
     status = str(payload.get("status") or "unknown")
-    ai_generation = payload.get("ai_generation") if isinstance(payload.get("ai_generation"), dict) else {}
-    generation_failed = status != "available" or ai_generation.get("status") not in (None, "available")
-    is_stale = market_date != today or age_seconds is None or age_seconds > max_age_seconds or generation_failed
     last_error = payload.get("last_error") or (payload.get("reason") if status not in ("available", "not_scanned") else None)
     return {
         **payload,
         "market_date": market_date,
         "is_stale": is_stale,
         "age_seconds": age_seconds,
-        "auto_run_recommended": is_stale or bool(ai_generation.get("retryable")),
+        "auto_run_recommended": is_stale,
         "last_error": last_error,
     }
+
+
+AI_RUNTIME_HEALTH: dict[str, Any] = {
+    "status": "not_checked",
+    "reason": "No model request has completed in this backend process.",
+    "checked_at": None,
+}
+
+
+def record_ai_runtime_health(status: str, reason: str) -> None:
+    AI_RUNTIME_HEALTH.update(
+        {
+            "status": status,
+            "reason": reason[:240],
+            "checked_at": iso_now(),
+        }
+    )
+
+
+def ai_runtime_health() -> dict[str, Any]:
+    return dict(AI_RUNTIME_HEALTH)
+
+
+def classify_ai_failure(exc: Exception) -> tuple[str, str]:
+    response = getattr(exc, "response", None)
+    status_code = getattr(response, "status_code", None)
+    if status_code == 401:
+        return "authentication_failed", "Model credentials were rejected by the provider. Update the backend key and restart."
+    if status_code == 429:
+        return "rate_limited", "The model provider rate-limited the request. Try again later."
+    if isinstance(exc, requests.Timeout):
+        return "timeout", "The model provider did not respond before the request timeout."
+    return "service_error", f"Model service request failed: {type(exc).__name__}"
 
 
 def api_stock_ai_review_status() -> dict[str, Any]:
@@ -2430,10 +2862,12 @@ def api_stock_ai_review_status() -> dict[str, Any]:
     deep_model = os.environ.get("KQUANT_AI_DEEP_MODEL", "gpt-5.5").strip() or "gpt-5.5"
     research_model = os.environ.get("KQUANT_AI_RESEARCH_MODEL", "").strip() or "gpt-5.5-pro"
     has_key = bool(os.environ.get("OPENAI_API_KEY", "").strip())
+    runtime = ai_runtime_health()
     return {
         "product": "KQUANT AI Trading Agent",
-        "status": "available" if has_key else "missing_key",
-        "reason": "OPENAI_API_KEY is configured." if has_key else "OPENAI_API_KEY is not configured on the backend.",
+        "status": runtime["status"] if has_key else "missing_key",
+        "reason": runtime["reason"] if has_key else "OPENAI_API_KEY is not configured on the backend.",
+        "runtime": runtime,
         "setup_hint": "Set OPENAI_API_KEY in the local backend environment and restart KQUANT. Never put this key in web/, GitHub, or Vercel frontend variables.",
         "models": {
             "review": review_model,
@@ -2446,7 +2880,7 @@ def api_stock_ai_review_status() -> dict[str, Any]:
         "read_only_research": True,
         "llm_signal_core_enabled": True,
         "ai_review_only": False,
-        "ai_decision_engine_enabled": has_key,
+        "ai_decision_engine_enabled": has_key and runtime["status"] != "authentication_failed",
         "daily_opportunity_agent_enabled": has_key,
         "deep_research_chat_enabled": has_key,
         "hard_rule_veto_enabled": True,
@@ -2471,7 +2905,7 @@ def api_stock_signal_journal(
         if normalized_symbol:
             rows = conn.execute(
                 """
-                SELECT id, run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+                SELECT id, run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
                        planned_target, outcome, reviewed_at, created_at
                 FROM stock_signal_journal
                 WHERE symbol = ?
@@ -2483,7 +2917,7 @@ def api_stock_signal_journal(
         else:
             rows = conn.execute(
                 """
-                SELECT id, run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+                SELECT id, run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
                        planned_target, outcome, reviewed_at, created_at
                 FROM stock_signal_journal
                 ORDER BY reviewed_at DESC, id DESC
@@ -2530,7 +2964,10 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
     db = db_path or default_db_path()
     now = iso_now()
     run_id = str(payload.get("run_id") or latest_stock_run_id(db) or "manual-review")
-    strategy_profile = str(payload.get("strategy_profile") or payload.get("profile_name") or "")[:80]
+    requested_profile = str(payload.get("strategy_profile") or payload.get("profile_name") or "swing_long_v1")[:80]
+    active_profile = profile_config(requested_profile)
+    strategy_profile = str(active_profile["name"])
+    strategy_record = register_strategy_version(db, definition_for_profile(strategy_profile, active_profile))
     rule_conclusion = str(payload.get("rule_conclusion") or "")[:80]
     ai_review_verdict = str(payload.get("ai_review_verdict") or "")[:80]
     notes = str(payload.get("notes") or "")[:4000]
@@ -2546,15 +2983,17 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
         cursor = conn.execute(
             """
             INSERT INTO stock_signal_journal (
-              run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+              run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
               planned_target, outcome, reviewed_at, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
                 symbol,
                 strategy_profile,
+                strategy_record.strategy_version,
+                strategy_record.config_hash,
                 rule_conclusion,
                 ai_review_verdict,
                 status,
@@ -2571,7 +3010,7 @@ def api_stock_signal_journal_entry(payload: dict[str, Any], db_path: Path | None
         conn.commit()
         row = conn.execute(
             """
-            SELECT id, run_id, symbol, strategy_profile, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
+            SELECT id, run_id, symbol, strategy_profile, strategy_version, strategy_config_hash, rule_conclusion, ai_review_verdict, status, notes, planned_entry, planned_stop,
                    planned_target, outcome, reviewed_at, created_at
             FROM stock_signal_journal
             WHERE id = ?
@@ -2609,7 +3048,9 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "provider_error_count": 0,
         "provider_errors": [reason],
         "market_regime": empty_market_regime(reason),
-        "live_only_policy": "user-facing stock terminal uses live Yahoo public chart or stale real cache only",
+        "market_data_provider": preferred_market_data_provider(),
+        "report_data_class": "not_scanned",
+        "live_only_policy": "Longbridge is primary; Yahoo reference data is audit-only and cannot support buy eligibility.",
         "fixture_user_visible": False,
         "cache_source": "none",
         "stale_signal_count": 0,
@@ -2623,8 +3064,6 @@ def empty_signal_run(source: str, universe: str, profile: str, reason: str) -> d
         "high_priority_policy": "BUY SETUP requires clean live data, positive profile-specific historical edge, clear exit risk, and market-regime approval",
         "counts": {"buy_setup": 0, "watch": 0, "pass": 0, "total": 0},
         "signals": [],
-        "btc_eth_removed_from_main_path": True,
-        "options_are_secondary": True,
         "llm_signal_core_enabled": False,
         "broker_order_wiring_enabled": False,
     }
@@ -2648,34 +3087,63 @@ def build_signal(
     profile: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     active_profile = profile or PROFILE
-    daily = daily_payload["candles"]
-    hourly = hourly_payload["candles"]
+    daily = [item for item in daily_payload["candles"] if item.get("bar_state") != "forming_candle"]
+    hourly = [item for item in hourly_payload["candles"] if item.get("bar_state") != "forming_candle"]
     if len(daily) < 60 or len(hourly) < 20:
         return empty_signal(symbol, daily_payload, hourly_payload, active_profile)
     daily_close = [bar["close"] for bar in daily]
-    daily_volume = [bar["volume"] for bar in daily]
     hourly_close = [bar["close"] for bar in hourly]
-    ema8 = ema_last(daily_close, 8)
-    ema9 = ema_last(daily_close, 9)
-    ema20 = ema_last(daily_close, 20)
-    ema50 = ema_last(daily_close, 50)
-    ema200 = ema_last(daily_close, 200)
-    h_ema8 = ema_last(hourly_close, 8)
-    h_ema9 = ema_last(hourly_close, 9)
-    h_ema20 = ema_last(hourly_close, 20)
-    h_ema50 = ema_last(hourly_close, 50)
+    daily_feature_snapshot = calculate_feature_snapshot(daily, timeframe="1D")
+    confirmation_timeframe = str(active_profile.get("confirmation_timeframe") or "1H").upper()
+    hourly_feature_snapshot = calculate_feature_snapshot(
+        hourly, timeframe=confirmation_timeframe, ema_periods=(8, 9, 20, 50), momentum_period=7
+    )
+    daily_feature_values = daily_feature_snapshot["values"]
+    hourly_feature_values = hourly_feature_snapshot["values"]
+    daily_trend = analyze_daily_trend(daily, daily_feature_snapshot)
+    hourly_confirmation = analyze_confirmation(
+        hourly,
+        hourly_feature_snapshot,
+        minimum_momentum_pct=float(active_profile.get("confirmation_momentum_min", 0.6)),
+        timeframe=confirmation_timeframe,
+    )
+    ema8 = float(daily_feature_values["ema_8"])
+    ema9 = float(daily_feature_values["ema_9"])
+    ema20 = float(daily_feature_values["ema_20"])
+    ema50 = float(daily_feature_values["ema_50"])
+    ema200 = float(daily_feature_values["ema_200"])
+    h_ema8 = float(hourly_feature_values["ema_8"])
+    h_ema9 = float(hourly_feature_values["ema_9"])
+    h_ema20 = float(hourly_feature_values["ema_20"])
+    h_ema50 = float(hourly_feature_values["ema_50"])
     close = daily_close[-1]
     previous = daily_close[-6] if len(daily_close) > 6 else daily_close[0]
     trend_return = pct(close, previous)
-    volume_ratio = daily_volume[-1] / max(sum(daily_volume[-21:-1]) / max(len(daily_volume[-21:-1]), 1), 1)
-    atr_pct = average_true_range_pct(daily[-20:])
+    return_20d = pct(close, daily_close[-21] if len(daily_close) > 21 else daily_close[0])
+    volume_ratio = float(daily_feature_values["volume_ratio_20"])
+    atr_pct = float(daily_feature_values["atr_pct"])
     extension_pct = pct(close, ema20)
-    one_hour_momentum = pct(hourly_close[-1], hourly_close[-8])
-    trend_score = score_trend(close, ema20, ema50, ema200, trend_return)
-    trigger_score = score_trigger(hourly_close[-1], h_ema20, h_ema50, one_hour_momentum)
-    volume_score = clamp((volume_ratio - 0.75) * 18, 0, 18)
-    risk_score = score_risk(atr_pct, extension_pct)
-    score = round(clamp(trend_score + trigger_score + volume_score + risk_score, 0, 100), 1)
+    one_hour_momentum = float(hourly_feature_values["momentum_pct"])
+    scoring = calculate_score_components(
+        dict(active_profile.get("scoring") or CANONICAL_SCORING_CONFIG),
+        close=close,
+        ema20=ema20,
+        ema50=ema50,
+        ema200=ema200,
+        hourly_close=hourly_close[-1],
+        hourly_ema20=h_ema20,
+        hourly_ema50=h_ema50,
+        trend_return_pct=trend_return,
+        hourly_momentum_pct=one_hour_momentum,
+        volume_ratio=volume_ratio,
+        atr_pct=atr_pct,
+        extension_pct=extension_pct,
+    )
+    trend_score = float(scoring["trend_score"])
+    trigger_score = float(scoring["trigger_score"])
+    volume_score = float(scoring["volume_score"])
+    risk_score = float(scoring["risk_score"])
+    score = float(scoring["total_score"])
     features = {
         "close": round(close, 2),
         "ema8": round(ema8, 2),
@@ -2689,6 +3157,7 @@ def build_signal(
         "hourly_ema20": round(h_ema20, 2),
         "hourly_ema50": round(h_ema50, 2),
         "trend_return_5d_pct": round(trend_return, 2),
+        "return_20d_pct": round(return_20d, 2),
         "one_hour_momentum_pct": round(one_hour_momentum, 2),
         "volume_ratio": round(volume_ratio, 2),
         "atr_pct": round(atr_pct, 2),
@@ -2697,6 +3166,31 @@ def build_signal(
         "trigger_score": round(trigger_score, 1),
         "volume_score": round(volume_score, 1),
         "risk_score": round(risk_score, 1),
+        "rsi14": round(float(daily_feature_values["rsi_14"]), 2) if daily_feature_values["rsi_14"] is not None else None,
+        "trend_slope_20d_pct": round(float(daily_feature_values["trend_slope_pct"]), 2) if daily_feature_values["trend_slope_pct"] is not None else None,
+        "gap_risk_pct": round(float(daily_feature_values["gap_risk_pct"]), 2) if daily_feature_values["gap_risk_pct"] is not None else None,
+        "hourly_gap_risk_pct": round(float(hourly_feature_values["gap_risk_pct"]), 2) if hourly_feature_values["gap_risk_pct"] is not None else None,
+        "feature_contract_version": daily_feature_snapshot["contract_version"],
+        "daily_trend_direction": daily_trend["direction"],
+        "daily_trend_strength": daily_trend["strength"],
+        "daily_extension_risk": daily_trend.get("extension_risk"),
+        "daily_higher_timeframe_risks": list(daily_trend.get("higher_timeframe_risks") or []),
+        "hourly_confirmation_mode": hourly_confirmation.get("setup_mode"),
+        "hourly_breakout": bool(hourly_confirmation.get("breakout")),
+        "hourly_pullback_reclaim": bool(hourly_confirmation.get("pullback_reclaim")),
+        "hourly_volume_confirmation": bool(hourly_confirmation.get("volume_confirmation")),
+        "confirmation_timeframe": confirmation_timeframe,
+        "confirmation_close": round(hourly_close[-1], 2),
+        "confirmation_ema8": round(h_ema8, 2),
+        "confirmation_ema9": round(h_ema9, 2),
+        "confirmation_ema20": round(h_ema20, 2),
+        "confirmation_ema50": round(h_ema50, 2),
+        "confirmation_momentum_pct": round(one_hour_momentum, 2),
+        "confirmation_gap_risk_pct": round(float(hourly_feature_values["gap_risk_pct"]), 2) if hourly_feature_values["gap_risk_pct"] is not None else None,
+        "confirmation_mode": hourly_confirmation.get("setup_mode"),
+        "confirmation_breakout": bool(hourly_confirmation.get("breakout")),
+        "confirmation_pullback_reclaim": bool(hourly_confirmation.get("pullback_reclaim")),
+        "confirmation_volume_confirmed": bool(hourly_confirmation.get("volume_confirmation")),
     }
     score_breakdown = {
         "trend_score": round(trend_score, 1),
@@ -2707,13 +3201,16 @@ def build_signal(
         "buy_setup_threshold": active_profile["strict_buy_gate_score"],
         "watch_threshold": active_profile["watch_threshold"],
         "formula": active_profile.get("formula", "trend + trigger + volume confirmation + risk window"),
+        "scoring_config_version": scoring["scoring_config_version"],
+        "factors": scoring["factors"],
+        "deductions": scoring["deductions"],
     }
     label_samples = build_historical_label_samples(symbol, daily)
     historical_edge = estimate_historical_edge(label_samples)
     historical_edge = profile_historical_edge(historical_edge, label_samples, active_profile)
     high_beta_growth = bool(active_profile.get("high_beta_growth"))
-    trend_aligned = close > ema20 > ema50 > ema200
-    trigger_confirmed = hourly_close[-1] > h_ema20 > h_ema50 and one_hour_momentum >= float(active_profile.get("confirmation_momentum_min", 0.6))
+    trend_aligned = bool((daily_trend.get("ema_alignment") or {}).get("bullish"))
+    trigger_confirmed = bool(hourly_confirmation.get("strict_confirmation"))
     volume_confirmed = volume_ratio >= float(active_profile.get("volume_ratio_min", 1.2))
     risk_window_ok = -2.5 <= extension_pct <= float(active_profile.get("max_extension_pct", 5.5)) and atr_pct <= float(active_profile.get("max_atr_pct", 5.0))
     if high_beta_growth:
@@ -2725,12 +3222,20 @@ def build_signal(
     hourly_status = hourly_payload["provider_status"]
     daily_source = str(daily_payload.get("source_type", ""))
     hourly_source = str(hourly_payload.get("source_type", ""))
+    daily_quality = dict(daily_payload.get("data_quality") or {})
+    hourly_quality = dict(hourly_payload.get("data_quality") or {})
     longbridge_required = preferred_market_data_provider() == "longbridge"
     realtime_source_clean = (
         not longbridge_required
         or (daily_source == LONG_BRIDGE_CANDLE_SOURCE and hourly_source == LONG_BRIDGE_CANDLE_SOURCE)
     )
-    data_clean = daily_status == "available" and hourly_status == "available" and realtime_source_clean
+    confirmation_cautions = set(hourly_quality.get("caution_reasons") or [])
+    confirmation_quality_usable = hourly_quality.get("status") == "clean" or (
+        not hourly_quality.get("hard_veto_reasons")
+        and confirmation_cautions <= {"forming_candles_excluded_from_confirmation"}
+    )
+    quality_clean = daily_quality.get("status") == "clean" and confirmation_quality_usable
+    data_clean = daily_status == "available" and hourly_status == "available" and realtime_source_clean and quality_clean
     has_real_or_internal_data = daily_status in ("available", "stale_cache", "fixture_read_only") and hourly_status in (
         "available",
         "stale_cache",
@@ -2768,6 +3273,8 @@ def build_signal(
         risks.append("Daily candles have provider caution.")
     if hourly_payload["provider_status"] not in ("available", "fixture_read_only"):
         risks.append("1h confirmation candles have provider caution.")
+    if not quality_clean:
+        risks.append("Daily or 1h data-quality gate is not clean; strict BUY SETUP is blocked.")
     if not risks:
         risks.append("No hard data blocker, but confirm price action manually before acting.")
     exit_risk = build_exit_risk(
@@ -2863,6 +3370,19 @@ def build_signal(
         exit_risk=exit_risk,
         data_clean=data_clean,
     )
+    trade_risk = assess_trade_risk(
+        daily_candles=daily,
+        feature_values={
+            "gap_risk_pct": daily_feature_values.get("gap_risk_pct"),
+            "extension_pct": extension_pct,
+            "atr_pct": atr_pct,
+        },
+        entry_plan=rule_plans["entry_plan"],
+        stop_plan=rule_plans["stop_plan"],
+        risk_reward_plan=rule_plans["risk_reward_plan"],
+        data_clean=data_clean,
+    )
+    risks.extend(str(item).replace("_", " ") for item in trade_risk["warnings"])
     ai_action_validation = build_ai_action_validation(
         "PENDING_AI_DECISION",
         historical_edge,
@@ -2872,6 +3392,13 @@ def build_signal(
     data_status = {
         "daily_provider_status": daily_payload["provider_status"],
         "hourly_provider_status": hourly_payload["provider_status"],
+        "daily_data_quality": daily_quality,
+        "confirmation_data_quality": hourly_quality,
+        "data_quality": "clean" if data_clean else "caution",
+        "data_quality_hard_vetoes": list(dict.fromkeys(
+            list(daily_quality.get("hard_veto_reasons") or [])
+            + list(hourly_quality.get("hard_veto_reasons") or [])
+        )),
         "primary_provider_status": daily_payload["provider_status"],
         "confirmation_provider_status": hourly_payload["provider_status"],
         "daily_candles": len(daily),
@@ -2896,7 +3423,6 @@ def build_signal(
             and daily_source == LONG_BRIDGE_CANDLE_SOURCE
             and hourly_source == LONG_BRIDGE_CANDLE_SOURCE
         ),
-        "data_quality": "clean" if data_clean else "caution",
         "live_does_not_fallback_to_fixture": bool(daily_payload.get("live_does_not_fallback_to_fixture")),
     }
     money_pilot_eligibility = build_money_pilot_eligibility(
@@ -2911,7 +3437,7 @@ def build_signal(
         },
         risk_reward_plan=rule_plans["risk_reward_plan"],
         historical_edge=historical_edge,
-        hard_veto_active=not data_clean,
+        hard_veto_active=not data_clean or bool(trade_risk["hard_vetoes"]),
     )
     probe_eligibility = build_probe_eligibility(
         action="PENDING_AI_DECISION",
@@ -2925,7 +3451,7 @@ def build_signal(
         },
         risk_reward_plan=rule_plans["risk_reward_plan"],
         historical_edge=historical_edge,
-        hard_veto_active=not data_clean,
+        hard_veto_active=not data_clean or bool(trade_risk["hard_vetoes"]),
     )
     return {
         "symbol": symbol,
@@ -2941,7 +3467,7 @@ def build_signal(
         "tags": [],
         "liquidity_tier": "core",
         "trend_summary": f"Daily close {close:.2f}; EMA20 {ema20:.2f}, EMA50 {ema50:.2f}, EMA200 {ema200:.2f}.",
-        "trigger_summary": f"1h momentum {one_hour_momentum:.2f}% with close {'above' if hourly_close[-1] >= h_ema20 else 'below'} EMA20.",
+        "trigger_summary": f"{confirmation_timeframe} momentum {one_hour_momentum:.2f}% with close {'above' if hourly_close[-1] >= h_ema20 else 'below'} EMA20.",
         "score_breakdown": score_breakdown,
         "exit_risk": exit_risk,
         "exit_plan": build_exit_plan(active_profile, exit_risk, close, ema20, ema50, extension_pct),
@@ -2950,16 +3476,23 @@ def build_signal(
             "Check the daily trend and EMA20/50/200 alignment.",
             "Confirm the 1h candle structure before entry.",
             "Review ATR distance, gap risk, and volume confirmation.",
-            "If this later becomes an option trade, only then review ATM option liquidity.",
+            "Save entry, stop, target, and invalidation in the journal before any manual action.",
         ],
         "data_status": data_status,
         "features": features,
+        "strategy_limits": {
+            "max_extension_pct": float(active_profile.get("max_extension_pct", 5.5)),
+            "max_atr_pct": float(active_profile.get("max_atr_pct", 5.0)),
+            "volume_ratio_min": float(active_profile.get("volume_ratio_min", 1.2)),
+            "confirmation_momentum_min": float(active_profile.get("confirmation_momentum_min", 0.6)),
+        },
         "ai_feature_packet_v1": ai_feature_packet,
         "ai_feature_packet_v2": ai_feature_packet_v2,
         "entry_plan": rule_plans["entry_plan"],
         "stop_plan": rule_plans["stop_plan"],
         "target_plan": rule_plans["target_plan"],
         "risk_reward_plan": rule_plans["risk_reward_plan"],
+        "trade_risk_assessment": trade_risk,
         "money_pilot_eligibility": money_pilot_eligibility,
         "probe_eligibility": probe_eligibility,
         "probe_risk_policy": probe_risk_policy(),
@@ -3295,14 +3828,30 @@ def build_ai_feature_packet_v3(
     spy = components.get("SPY") or {}
     qqq = components.get("QQQ") or {}
     validation = signal.get("ai_action_validation") or {}
+    features = signal.get("features") or {}
+    entry_plan = signal.get("entry_plan") or {}
+    stop_plan = signal.get("stop_plan") or {}
+    target_plan = signal.get("target_plan") or {}
+    entry_low = _decimal_float(entry_plan.get("entry_low"))
+    entry_high = _decimal_float(entry_plan.get("entry_high"))
+    stop_price = _decimal_float(stop_plan.get("stop"))
+    target_low = _decimal_float(target_plan.get("target_low"))
+    target_high = _decimal_float(target_plan.get("target_high"))
+    price_state = {
+        "inside_entry_zone": bool(live_price and entry_low and entry_high and entry_low <= live_price <= entry_high),
+        "below_stop": bool(live_price and stop_price and live_price <= stop_price),
+        "above_target_low": bool(live_price and target_low and live_price >= target_low),
+        "above_target_high": bool(live_price and target_high and live_price >= target_high),
+    }
     fingerprint_payload = {
         "symbol": signal.get("symbol"),
         "profile": signal.get("profile_name"),
-        "quote_time": realtime.get("quote_time"),
-        "last": round(live_price, 4) if live_price else None,
-        "daily_candle_time": data_status.get("daily_candle_time"),
+        "eligibility": (signal.get("money_pilot_eligibility") or {}).get("eligible_for_review"),
+        "level": signal.get("level"),
+        "exit_risk": (signal.get("exit_risk") or {}).get("status"),
         "confirmation_candle_time": data_status.get("confirmation_candle_time"),
         "setup": trigger_state,
+        "price_state": price_state,
         "hard_data_clean": data_status.get("data_quality") == "clean",
         "market_regime": regime.get("regime"),
     }
@@ -3311,7 +3860,7 @@ def build_ai_feature_packet_v3(
     ).hexdigest()[:20]
 
     return {
-        "version": "ai_feature_packet_v3",
+        "version": "ai_feature_packet_v3_1",
         "symbol": signal.get("symbol"),
         "profile": packet_v2.get("profile") or {
             "name": signal.get("profile_name"),
@@ -3331,6 +3880,7 @@ def build_ai_feature_packet_v3(
             "spread_bps": round(float(spread_bps), 2) if spread_bps is not None else None,
             "quote_time_utc": realtime.get("quote_time"),
             "quote_age_seconds": quote_age,
+            "bar_age_seconds": data_status.get("confirmation_bar_age_seconds"),
             "quote_is_fresh": quote_is_fresh,
             "session": session,
             "exchange_timezone": realtime.get("exchange_timezone", "America/New_York"),
@@ -3340,11 +3890,14 @@ def build_ai_feature_packet_v3(
             "forming_bars_are_not_closed_signals": True,
         },
         "trigger_state": trigger_state,
+        "price_state": price_state,
         "relative_strength_context": {
-            "stock_trend_return_5d_pct": daily.get("trend_return_5d_pct"),
+            "window_days": 20,
+            "stock_return_20d_pct": features.get("return_20d_pct"),
             "spy_return_20d_pct": spy.get("return_20d_pct"),
             "qqq_return_20d_pct": qqq.get("return_20d_pct"),
-            "comparison_note": "Stock 5D momentum and benchmark 20D regime returns are separate context windows, not a direct ratio.",
+            "stock_minus_spy_pct": round(float(features.get("return_20d_pct") or 0) - float(spy.get("return_20d_pct") or 0), 2),
+            "stock_minus_qqq_pct": round(float(features.get("return_20d_pct") or 0) - float(qqq.get("return_20d_pct") or 0), 2),
         },
         "market_regime": {
             "regime": regime.get("regime"),
@@ -3364,6 +3917,7 @@ def build_ai_feature_packet_v3(
         },
         "evidence_stack": packet_v2.get("evidence_stack", []),
         "trigger_fingerprint": trigger_fingerprint,
+        "material_state_hash": trigger_fingerprint,
         "model_refresh_policy": {
             "minimum_cooldown_seconds": 900,
             "refresh_only_on_material_change": True,
@@ -4295,6 +4849,7 @@ def previous_monthly_trading_days(end: datetime, count: int) -> list[datetime]:
 
 def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
     now = iso_now()
+    canonical = persist_canonical_candles(db_path, payload, now)
     with connect(db_path) as conn:
         for candle in payload.get("candles", []):
             conn.execute(
@@ -4325,7 +4880,8 @@ def persist_candles(db_path: Path, payload: dict[str, Any]) -> None:
             provider_name = "longbridge_quote"
         else:
             provider_name = "yahoo_chart"
-        messages = payload.get("provider_errors", []) or [f"{len(payload.get('candles', []))} candles from {payload['source_type']}"]
+        messages = list(payload.get("provider_errors", [])) or [f"{len(payload.get('candles', []))} candles from {payload['source_type']}"]
+        messages.extend(f"canonical_candle_rejected: {reason}" for reason in canonical["reasons"])
         for message in messages:
             conn.execute(
                 """
@@ -4360,13 +4916,11 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
     now = iso_now()
     label_samples_by_symbol = payload.get("_label_samples_by_symbol", {})
     with connect(db_path) as conn:
-        version_metadata = ensure_strategy_version(conn, payload["profile"])
         conn.execute(
             """
             INSERT OR REPLACE INTO stock_signal_runs
-            (run_id, source, universe, profile, started_at, completed_at, provider_status,
-             provider_error_count, buy_setup_count, watch_count, pass_count,
-             strategy_version, strategy_config_hash)
+            (run_id, source, universe, profile, strategy_version, strategy_config_hash, started_at, completed_at, provider_status,
+             provider_error_count, buy_setup_count, watch_count, pass_count)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
@@ -4374,6 +4928,8 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                 payload["source"],
                 payload["universe"],
                 payload["profile"]["name"],
+                payload["strategy_version"],
+                payload["strategy_config_hash"],
                 payload["started_at"],
                 payload["completed_at"],
                 payload["provider_status"],
@@ -4381,22 +4937,21 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                 payload["counts"]["buy_setup"],
                 payload["counts"]["watch"],
                 payload["counts"]["pass"],
-                version_metadata.version,
-                version_metadata.config_hash,
             ),
         )
         for signal in payload["signals"]:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO stock_signals
-                (run_id, symbol, score, level, trend_summary, trigger_summary,
-                 risk_warnings_json, manual_checklist_json, data_status_json, features_json, created_at,
-                 strategy_version, strategy_config_hash)
+                (run_id, symbol, strategy_version, strategy_config_hash, score, level, trend_summary, trigger_summary,
+                 risk_warnings_json, manual_checklist_json, data_status_json, features_json, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     payload["run_id"],
                     signal["symbol"],
+                    payload["strategy_version"],
+                    payload["strategy_config_hash"],
                     signal["score"],
                     signal["level"],
                     signal["trend_summary"],
@@ -4406,16 +4961,13 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                     json.dumps(signal["data_status"]),
                     json.dumps(signal["features"]),
                     now,
-                    version_metadata.version,
-                    version_metadata.config_hash,
                 ),
             )
             feature_time = signal.get("data_status", {}).get("freshness", now)
             conn.execute(
                 """
                 INSERT OR REPLACE INTO stock_features
-                (run_id, symbol, feature_time, profile, features_json, data_status_json, created_at,
-                 strategy_version, strategy_config_hash)
+                (run_id, symbol, feature_time, profile, strategy_version, strategy_config_hash, features_json, data_status_json, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
@@ -4423,11 +4975,11 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                     signal["symbol"],
                     str(feature_time),
                     payload["profile"]["name"],
+                    payload["strategy_version"],
+                    payload["strategy_config_hash"],
                     json.dumps(signal["features"]),
                     json.dumps(signal["data_status"]),
                     now,
-                    version_metadata.version,
-                    version_metadata.config_hash,
                 ),
             )
             for sample in label_samples_by_symbol.get(signal["symbol"], []):
@@ -4435,9 +4987,8 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                     """
                     INSERT OR REPLACE INTO stock_labels
                     (run_id, symbol, signal_time, forward_return_3d, forward_return_5d, forward_return_10d,
-                     max_drawdown_5d, hit_target_before_stop, close_above_entry_after_5d, created_at,
-                     strategy_version, strategy_config_hash)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     max_drawdown_5d, hit_target_before_stop, close_above_entry_after_5d, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         payload["run_id"],
@@ -4450,21 +5001,21 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                         sample["hit_target_before_stop"],
                         sample["close_above_entry_after_5d"],
                         now,
-                        version_metadata.version,
-                        version_metadata.config_hash,
                     ),
                 )
         validation = payload.get("historical_validation", {})
         conn.execute(
             """
             INSERT OR REPLACE INTO stock_backtest_runs
-            (run_id, profile, sample_count, win_rate_5d, avg_forward_return_5d, avg_max_drawdown_5d,
-             buy_setup_count, watch_count, pass_count, created_at, strategy_version, strategy_config_hash)
+            (run_id, profile, strategy_version, strategy_config_hash, sample_count, win_rate_5d, avg_forward_return_5d, avg_max_drawdown_5d,
+             buy_setup_count, watch_count, pass_count, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload["run_id"],
                 payload["profile"]["name"],
+                payload["strategy_version"],
+                payload["strategy_config_hash"],
                 int(validation.get("sample_count", 0)),
                 float(validation.get("win_rate_5d", 0.0)),
                 float(validation.get("avg_forward_return_5d", 0.0)),
@@ -4473,8 +5024,6 @@ def persist_signal_run(db_path: Path, payload: dict[str, Any]) -> None:
                 payload["counts"]["watch"],
                 payload["counts"]["pass"],
                 now,
-                version_metadata.version,
-                version_metadata.config_hash,
             ),
         )
         conn.execute(
@@ -4500,6 +5049,7 @@ def persist_ai_action_event(
     signal: dict[str, Any],
     decision: dict[str, Any],
     market_regime: dict[str, Any],
+    model_audit: dict[str, Any] | None = None,
 ) -> str:
     action = str(decision.get("action") or "AI_WAIT")
     packet_v3 = signal.get("ai_feature_packet_v3") or {}
@@ -4534,18 +5084,17 @@ def persist_ai_action_event(
         "signal": signal,
         "decision": decision,
         "market_regime": market_regime,
+        "model_audit": model_audit or {},
         "recording_policy": "prospective_ai_action_event_v1",
     }
     with connect(db_path) as conn:
-        version_metadata = ensure_strategy_version(conn, profile_config(profile))
-        payload["strategy_version"] = version_metadata.as_payload()
         conn.execute(
             """
             INSERT OR IGNORE INTO ai_action_events(
               event_key, symbol, profile, action, signal_time, decision_price,
               entry_price, stop_price, target_price, risk_reward, market_regime,
-              data_source, payload_json, created_at, strategy_version, strategy_config_hash
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              data_source, payload_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 event_key,
@@ -4562,8 +5111,6 @@ def persist_ai_action_event(
                 str((signal.get("data_status") or {}).get("source") or "unknown"),
                 json.dumps(payload, ensure_ascii=False),
                 iso_now(),
-                version_metadata.version,
-                version_metadata.config_hash,
             ),
         )
         conn.commit()
@@ -4657,7 +5204,6 @@ def api_stock_strategy_validation(
     outputs_dir: Path | None = None,
 ) -> dict[str, Any]:
     db = db_path or default_db_path()
-    profile_metadata = strategy_version(profile_config(profile)) if profile else None
     evaluated_now = evaluate_pending_ai_action_events(db)
     query = """
         SELECT e.symbol, e.profile, e.action, e.signal_time, e.market_regime,
@@ -4680,12 +5226,6 @@ def api_stock_strategy_validation(
     payload = {
         "product": "KQUANT Strategy Validation v2",
         "profile": profile or "all",
-        "strategy_version": profile_metadata.as_payload() if profile_metadata else {
-            "profile": "all",
-            "version": "mixed",
-            "config_hash": "mixed",
-            "lifecycle": "mixed_scope",
-        },
         "generated_at": iso_now(),
         "evaluated_now": evaluated_now,
         "completed_event_count": len(rows),
@@ -4705,8 +5245,6 @@ def api_stock_strategy_validation(
     }
     run_id = f"strategy-validation-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
     with connect(db) as conn:
-        if profile_metadata:
-            ensure_strategy_version(conn, profile_config(profile))
         for split_name, summary in {"overall": payload["overall"], **payload["walk_forward"]}.items():
             confidence = list(summary.get("confidence_interval_95") or [0.0, 0.0])
             conn.execute(
@@ -4714,8 +5252,8 @@ def api_stock_strategy_validation(
                 INSERT OR REPLACE INTO strategy_validation_runs(
                   run_id, profile, action, split_name, sample_count, win_rate,
                   average_r, profit_factor, max_drawdown_r, confidence_low,
-                  confidence_high, payload_json, created_at, strategy_version, strategy_config_hash
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  confidence_high, payload_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     f"{run_id}-{split_name}",
@@ -4731,8 +5269,6 @@ def api_stock_strategy_validation(
                     float(confidence[1] if len(confidence) > 1 else 0),
                     json.dumps(summary, ensure_ascii=False),
                     iso_now(),
-                    profile_metadata.version if profile_metadata else "mixed",
-                    profile_metadata.config_hash if profile_metadata else "mixed",
                 ),
             )
         conn.commit()
@@ -4752,8 +5288,6 @@ def write_ai_action_validation_report(outputs_dir: Path, payload: dict[str, Any]
         "",
         f"- Generated: `{payload.get('generated_at')}`",
         f"- Profile: `{payload.get('profile')}`",
-        f"- Strategy version: `{(payload.get('strategy_version') or {}).get('version', 'unknown')}`",
-        f"- Config hash: `{(payload.get('strategy_version') or {}).get('config_hash', 'unknown')}`",
         f"- Completed / pending: `{payload.get('completed_event_count', 0)}` / `{payload.get('pending_event_count', 0)}`",
         f"- Evidence: `{overall.get('evidence_quality', 'insufficient')}`",
         f"- Win rate: `{overall.get('win_rate', 0)}%`",
@@ -4789,7 +5323,9 @@ def write_ai_action_validation_report(outputs_dir: Path, payload: dict[str, Any]
 
 def write_reports(outputs_dir: Path, payload: dict[str, Any]) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
+    archive_legacy_reference_report(outputs_dir, "stock-signals-report.json")
     public_payload = {key: value for key, value in payload.items() if not key.startswith("_")}
+    public_payload.setdefault("report_data_class", report_data_class(public_payload))
     (outputs_dir / "stock-signals-report.json").write_text(json.dumps(public_payload, indent=2), encoding="utf-8")
     validation = payload.get("historical_validation", {})
     profile_validation = payload.get("validation_by_strategy_profile", {})
@@ -5005,11 +5541,6 @@ def write_ai_daily_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
         lines.append(f"- `{item.get('symbol')}` {item.get('action')}: {'; '.join(item.get('risk_flags', []))}")
     lines.extend(
         [
-            "",
-            "## MSTR Cycle Update",
-            "",
-            str(ai_report.get("mstr_cycle_update") or "No MSTR update."),
-            "",
             "## Data Quality Warnings",
             "",
         ]
@@ -5021,7 +5552,10 @@ def write_ai_daily_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
 
 def write_stock_live_data_health_report(outputs_dir: Path, payload: dict[str, Any]) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
-    (outputs_dir / "stock-live-data-health.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    archive_legacy_reference_report(outputs_dir, "stock-live-data-health.json")
+    public_payload = dict(payload)
+    public_payload.setdefault("report_data_class", report_data_class(public_payload))
+    (outputs_dir / "stock-live-data-health.json").write_text(json.dumps(public_payload, indent=2), encoding="utf-8")
     summary = payload["summary"]
     database = payload["database"]
     usability = payload.get("daily_usability", {})
@@ -5370,6 +5904,7 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
     historical = signal.get("historical_edge", {})
     exit_risk = signal.get("exit_risk", {})
     readiness = signal.get("readiness_gate", {})
+    hard_veto = signal.get("hard_veto", {})
     high_beta_growth = signal.get("profile_name") == "high_beta_growth_v1"
     market_state = str(market_regime.get("regime", "DATA_CAUTION"))
     data_clean = data_status.get("data_quality") == "clean"
@@ -5402,6 +5937,8 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
         blockers.append(f"Exit risk is {exit_status}.")
     if signal.get("level") == "PASS":
         blockers.append("Rule level is PASS.")
+    if hard_veto.get("active"):
+        blockers.extend(f"Hard veto: {reason}." for reason in hard_veto.get("reasons", []))
 
     if signal.get("level") == "BUY SETUP":
         why.append("Rule system classifies this as BUY SETUP.")
@@ -5418,7 +5955,12 @@ def build_trade_conclusion(signal: dict[str, Any], market_regime: dict[str, Any]
     if high_beta_growth:
         why.append("High-beta profile requires smaller size, staged entry, and AI Review before action.")
 
-    if readiness.get("ready") is True and signal.get("level") == "BUY SETUP" and data_clean and historical_positive and exit_clear:
+    if hard_veto.get("active"):
+        action = "WAIT"
+        confidence = "LOW"
+        risk_bucket = "avoid"
+        summary = "WAIT: deterministic hard veto blocks a new long review."
+    elif readiness.get("ready") is True and signal.get("level") == "BUY SETUP" and data_clean and historical_positive and exit_clear:
         action = "BUY"
         confidence = "HIGH" if market_state == "RISK_ON" else "MEDIUM"
         risk_bucket = "high_beta_risk" if high_beta_growth else "standard_risk" if confidence == "HIGH" else "light_risk"
@@ -5602,13 +6144,7 @@ def openai_review_request(model: str, context: dict[str, Any]) -> dict[str, Any]
 
 
 def visible_strategy_profile_keys() -> list[str]:
-    return [
-        "tactical_1w_v1",
-        "swing_1_2m_v1",
-        "position_6m_v1",
-        "cycle_1_3y_v1",
-        "high_beta_growth_v1",
-    ]
+    return [CANONICAL_STRATEGY_PROFILE]
 
 
 def ai_agent_safety_policy(veto: dict[str, Any]) -> dict[str, Any]:
@@ -5760,6 +6296,9 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
             "what_invalidates_this_setup": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
             "best_profile": {"type": "string"},
             "human_checklist": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 6},
+            "supporting_factor_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+            "opposing_factor_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+            "blocker_factor_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
             "summary": {"type": "string"},
         },
         "required": [
@@ -5775,6 +6314,9 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
             "what_invalidates_this_setup",
             "best_profile",
             "human_checklist",
+            "supporting_factor_ids",
+            "opposing_factor_ids",
+            "blocker_factor_ids",
             "summary",
         ],
     }
@@ -5782,7 +6324,9 @@ def openai_decision_request(model: str, context: dict[str, Any]) -> dict[str, An
         "You are KQUANT AI Primary Trade Engine v3. You lead opportunity recognition and manual trade planning, "
         "while remaining strictly read-only. Treat ai_feature_packet_v3 as the primary structured trading input, "
         "including realtime quote freshness, closed/forming bars, 1D/1H summaries, EMA8/9/20/50/200, VWAP, RSI14, "
-        "volume, ATR, relative-strength context, action validation, and market regime. Never treat a forming bar as a closed signal. "
+        "volume, ATR, relative-strength context, action validation, and market regime. FactorSnapshot is authoritative: "
+        "cite only factor IDs present in factor_snapshot.factors, never invent an indicator or hidden factor. "
+        "Never treat a forming bar as a closed signal. "
         "Use rule_trade_plans as the deterministic baseline, but improve or reject the plan if the evidence demands it. "
         "The rule conclusion is a guardrail input, not the final decision. If hard_veto.active is true, do not output "
         "AI_BUY_CANDIDATE, AI_PULLBACK_BUY, or AI_PROBE_BUY. AI_PROBE_BUY means a starter-position research candidate, "
@@ -5874,6 +6418,15 @@ def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto:
         historical_edge=signal.get("historical_edge") or {},
         hard_veto_active=bool(veto.get("active")),
     )
+    snapshot = signal.get("factor_snapshot") or {}
+    valid_factor_ids = {str(entry.get("factor_id")) for entry in snapshot.get("factors", []) if entry.get("factor_id")}
+
+    def factor_ids(key: str, fallback_key: str) -> list[str]:
+        requested = decision.get(key)
+        if not isinstance(requested, list):
+            requested = snapshot.get(fallback_key, [])
+        return [str(item) for item in requested if str(item) in valid_factor_ids][:3]
+
     return {
         "action": action,
         "confidence": confidence,
@@ -5887,6 +6440,10 @@ def sanitize_ai_decision(decision: dict[str, Any], signal: dict[str, Any], veto:
         "what_invalidates_this_setup": safe_string_list(decision.get("what_invalidates_this_setup"), 6),
         "best_profile": str(decision.get("best_profile") or signal.get("profile_name") or "")[:80],
         "human_checklist": safe_string_list(decision.get("human_checklist"), 6),
+        "supporting_factor_ids": factor_ids("supporting_factor_ids", "supporting_factors"),
+        "opposing_factor_ids": factor_ids("opposing_factor_ids", "opposing_factors"),
+        "blocker_factor_ids": factor_ids("blocker_factor_ids", "unavailable_factors"),
+        "factor_snapshot_hash": snapshot.get("factor_snapshot_hash"),
         "summary": str(decision.get("summary") or "AI decision generated for manual review only.")[:600],
         "rule_action": rule_action,
         "hard_veto_applied": bool(veto.get("active")),
@@ -5939,6 +6496,7 @@ def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason
         historical_edge=signal.get("historical_edge") or {},
         hard_veto_active=bool(veto.get("active")),
     )
+    snapshot = signal.get("factor_snapshot") or {}
     return {
         "action": action,
         "confidence": "LOW",
@@ -5959,6 +6517,10 @@ def unavailable_ai_decision(signal: dict[str, Any], veto: dict[str, Any], reason
             "Check rule conclusion, market regime, and exit risk.",
             "Save a journal plan before acting manually.",
         ],
+        "supporting_factor_ids": list(snapshot.get("supporting_factors") or [])[:3],
+        "opposing_factor_ids": list(snapshot.get("opposing_factors") or [])[:3],
+        "blocker_factor_ids": list(snapshot.get("unavailable_factors") or [])[:3],
+        "factor_snapshot_hash": snapshot.get("factor_snapshot_hash"),
         "summary": reason,
         "rule_action": rule_action,
         "hard_veto_applied": bool(veto.get("active")),
@@ -6148,14 +6710,37 @@ def unavailable_research_chat_answer(question: str) -> dict[str, Any]:
 
 
 def ai_candidate_sort_key(signal: dict[str, Any]) -> tuple[float, float, float]:
-    action = (signal.get("trade_conclusion") or {}).get("action", "")
-    action_bonus = {"BUY": 30, "WAIT": 16, "HOLD_TRAIL": 10, "EXIT_REVIEW": 4, "DO_NOT_BUY": 0}.get(action, 0)
-    edge = signal.get("historical_edge", {})
+    rank = ai_opportunity_rank(signal)
     return (
-        float(signal.get("score", 0) or 0) + action_bonus,
-        float(edge.get("focus_avg_return", edge.get("avg_forward_return_5d", 0)) or 0),
-        float(edge.get("focus_win_rate", edge.get("win_rate_5d", 0)) or 0),
+        rank["composite_score"],
+        rank["shrunken_expected_r"],
+        float(signal.get("score", 0) or 0),
     )
+
+
+def ai_opportunity_rank(signal: dict[str, Any]) -> dict[str, float]:
+    validation = signal.get("ai_action_validation") or {}
+    edge = signal.get("historical_edge") or {}
+    data = signal.get("data_status") or {}
+    expected_r = float(validation.get("expected_value_r") or 0)
+    sample_count = int(validation.get("sample_count") or edge.get("focus_sample_count") or 0)
+    shrinkage = sample_count / (sample_count + 30) if sample_count > 0 else 0.0
+    shrunken_expected_r = expected_r * shrinkage
+    sources = {str(data.get("daily_source_type") or data.get("source") or ""), str(data.get("confirmation_source_type") or "")}
+    realtime_sources = {LONG_BRIDGE_CANDLE_SOURCE, ""}
+    data_quality_factor = 1.0 if data.get("data_quality") == "clean" and sources <= realtime_sources else 0.0
+    trigger_quality_factor = max(0.0, min(float(signal.get("score") or 0) / 100, 1.0))
+    if data.get("confirmation_bar_state") == "forming_candle":
+        trigger_quality_factor = 0.0
+    return {
+        "expected_r": round(expected_r, 4),
+        "sample_count": float(sample_count),
+        "shrinkage_factor": round(shrinkage, 4),
+        "shrunken_expected_r": round(shrunken_expected_r, 4),
+        "data_quality_factor": data_quality_factor,
+        "trigger_quality_factor": round(trigger_quality_factor, 4),
+        "composite_score": round(shrunken_expected_r * data_quality_factor * trigger_quality_factor, 6),
+    }
 
 
 def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, Any]) -> dict[str, Any]:
@@ -6179,6 +6764,7 @@ def ai_daily_candidate_summary(signal: dict[str, Any], market_regime: dict[str, 
         "layer": signal.get("primary_layer"),
         "level": signal.get("level"),
         "score": signal.get("score"),
+        "opportunity_rank": ai_opportunity_rank(signal),
         "rule_action": (signal.get("trade_conclusion") or {}).get("action"),
         "risk_bucket": (signal.get("trade_conclusion") or {}).get("risk_bucket"),
         "trend_summary": signal.get("trend_summary"),
@@ -6261,7 +6847,6 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
             "probe_candidates": {"type": "array", "items": item_schema, "maxItems": 6},
             "watch_for_pullback": {"type": "array", "items": item_schema, "maxItems": 8},
             "avoid_or_risk_elevated": {"type": "array", "items": item_schema, "maxItems": 8},
-            "mstr_cycle_update": {"type": "string"},
             "data_quality_warnings": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 8},
             "daily_summary": {"type": "string"},
         },
@@ -6270,7 +6855,6 @@ def openai_daily_agent_request(model: str, context: dict[str, Any]) -> dict[str,
             "probe_candidates",
             "watch_for_pullback",
             "avoid_or_risk_elevated",
-            "mstr_cycle_update",
             "data_quality_warnings",
             "daily_summary",
         ],
@@ -6306,10 +6890,10 @@ def ai_daily_item_sort_key(item: dict[str, Any]) -> tuple[float, float, float, f
     validation = item.get("ai_action_validation") if isinstance(item.get("ai_action_validation"), dict) else {}
     money = item.get("money_pilot_eligibility") if isinstance(item.get("money_pilot_eligibility"), dict) else {}
     return (
+        float((item.get("opportunity_rank") or {}).get("composite_score") or 0),
         1.0 if money.get("eligible_for_review") else 0.0,
         float(validation.get("expected_value_r") or 0),
         float(validation.get("risk_reward_value") or 0),
-        float(validation.get("win_rate") or 0),
     )
 
 
@@ -6388,6 +6972,7 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
                     "probe_risk_policy": probe_risk_policy(),
                     "probe_blockers": probe_check["blockers"],
                     "ai_feature_packet_version": "ai_feature_packet_v3",
+                    "opportunity_rank": ai_opportunity_rank(signal or {}),
                 }
             )
         return sanitized
@@ -6487,7 +7072,6 @@ def sanitize_daily_ai_report(report: dict[str, Any], candidates: list[dict[str, 
         "probe_candidates": probe_items,
         "watch_for_pullback": watch_items,
         "avoid_or_risk_elevated": avoid_items,
-        "mstr_cycle_update": str(report.get("mstr_cycle_update") or "MSTR cycle update not generated.")[:500],
         "data_quality_warnings": safe_string_list(report.get("data_quality_warnings"), 8),
         "daily_summary": str(report.get("daily_summary") or "AI daily opportunity report generated for manual review only.")[:700],
     }
@@ -6528,7 +7112,6 @@ def unavailable_daily_ai_report(candidates: list[dict[str, Any]], reason: str) -
         "probe_candidates": [],
         "watch_for_pullback": watch,
         "avoid_or_risk_elevated": avoid,
-        "mstr_cycle_update": "AI unavailable; review MSTR Cycle Radar manually.",
         "data_quality_warnings": [reason],
         "daily_summary": "AI Daily Agent is unavailable. Rule shortlist is shown without AI-led ranking.",
     }
@@ -7094,6 +7677,8 @@ def stock_journal_row(row: Any) -> dict[str, Any]:
         "run_id": row["run_id"],
         "symbol": row["symbol"],
         "strategy_profile": row["strategy_profile"] if "strategy_profile" in row.keys() else "",
+        "strategy_version": row["strategy_version"] if "strategy_version" in row.keys() else "legacy_unversioned",
+        "strategy_config_hash": row["strategy_config_hash"] if "strategy_config_hash" in row.keys() else "",
         "rule_conclusion": row["rule_conclusion"] if "rule_conclusion" in row.keys() else "",
         "ai_review_verdict": row["ai_review_verdict"] if "ai_review_verdict" in row.keys() else "",
         "status": row["status"],

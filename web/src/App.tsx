@@ -2,29 +2,39 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  BellRing,
   CheckCircle2,
+  KeyRound,
   Languages,
   Lock,
+  LogOut,
   MessageCircle,
   Moon,
+  PanelRightClose,
+  PanelRightOpen,
   RefreshCw,
   Search,
   Send,
   ShieldCheck,
   Sun,
+  Trash2,
 } from "lucide-react";
-import {
-  CandlestickSeries,
-  createChart,
-  HistogramSeries,
-  LineSeries,
-  type CandlestickData,
-  type HistogramData,
-  type IChartApi,
-  type LineData,
-  type Time,
-} from "lightweight-charts";
+import type { Time } from "lightweight-charts";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { parseRiskReward } from "./tradingFormatters";
+import { QuantOverviewPanel, type QuantOverviewPayload } from "./components/QuantOverviewPanel";
+import { DeepResearchChatPanel as DeepResearchChatPanelView } from "./components/DeepResearchChatPanel";
+import { ResearchOpportunityDesk as ResearchOpportunityDeskView } from "./features/research/ResearchOpportunityDesk";
+import { EarlyTrendPanel as EarlyTrendPanelView } from "./features/quant/EarlyTrendPanel";
+import { ChartPanel as ChartPanelView } from "./features/quant/ChartPanel";
+import { ManualTradeTicketPanel as ManualTradeTicketPanelView } from "./features/quant/ManualTradeTicketPanel";
+import { TodayDecisionPanel as TodayDecisionPanelView } from "./features/quant/TodayDecisionPanel";
+import { DataReliabilityPanel as DataReliabilityPanelView, RiskControlPanel as RiskControlPanelView } from "./features/operations/OperationsEvidencePanels";
+import { RealtimeCommandCenter as RealtimeCommandCenterView } from "./features/operations/RealtimeCommandCenter";
+import { ReadinessPanel as ReadinessPanelView } from "./features/operations/ReadinessPanel";
+import { SettingsPanel as SettingsPanelView } from "./features/operations/SettingsPanel";
+import { StockJournalPanel as StockJournalPanelView } from "./features/operations/StockJournalPanel";
+import { ThemeRadarPanel as ThemeRadarPanelView } from "./features/theme/ThemeRadarPanel";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -43,7 +53,7 @@ type AiAction =
   | "AI_HOLD_TRAIL"
   | "AI_EXIT_REVIEW";
 type UniverseName = "default" | "ai_five_layer" | "physical_ai" | "all";
-type AppView = "stocks" | "mstr";
+type AppView = "stocks";
 type WorkspaceName =
   | "today"
   | "search"
@@ -52,7 +62,6 @@ type WorkspaceName =
   | "charts"
   | "aiPlan"
   | "chat"
-  | "mstr"
   | "journal"
   | "settings";
 type StrategyProfileName =
@@ -65,6 +74,54 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v4";
+type AuthSession = {
+  authentication_required: boolean;
+  authenticated: boolean;
+  mode: "not_required" | "local_email_password" | "setup_required" | string;
+  expires_at?: number | null;
+};
+
+type EarlyTrendPayload = {
+  symbol: string;
+  strategy_stage: "NOT_READY" | "EARLY_WATCH" | "ARMED" | "BUY_REVIEW" | "LATE_WAIT_PULLBACK" | "INVALIDATED";
+  setup_score: number;
+  trigger_score: number | null;
+  setup_as_of: string | null;
+  confirmation_as_of: string | null;
+  summary: string;
+  pullback_zone: [number, number] | null;
+  invalidation_price: number | null;
+  setup_factors: Array<{ factor_id: string; contribution: number; maximum: number; detail: string }>;
+  execution_eligibility: {
+    status: string;
+    eligible_for_manual_review: boolean;
+    paper_only: boolean;
+    blockers: string[];
+  };
+  lead_time_evidence: {
+    status: string;
+    historical_setup_trades: number;
+    prospective_trigger_results: number;
+    buy_review_activation_ready: boolean;
+  };
+};
+
+type WebPushStatus = {
+  enabled: boolean;
+  configured: boolean;
+  active_subscriptions: number;
+  ios_requirement: string;
+  preferences: NotificationPreferences;
+};
+
+type NotificationPreferences = {
+  web_push_enabled: boolean;
+  quiet_start: string;
+  quiet_end: string;
+  timezone: string;
+  daily_routine_limit: number;
+};
 
 type Candle = {
   time: Time;
@@ -130,22 +187,10 @@ type RealtimeSnapshotPayload = {
   display_timezone: string;
   buy_actions_allowed_by_data: boolean;
   real_money_data_source: boolean;
-  data_trust?: {
-    state?: "live_trade_eligible" | "reference_only" | "delayed_or_incomplete" | string;
-    reason?: string;
-    quote_age_seconds?: number | null;
-    candle_age_seconds?: number | null;
-    current_bar_state?: string;
-    requires_longbridge?: boolean;
-  };
 };
 
 type ApiHealthPayload = {
   status: string;
-  build_sha?: string;
-  build_sha_short?: string;
-  build_time?: string;
-  environment?: string;
   backend?: string;
   live_data_enabled?: boolean;
   ai_review_status?: string;
@@ -159,13 +204,19 @@ type ApiHealthPayload = {
   market_data?: {
     provider?: string;
     status?: string;
-    trust_state?: "live_primary" | "stale_primary" | "reference_only" | "unavailable" | string;
-    freshness_seconds?: number | null;
-    last_successful_market_data_at?: string | null;
     longbridge_env?: string;
     longbridge_sdk?: string;
     default_source_type?: string;
     real_money_requires_longbridge_live?: boolean;
+    market_clock?: { session?: string };
+  };
+  runtime?: {
+    api_contract_version?: string;
+    started_at_utc?: string;
+    auth_routes_version?: string;
+    static_assets_version?: string;
+    build_sha?: string;
+    environment?: string;
   };
 };
 
@@ -217,6 +268,27 @@ type StockSignal = {
     live_does_not_fallback_to_fixture?: boolean;
   };
   features: Record<string, number>;
+  factor_snapshot?: {
+    factor_snapshot_hash?: string;
+    registry_version?: string;
+    factors?: Array<{
+      factor_id: string;
+      label?: string;
+      value?: string | number | boolean | null;
+      contribution?: number | null;
+      status?: string;
+      note?: string;
+    }>;
+    supporting_factors?: string[];
+    opposing_factors?: string[];
+    unavailable_factors?: string[];
+  };
+  decision_evidence?: {
+    supporting_factors?: Array<{ factor_id: string; label?: string; contribution?: number | null; value?: string | number | boolean | null }>;
+    opposing_factors?: Array<{ factor_id: string; label?: string; contribution?: number | null; value?: string | number | boolean | null }>;
+    unavailable_factors?: Array<{ factor_id: string; label?: string; note?: string }>;
+    data_blockers?: string[];
+  };
   ai_feature_packet_v2?: Record<string, unknown>;
   entry_plan?: {
     zone?: string;
@@ -527,7 +599,6 @@ type AiDailyAgentPayload = {
     probe_candidates?: AiDailyItem[];
     watch_for_pullback: AiDailyItem[];
     avoid_or_risk_elevated: AiDailyItem[];
-    mstr_cycle_update: string;
     data_quality_warnings: string[];
     daily_summary: string;
     validation_by_ai_action?: Record<string, unknown>;
@@ -764,6 +835,105 @@ type SignalRun = {
   broker_order_wiring_enabled: boolean;
 };
 
+type TodayCandidate = {
+  rank: number;
+  bucket: string;
+  symbol: string;
+  strategy_score?: number;
+  data_status?: string;
+  system_action?: string;
+  invalidation?: string[];
+  risk?: { status?: string; warnings?: string[]; hard_vetoes?: string[] };
+};
+
+type TodayWorkbenchPayload = {
+  decision: "NO_TRADE" | "MANUAL_REVIEW" | string;
+  headline: string;
+  market: { regime: string; label: string; score: number; session?: string };
+  data_trust: { provider_status: string; provider_error_count: number; source: string; available: boolean };
+  top_candidates: TodayCandidate[];
+  watch_candidates: TodayCandidate[];
+  risk: { production_decision?: string; failed_gate_count?: number; weekly_review?: Record<string, unknown> };
+  exception_states: string[];
+  diagnostics: { ai_status?: string; operational_status?: string; scan_run_id?: string };
+  read_only_research: boolean;
+  automatic_execution_allowed: boolean;
+  order_submission_enabled: boolean;
+};
+
+type TradeInstructionPayload = {
+  instruction_id: string;
+  symbol: string;
+  state: "MONITORING" | "READY" | "TRIGGERED" | "INVALIDATED" | "EXPIRED" | "EXIT_REVIEW" | string;
+  action: string;
+  severity: "INFO" | "ACTION" | "RISK" | "CRITICAL" | string;
+  quote_time?: string | null;
+  data_source: string;
+  plan: {
+    observed_price?: number | null;
+    bid?: number | null;
+    ask?: number | null;
+    entry_low?: number | null;
+    entry_high?: number | null;
+    stop?: number | null;
+    target_low?: number | null;
+    target_high?: number | null;
+    risk_reward_value?: number | null;
+  };
+  evidence: { blockers?: string[]; data_eligible?: boolean; bbo_valid?: boolean };
+  created_at: string;
+};
+
+type AlertEventPayload = {
+  alert_id: string;
+  instruction_id?: string | null;
+  symbol: string;
+  severity: "INFO" | "ACTION" | "RISK" | "CRITICAL" | string;
+  title: string;
+  message: string;
+  acknowledged_at?: string | null;
+  created_at: string;
+};
+
+type OptionExpressionCandidate = {
+  candidate_id: string;
+  contract_symbol: string;
+  expiry_date: string;
+  strike_price: number;
+  bid?: number | null;
+  ask?: number | null;
+  delta?: number | null;
+  implied_volatility?: number | null;
+  open_interest?: number;
+  volume?: number;
+  spread_pct?: number | null;
+  status: "eligible" | "paper_only" | "blocked" | string;
+  score: number;
+  max_loss: number;
+  breakeven: number;
+  underlying_price?: number;
+  blockers: string[];
+};
+
+type OptionCandidatesPayload = {
+  symbol: string;
+  status: string;
+  candidates: OptionExpressionCandidate[];
+  event_calendar_ready?: boolean;
+  blockers?: string[];
+};
+
+type ProductionReadinessPayload = {
+  strategy_version: string;
+  decision: "GO" | "NO_GO" | string;
+  failed_gate_count: number;
+  failed_gates: { gate: string; reason: string }[];
+  historical: { sample_count: number; average_r: number; profit_factor: number };
+  forward?: { market_day_count?: number; completed_outcome_count?: number; data_incident_count?: number } | null;
+  paper?: { closed_position_count?: number; average_r?: number } | null;
+  automatic_execution_allowed: boolean;
+};
+
 type HealthTimeframe = {
   timeframe: string;
   provider_status: string;
@@ -815,245 +985,6 @@ type LiveHealthPayload = {
   universes_detail: HealthUniverse[];
 };
 
-type MstrCycleLevel = "CYCLE ACCUMULATION" | "BOTTOM WATCH" | "WAIT" | "DISTRIBUTION RISK";
-
-type MstrComponent = {
-  status: string;
-  score: number;
-  metrics?: Record<string, number>;
-  reasons?: string[];
-  risk_warnings?: string[];
-  premium_to_btc_nav?: number | null;
-  reason?: string;
-};
-
-type MonteCarloHorizon = {
-  weeks: number;
-  p10_return_pct: number;
-  p50_return_pct: number;
-  p90_return_pct: number;
-  median_return_pct: number;
-  p10_max_drawdown_pct: number;
-  median_max_drawdown_pct: number;
-  probability_2x_pct: number;
-  probability_5x_pct: number;
-  probability_10x_pct: number;
-};
-
-type MonteCarloPayload = {
-  status: string;
-  method: string;
-  paths: number;
-  beta_to_btc?: number;
-  regime_adjustment_weekly_pct?: number;
-  horizons: Record<string, MonteCarloHorizon>;
-  reason?: string;
-  limitations?: string[];
-};
-
-type BayesianEvidence = {
-  name: string;
-  likelihood_ratio: number;
-  reason: string;
-};
-
-type BayesianBottomPayload = {
-  status: string;
-  method: string;
-  prior_probability: number;
-  bottom_probability: number;
-  confidence: number;
-  confidence_band: { low: number; high: number };
-  positive_evidence: BayesianEvidence[];
-  negative_evidence: BayesianEvidence[];
-  does_not_override_level: boolean;
-  limitations?: string[];
-};
-
-type CycleDashboardItem = {
-  label: string;
-  current: number | string;
-  target: number | string;
-  status: string;
-  why: string;
-};
-
-type CycleUpgradeTrigger = {
-  level: string;
-  status: string;
-  requirements: string[];
-};
-
-type TenXPath = {
-  status: string;
-  current_mstr_price?: number | null;
-  target_mstr_price_10x?: number | null;
-  current_btc_price?: number | null;
-  current_premium_to_nav?: number | null;
-  target_market_cap?: number | null;
-  required_btc_prices: { premium_to_nav: number; required_btc_price?: number | null; btc_multiple_from_current?: number | null }[];
-  monte_carlo_24m_probability_10x_pct?: number | null;
-  monte_carlo_24m_p90_return_pct?: number | null;
-  assumptions: string[];
-};
-
-type CycleDashboardPayload = {
-  summary: string;
-  wait_reasons: CycleDashboardItem[];
-  upgrade_triggers: CycleUpgradeTrigger[];
-  ten_x_path: TenXPath;
-  review_bias: string;
-  read_only: boolean;
-  does_not_issue_trade_instruction: boolean;
-  score_gaps: Record<string, number>;
-};
-
-type TriggerMonitorCondition = {
-  level: string;
-  name: string;
-  current: number | string;
-  target: number | string;
-  comparator: string;
-  met: boolean;
-};
-
-type TriggerMonitorPayload = {
-  status: string;
-  level: string;
-  next_state: string;
-  gaps: Record<string, number>;
-  conditions: TriggerMonitorCondition[];
-  read_only: boolean;
-};
-
-type PathStressRow = {
-  dilution_rate_pct: number;
-  premium_to_nav: number;
-  required_btc_price?: number | null;
-  btc_multiple_from_current?: number | null;
-  adjusted_target_market_cap?: number | null;
-};
-
-type PathStressPayload = {
-  status: string;
-  question?: string;
-  reason?: string;
-  rows: PathStressRow[];
-  assumptions?: string[];
-  read_only: boolean;
-};
-
-type MstrMetricValue = string | number | boolean | null | undefined | string[];
-
-type MstrMetricBlock = {
-  status?: string;
-  source_type?: string;
-  calculation_method?: string;
-  [key: string]: MstrMetricValue;
-};
-
-type MstrStrategyTrackerMetrics = {
-  status: string;
-  source_type?: string;
-  tracker_provider_status: string;
-  tracker_source?: string;
-  freshness?: string;
-  as_of_date?: string | null;
-  calculation_policy?: string;
-  availability?: Record<string, boolean>;
-  missing_tracker_fields?: string[];
-  treasury_snapshot?: MstrMetricBlock;
-  premium_nav_metrics?: MstrMetricBlock;
-  cost_basis_metrics?: MstrMetricBlock;
-  btc_yield_metrics?: MstrMetricBlock;
-  share_metrics?: MstrMetricBlock;
-  debt_financing_metrics?: MstrMetricBlock;
-  liquidity_metrics?: MstrMetricBlock;
-  benchmark_metrics?: MstrMetricBlock;
-};
-
-type CycleHistorySummary = {
-  run_count: number;
-  latest_level: string;
-  previous_level?: string;
-  latest_completed_at?: string | null;
-  first_completed_at?: string | null;
-  latest_bottom_score?: number;
-  score_change: number;
-  latest_bottom_probability?: number;
-  probability_change: number;
-  latest_premium_to_nav?: number | null;
-  latest_mc_24m_probability_10x?: number | null;
-  trend: string;
-};
-
-type MstrJournalEntry = {
-  id: number;
-  run_id: string;
-  status: string;
-  notes: string;
-  outcome: string;
-  reviewed_at: string;
-  level: string;
-  bottom_score: number;
-  bayesian_bottom_probability: number;
-  manual_checklist?: TriggerMonitorCondition[];
-};
-
-type MstrJournalPayload = {
-  status: string;
-  limit: number;
-  entries: MstrJournalEntry[];
-  counts: Record<string, number>;
-  read_only_research: boolean;
-};
-
-type MstrCyclePayload = {
-  run_id: string;
-  level: MstrCycleLevel;
-  bottom_score: number;
-  distribution_risk_score: number;
-  provider_status: string;
-  provider_error_count: number;
-  provider_errors: string[];
-  btc_reference_only: boolean;
-  fixture_user_visible: boolean;
-  llm_signal_core_enabled: boolean;
-  broker_order_wiring_enabled: boolean;
-  positioning_note: string;
-  components: {
-    btc_cycle: MstrComponent;
-    mstr_bottom: MstrComponent;
-    relative_btc: MstrComponent;
-    premium_proxy: MstrComponent;
-    financing_risk: MstrComponent;
-    distribution_risk: MstrComponent;
-  };
-  monte_carlo: MonteCarloPayload;
-  bayesian_bottom: BayesianBottomPayload;
-  cycle_dashboard: CycleDashboardPayload;
-  trigger_monitor: TriggerMonitorPayload;
-  path_stress_test: PathStressPayload;
-  strategy_tracker_metrics?: MstrStrategyTrackerMetrics;
-  treasury_snapshot?: MstrMetricBlock;
-  premium_nav_metrics?: MstrMetricBlock;
-  cost_basis_metrics?: MstrMetricBlock;
-  btc_yield_metrics?: MstrMetricBlock;
-  share_metrics?: MstrMetricBlock;
-  debt_financing_metrics?: MstrMetricBlock;
-  liquidity_metrics?: MstrMetricBlock;
-  benchmark_metrics?: MstrMetricBlock;
-  tracker_provider_status?: string;
-  cycle_history_summary: CycleHistorySummary;
-  manual_journal?: MstrJournalPayload;
-  scenario_horizon: string[];
-  model_limitations: string[];
-  reasons: string[];
-  blockers: string[];
-  manual_checklist: string[];
-  charts: Record<string, Record<string, unknown>>;
-};
-
 type UniverseStock = {
   symbol: string;
   name: string;
@@ -1068,27 +999,17 @@ type UniverseStock = {
   liquidity_tier?: string;
 };
 
-type OhlcState = {
-  time: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-};
-
 const copy = {
   en: {
     title: "KQUANT US Stock Signal Terminal",
-    subtitle: "Long-only stock setups first. Options return later as expression tools.",
+    subtitle: "Realtime stock research, deterministic validation, and manual review.",
     stockView: "Stock Terminal",
-    mstrView: "MSTR Cycle Radar",
     source: "Source",
     fixture: "Fixture",
     live: "Live",
     refresh: "Run Stock Scan",
-    refreshMstr: "Refresh MSTR Radar",
     readOnly: "Read-only research",
-    llmLocked: "AI-led / hard veto",
+    llmLocked: "Research-led / safeguards",
     db: "New DB",
     buySetups: "BUY SETUP",
     watch: "WATCH",
@@ -1110,7 +1031,6 @@ const copy = {
     checklist: "Manual Checklist",
     layers: "Market Layers",
     data: "Data Status",
-    optionsLater: "Options module is parked until the stock signal is stable.",
     noBroker: "No broker, no account read, no paper/live/testnet order path.",
     dailyHint: "Daily trend: EMA20 / EMA50 / EMA200",
     hourlyHint: "1h confirmation: momentum and entry timing",
@@ -1130,24 +1050,7 @@ const copy = {
     english: "EN",
     light: "Light",
     dark: "Dark",
-    mstrCycleTitle: "MSTR Cycle Bottom Radar",
-    mstrCycleSubtitle: "Cross-cycle MSTR accumulation research. BTC is reference-only; no BTC trading module is restored.",
-    bottomScore: "Bottom Score",
-    distributionRisk: "Distribution Risk",
-    btcCycle: "BTC Cycle",
-    mstrBottom: "MSTR Bottom",
-    relativeBtc: "MSTR/BTC Relative",
-    premiumProxy: "Premium Proxy",
-    financingRisk: "Financing Risk",
     blockers: "Blockers",
-    monteCarlo: "Monte Carlo Distribution",
-    bayesianBottom: "Bayesian Bottom Probability",
-    cycleDashboard: "Cycle Dashboard",
-    whyWait: "Why Not Yet",
-    upgradeTriggers: "Upgrade Triggers",
-    tenXPath: "10x Path Map",
-    modelLimitations: "Model Limitations",
-    probability: "Probability",
     confidence: "Confidence",
     currentPage: "Current",
     systemStatus: "System",
@@ -1157,7 +1060,7 @@ const copy = {
     actions: "Actions",
     preferences: "Preferences",
     todayNav: "Today",
-    todaySub: "AI Signals",
+    todaySub: "Opportunities",
     searchNav: "Search",
     searchSub: "Stocks",
     watchlistNav: "Watchlist",
@@ -1166,8 +1069,8 @@ const copy = {
     stockSub: "Detail",
     chartsNav: "Charts",
     chartsSub: "K-Line",
-    aiPlanNav: "AI Plan",
-    aiPlanSub: "Command",
+    aiPlanNav: "Trade Plan",
+    aiPlanSub: "Plan",
     chatNav: "Chat",
     chatSub: "Deep Research",
     researchNav: "Research",
@@ -1176,14 +1079,12 @@ const copy = {
     evidenceSub: "Sources",
     reportsNav: "Reports",
     reportsSub: "Exports",
-    mstrNav: "MSTR",
-    mstrSub: "Radar",
     journalNav: "Journal",
     journalSub: "Notes",
     settingsNav: "Settings",
     settingsSub: "Safety",
     refreshStock: "Refresh Stock",
-    refreshAiToday: "Refresh AI Today",
+    refreshAiToday: "Refresh today",
     searchPlaceholder: "Search NVDA, NVIDIA, robot, robotics, space, semiconductor...",
     analyze: "Analyze",
     loading: "Loading...",
@@ -1202,7 +1103,7 @@ const copy = {
     waitFor: "Wait for",
     chartEvidence: "Chart evidence",
     noAutoOrder: "Research only / no automatic order",
-    systemStatusSummary: "Readiness, provider, AI, and first-day risk rules",
+    systemStatusSummary: "Readiness, provider, and risk rules",
     answerBuyCandidate: "Buy candidate for manual review",
     answerPullbackBuy: "Pullback buy candidate",
     answerProbeBuy: "Small-size probe candidate",
@@ -1214,17 +1115,17 @@ const copy = {
     answerHoldTrail: "Hold / trail if already in position",
     answerUnknown: "No clear answer yet",
     answerDataMissing: "Cannot judge: live K-lines are unavailable",
-    answerAiThinking: "AI is generating the trading plan",
-    answerAiUnavailable: "AI unavailable; using rule and K-line evidence only",
-    aiTradingCommand: "AI Trading Command",
-    regenerateAiCommand: "Regenerate AI Command",
-    aiCommandGenerating: "AI Command generating...",
-    aiKeyRequired: "AI Key Required",
-    aiModelNote: "AI synthesizes K-lines, score, regime, historical edge, research evidence, and hard veto.",
-    aiUnavailableHint: "Missing backend OPENAI_API_KEY. Add it to the local server environment, never to frontend or GitHub.",
-    aiReviewRequired: "AI Review Required: high-beta setups need smaller size, staged entry, volatility-aware stop, and no chasing.",
-    aiSignalPlan: "AI Signal Plan",
-    aiAction: "AI Action",
+    answerAiThinking: "Preparing the trade plan",
+    answerAiUnavailable: "Research service unavailable; using rule and K-line evidence only",
+    aiTradingCommand: "Trade conclusion",
+    regenerateAiCommand: "Refresh trade plan",
+    aiCommandGenerating: "Updating trade plan...",
+    aiKeyRequired: "Research service unavailable",
+    aiModelNote: "Combines K-lines, score, regime, historical evidence, and risk controls.",
+    aiUnavailableHint: "Research service is unavailable. Check the local backend configuration.",
+    aiReviewRequired: "Extra review required: high-beta setups need smaller size, staged entry, volatility-aware stops, and no chasing.",
+    aiSignalPlan: "Trade plan",
+    aiAction: "Conclusion",
     hardVeto: "Hard Veto",
     entryZone: "Entry Zone",
     stopZone: "Stop Zone",
@@ -1251,13 +1152,13 @@ const copy = {
     humanChecklist: "Human Checklist",
     ruleGuardrails: "Rule Guardrails",
     why: "Why",
-    aiRequestFailed: "AI Agent request failed. Check local API and model configuration.",
-    aiNotActive: "AI signal layer is not active yet. Configure OPENAI_API_KEY on the local backend, then restart the dashboard.",
-    aiToday: "AI Today",
-    aiResearchSignals: "AI Research Signals",
-    aiTodayDescription: "AI ranks today's research opportunities for {universe} and turns them into entry, stop, target, risk/reward, and position-size plans. Hard guardrails still veto bad data, stale providers, and any order path.",
-    aiUnavailableUntilKey: "AI unavailable until backend key is loaded",
-    refreshAiSignals: "Refresh AI Signals",
+    aiRequestFailed: "Research service request failed. Check the local backend configuration.",
+    aiNotActive: "Research service is not active. Configure the local backend, then restart the dashboard.",
+    aiToday: "Today",
+    aiResearchSignals: "Research opportunities",
+    aiTodayDescription: "Ranks today's research opportunities for {universe} and prepares entry, stop, target, risk/reward, and position-size plans. Data and risk controls still block unsafe conditions.",
+    aiUnavailableUntilKey: "Research service unavailable",
+    refreshAiSignals: "Refresh opportunities",
     generating: "Generating...",
     status: "Status",
     autoAgent: "Auto Agent",
@@ -1267,11 +1168,11 @@ const copy = {
     readOnlyShort: "Read Only",
     noBrokerNoOrder: "no broker / no order",
     guarded: "guarded",
-    topAiSignals: "Top AI Signals",
-    noAiCandidate: "No hard-veto-clean AI buy candidate yet.",
+    topAiSignals: "Top opportunities",
+    noAiCandidate: "No clean buy candidate yet.",
     topProbeSignals: "Probe Candidates",
     watchForPullback: "Watch for Pullback",
-    noAiWatchlist: "No AI watchlist yet.",
+    noAiWatchlist: "No watchlist items yet.",
     dataRiskWarnings: "Data / Risk Warnings",
     noWarnings: "No warnings loaded.",
     aiDailyFallback: "The dashboard checks the latest AI report on open and auto-runs once when stale and AI is available.",
@@ -1296,12 +1197,12 @@ const copy = {
     futureSaasCopy: "Vercel frontend + hosted Python API + Postgres. A public SaaS cannot depend on this PC's localhost backend.",
     paymentDisabled: "Payment hooks are intentionally not enabled yet.",
     dataSourceTitle: "Data Source",
-    dataSourceCopy: "Prototype: Yahoo/public chart with stale real cache. Production must evaluate a formal market-data provider.",
+    dataSourceCopy: "Longbridge is the primary market-data source. Yahoo is retained only as an isolated historical reference and cannot support a trade review.",
     remoteApi: "Remote API",
-    aiStatusTitle: "AI Status",
-    aiStatusCopy: "AI can rank research opportunities and produce plans, but hard veto blocks bad data and all order paths.",
+    aiStatusTitle: "Research Service",
+    aiStatusCopy: "The research service ranks opportunities and prepares plans, while data and risk controls remain in force.",
     consumerSafetyCopy: "Consumer Safety Copy",
-    consumerSafetyText: "KQUANT provides AI research signals for manual review. It does not read brokerage accounts, submit orders, manage portfolios, or promise returns.",
+    consumerSafetyText: "KQUANT provides research signals for manual review. It does not read brokerage accounts, submit orders, manage portfolios, or promise returns.",
     journalDesign: "Journal Design",
     journalDesignText: "Planned user journal states: watched, skipped, entered manually, exited manually. These are review records, not execution events.",
     mondayReadiness: "Monday Live Readiness",
@@ -1338,12 +1239,10 @@ const copy = {
     title: "KQUANT 美股 AI 交易研究台",
     subtitle: "AI 主动筛选美股机会，系统只读，不接券商，不自动下单。",
     stockView: "美股终端",
-    mstrView: "MSTR 周期雷达",
     source: "数据源",
     fixture: "演示数据",
     live: "实时",
     refresh: "运行股票扫描",
-    refreshMstr: "刷新 MSTR 雷达",
     readOnly: "只读研究",
     llmLocked: "AI 主导 / 硬风控",
     db: "新数据库",
@@ -1367,7 +1266,6 @@ const copy = {
     checklist: "人工复核清单",
     layers: "市场分类",
     data: "数据状态",
-    optionsLater: "期权模块暂时后置，等正股信号稳定后再接回。",
     noBroker: "无券商、无账户读取、无模拟/实盘/测试网下单路径。",
     dailyHint: "日线趋势：EMA20 / EMA50 / EMA200",
     hourlyHint: "1H 确认：动量与入场节奏",
@@ -1387,24 +1285,7 @@ const copy = {
     english: "EN",
     light: "浅色",
     dark: "深色",
-    mstrCycleTitle: "MSTR 周期抄底雷达",
-    mstrCycleSubtitle: "跨周期 MSTR 建仓研究。BTC 仅作为参考因子，不恢复 BTC 交易模块。",
-    bottomScore: "底部评分",
-    distributionRisk: "顶部/派发风险",
-    btcCycle: "BTC 周期",
-    mstrBottom: "MSTR 底部",
-    relativeBtc: "MSTR/BTC 相对强弱",
-    premiumProxy: "溢价代理",
-    financingRisk: "融资风险",
     blockers: "阻断因素",
-    monteCarlo: "蒙特卡洛分布",
-    bayesianBottom: "贝叶斯底部概率",
-    cycleDashboard: "周期仪表盘",
-    whyWait: "为什么还不能买",
-    upgradeTriggers: "升级触发条件",
-    tenXPath: "10倍路径图",
-    modelLimitations: "模型限制",
-    probability: "概率",
     confidence: "置信度",
     currentPage: "当前",
     systemStatus: "系统状态",
@@ -1433,8 +1314,6 @@ const copy = {
     evidenceSub: "材料",
     reportsNav: "报告",
     reportsSub: "导出",
-    mstrNav: "MSTR",
-    mstrSub: "雷达",
     journalNav: "复盘",
     journalSub: "笔记",
     settingsNav: "设置",
@@ -1470,18 +1349,18 @@ const copy = {
     answerHoldTrail: "如已持有可跟踪止盈",
     answerUnknown: "还没有明确答案",
     answerDataMissing: "无法判断：实时 K 线不可用",
-    answerAiThinking: "AI 正在生成交易计划",
-    answerAiUnavailable: "AI 不可用；仅使用规则和 K 线证据",
-    aiTradingCommand: "AI 交易指令",
-    regenerateAiCommand: "重新生成 AI 指令",
-    aiCommandGenerating: "AI 指令生成中...",
-    aiKeyRequired: "需要 AI Key",
-    aiModelNote: "AI 综合 K 线、分数、市场状态、历史优势、研究证据和硬风控。",
+    answerAiThinking: "正在整理交易计划",
+    answerAiUnavailable: "研究服务暂时不可用；当前仅展示规则和 K 线证据",
+    aiTradingCommand: "交易结论",
+    regenerateAiCommand: "更新交易计划",
+    aiCommandGenerating: "正在更新交易计划...",
+    aiKeyRequired: "研究服务未配置",
+    aiModelNote: "研究结论综合 K 线、评分、市场状态、历史样本与风险检查。",
     aiUnavailableHint: "后端缺少 OPENAI_API_KEY。请只放在本地后端环境变量，不要放进前端或 GitHub。",
-    aiReviewRequired: "需要 AI 复核：高波动交易必须小仓、分批、波动止损，不能追高。",
-    aiSignalPlan: "AI 信号计划",
-    aiAction: "AI 动作",
-    hardVeto: "硬风控",
+    aiReviewRequired: "高波动形态需要额外复核：小仓、分批、按波动设置止损，避免追高。",
+    aiSignalPlan: "交易计划",
+    aiAction: "研究结论",
+    hardVeto: "行情条件",
     entryZone: "入场区",
     stopZone: "止损区",
     targetZone: "目标区",
@@ -1489,9 +1368,9 @@ const copy = {
     sizeHint: "仓位提示",
     bestProfile: "最佳系统",
     strategyQuality: "策略质量",
-    moneyPilot: "真钱复核",
+    moneyPilot: "交易资格检查",
     eligibleForReview: "可进入人工复核",
-    blockedForPilot: "未达真钱门槛",
+    blockedForPilot: "当前不满足条件",
     expectedR: "期望R",
     targetHit: "触及目标",
     stopHit: "触及止损",
@@ -1501,8 +1380,8 @@ const copy = {
     humanChecklist: "人工检查清单",
     ruleGuardrails: "规则风控",
     why: "原因",
-    aiRequestFailed: "AI Agent 请求失败，请检查本地 API 和模型配置。",
-    aiNotActive: "AI 信号层尚未启用。请在本地后端配置 OPENAI_API_KEY 后重启仪表盘。",
+    aiRequestFailed: "研究服务暂时不可用，请稍后重试或在设置中检查本机服务。",
+    aiNotActive: "研究服务尚未就绪；当前仅展示行情、规则与图表证据。",
     aiToday: "今日 AI",
     aiResearchSignals: "AI 研究信号",
     aiTodayDescription: "AI 会为 {universe} 排序今日研究机会，并生成入场、止损、目标、盈亏比和仓位计划。坏数据、过期数据和任何下单路径仍会被硬风控否决。",
@@ -1525,12 +1404,12 @@ const copy = {
     noWarnings: "暂无风险警告。",
     aiDailyFallback: "页面打开时会检查最新 AI 报告；当报告过期且 AI 可用时自动运行一次。",
     deepResearchChat: "深度研究问答",
-    deepResearchSubtitle: "围绕当前股票向最强研究模型提问。上下文会自动包含 K线、AI 指令、规则风控、历史优势和复盘上下文。",
-    researchModel: "研究模型",
-    askResearchPlaceholder: "询问这个形态、风险、更好入场点、K线证据，或者什么条件会改变 AI 判断...",
+    deepResearchSubtitle: "围绕当前股票的结构、风险、入场条件与图表证据展开复核。",
+    researchModel: "研究服务",
+    askResearchPlaceholder: "询问这个形态、风险、入场条件或需要继续确认的证据…",
     askResearch: "提问",
     askingResearch: "思考中...",
-    researchChatUnavailable: "后端 AI Key 加载前，深度研究问答不可用。",
+    researchChatUnavailable: "研究服务暂时不可用，请检查本机后端设置。",
     researchChatEmpty: "输入一个具体问题，开始对当前股票做深度研究。",
     directView: "直接观点",
     keyPoints: "关键要点",
@@ -1674,7 +1553,7 @@ const STOCKS: UniverseStock[] = [
   "LRCX:Lam Research:Technology:Semis / Foundry / Tools",
   "KLAC:KLA:Technology:Semis / Foundry / Tools",
   "ADI:Analog Devices:Technology:Semis / Foundry / Tools",
-  "MSTR:MicroStrategy:Technology:Crypto / Fintech Beta",
+  "MSTR:MicroStrategy:Technology:Technology",
   "HOOD:Robinhood:Financials:Crypto / Fintech Beta",
   "PYPL:PayPal:Financials:Payments",
   "SQ:Block:Financials:Crypto / Fintech Beta",
@@ -2014,7 +1893,6 @@ const SEARCH_QUERY_ALIASES: Record<string, string[]> = {
   氮化镓: ["gan", "power semis", "ai power", "nvts"],
   能源: ["energy", "power", "nuclear", "grid"],
   核电: ["nuclear", "uranium", "power", "ai energy"],
-  比特币: ["bitcoin", "btc", "crypto", "mstr", "coin"],
 };
 
 const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
@@ -2023,7 +1901,7 @@ const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
   GOOGL: ["谷歌", "google", "gemini"],
   AMZN: ["亚马逊", "aws"],
   TSLA: ["特斯拉", "robotaxi", "autonomy"],
-  MSTR: ["microstrategy", "strategy", "比特币", "bitcoin", "btc"],
+  MSTR: ["microstrategy", "strategy"],
   RKLB: ["rocket lab", "火箭", "太空", "space"],
   ASTS: ["satellite", "space mobile", "太空", "卫星"],
   LUNR: ["moon", "lunar", "space", "太空"],
@@ -2069,11 +1947,11 @@ const STOCK_SEARCH_ALIASES: Record<string, string[]> = {
 const SEARCH_SHORTCUTS = [
   { label: "NVDA", query: "NVDA", symbol: "NVDA" },
   { label: "MSTR", query: "MSTR", symbol: "MSTR" },
-  { label: "AI Chips", query: "半导体" },
-  { label: "AI Infra", query: "gpu云" },
+  { label: "Chips", query: "半导体" },
+  { label: "Compute", query: "gpu云" },
   { label: "Storage", query: "存储" },
   { label: "Optical", query: "光模块" },
-  { label: "Physical AI", query: "具身智能" },
+  { label: "Robotics", query: "具身智能" },
   { label: "Drones", query: "无人机" },
   { label: "Spatial", query: "空间计算" },
   { label: "Space", query: "太空" },
@@ -2105,6 +1983,42 @@ function aiDecisionCacheKey(signal: StockSignal, profile: StrategyProfileName): 
 }
 
 function App() {
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [authState, setAuthState] = useState<"checking" | "ready" | "login" | "setup" | "error">("checking");
+
+  async function refreshSession() {
+    try {
+      const response = await apiFetch("/api/auth/session");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = (await response.json()) as AuthSession;
+      setSession(payload);
+      setAuthState(!payload.authentication_required || payload.authenticated ? "ready" : payload.mode === "setup_required" ? "setup" : "login");
+    } catch {
+      setSession(null);
+      setAuthState("error");
+    }
+  }
+
+  useEffect(() => {
+    void refreshSession();
+  }, []);
+
+  async function handleLogout() {
+    await apiFetch("/api/auth/logout", { method: "POST" });
+    setSession(null);
+    setAuthState("login");
+  }
+
+  if (authState === "checking") {
+    return <div className="auth-loading"><BrandMark /><span>正在打开 KQUANT…</span></div>;
+  }
+  if (authState === "login" || authState === "setup" || authState === "error") {
+    return <LoginScreen mode={authState} onAuthenticated={refreshSession} />;
+  }
+  return <TerminalApp onLogout={handleLogout} loginEnabled={Boolean(session?.authentication_required)} />;
+}
+
+function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEnabled: boolean }) {
   const [lang, setLang] = useStoredState<Lang>("kquant-stock:lang", initialLanguage());
   const [theme, setTheme] = useStoredState<Theme>("kquant-stock:theme", "light");
   const [chartTimezone, setChartTimezone] = useStoredState<DisplayTimezone>("kquant-stock:chart-timezone:v1", "Asia/Shanghai");
@@ -2116,7 +2030,8 @@ function App() {
   const [confirmationPresetKey, setConfirmationPresetKey] = useStoredState<ChartPresetKey>("kquant-stock:confirmation-preset:v2", "1h");
   const [run, setRun] = useState<SignalRun>(() => makeUnavailableSignalRun(selectedUniverse));
   const [universe, setUniverse] = useState<UniverseStock[]>(() => stocksForUniverse(selectedUniverse));
-  const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", "NVDA");
+  const linkedSymbol = initialUrlSymbol();
+  const [selectedSymbol, setSelectedSymbol] = useStoredState<string>("kquant-stock:selected", linkedSymbol ?? "NVDA", Boolean(linkedSymbol));
   const [searchText, setSearchText] = useState("");
   const [recentSearches, setRecentSearches] = useStoredState<string>("kquant-stock:recent-searches:v1", "NVDA,MSTR,SPY");
   const primaryPreset = chartPresetByKey(primaryPresetKey);
@@ -2133,9 +2048,6 @@ function App() {
   const [aiStatus, setAiStatus] = useState<AiReviewStatusPayload | null>(null);
   const [marketRegime, setMarketRegime] = useState<MarketRegimePayload | null>(null);
   const [stockJournal, setStockJournal] = useState<StockJournalPayload | null>(null);
-  const [mstrRadar, setMstrRadar] = useState<MstrCyclePayload | null>(null);
-  const [mstrJournal, setMstrJournal] = useState<MstrJournalPayload | null>(null);
-  const [mstrState, setMstrState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [fixtureBlocked, setFixtureBlocked] = useState(() => urlRequestedFixture());
   const [analysisState, setAnalysisState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [profileCompare, setProfileCompare] = useState<StockSignal[]>([]);
@@ -2144,14 +2056,25 @@ function App() {
   const [aiReviewState, setAiReviewState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiDecision, setAiDecision] = useState<AiDecisionPayload | null>(null);
   const [aiDecisionState, setAiDecisionState] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [researchChatMessages, setResearchChatMessages] = useState<ResearchChatMessage[]>([]);
+  const [researchChatsBySymbol, setResearchChatsBySymbol] = useState<Record<string, ResearchChatMessage[]>>({});
   const [researchChatInput, setResearchChatInput] = useState("");
   const [researchChatState, setResearchChatState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [aiDailyReport, setAiDailyReport] = useState<AiDailyAgentPayload | null>(null);
   const [aiDailyState, setAiDailyState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [mondayReadinessReport, setMondayReadinessReport] = useState<MondayReadinessReport | null>(null);
+  const [todayWorkbench, setTodayWorkbench] = useState<TodayWorkbenchPayload | null>(null);
+  const [quantOverview, setQuantOverview] = useState<QuantOverviewPayload | null>(null);
+  const [productionReadiness, setProductionReadiness] = useState<ProductionReadinessPayload | null>(null);
+  const [tradeInstructions, setTradeInstructions] = useState<TradeInstructionPayload[]>([]);
+  const [realtimeAlerts, setRealtimeAlerts] = useState<AlertEventPayload[]>([]);
+  const [unreadAlertCount, setUnreadAlertCount] = useState(0);
+  const [optionCandidates, setOptionCandidates] = useState<OptionCandidatesPayload | null>(null);
+  const [optionCandidateState, setOptionCandidateState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [optionPaperMessage, setOptionPaperMessage] = useState("");
+  const [earlyTrend, setEarlyTrend] = useState<EarlyTrendPayload | null>(null);
   const [aiAgentAutoRunState, setAiAgentAutoRunState] = useState<"idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error">("idle");
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>("today");
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceName>(() => initialUrlWorkspace());
+  const [researchOpen, setResearchOpen] = useState(() => window.innerWidth >= 1080);
   const [searchResults, setSearchResults] = useState<UniverseStock[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -2182,11 +2105,12 @@ function App() {
   );
   const localSearchResults = useMemo(() => searchStocks(searchText, ALL_STOCKS, 10), [searchText]);
   const activeSearchResults = searchResults.length ? searchResults : localSearchResults;
+  const researchChatMessages = researchChatsBySymbol[selected.symbol] ?? [];
   const latestResearchMessage = [...researchChatMessages].reverse().find((message) => message.role === "assistant");
   const latestResearchAnswer = latestResearchMessage?.payload?.answer;
   const showStockWorkspace = ["watchlist", "stock", "charts", "aiPlan", "chat", "journal"].includes(activeWorkspace);
   const showSelectedPanel = ["stock", "aiPlan", "journal"].includes(activeWorkspace);
-  const showDeepResearch = activeWorkspace === "stock" || activeWorkspace === "chat";
+  const showDeepResearch = false;
   const showCharts = activeWorkspace === "stock" || activeWorkspace === "charts";
   const showRuleDetails = activeWorkspace === "aiPlan" || activeWorkspace === "journal";
   const mondayReadiness = deriveMondayReadiness({
@@ -2209,6 +2133,7 @@ function App() {
     hourlyMeta,
     stockJournal,
     text,
+    lang,
   });
 
   useEffect(() => {
@@ -2221,6 +2146,36 @@ function App() {
     void loadAiStatus();
     void loadAiDailyReportLatest();
     void loadMondayReadinessReport();
+    void loadTodayWorkbench();
+    void loadQuantOverview();
+    void loadProductionReadiness();
+    void loadRealtimeCommandCenter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const linkedSymbol = initialUrlSymbol();
+    if (linkedSymbol) {
+      void analyzeSymbol(linkedSymbol, { preserveWorkspace: true });
+    }
+    // A notification deep link must override the last locally viewed symbol once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const source = new EventSource(apiUrl("/api/alerts/stream"), { withCredentials: true });
+    const handleAlert = (message: MessageEvent<string>) => {
+      try {
+        const alert = JSON.parse(message.data) as AlertEventPayload;
+        setRealtimeAlerts((current) => [alert, ...current.filter((item) => item.alert_id !== alert.alert_id)].slice(0, 20));
+        setUnreadAlertCount((count) => count + 1);
+        void loadRealtimeCommandCenter();
+      } catch {
+        // Ignore malformed external stream messages; persisted alerts remain available through the REST endpoint.
+      }
+    };
+    source.addEventListener("alert", handleAlert as EventListener);
+    return () => source.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2278,9 +2233,10 @@ function App() {
 
   useEffect(() => {
     if (view === "stocks") {
-      void analyzeSymbol(selectedSymbol || "SPY", { keepSearch: true });
+      void analyzeSymbol(selectedSymbol || "SPY", { keepSearch: true, preserveWorkspace: true });
       void loadSignals(false);
       void loadMarketRegime();
+      void loadTodayWorkbench();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUniverse, selectedProfile, view]);
@@ -2306,11 +2262,72 @@ function App() {
     setCompareState("idle");
     setAiReview(null);
     setAiReviewState("idle");
-    setResearchChatMessages([]);
     setResearchChatInput("");
     setResearchChatState("idle");
+    setOptionCandidates(null);
+    setOptionCandidateState("idle");
+    setOptionPaperMessage("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.symbol, primaryPresetKey, confirmationPresetKey]);
+
+  async function loadRealtimeCommandCenter() {
+    try {
+      const [instructionResponse, alertResponse] = await Promise.all([
+        apiFetch("/api/instructions/current?limit=30"),
+        apiFetch("/api/alerts?limit=20"),
+      ]);
+      if (!instructionResponse.ok || !alertResponse.ok) throw new Error("Realtime command center unavailable");
+      const instructions = (await instructionResponse.json()) as { instructions?: TradeInstructionPayload[] };
+      const alerts = (await alertResponse.json()) as { alerts?: AlertEventPayload[]; unread_count?: number };
+      setTradeInstructions(instructions.instructions ?? []);
+      setRealtimeAlerts(alerts.alerts ?? []);
+      setUnreadAlertCount(alerts.unread_count ?? 0);
+    } catch {
+      setTradeInstructions([]);
+    }
+  }
+
+  async function acknowledgeRealtimeAlert(alertId: string) {
+    const response = await apiFetch(`/api/alerts/${encodeURIComponent(alertId)}/ack`, { method: "POST" });
+    if (!response.ok) return;
+    setRealtimeAlerts((current) => current.map((item) => item.alert_id === alertId ? { ...item, acknowledged_at: new Date().toISOString() } : item));
+    setUnreadAlertCount((count) => Math.max(0, count - 1));
+  }
+
+  async function loadOptionCandidatesForSelected() {
+    try {
+      setOptionCandidateState("loading");
+      const response = await apiFetch(`/api/options/candidates?symbol=${encodeURIComponent(selected.symbol)}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setOptionCandidates((await response.json()) as OptionCandidatesPayload);
+      setOptionCandidateState("ready");
+    } catch {
+      setOptionCandidates({ symbol: selected.symbol, status: "blocked", candidates: [], blockers: [lang === "zh" ? "期权行情或事件日历暂不可用。" : "Options data or the event calendar is unavailable."] });
+      setOptionCandidateState("error");
+    }
+  }
+
+  async function startOptionPaperObservation(candidate: OptionExpressionCandidate) {
+    try {
+      setOptionPaperMessage(lang === "zh" ? "正在建立观察记录…" : "Creating observation…");
+      const response = await apiFetch("/api/options/paper-observations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "open",
+          candidate_id: candidate.candidate_id,
+          underlying_price: candidate.underlying_price ?? realtimeSnapshot?.quote.last ?? 0,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(String(error.detail || `HTTP ${response.status}`));
+      }
+      setOptionPaperMessage(lang === "zh" ? "已建立一张合约的本地观察记录。" : "One-contract local observation created.");
+    } catch (error) {
+      setOptionPaperMessage(error instanceof Error ? error.message : (lang === "zh" ? "建立观察记录失败。" : "Could not create observation."));
+    }
+  }
 
   useEffect(() => {
     if (view !== "stocks" || apiConnection !== "connected") return;
@@ -2328,13 +2345,6 @@ function App() {
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, apiConnection, selected.symbol, primaryPresetKey, confirmationPresetKey]);
-
-  useEffect(() => {
-    if (view === "mstr" && !mstrRadar && mstrState !== "loading") {
-      void loadMstrRadar();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
 
   async function loadApiHealth() {
     try {
@@ -2381,6 +2391,36 @@ function App() {
       setMondayReadinessReport((await response.json()) as MondayReadinessReport);
     } catch {
       setMondayReadinessReport(null);
+    }
+  }
+
+  async function loadTodayWorkbench() {
+    try {
+      const response = await apiFetch(`/api/stocks/today-workbench?universe=${encodeURIComponent(selectedUniverse)}&profile=${encodeURIComponent(selectedProfile)}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setTodayWorkbench((await response.json()) as TodayWorkbenchPayload);
+    } catch {
+      setTodayWorkbench(null);
+    }
+  }
+
+  async function loadQuantOverview() {
+    try {
+      const response = await apiFetch("/api/quant/overview");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setQuantOverview((await response.json()) as QuantOverviewPayload);
+    } catch {
+      setQuantOverview(null);
+    }
+  }
+
+  async function loadProductionReadiness() {
+    try {
+      const response = await apiFetch("/api/stocks/production-readiness?strategy_version=swing_long_v1.1.0");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setProductionReadiness((await response.json()) as ProductionReadinessPayload);
+    } catch {
+      setProductionReadiness(null);
     }
   }
 
@@ -2528,19 +2568,21 @@ function App() {
     setStockJournal(payload.journal as StockJournalPayload);
   }
 
-  async function analyzeSymbol(rawSymbol: string, options: { keepSearch?: boolean } = {}) {
+  async function analyzeSymbol(rawSymbol: string, options: { keepSearch?: boolean; preserveWorkspace?: boolean } = {}) {
     const symbol = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
     if (!symbol) return;
     const requestId = ++analyzeRequestRef.current;
     setView("stocks");
-    setActiveWorkspace("stock");
+    if (!options.preserveWorkspace) setActiveWorkspace("stock");
     setSelectedSymbol(symbol);
     setAnalysisState("loading");
     setAiDecision(null);
     setAiDecisionState("idle");
+    setEarlyTrend(null);
     const candlePromise = loadCandles(symbol);
     const journalPromise = loadStockJournal(symbol);
     const aiStatusPromise = loadAiStatus();
+    const earlyTrendPromise = loadEarlyTrend(symbol, requestId);
     try {
       const response = await apiFetch(`/api/stocks/analyze?symbol=${encodeURIComponent(symbol)}&source=live&profile=${selectedProfile}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2579,7 +2621,7 @@ function App() {
       }
       const nextRecent = [signal.symbol, ...recentSymbols.filter((item) => item !== signal.symbol)].slice(0, 8);
       setRecentSearches(nextRecent.join(","));
-      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise]);
+      await Promise.allSettled([candlePromise, journalPromise, aiStatusPromise, earlyTrendPromise]);
       setAnalysisState("ready");
       setApiState("api");
       void requestAiDecision({ trigger: "auto", signalOverride: signal });
@@ -2594,6 +2636,14 @@ function App() {
       setAnalysisState("error");
       setApiState("fallback");
     }
+  }
+
+  async function loadEarlyTrend(symbol: string, requestId: number) {
+    const response = await apiFetch(`/api/stocks/${encodeURIComponent(symbol)}/early-trend`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = (await response.json()) as EarlyTrendPayload;
+    if (requestId === analyzeRequestRef.current) setEarlyTrend(payload);
+    return payload;
   }
 
   async function compareProfiles(symbol: string) {
@@ -2666,7 +2716,7 @@ function App() {
         body: JSON.stringify({
           symbol: signal.symbol,
           profile: selectedProfile,
-          model_tier: signal.profile_name === "cycle_1_3y_v1" || signal.symbol === "MSTR" ? "deep" : "review",
+          model_tier: signal.profile_name === "cycle_1_3y_v1" ? "deep" : "review",
           signal_payload: signal,
           profile_comparison: profileCompare,
           trigger: options.trigger ?? "manual",
@@ -2675,6 +2725,7 @@ function App() {
             note: "External research layer has been removed. Use KQUANT live K-lines, rule guardrails, historical edge, and journal context.",
           },
           journal_context_limit: 5,
+          force_regenerate: Boolean(options.force),
         }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2695,6 +2746,7 @@ function App() {
   async function sendResearchChat(questionOverride?: string) {
     const question = (questionOverride ?? researchChatInput).trim();
     if (!question || researchChatState === "loading") return;
+    const researchSymbol = selected.symbol;
     const requestId = ++researchChatRequestRef.current;
     const userMessage: ResearchChatMessage = {
       id: `user-${Date.now()}`,
@@ -2702,8 +2754,8 @@ function App() {
       content: question,
       created_at: new Date().toISOString(),
     };
-    const nextMessages = [...researchChatMessages, userMessage].slice(-12);
-    setResearchChatMessages(nextMessages);
+    const nextMessages = [...(researchChatsBySymbol[researchSymbol] ?? []), userMessage].slice(-12);
+    setResearchChatsBySymbol((current) => ({ ...current, [researchSymbol]: nextMessages }));
     setResearchChatInput("");
     setResearchChatState("loading");
     try {
@@ -2711,7 +2763,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          symbol: selected.symbol,
+          symbol: researchSymbol,
           profile: selectedProfile,
           language: lang,
           question,
@@ -2727,29 +2779,35 @@ function App() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = (await response.json()) as AiResearchChatPayload;
       if (requestId !== researchChatRequestRef.current) return;
-      setResearchChatMessages([
-        ...nextMessages,
-        {
-          id: `assistant-${Date.now()}`,
-          role: "assistant",
-          content: payload.answer.answer,
-          payload,
-          created_at: payload.generated_at,
-        },
-      ]);
+      setResearchChatsBySymbol((current) => ({
+        ...current,
+        [researchSymbol]: [
+          ...nextMessages,
+          {
+            id: `assistant-${Date.now()}`,
+            role: "assistant",
+            content: payload.answer.answer,
+            payload,
+            created_at: payload.generated_at,
+          },
+        ],
+      }));
       setResearchChatState("ready");
       setApiState("api");
     } catch {
       if (requestId !== researchChatRequestRef.current) return;
-      setResearchChatMessages([
-        ...nextMessages,
-        {
-          id: `assistant-error-${Date.now()}`,
-          role: "assistant",
-          content: text.aiRequestFailed,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      setResearchChatsBySymbol((current) => ({
+        ...current,
+        [researchSymbol]: [
+          ...nextMessages,
+          {
+            id: `assistant-error-${Date.now()}`,
+            role: "assistant",
+            content: lang === "zh" ? "研究服务暂时不可用，请稍后重试。" : "Research service is temporarily unavailable. Please try again.",
+            created_at: new Date().toISOString(),
+          },
+        ],
+      }));
       setResearchChatState("error");
       setApiState("fallback");
     }
@@ -2799,7 +2857,7 @@ function App() {
       const payload = (await response.json()) as RealtimeSnapshotPayload;
       if (requestId !== quoteRequestRef.current || payload.symbol !== selectedSymbol) return;
       setRealtimeSnapshot(payload);
-      setRealtimeState(payload.data_trust?.state === "live_trade_eligible" ? "live" : "stale");
+      setRealtimeState(payload.provider_status === "available" && payload.quote_fresh ? "live" : "stale");
       const realtimeOneMinute = normalizeCandles(payload.candles_1m, []);
       const realtimeFiveMinute = normalizeCandles(payload.candles_5m, []);
       if (primaryPreset.range === "1d" && primaryPreset.interval === "1m" && realtimeOneMinute.length) {
@@ -2830,11 +2888,8 @@ function App() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const quote = (await response.json()) as RealtimeQuote;
       if (requestId !== quoteRequestRef.current || quote.symbol !== selectedSymbol) return;
-      const quoteIsFresh = quote.provider_status === "available" && Number(quote.freshness_seconds ?? 999) <= 15;
-      setRealtimeSnapshot((current) => (current ? { ...current, quote, quote_fresh: quoteIsFresh } : current));
-      // Only a full snapshot may promote a symbol to trading-grade realtime.
-      // A fresh quote alone is not enough without a current-session Longbridge bar.
-      setRealtimeState((current) => (quoteIsFresh && current === "live" ? "live" : "stale"));
+      setRealtimeSnapshot((current) => (current ? { ...current, quote, quote_fresh: Number(quote.freshness_seconds ?? 999) <= 15 } : current));
+      setRealtimeState(quote.provider_status === "available" && Number(quote.freshness_seconds ?? 999) <= 15 ? "live" : "stale");
       applyRealtimeQuote(quote, symbol);
     } catch {
       if (requestId !== quoteRequestRef.current) return;
@@ -2851,124 +2906,58 @@ function App() {
     setHourlyMeta((current) => ({ ...current, quoteTime: formatDateTimeUtc8(quoteTime, { withDate: true }), session: quote.session }));
   }
 
-  async function loadMstrRadar() {
-    try {
-      setMstrState("loading");
-      const response = await apiFetch("/api/mstr/cycle-radar?source=live");
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = (await response.json()) as MstrCyclePayload;
-      setMstrRadar(payload);
-      setMstrJournal(payload.manual_journal ?? null);
-      void loadMstrJournal();
-      setMstrState("ready");
-      setApiState("api");
-    } catch {
-      setMstrRadar(null);
-      setMstrState("error");
-      setApiState("fallback");
-    }
-  }
-
-  async function loadMstrJournal() {
-    try {
-      const response = await apiFetch("/api/mstr/cycle-journal?limit=20");
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      setMstrJournal((await response.json()) as MstrJournalPayload);
-    } catch {
-      // Journal is local review state; keep the latest loaded radar if this read fails.
-    }
-  }
-
-  async function saveMstrJournal(entry: { status: string; notes: string; outcome: string }) {
-    if (!mstrRadar?.run_id) return;
-    const response = await apiFetch("/api/mstr/cycle-journal/entry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...entry, run_id: mstrRadar.run_id }),
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
-    setMstrJournal(payload.journal as MstrJournalPayload);
-  }
-
   function openWorkspace(workspace: WorkspaceName) {
     setActiveWorkspace(workspace);
-    if (workspace === "mstr") {
-      setView("mstr");
-      return;
-    }
+    if (workspace === "chat") setResearchOpen(true);
     if (view !== "stocks") setView("stocks");
   }
 
+  const runtimeMismatch = apiConnection === "connected" && apiHealth?.runtime?.api_contract_version !== FRONTEND_API_CONTRACT_VERSION;
+
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${researchOpen ? "research-open" : ""}`}>
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">KQ</div>
+          <BrandMark />
           <div>
-            <h1>{text.title}</h1>
-            <p>{text.subtitle}</p>
+            <h1>{lang === "zh" ? "KQUANT 美股研究终端" : "KQUANT US Stock Research"}</h1>
+            <p>{lang === "zh" ? "实时行情、交易计划与人工复核" : "Realtime data, trade plans, and manual review."}</p>
           </div>
         </div>
         <div className="top-context">
-          <span>{text.currentPage}</span>
-          <strong>{view === "mstr" ? text.mstrCycleTitle : `${selected.symbol} / ${text.aiTradingCommand}`}</strong>
+          <span>{lang === "zh" ? "当前标的" : "Selected"}</span>
+          <strong>{selected.symbol} / {lang === "zh" ? "交易结论" : "Trade conclusion"}</strong>
         </div>
         <div className="top-status-mini" aria-label={text.systemStatus}>
+          {runtimeMismatch ? <span className="runtime-warning">Restart local service</span> : null}
           <Pill
             tone={apiConnection === "connected" ? "good" : "warn"}
             icon={<Activity size={14} />}
-            label={apiConnection === "connected" ? marketDataMiniLabel(apiHealth) : "Offline"}
+            label={apiConnection === "connected" ? marketDataMiniLabel(apiHealth) : lang === "zh" ? "行情离线" : "Market offline"}
           />
-          <Pill
-            tone={aiStatus?.status === "available" ? "good" : "warn"}
-            icon={<Lock size={14} />}
-            label={aiStatus?.status === "available" ? "AI" : "AI Key"}
-          />
-          <Pill
-            tone={regimeTone(activeMarketRegime?.regime)}
-            icon={<BarChart3 size={14} />}
-            label={activeMarketRegime?.regime ?? "Market"}
-          />
+          <button type="button" className="topbar-icon-button" onClick={() => setResearchOpen((open) => !open)} title={researchOpen ? (lang === "zh" ? "收起深度研究" : "Close research") : (lang === "zh" ? "打开深度研究" : "Open research")}>
+            {researchOpen ? <PanelRightClose size={17} /> : <PanelRightOpen size={17} />}
+          </button>
+          {loginEnabled ? (
+            <button type="button" className="topbar-icon-button" onClick={onLogout} title={lang === "zh" ? "退出登录" : "Sign out"}>
+              <LogOut size={17} />
+            </button>
+          ) : null}
         </div>
       </header>
 
       <section className="stock-workspace-shell">
         <aside className="workspace-sidebar" aria-label="Workspace navigation">
-          <div className="sidebar-section sidebar-status-stack">
-            <Pill
-              tone={apiConnection === "connected" ? "good" : "warn"}
-              icon={<Activity size={14} />}
-              label={apiConnection === "connected" ? `${marketDataMiniLabel(apiHealth)}: ${apiHealth?.backend ?? "API"}` : "Live API offline"}
-            />
-            <Pill
-              tone={aiStatus?.status === "available" ? "good" : "warn"}
-              icon={<Lock size={14} />}
-              label={aiStatus?.status === "available" ? `AI: ${aiStatus.models.review ?? "review"}` : "AI key missing"}
-            />
-            <Pill
-              tone={regimeTone(activeMarketRegime?.regime)}
-              icon={<BarChart3 size={14} />}
-              label={`Market: ${activeMarketRegime?.regime ?? "loading"}`}
-            />
-            <Pill tone="good" icon={<CheckCircle2 size={14} />} label="No fixture" />
-            {fixtureBlocked ? <Pill tone="warn" icon={<AlertTriangle size={14} />} label="Fixture URL ignored" /> : null}
-            <Pill tone="neutral" icon={<ShieldCheck size={14} />} label="No broker / no order" />
-          </div>
-
           <div className="sidebar-section primary-nav-section">
             <span className="sidebar-section-title">{text.navigation}</span>
             {[
-              ["today", text.todayNav, text.todaySub],
-              ["search", text.searchNav, text.searchSub],
-              ["watchlist", text.watchlistNav, text.watchlistSub],
-              ["stock", text.stockNav, text.stockSub],
-              ["charts", text.chartsNav, text.chartsSub],
-              ["aiPlan", text.aiPlanNav, text.aiPlanSub],
-              ["chat", text.chatNav, text.chatSub],
-              ["mstr", text.mstrNav, text.mstrSub],
-              ["journal", text.journalNav, text.journalSub],
-              ["settings", text.settingsNav, text.settingsSub],
+              ["today", lang === "zh" ? "今日" : "Today", lang === "zh" ? "机会" : "Opportunities"],
+              ["stock", lang === "zh" ? "股票" : "Stock", lang === "zh" ? "结论" : "Conclusion"],
+              ["charts", lang === "zh" ? "图表" : "Charts", "K 线"],
+              ["aiPlan", lang === "zh" ? "交易计划" : "Trade Plan", lang === "zh" ? "计划" : "Plan"],
+              ["chat", lang === "zh" ? "深度研究" : "Research", lang === "zh" ? "问答" : "Ask"],
+              ["journal", lang === "zh" ? "日志" : "Journal", lang === "zh" ? "复盘" : "Review"],
+              ["settings", lang === "zh" ? "设置" : "Settings", lang === "zh" ? "状态" : "Status"],
             ].map(([key, short, label]) => (
               <button
                 type="button"
@@ -3022,9 +3011,9 @@ function App() {
               <RefreshCw size={14} />
               {text.refreshAiToday}
             </button>
-            <button className="sidebar-action-button" type="button" onClick={() => (view === "mstr" ? void loadMstrRadar() : void loadSignals(true))}>
+            <button className="sidebar-action-button" type="button" onClick={() => void loadSignals(true)}>
               <RefreshCw size={14} />
-              {view === "mstr" ? text.refreshMstr : text.refresh}
+              {text.refresh}
             </button>
           </div>
 
@@ -3048,14 +3037,9 @@ function App() {
               onChange={(value) => setTheme(value as Theme)}
               icon={theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
             />
-            <Segmented
-              value={view}
-              options={[
-                ["stocks", text.stockView],
-                ["mstr", text.mstrView],
-              ]}
-              onChange={(value) => setView(value as AppView)}
-            />
+            <small className="sidebar-build-sha">
+              Build {apiHealth?.runtime?.build_sha?.slice(0, 8) ?? "unknown"}
+            </small>
           </div>
         </aside>
         <div className="stock-workspace-main">
@@ -3173,23 +3157,36 @@ function App() {
         />
       </section>
 
-      {view === "mstr" ? (
-        <div id="mstr-radar-workspace">
-        <MstrCycleRadar
-          payload={mstrRadar}
-          state={mstrState}
-          theme={theme}
-          lang={lang}
-          text={text}
-          onRefresh={() => void loadMstrRadar()}
-          journal={mstrJournal}
-          onSaveJournal={saveMstrJournal}
-        />
-        </div>
-      ) : (
-        <>
+      <>
       <div id="ai-trade-desk-workspace" className={activeWorkspace === "today" ? "" : "workspace-hidden"}>
-      <TerminalRadarPanel
+      <QuantOverviewPanel
+        overview={quantOverview}
+        lang={lang}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+      />
+      <RealtimeCommandCenterView
+        instructions={tradeInstructions}
+        alerts={realtimeAlerts}
+        unreadCount={unreadAlertCount}
+        selectedSymbol={selected.symbol}
+        optionCandidates={optionCandidates}
+        optionState={optionCandidateState}
+        lang={lang}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+        onAcknowledge={(alertId) => void acknowledgeRealtimeAlert(alertId)}
+        onLoadOptions={() => void loadOptionCandidatesForSelected()}
+        onStartPaper={(candidate) => void startOptionPaperObservation(candidate)}
+        optionPaperMessage={optionPaperMessage}
+      />
+      <TodayDecisionPanelView
+        payload={todayWorkbench}
+        onPick={(symbol) => void analyzeSymbol(symbol)}
+        onRefresh={() => {
+          void loadSignals(true);
+          void loadTodayWorkbench();
+        }}
+      />
+      <ThemeRadarPanelView
         run={run}
         universe={universe}
         selected={selected}
@@ -3197,7 +3194,7 @@ function App() {
         aiDecision={aiDecision}
         dailyMeta={dailyMeta}
         hourlyMeta={hourlyMeta}
-        mondayReadiness={mondayReadiness}
+        readiness={mondayReadiness}
         lang={lang}
         onPick={(symbol) => void analyzeSymbol(symbol)}
         onOpenStock={() => openWorkspace("stock")}
@@ -3208,14 +3205,14 @@ function App() {
           <strong>{mondayReadiness.status}</strong>
           <small>{text.systemStatusSummary}</small>
         </summary>
-        <MondayReadinessPanel readiness={mondayReadiness} text={text} />
+        <ReadinessPanelView readiness={mondayReadiness} text={text} />
       </details>
-      <AiTradeDesk
+      <ResearchOpportunityDeskView
         report={aiDailyReport}
         state={aiDailyState}
         autoRunState={aiAgentAutoRunState}
         aiStatus={aiStatus}
-        selectedUniverse={selectedUniverse}
+        selectedUniverseLabel={universeOptionLabel(selectedUniverse, lang)}
         lang={lang}
         text={text}
         onRun={() => void runAiDailyAgent("manual")}
@@ -3234,15 +3231,17 @@ function App() {
       </section>
       </div>
       <div className={activeWorkspace === "settings" ? "" : "workspace-hidden"}>
-      <DataReliabilityPanel
+      <DataReliabilityPanelView
         apiConnection={apiConnection}
         apiHealth={apiHealth}
+        realtimeSnapshot={realtimeSnapshot}
         run={run}
         dailyMeta={dailyMeta}
         hourlyMeta={hourlyMeta}
         selectedSymbol={selected.symbol}
         apiBaseUrl={API_BASE_URL}
       />
+      <RiskControlPanelView report={productionReadiness} onRefresh={() => void loadProductionReadiness()} />
       </div>
       {showStockWorkspace ? (
       <section className={`main-grid ${activeWorkspace === "watchlist" ? "watchlist-only" : "single-main"}`}>
@@ -3313,22 +3312,31 @@ function App() {
               onRegenerate={() => void requestAiDecision({ trigger: "manual", force: true })}
               onOpenJournal={() => openWorkspace("journal")}
             />
-            <ManualTradingConclusion
-              conclusion={selected.trade_conclusion}
-              aiReview={aiReview}
-              aiReviewState={aiReviewState}
-              aiDecision={aiDecision}
-              aiDecisionState={aiDecisionState}
-              aiStatus={aiStatus}
-              text={text}
-              onReview={() => void requestAiDecision({ trigger: "manual", force: true })}
-            />
-            <ManualTradeTicketPanel
+            <EarlyTrendPanelView snapshot={earlyTrend} lang={lang} />
+            <ManualTradeTicketPanelView
               ticket={manualTradeTicket}
               aiDecision={aiDecision}
               text={text}
+              lang={lang}
               onOpenJournal={() => openWorkspace("journal")}
+              displayTradeAction={displayTradeAction}
+              displayPlanField={displayPlanField}
+              displayResearchText={displayResearchText}
             />
+            <section className="factor-evidence-panel" aria-label={lang === "zh" ? "判断依据" : "Decision evidence"}>
+              <div className="factor-evidence-head">
+                <div>
+                  <span className="eyebrow">{lang === "zh" ? "判断依据" : "Decision evidence"}</span>
+                  <strong>{lang === "zh" ? "已登记因子" : "Registered factors"}</strong>
+                </div>
+                <small>{selected.factor_snapshot?.factor_snapshot_hash?.slice(0, 10) ?? "-"}</small>
+              </div>
+              <div className="factor-evidence-grid">
+                <EvidenceColumn title={lang === "zh" ? "支持因素" : "Supports"} entries={selected.decision_evidence?.supporting_factors} tone="positive" />
+                <EvidenceColumn title={lang === "zh" ? "反对因素" : "Risks"} entries={selected.decision_evidence?.opposing_factors} tone="negative" />
+                <EvidenceColumn title={lang === "zh" ? "尚缺数据" : "Missing data"} entries={selected.decision_evidence?.unavailable_factors} tone="neutral" />
+              </div>
+            </section>
             <div className="fact-grid">
               <Fact label="Close" value={formatNumber(selected.features.close)} />
               <Fact label="EMA20" value={formatNumber(selected.features.ema20)} />
@@ -3377,16 +3385,18 @@ function App() {
               </div>
               {compareState === "error" ? <p className="compare-error">Profile comparison unavailable. Live provider may be degraded.</p> : null}
             </div>
-            <p className="secondary-note">{text.optionsLater}</p>
           </section>
           ) : null}
 
           {showDeepResearch ? (
-          <DeepResearchChatPanel
+          <DeepResearchChatPanelView
             text={text}
+            lang={lang}
             selected={selected}
             aiStatus={aiStatus}
             aiDecision={aiDecision}
+            conclusion={displayTradeAction(aiDecision?.ai_decision?.action ?? "-", lang)}
+            dataStatus={displayDataQuality(selected.data_status?.data_quality, lang)}
             state={researchChatState}
             messages={researchChatMessages}
             input={researchChatInput}
@@ -3398,7 +3408,7 @@ function App() {
 
           {showCharts ? (
           <div className="chart-grid" id="kline-workspace">
-            <ChartPanel
+            <ChartPanelView
               title={text.daily}
               subtitle={`${selected.symbol} / ${primaryPreset.label} / ${text.dailyHint}`}
               candles={dailyCandles}
@@ -3420,7 +3430,7 @@ function App() {
                 firstLast: text.firstLast,
               }}
             />
-            <ChartPanel
+            <ChartPanelView
               title={text.hourly}
               subtitle={`${selected.symbol} / ${confirmationPreset.label} / ${text.hourlyHint}`}
               candles={hourlyCandles}
@@ -3481,7 +3491,7 @@ function App() {
             <Narrative title={text.checklist} items={selected.manual_checklist} />
             <Narrative title="Risk Controls" items={selected.readiness_gate?.risk_controls ?? ["No readiness gate loaded yet."]} />
             <div id="journal-workspace">
-            <StockJournalPanel
+          <StockJournalPanelView
               runId={run.run_id}
               symbol={selected.symbol}
               journal={stockJournal}
@@ -3506,7 +3516,7 @@ function App() {
 
       {activeWorkspace === "watchlist" ? (
       <section className="panel layers-panel">
-        <PanelTitle title="AI Five-Layer Cake" detail={`${universe.length} selected stocks / ${universeOptionLabel(selectedUniverse, lang)}`} />
+        <PanelTitle title={lang === "zh" ? "主题股票分层" : "Theme stock layers"} detail={`${universe.length} selected stocks / ${universeOptionLabel(selectedUniverse, lang)}`} />
         <div className="layer-grid">
           {layerGroups.map((layer) => (
             <div className="layer-card" key={layer.name}>
@@ -3545,1329 +3555,122 @@ function App() {
       </section>
       ) : null}
       {activeWorkspace === "settings" ? (
-      <SettingsPanel
+      <SettingsPanelView
         apiConnection={apiConnection}
         aiStatus={aiStatus}
         apiBaseUrl={API_BASE_URL}
         apiHealth={apiHealth}
         text={text}
+        lang={lang}
+        apiFetch={apiFetch}
       />
       ) : null}
         </>
-      )}
         </div>
+      </section>
+      <aside className={`research-drawer ${researchOpen ? "open" : ""}`} aria-label={lang === "zh" ? "深度研究" : "Deep research"}>
+        <div className="research-drawer-head">
+          <div>
+            <span>{lang === "zh" ? "当前股票" : "Selected stock"}</span>
+            <strong>{selected.symbol}</strong>
+          </div>
+          <button type="button" className="topbar-icon-button" onClick={() => setResearchOpen(false)} title={lang === "zh" ? "收起深度研究" : "Close research"}>
+            <PanelRightClose size={17} />
+          </button>
+        </div>
+        <DeepResearchChatPanelView
+          text={text}
+          lang={lang}
+          selected={selected}
+          aiStatus={aiStatus}
+          aiDecision={aiDecision}
+          conclusion={displayTradeAction(aiDecision?.ai_decision?.action ?? "-", lang)}
+          dataStatus={displayDataQuality(selected.data_status?.data_quality, lang)}
+          state={researchChatState}
+          messages={researchChatMessages}
+          input={researchChatInput}
+          onInputChange={setResearchChatInput}
+          onSend={() => void sendResearchChat()}
+          onAsk={(question) => void sendResearchChat(question)}
+        />
+      </aside>
+    </main>
+  );
+}
+
+function BrandMark() {
+  return (
+    <div className="brand-mark" aria-label="KQUANT">
+      <span>K</span><span>Q</span>
+    </div>
+  );
+}
+
+function LoginScreen({ mode, onAuthenticated }: { mode: "login" | "setup" | "error"; onAuthenticated: () => Promise<void> }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [state, setState] = useState<"idle" | "submitting" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!email.trim() || !password || state === "submitting") return;
+    setState("submitting");
+    setMessage("");
+    try {
+      const response = await apiFetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setPassword("");
+      await onAuthenticated();
+    } catch {
+      setState("error");
+      setMessage("邮箱或密码不正确，或服务暂时不可用，请稍后重试。");
+    }
+  }
+
+  const setup = mode === "setup";
+  return (
+    <main className="login-shell">
+      <section className="login-panel" aria-labelledby="login-title">
+        <BrandMark />
+        <div className="login-copy">
+          <span className="eyebrow">KQUANT</span>
+          <h1 id="login-title">美股研究终端</h1>
+          <p>{setup ? "本机登录尚未配置。完成一次本机初始化后，研究数据将只在登录后可见。" : mode === "error" ? "无法连接本机服务。请确认 KQUANT 已启动后重试。" : "请输入邮箱和密码以进入研究工作台。"}</p>
+        </div>
+        {setup ? (
+          <div className="login-setup">
+            <KeyRound size={20} />
+            <p>在项目目录运行以下命令，并将输出内容写入私有 <code>.env</code>：</p>
+            <code>python -m kquant local-login-config</code>
+          </div>
+        ) : mode === "error" ? (
+          <button className="primary-action" type="button" onClick={() => window.location.reload()}>重新连接</button>
+        ) : (
+          <form className="login-form" onSubmit={submit}>
+            <label htmlFor="kquant-email">邮箱</label>
+            <input id="kquant-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoFocus autoComplete="email" inputMode="email" />
+            <label htmlFor="kquant-password">密码</label>
+            <input id="kquant-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
+            {message ? <p className="login-error">{message}</p> : null}
+            <button className="primary-action" type="submit" disabled={state === "submitting" || !email.trim() || !password}>
+              <Lock size={16} />
+              {state === "submitting" ? "验证中" : "进入工作台"}
+            </button>
+          </form>
+        )}
       </section>
     </main>
   );
 }
 
-function DeepResearchChatPanel({
-  text,
-  selected,
-  aiStatus,
-  aiDecision,
-  state,
-  messages,
-  input,
-  onInputChange,
-  onSend,
-  onAsk,
-}: {
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  selected: StockSignal;
-  aiStatus: AiReviewStatusPayload | null;
-  aiDecision: AiDecisionPayload | null;
-  state: "idle" | "loading" | "ready" | "error";
-  messages: ResearchChatMessage[];
-  input: string;
-  onInputChange: (value: string) => void;
-  onSend: () => void;
-  onAsk: (question: string) => void;
-}) {
-  const model = aiStatus?.models?.research ?? aiStatus?.models?.deep ?? "gpt-5.5-pro";
-  const promptIdeas = [
-    `Analyze ${selected.symbol}'s risk/reward and best entry zone.`,
-    `What would change the AI view on ${selected.symbol}?`,
-    `Compare bullish and bearish evidence for ${selected.symbol}.`,
-  ];
-  return (
-    <section className="panel deep-research-chat" id="deep-research-chat-workspace">
-      <div className="deep-chat-head">
-        <div>
-          <span className="eyebrow">{text.chatSub}</span>
-          <h2>{text.deepResearchChat}</h2>
-          <p>{text.deepResearchSubtitle}</p>
-        </div>
-        <div className="deep-chat-model">
-          <span>{text.researchModel}</span>
-          <strong>{model}</strong>
-        </div>
-      </div>
-      <div className="deep-chat-context">
-        <Fact label="Symbol" value={selected.symbol} />
-        <Fact label="Rule" value={`${selected.level} / ${formatNumber(selected.score)}`} />
-        <Fact label="AI" value={aiDecision?.ai_decision?.action ?? "-"} />
-        <Fact label={text.dataQuality} value={selected.data_status?.data_quality ?? "-"} />
-      </div>
-      <div className="deep-chat-messages">
-        {messages.length === 0 ? (
-          <div className="deep-chat-empty">
-            <MessageCircle size={28} />
-            <strong>{text.researchChatEmpty}</strong>
-            <div className="deep-chat-prompts">
-              {promptIdeas.map((prompt) => (
-                <button type="button" key={prompt} onClick={() => onAsk(prompt)} disabled={state === "loading" || aiStatus?.status !== "available"}>
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <article className={`deep-chat-message ${message.role}`} key={message.id}>
-              <div className="deep-chat-bubble">
-                <strong>{message.role === "user" ? "You" : "KQUANT AI"}</strong>
-                <p>{message.content}</p>
-              </div>
-              {message.payload?.answer ? <ResearchChatAnswerCard payload={message.payload} text={text} /> : null}
-            </article>
-          ))
-        )}
-        {state === "loading" ? (
-          <div className="deep-chat-message assistant">
-            <div className="deep-chat-bubble">
-              <strong>KQUANT AI</strong>
-              <p>{text.askingResearch}</p>
-            </div>
-          </div>
-        ) : null}
-      </div>
-      <form
-        className="deep-chat-input"
-        onSubmit={(event: FormEvent<HTMLFormElement>) => {
-          event.preventDefault();
-          onSend();
-        }}
-      >
-        <textarea
-          value={input}
-          onChange={(event) => onInputChange(event.target.value)}
-          placeholder={aiStatus?.status === "available" ? text.askResearchPlaceholder : text.researchChatUnavailable}
-          disabled={state === "loading" || aiStatus?.status !== "available"}
-        />
-        <button type="submit" disabled={state === "loading" || aiStatus?.status !== "available" || !input.trim()}>
-          <Send size={15} />
-          {state === "loading" ? text.askingResearch : text.askResearch}
-        </button>
-      </form>
-      {aiStatus?.status !== "available" ? <p className="secondary-note">{text.aiUnavailableHint}</p> : null}
-    </section>
-  );
-}
 
-function ResearchChatAnswerCard({ payload, text }: { payload: AiResearchChatPayload; text: (typeof copy)["en"] | (typeof copy)["zh"] }) {
-  const answer = payload.answer;
-  const isDegraded = payload.status !== "available" || Boolean(payload.fallback_model_used);
-  return (
-    <div className={`deep-chat-answer-card ${isDegraded ? "degraded" : ""}`}>
-      <div className="deep-chat-status-row">
-        <span>Status: <strong>{payload.status}</strong></span>
-        <span>Model: <strong>{payload.model_name}</strong></span>
-        {payload.fallback_model_used ? <span>Fallback: <strong>{payload.primary_model_name ?? "primary"} failed</strong></span> : null}
-        {payload.reason && payload.reason !== "ok" ? <span>Reason: <strong>{payload.reason}</strong></span> : null}
-      </div>
-      {payload.fallback_reason ? <p className="secondary-note">Fallback reason: {payload.fallback_reason}</p> : null}
-      <Fact label={text.directView} value={answer.direct_view} />
-      <Narrative title={text.keyPoints} items={answer.key_points} />
-      <Narrative title={text.risks} items={answer.risk_flags} />
-      <Narrative title={text.whatToCheckNext} items={answer.what_to_check_next} />
-      {answer.evidence_used?.length ? <Narrative title={text.evidenceUsed} items={answer.evidence_used} /> : null}
-      <Narrative title={text.followUps} items={answer.follow_up_questions} />
-      <p className="secondary-note">{answer.safety_note}</p>
-    </div>
-  );
-}
 
-function MstrCycleRadar({
-  payload,
-  state,
-  theme,
-  lang,
-  text,
-  onRefresh,
-  journal,
-  onSaveJournal,
-}: {
-  payload: MstrCyclePayload | null;
-  state: "idle" | "loading" | "ready" | "error";
-  theme: Theme;
-  lang: Lang;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  onRefresh: () => void;
-  journal: MstrJournalPayload | null;
-  onSaveJournal: (entry: { status: string; notes: string; outcome: string }) => Promise<void>;
-}) {
-  const mstrWeeklyPayload = chartPayload(payload, "mstr_weekly");
-  const mstrMonthlyPayload = chartPayload(payload, "mstr_monthly");
-  const btcWeeklyPayload = chartPayload(payload, "btc_weekly");
-  const relativePayload = chartPayload(payload, "mstr_btc_weekly");
-  const mstrWeekly = normalizeCandles(mstrWeeklyPayload.candles, []);
-  const mstrMonthly = normalizeCandles(mstrMonthlyPayload.candles, []);
-  const btcWeekly = normalizeCandles(btcWeeklyPayload.candles, []);
-  const relativeWeekly = normalizeCandles(relativePayload.candles, []);
-  const level = payload?.level ?? "WAIT";
-  const components = payload?.components;
 
-  return (
-    <section className="mstr-radar">
-      <section className="panel mstr-hero">
-        <div>
-          <span className="eyebrow">{text.mstrView}</span>
-          <h2>{text.mstrCycleTitle}</h2>
-          <p>{text.mstrCycleSubtitle}</p>
-        </div>
-        <div className="mstr-actions">
-          <span className={`level ${mstrLevelClass(level)}`}>{level}</span>
-          <button className="primary-action" type="button" onClick={onRefresh}>
-            <RefreshCw size={15} />
-            {text.refreshMstr}
-          </button>
-        </div>
-      </section>
-
-      <section className="metrics-grid">
-        <Metric label={text.bottomScore} value={payload ? `${formatNumber(payload.bottom_score)}/100` : stateLabel(state)} tone={payload?.bottom_score && payload.bottom_score >= 72 ? "good" : "watch"} />
-        <Metric label={text.distributionRisk} value={payload ? `${formatNumber(payload.distribution_risk_score)}/100` : "-"} tone={payload?.distribution_risk_score && payload.distribution_risk_score >= 55 ? "warn" : "good"} />
-        <Metric label={text.provider} value={payload ? `${payload.provider_status} / ${payload.provider_error_count}` : stateLabel(state)} tone={payload?.provider_error_count ? "warn" : "good"} />
-        <Metric label={text.premiumProxy} value={formatPremium(components?.premium_proxy)} tone={components?.premium_proxy?.status === "available" ? "good" : "warn"} />
-        <Metric label={text.financingRisk} value={components?.financing_risk?.status ?? "-"} tone={components?.financing_risk?.status === "available" ? "good" : "warn"} />
-        <Metric label="BTC Ref" value={payload?.btc_reference_only ? "reference-only" : "-"} />
-      </section>
-
-      <StrategyTrackerMetricsPanel payload={payload?.strategy_tracker_metrics} />
-
-      <CycleDashboardPanel
-        title={text.cycleDashboard}
-        whyTitle={text.whyWait}
-        triggerTitle={text.upgradeTriggers}
-        tenXPathTitle={text.tenXPath}
-        payload={payload?.cycle_dashboard}
-      />
-
-      <section className="mstr-ops-grid">
-        <TriggerMonitorPanel payload={payload?.trigger_monitor} />
-        <HistoryTrendPanel payload={payload?.cycle_history_summary} />
-        <PathStressPanel payload={payload?.path_stress_test} />
-        <MstrJournalPanel runId={payload?.run_id} journal={journal} onSave={onSaveJournal} />
-      </section>
-
-      <section className="panel mstr-component-grid">
-        <ComponentBox title={text.btcCycle} component={components?.btc_cycle} />
-        <ComponentBox title={text.mstrBottom} component={components?.mstr_bottom} />
-        <ComponentBox title={text.relativeBtc} component={components?.relative_btc} />
-        <ComponentBox title={text.premiumProxy} component={components?.premium_proxy} />
-        <ComponentBox title={text.financingRisk} component={components?.financing_risk} />
-        <ComponentBox title={text.distributionRisk} component={components?.distribution_risk} />
-      </section>
-
-      <section className="probability-grid">
-        <MonteCarloPanel title={text.monteCarlo} payload={payload?.monte_carlo} />
-        <BayesianPanel title={text.bayesianBottom} probabilityLabel={text.probability} confidenceLabel={text.confidence} payload={payload?.bayesian_bottom} />
-      </section>
-
-      <section className="chart-grid mstr-chart-grid">
-        <ChartPanel
-          title="MSTR Weekly"
-          subtitle="MSTR / 5Y / 1W"
-          candles={mstrWeekly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(mstrWeeklyPayload, chartPresetByKey("1w"), mstrWeekly)}
-          presets={[chartPresetByKey("1w")]}
-          presetKey="1w"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-        <ChartPanel
-          title="MSTR Monthly"
-          subtitle="MSTR / 10Y / 1M"
-          candles={mstrMonthly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(mstrMonthlyPayload, chartPresetByKey("1m"), mstrMonthly)}
-          presets={[chartPresetByKey("1m")]}
-          presetKey="1m"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-        <ChartPanel
-          title="BTC Weekly"
-          subtitle="BTC-USD / 5Y / 1W / reference only"
-          candles={btcWeekly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(btcWeeklyPayload, chartPresetByKey("1w"), btcWeekly)}
-          presets={[chartPresetByKey("1w")]}
-          presetKey="1w"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-        <ChartPanel
-          title="MSTR/BTC Weekly"
-          subtitle="Relative strength / derived from live candles"
-          candles={relativeWeekly}
-          theme={theme}
-          ohlcHint={text.ohlc}
-          emptyText={text.noCandles}
-          meta={metaFromPayload(relativePayload, chartPresetByKey("1w"), relativeWeekly)}
-          presets={[chartPresetByKey("1w")]}
-          presetKey="1w"
-          onPresetChange={() => undefined}
-          labels={chartLabels(text)}
-        />
-      </section>
-
-      <section className="panel detail-grid mstr-detail-grid">
-        <Narrative title={text.reasons} items={payload?.reasons ?? [state === "loading" ? "Loading live MSTR cycle data." : "No MSTR cycle report yet."]} />
-        <Narrative title={text.blockers} items={payload?.blockers ?? ["Refresh the radar to generate blockers."]} />
-        <Narrative title={text.modelLimitations} items={payload?.model_limitations ?? ["Probability layers load after the live MSTR radar refresh."]} />
-        <Narrative title={text.checklist} items={payload?.manual_checklist ?? ["Refresh live MSTR/BTC cycle data."]} />
-        <div className="data-box">
-          <h3>{text.data}</h3>
-          <Fact label="Run" value={payload?.run_id ?? stateLabel(state)} />
-          <Fact label="Policy" value={payload?.fixture_user_visible === false ? "live-only / no fixture" : "-"} />
-          <Fact label="Broker" value={payload?.broker_order_wiring_enabled === false ? "disabled" : "-"} />
-          <Fact label="LLM Core" value={payload?.llm_signal_core_enabled === false ? "locked" : "-"} />
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function StrategyTrackerMetricsPanel({ payload }: { payload?: MstrStrategyTrackerMetrics }) {
-  const treasury = payload?.treasury_snapshot;
-  const premium = payload?.premium_nav_metrics;
-  const yieldMetrics = payload?.btc_yield_metrics;
-  const shares = payload?.share_metrics;
-  const debt = payload?.debt_financing_metrics;
-  const liquidity = payload?.liquidity_metrics;
-  const benchmarks = payload?.benchmark_metrics;
-  const cost = payload?.cost_basis_metrics;
-  const missing = payload?.missing_tracker_fields ?? [];
-  return (
-    <section className="panel tracker-metrics-panel">
-      <PanelTitle title="StrategyTracker Metrics" detail={`${payload?.tracker_provider_status ?? "not loaded"} / ${payload?.freshness ?? "unknown"}`} />
-      <div className="tracker-summary">
-        <Fact label="BTC Holdings" value={metricValue(treasury?.btc_holdings)} />
-        <Fact label="NAV Premium" value={metricPct(premium?.nav_premium)} />
-        <Fact label="Basic mNAV" value={metricMultiple(premium?.basic_mnav)} />
-        <Fact label="Avg Cost/BTC" value={metricMoney(cost?.avg_cost_per_btc)} />
-        <Fact label="Sats/Share" value={metricValue(shares?.sats_per_diluted_share)} />
-        <Fact label="Debt/BTC NAV" value={metricPctFromRatio(debt?.debt_to_btc_nav)} />
-      </div>
-      <p className="tracker-policy">
-        {payload?.calculation_policy ?? "SaylorTracker-style metrics load after refreshing MSTR Radar."}
-      </p>
-      {missing.length ? <p className="tracker-missing">Missing tracker fields: {missing.slice(0, 8).join(", ")}{missing.length > 8 ? "..." : ""}</p> : null}
-      <div className="tracker-grid">
-        <MetricBlock
-          title="Treasury"
-          block={treasury}
-          rows={[
-            ["BTC Holdings Value", "btc_holdings_value", "money"],
-            ["Market Cap", "market_cap", "money"],
-            ["Enterprise Value", "enterprise_value", "money"],
-            ["BTC Price", "btc_price", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="Premium / NAV"
-          block={premium}
-          rows={[
-            ["Market Cap / BTC NAV", "market_cap_to_btc_nav", "multiple"],
-            ["EV / BTC NAV", "ev_to_btc_nav", "multiple"],
-            ["NAV / Basic Share", "nav_per_basic_share", "money"],
-            ["NAV / Diluted Share", "nav_per_diluted_share", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="BTC Yield / Gain"
-          block={yieldMetrics}
-          rows={[
-            ["BTC Yield YTD", "btc_yield_ytd", "pct"],
-            ["BTC Yield QTD", "btc_yield_qtd", "pct"],
-            ["BTC Gain YTD", "btc_gain_ytd", "number"],
-            ["BTC $ Gain YTD", "btc_dollar_gain_ytd", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="Shares"
-          block={shares}
-          rows={[
-            ["Basic Shares", "basic_shares_outstanding", "number"],
-            ["Diluted Shares", "assumed_diluted_shares_outstanding", "number"],
-            ["BTC / Basic Share", "btc_per_basic_share", "number"],
-            ["Share Dilution", "share_dilution_pct", "pct"],
-          ]}
-        />
-        <MetricBlock
-          title="Debt / Financing"
-          block={debt}
-          rows={[
-            ["Total Debt", "total_debt", "money"],
-            ["Preferred Stock", "preferred_stock", "money"],
-            ["Net Obligations / NAV", "net_obligations_to_btc_nav", "ratioPct"],
-            ["ATM Raises", "common_equity_raises_atm", "money"],
-          ]}
-        />
-        <MetricBlock
-          title="Liquidity"
-          block={liquidity}
-          rows={[
-            ["Latest Volume", "latest_volume", "number"],
-            ["20D Avg Volume", "avg_volume_20d", "number"],
-            ["Relative Volume", "relative_volume", "multiple"],
-            ["Days to Cover mNAV", "days_to_cover_mnav", "number"],
-          ]}
-        />
-        <MetricBlock
-          title="Benchmarks"
-          block={benchmarks}
-          rows={[
-            ["MSTR 3M", "mstr_return_3m_pct", "pct"],
-            ["MSTR 1Y", "mstr_return_1y_pct", "pct"],
-            ["BTC 1Y", "btc_return_1y_pct", "pct"],
-            ["MSTR - BTC 1Y", "mstr_minus_btc_1y_pct", "pct"],
-          ]}
-        />
-      </div>
-    </section>
-  );
-}
-
-function MetricBlock({
-  title,
-  block,
-  rows,
-}: {
-  title: string;
-  block?: MstrMetricBlock;
-  rows: [string, string, "number" | "money" | "pct" | "ratioPct" | "multiple"][];
-}) {
-  return (
-    <div className="tracker-block">
-      <div className="tracker-block-head">
-        <strong>{title}</strong>
-        <span>{block?.status ?? "not loaded"}</span>
-      </div>
-      {rows.map(([label, key, kind]) => (
-        <div className="tracker-row" key={`${title}-${key}`}>
-          <span>{label}</span>
-          <b>{formatTrackerMetric(block?.[key], kind)}</b>
-        </div>
-      ))}
-      <small>{String(block?.source_type ?? "unavailable")} / {String(block?.calculation_method ?? "Refresh MSTR Radar.")}</small>
-    </div>
-  );
-}
-
-function ComponentBox({ title, component }: { title: string; component?: MstrComponent }) {
-  const reasons = component?.reasons ?? component?.risk_warnings ?? (component?.reason ? [component.reason] : []);
-  return (
-    <div className="component-box">
-      <div className="component-head">
-        <strong>{title}</strong>
-        <span>{formatNumber(component?.score)}/100</span>
-      </div>
-      <p>{component?.status ?? "not loaded"}</p>
-      {component?.metrics ? (
-        <div className="component-metrics">
-          {Object.entries(component.metrics)
-            .slice(0, 4)
-            .map(([key, value]) => (
-              <span key={key}>
-                {key.replace(/_/g, " ")} <b>{formatNumber(value)}</b>
-              </span>
-            ))}
-        </div>
-      ) : null}
-      {reasons.slice(0, 2).map((reason) => (
-        <small key={reason}>{reason}</small>
-      ))}
-    </div>
-  );
-}
-
-function CycleDashboardPanel({
-  title,
-  whyTitle,
-  triggerTitle,
-  tenXPathTitle,
-  payload,
-}: {
-  title: string;
-  whyTitle: string;
-  triggerTitle: string;
-  tenXPathTitle: string;
-  payload?: CycleDashboardPayload;
-}) {
-  const tenXPath = payload?.ten_x_path;
-  return (
-    <section className="panel cycle-dashboard-panel">
-      <PanelTitle title={title} detail={payload?.review_bias ?? "not loaded"} />
-      <p className="cycle-summary">{payload?.summary ?? "Refresh MSTR Radar to generate cycle dashboard."}</p>
-      <div className="cycle-dashboard-grid">
-        <div className="cycle-card">
-          <h3>{whyTitle}</h3>
-          {(payload?.wait_reasons ?? []).slice(0, 5).map((item) => (
-            <div className="cycle-row" key={item.label}>
-              <span className={`status-dot ${item.status}`}>{item.status}</span>
-              <strong>{item.label}</strong>
-              <small>
-                {`${String(item.current)} -> ${String(item.target)}`}
-              </small>
-              <p>{item.why}</p>
-            </div>
-          ))}
-        </div>
-        <div className="cycle-card">
-          <h3>{triggerTitle}</h3>
-          {(payload?.upgrade_triggers ?? []).map((trigger) => (
-            <div className="trigger-block" key={trigger.level}>
-              <div>
-                <strong>{trigger.level}</strong>
-                <span>{trigger.status}</span>
-              </div>
-              {trigger.requirements.slice(0, 3).map((requirement) => (
-                <p key={requirement}>{requirement}</p>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="cycle-card tenx-card">
-          <h3>{tenXPathTitle}</h3>
-          <div className="tenx-facts">
-            <Fact label="MSTR now" value={money(tenXPath?.current_mstr_price)} />
-            <Fact label="10x target" value={money(tenXPath?.target_mstr_price_10x)} />
-            <Fact label="P(10x) 24m" value={`${formatNumber(tenXPath?.monte_carlo_24m_probability_10x_pct)}%`} />
-          </div>
-          <div className="tenx-table">
-            <div className="tenx-row head">
-              <span>Premium</span>
-              <span>BTC needed</span>
-              <span>Multiple</span>
-            </div>
-            {(tenXPath?.required_btc_prices ?? []).map((row) => (
-              <div className="tenx-row" key={row.premium_to_nav}>
-                <span>{row.premium_to_nav}x</span>
-                <span>{money(row.required_btc_price)}</span>
-                <span>{formatNumber(row.btc_multiple_from_current)}x</span>
-              </div>
-            ))}
-          </div>
-          <p>{tenXPath?.assumptions?.[0] ?? "10x path loads after live radar refresh."}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TriggerMonitorPanel({ payload }: { payload?: TriggerMonitorPayload }) {
-  const grouped = ["BOTTOM WATCH", "CYCLE ACCUMULATION", "DISTRIBUTION RISK"].map((level) => ({
-    level,
-    conditions: (payload?.conditions ?? []).filter((condition) => condition.level === level),
-  }));
-  return (
-    <section className="panel compact-panel">
-      <PanelTitle title="MSTR Trigger Monitor" detail={payload?.next_state ?? "not loaded"} />
-      <div className="compact-body">
-        <div className="mini-fact-grid">
-          <Fact label="Bottom Watch Gap" value={formatNumber(payload?.gaps?.bottom_watch_score_gap)} />
-          <Fact label="Accumulation Gap" value={formatNumber(payload?.gaps?.cycle_accumulation_score_gap)} />
-          <Fact label="Distribution Gap" value={formatNumber(payload?.gaps?.distribution_risk_score_gap)} />
-        </div>
-        {grouped.map((group) => (
-          <div className="condition-group" key={group.level}>
-            <strong>{group.level}</strong>
-            {(group.conditions.length ? group.conditions : [{ name: "Refresh radar to calculate conditions", met: false, current: "-", target: "-", comparator: "" } as TriggerMonitorCondition]).map(
-              (condition) => (
-                <div className="condition-row" key={`${group.level}-${condition.name}`}>
-                  <span className={condition.met ? "check-dot met" : "check-dot"}>{condition.met ? "OK" : "..."}</span>
-                  <p>{condition.name}</p>
-                  <small>
-                    {String(condition.current)} {condition.comparator} {String(condition.target)}
-                  </small>
-                </div>
-              ),
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function HistoryTrendPanel({ payload }: { payload?: CycleHistorySummary }) {
-  return (
-    <section className="panel compact-panel">
-      <PanelTitle title="Historical Trend" detail={payload?.trend ?? "not scanned"} />
-      <div className="compact-body">
-        <div className="mini-fact-grid">
-          <Fact label="Runs" value={String(payload?.run_count ?? 0)} />
-          <Fact label="Latest Level" value={payload?.latest_level ?? "-"} />
-          <Fact label="Score Change" value={formatSigned(payload?.score_change)} />
-          <Fact label="Bayes Change" value={`${formatSigned(payload?.probability_change)}%`} />
-          <Fact label="Premium" value={`${formatNumber(payload?.latest_premium_to_nav)}x`} />
-          <Fact label="P(10x) 24m" value={`${formatNumber(payload?.latest_mc_24m_probability_10x)}%`} />
-        </div>
-        <p className="probability-note">
-          Latest: {payload?.latest_completed_at ?? "-"} / first stored: {payload?.first_completed_at ?? "-"}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function PathStressPanel({ payload }: { payload?: PathStressPayload }) {
-  const rows = payload?.rows ?? [];
-  return (
-    <section className="panel compact-panel stress-panel">
-      <PanelTitle title="10x Stress Test" detail={payload?.status ?? "not loaded"} />
-      <p className="probability-note">{payload?.question ?? payload?.reason ?? "Refresh MSTR Radar to calculate dilution and premium stress."}</p>
-      <div className="stress-table">
-        <div className="stress-row head">
-          <span>Dilution</span>
-          <span>Premium</span>
-          <span>BTC Needed</span>
-          <span>Multiple</span>
-        </div>
-        {rows.length ? (
-          rows.slice(0, 12).map((row) => (
-            <div className="stress-row" key={`${row.dilution_rate_pct}-${row.premium_to_nav}`}>
-              <span>{formatNumber(row.dilution_rate_pct)}%</span>
-              <span>{row.premium_to_nav}x</span>
-              <span>{money(row.required_btc_price)}</span>
-              <span>{formatNumber(row.btc_multiple_from_current)}x</span>
-            </div>
-          ))
-        ) : (
-          <div className="stress-row">
-            <span>-</span>
-            <span>-</span>
-            <span>-</span>
-            <span>-</span>
-          </div>
-        )}
-      </div>
-      {payload?.assumptions?.length ? <p className="probability-note">{payload.assumptions[0]}</p> : null}
-    </section>
-  );
-}
-
-function StockJournalPanel({
-  runId,
-  symbol,
-  journal,
-  text,
-  onSave,
-}: {
-  runId: string;
-  symbol: string;
-  journal: StockJournalPayload | null;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  onSave: (entry: { status: string; notes: string; planned_entry?: string; planned_stop?: string; planned_target?: string; outcome: string }) => Promise<void>;
-}) {
-  const [status, setStatus] = useState("reviewed");
-  const [notes, setNotes] = useState("");
-  const [plannedEntry, setPlannedEntry] = useState("");
-  const [plannedStop, setPlannedStop] = useState("");
-  const [plannedTarget, setPlannedTarget] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    try {
-      setSaveState("saving");
-      await onSave({
-        status,
-        notes,
-        planned_entry: plannedEntry,
-        planned_stop: plannedStop,
-        planned_target: plannedTarget,
-        outcome,
-      });
-      setNotes("");
-      setPlannedEntry("");
-      setPlannedStop("");
-      setPlannedTarget("");
-      setOutcome("");
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  }
-
-  return (
-    <section className="journal-panel">
-      <PanelTitle title="Manual Journal" detail={`${symbol} / ${journal?.entries.length ?? 0} entries`} />
-      <div className="journal-summary-strip">
-        <Fact label={text.journalCoverage} value={`${journal?.summary?.total_entries ?? 0}`} />
-        <Fact label={text.reviewedNotes} value={`${journal?.summary?.reviewed_count ?? 0}`} />
-        <Fact label={text.enteredManually} value={`${journal?.summary?.entered_manually_count ?? 0}`} />
-        <Fact label={text.exitedManually} value={`${journal?.summary?.exited_manually_count ?? 0}`} />
-        <Fact label={text.skippedNotes} value={`${journal?.summary?.skipped_count ?? 0}`} />
-        <Fact label={text.invalidatedNotes} value={`${journal?.summary?.invalidated_count ?? 0}`} />
-      </div>
-      <p className="journal-pilot-hint">{text.journalPilotHint}</p>
-      <form className="journal-form stock-journal-form" onSubmit={handleSubmit}>
-        <select value={status} onChange={(event) => setStatus(event.target.value)}>
-          <option value="reviewed">reviewed</option>
-          <option value="probe">probe</option>
-          <option value="full_review">full review</option>
-          <option value="watch">watch</option>
-          <option value="skipped">skipped</option>
-          <option value="paper-observed">paper-observed</option>
-          <option value="manual-traded">manual-traded note</option>
-          <option value="entered-manually">entered manually</option>
-          <option value="exited-manually">exited manually</option>
-          <option value="invalidated">invalidated</option>
-        </select>
-        <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Manual review note: daily, 1H, regime, entry plan..." />
-        <div className="journal-price-grid">
-          <input value={plannedEntry} onChange={(event) => setPlannedEntry(event.target.value)} placeholder="Planned entry" inputMode="decimal" />
-          <input value={plannedStop} onChange={(event) => setPlannedStop(event.target.value)} placeholder="Planned stop" inputMode="decimal" />
-          <input value={plannedTarget} onChange={(event) => setPlannedTarget(event.target.value)} placeholder="Planned target" inputMode="decimal" />
-        </div>
-        <input value={outcome} onChange={(event) => setOutcome(event.target.value)} placeholder="Outcome / follow-up" />
-        <button className="primary-action" type="submit" disabled={saveState === "saving"}>
-          {saveState === "saving" ? "Saving..." : "Save Journal"}
-        </button>
-        {saveState === "saved" ? <small>Saved locally. Read-only note only.</small> : null}
-        {saveState === "error" ? <small>Save failed. Check local API and try again.</small> : null}
-      </form>
-      <section className="after-close-review">
-        <div>
-          <span className="eyebrow">{text.afterCloseReview}</span>
-          <strong>{symbol}</strong>
-          <p>{text.runbookClose}</p>
-        </div>
-        <div className="after-close-checks">
-          <span>{text.enteredManually}: {journal?.summary?.entered_manually_count ?? 0}</span>
-          <span>{text.exitedManually}: {journal?.summary?.exited_manually_count ?? 0}</span>
-          <span>{text.invalidatedNotes}: {journal?.summary?.invalidated_count ?? 0}</span>
-        </div>
-      </section>
-      <div className="journal-list">
-        {(journal?.entries ?? []).slice(0, 4).map((entry) => (
-          <div className="journal-entry" key={entry.id}>
-            <strong>{entry.status}</strong>
-            <span>{entry.reviewed_at}</span>
-            <p>{entry.notes || entry.outcome || "No note"}</p>
-            <small>
-              {entry.strategy_profile || "profile"} / entry {formatNumber(entry.planned_entry)} / stop {formatNumber(entry.planned_stop)} / target {formatNumber(entry.planned_target)}
-            </small>
-            <small>
-              Rule {entry.rule_conclusion || "-"} / AI {entry.ai_review_verdict || "-"}
-            </small>
-          </div>
-        ))}
-        {journal && journal.entries.length === 0 ? <p className="probability-note">No manual stock review entries yet.</p> : null}
-      </div>
-    </section>
-  );
-}
-
-function SettingsPanel({
-  apiConnection,
-  aiStatus,
-  apiBaseUrl,
-  apiHealth,
-  text,
-}: {
-  apiConnection: ApiConnectionState;
-  aiStatus: AiReviewStatusPayload | null;
-  apiBaseUrl: string;
-  apiHealth: ApiHealthPayload | null;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-}) {
-  return (
-    <section className="panel settings-panel" id="settings-workspace">
-      <div className="settings-head">
-        <div>
-          <span>{text.settingsNav}</span>
-          <h2>{text.settingsTitle}</h2>
-          <p>{text.settingsDescription}</p>
-        </div>
-        <Pill tone="neutral" icon={<ShieldCheck size={14} />} label={text.researchSignalOnly} />
-      </div>
-      <div className="settings-grid">
-        <div className="settings-card">
-          <strong>{text.currentLocalMode}</strong>
-          <p>Local backend: {apiHealth?.backend ?? "127.0.0.1:8001"} / SQLite: work/kquant_us.sqlite3</p>
-          <p>Status: {apiConnection === "connected" ? "live API connected" : "live API offline"}</p>
-          <p>Build: {apiHealth?.build_sha_short ?? __KQUANT_BUILD_SHA__.slice(0, 7)} / {apiHealth?.environment ?? __KQUANT_BUILD_ENVIRONMENT__}</p>
-          <p>Built: {apiHealth?.build_time ?? __KQUANT_BUILD_TIME__}</p>
-        </div>
-        <div className="settings-card">
-          <strong>{text.futureSaasTarget}</strong>
-          <p>{text.futureSaasCopy}</p>
-          <p>{text.paymentDisabled}</p>
-        </div>
-        <div className="settings-card">
-          <strong>{text.dataSourceTitle}</strong>
-          <p>{text.dataSourceCopy}</p>
-          <p>{text.remoteApi}: {apiBaseUrl ? apiBaseUrl : "not configured"}</p>
-        </div>
-        <div className="settings-card">
-          <strong>{text.aiStatusTitle}</strong>
-          <p>{aiStatus?.status === "available" ? `Connected: ${aiStatus.models.review ?? "review model"}` : "Missing backend OPENAI_API_KEY"}</p>
-          <p>{text.aiStatusCopy}</p>
-        </div>
-        <div className="settings-card wide">
-          <strong>{text.consumerSafetyCopy}</strong>
-          <p>{text.consumerSafetyText}</p>
-        </div>
-        <div className="settings-card wide">
-          <strong>{text.journalDesign}</strong>
-          <p>{text.journalDesignText}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DataReliabilityPanel({
-  apiConnection,
-  apiHealth,
-  run,
-  dailyMeta,
-  hourlyMeta,
-  selectedSymbol,
-  apiBaseUrl,
-}: {
-  apiConnection: ApiConnectionState;
-  apiHealth: ApiHealthPayload | null;
-  run: SignalRun;
-  dailyMeta: CandleMeta;
-  hourlyMeta: CandleMeta;
-  selectedSymbol: string;
-  apiBaseUrl: string;
-}) {
-  const available = run.provider_coverage?.available ?? 0;
-  const stale = run.provider_coverage?.stale_or_partial ?? 0;
-  const failed = run.provider_coverage?.failed ?? run.provider_error_count ?? 0;
-  const candleTimes = [dailyMeta.last, hourlyMeta.last].filter(Boolean).sort();
-  const latestCandle = candleTimes[candleTimes.length - 1] ?? "-";
-  const worstStatus =
-    apiConnection !== "connected"
-      ? "Live API offline"
-      : dailyMeta.providerStatus === "available" || hourlyMeta.providerStatus === "available"
-        ? "Live data available"
-        : run.provider_status === "available"
-          ? "Latest scan available"
-          : "Provider degraded";
-  return (
-    <section className="panel data-reliability-panel" id="data-reliability-workspace">
-      <div className="data-reliability-head">
-        <div>
-          <span>Data Reliability</span>
-          <h2>{worstStatus}</h2>
-          <p>
-            User-facing charts stay live-only. If Yahoo/public data fails, KQUANT shows provider failed or stale real cache instead of synthetic candles.
-          </p>
-        </div>
-        <Pill
-          tone={apiConnection === "connected" ? "good" : "warn"}
-          icon={<Activity size={14} />}
-          label={apiConnection === "connected" ? "Live backend connected" : "Live backend offline"}
-        />
-      </div>
-      <div className="data-reliability-grid">
-        <Fact label="Provider Status" value={`${run.provider_status} / errors ${run.provider_error_count}`} />
-        <Fact label="Coverage" value={`${available} live / ${stale} stale / ${failed} failed`} />
-        <Fact label="Scanned Symbols" value={`${run.scanned_count ?? run.counts.total}/${run.universe_total ?? run.counts.total}`} />
-        <Fact label="Last Candle" value={`${selectedSymbol} / ${latestCandle}`} />
-        <Fact label="Selected Daily" value={`${dailyMeta.providerStatus} / ${dailyMeta.count} candles`} />
-        <Fact label="Selected Confirm" value={`${hourlyMeta.providerStatus} / ${hourlyMeta.count} candles`} />
-        <Fact label="Stale Age" value={`${dailyMeta.staleAge || "none"} / ${hourlyMeta.staleAge || "none"}`} />
-        <Fact label="Environment" value={apiBaseUrl ? `remote API ${apiBaseUrl.replace(/^https?:\/\//, "")}` : `local ${apiHealth?.backend ?? "stdlib_server"}`} />
-      </div>
-    </section>
-  );
-}
-
-function TerminalRadarPanel({
-  run,
-  universe,
-  selected,
-  selectedMeta,
-  aiDecision,
-  dailyMeta,
-  hourlyMeta,
-  mondayReadiness,
-  lang,
-  onPick,
-  onOpenStock,
-}: {
-  run: SignalRun;
-  universe: UniverseStock[];
-  selected: StockSignal;
-  selectedMeta: UniverseStock;
-  aiDecision: AiDecisionPayload | null;
-  dailyMeta: CandleMeta;
-  hourlyMeta: CandleMeta;
-  mondayReadiness: MondayReadiness;
-  lang: Lang;
-  onPick: (symbol: string) => void;
-  onOpenStock: () => void;
-}) {
-  const zh = lang === "zh";
-  const currentAi = aiDecision?.ai_decision;
-  const selectedAction = currentAi?.action ?? selected.trade_conclusion?.action ?? selected.level;
-  const selectedLayer = signalLayer(selected, selectedMeta);
-  const selectedScore = Number(selected.score ?? 0);
-  const selectedWinRate =
-    selected.ai_action_validation?.win_rate ??
-    selected.historical_edge?.focus_win_rate ??
-    selected.historical_edge?.win_rate_5d ??
-    0;
-  const selectedExpectedR = selected.ai_action_validation?.expected_value_r ?? 0;
-  const rankedSignals = [...run.signals]
-    .sort((a, b) => {
-      const actionRank = (signal: StockSignal) => {
-        const action = signal.trade_conclusion?.action ?? signal.level;
-        if (String(action).includes("BUY")) return 4;
-        if (String(action).includes("WATCH")) return 3;
-        if (String(action).includes("WAIT")) return 2;
-        return 1;
-      };
-      return actionRank(b) - actionRank(a) || Number(b.score ?? 0) - Number(a.score ?? 0);
-    })
-    .slice(0, 12);
-
-  const layerNames = Array.from(new Set(universe.map((stock) => stock.layer || stock.primary_layer || "US Stock"))).slice(0, 12);
-  const layerTiles = layerNames.map((layer) => {
-    const layerSymbols = universe.filter((stock) => (stock.layer || stock.primary_layer) === layer);
-    const layerSignals = run.signals.filter((signal) => {
-      const meta = selectedMetaBySymbol(universe, signal.symbol);
-      return signal.primary_layer === layer || meta?.layer === layer;
-    });
-    const avgScore = layerSignals.length
-      ? layerSignals.reduce((sum, signal) => sum + Number(signal.score ?? 0), 0) / layerSignals.length
-      : 0;
-    const hotCount = layerSignals.filter((signal) => {
-      const action = String(signal.trade_conclusion?.action ?? signal.level);
-      return action.includes("BUY") || action.includes("WATCH");
-    }).length;
-    return {
-      layer,
-      count: layerSymbols.length,
-      avgScore,
-      hotCount,
-      symbols: layerSymbols.slice(0, 4).map((stock) => stock.symbol),
-    };
-  });
-
-  return (
-    <section className="terminal-radar-panel" aria-label={zh ? "KQUANT 交易终端总览" : "KQUANT terminal overview"}>
-      <div className="terminal-radar-header">
-        <div>
-          <span>{zh ? "实时交易雷达" : "Live Trading Radar"}</span>
-          <h2>{zh ? "KQUANT AI 股票雷达" : "KQUANT AI Stock Radar"}</h2>
-          <p>
-            {zh
-              ? "把 AI 今日机会、板块热度、当前股票结论和数据健康压缩到一屏，方便开盘后快速扫视。"
-              : "Compressed terminal view for AI opportunities, sector heat, selected stock decision, and data health."}
-          </p>
-        </div>
-        <div className="terminal-clock-stack">
-          <b>{mondayReadiness.status}</b>
-          <span>{zh ? "实盘准备度" : "Readiness"}</span>
-        </div>
-      </div>
-
-      <div className="terminal-radar-layout">
-        <div className="terminal-radar-left">
-          <div className="terminal-metric-grid">
-            <TerminalMiniMetric label={zh ? "买入候选" : "Buy"} value={String(run.counts.buy_setup)} tone="good" />
-            <TerminalMiniMetric label={zh ? "观察" : "Watch"} value={String(run.counts.watch)} tone="watch" />
-            <TerminalMiniMetric label={zh ? "小仓/探针" : "Probe"} value={String(run.review_counts?.high_priority ?? 0)} tone="probe" />
-            <TerminalMiniMetric label={zh ? "数据覆盖" : "Coverage"} value={`${run.provider_coverage?.available ?? 0}/${run.universe_total ?? universe.length}`} />
-            <TerminalMiniMetric label={zh ? "AI 模型" : "AI Model"} value={String(run.provider_error_count ? "Caution" : "Ready")} tone={run.provider_error_count ? "watch" : "good"} />
-            <TerminalMiniMetric label={zh ? "当前池" : "Universe"} value={`${run.scanned_count ?? run.counts.total}/${run.universe_total ?? universe.length}`} />
-          </div>
-
-          <div className="terminal-tape">
-            <div className="terminal-section-title">
-              <strong>{zh ? "AI 信号带" : "AI Signal Tape"}</strong>
-              <span>{run.profile.label ?? run.profile.name}</span>
-            </div>
-            {rankedSignals.length ? (
-              rankedSignals.map((signal) => (
-                <button
-                  type="button"
-                  key={`terminal-signal-${signal.symbol}`}
-                  className={`terminal-tape-row ${actionClass(signal.trade_conclusion?.action ?? signal.level)}`}
-                  onClick={() => onPick(signal.symbol)}
-                >
-                  <b>{signal.symbol}</b>
-                  <span>{signalLayer(signal, selectedMetaBySymbol(universe, signal.symbol) ?? selectedMeta)}</span>
-                  <em>{signal.trade_conclusion?.action ?? levelLabel(signal.level, lang)}</em>
-                  <strong>{formatNumber(signal.score)}</strong>
-                </button>
-              ))
-            ) : (
-              <p className="terminal-empty">{zh ? "暂无信号，先运行扫描或搜索股票。" : "No signals loaded. Run scan or search a symbol."}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="terminal-radar-center">
-          <div className="terminal-section-title">
-            <strong>{zh ? "AI 主题板块" : "AI Theme Heatmap"}</strong>
-            <span>{zh ? "按产业链分组" : "Grouped by market layer"}</span>
-          </div>
-          <div className="terminal-layer-grid">
-            {layerTiles.map((tile) => (
-              <button
-                type="button"
-                className={`terminal-layer-tile ${tile.avgScore >= 70 ? "hot" : tile.hotCount ? "warm" : ""}`}
-                key={`terminal-layer-${tile.layer}`}
-                onClick={() => tile.symbols[0] && onPick(tile.symbols[0])}
-              >
-                <div>
-                  <strong>{tile.layer}</strong>
-                  <span>{tile.count} {zh ? "只" : "stocks"}</span>
-                </div>
-                <b>{formatNumber(tile.avgScore)}</b>
-                <small>{tile.symbols.join(" / ") || "-"}</small>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <aside className="terminal-radar-detail">
-          <div className="terminal-section-title">
-            <strong>{zh ? "当前股票" : "Selected Stock"}</strong>
-            <button type="button" onClick={onOpenStock}>{zh ? "打开详情" : "Open detail"}</button>
-          </div>
-          <div className="terminal-stock-head">
-            <span>{selectedMeta.name}</span>
-            <h3>{selected.symbol}</h3>
-            <b>{formatNumber(selectedScore)}/100</b>
-          </div>
-          <div className={`terminal-action-card ${actionClass(String(selectedAction))}`}>
-            <span>{zh ? "AI 判断" : "AI Decision"}</span>
-            <strong>{String(selectedAction)}</strong>
-            <small>{currentAi?.summary ?? selected.trade_conclusion?.decision_summary ?? selected.trigger_summary}</small>
-          </div>
-          <div className="terminal-detail-grid">
-            <Fact label={zh ? "层级" : "Layer"} value={selectedLayer} />
-            <Fact label={zh ? "日线" : "Daily"} value={`${dailyMeta.providerStatus} / ${dailyMeta.count}`} />
-            <Fact label={zh ? "确认线" : "Confirm"} value={`${hourlyMeta.providerStatus} / ${hourlyMeta.count}`} />
-            <Fact label={zh ? "胜率" : "Win Rate"} value={`${formatNumber(selectedWinRate)}%`} />
-            <Fact label="EV R" value={`${formatNumber(selectedExpectedR)}R`} />
-            <Fact label="ATR" value={`${formatNumber(selected.features.atr_pct)}%`} />
-            <Fact label="EMA20" value={formatNumber(selected.features.ema20)} />
-            <Fact label={zh ? "成交量" : "Volume"} value={`${formatNumber(selected.features.volume_ratio)}x`} />
-          </div>
-          <div className="terminal-plan-lines">
-            <p><b>{zh ? "入场" : "Entry"}</b>{currentAi?.entry_zone ?? selected.entry_plan?.zone ?? "-"}</p>
-            <p><b>{zh ? "止损" : "Stop"}</b>{currentAi?.stop_zone ?? selected.stop_plan?.zone ?? "-"}</p>
-            <p><b>{zh ? "目标" : "Target"}</b>{currentAi?.target_zone ?? selected.target_plan?.zone ?? "-"}</p>
-          </div>
-        </aside>
-      </div>
-    </section>
-  );
-}
-
-function TerminalMiniMetric({ label, value, tone }: { label: string; value: string; tone?: "good" | "watch" | "probe" }) {
-  return (
-    <div className={`terminal-mini-metric ${tone ?? ""}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function AiTradeDesk({
-  report,
-  state,
-  autoRunState,
-  aiStatus,
-  selectedUniverse,
-  lang,
-  text,
-  onRun,
-  onPick,
-}: {
-  report: AiDailyAgentPayload | null;
-  state: "idle" | "loading" | "ready" | "error";
-  autoRunState: "idle" | "checking" | "generating" | "ready" | "skipped" | "unavailable" | "error";
-  aiStatus: AiReviewStatusPayload | null;
-  selectedUniverse: UniverseName;
-  lang: Lang;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  onRun: () => void;
-  onPick: (symbol: string) => void;
-}) {
-  const aiConnected = aiStatus?.status === "available";
-  const aiReport = report?.ai_report;
-  const top = aiReport?.top_buy_candidates ?? [];
-  const probe = aiReport?.probe_candidates ?? [];
-  const watch = aiReport?.watch_for_pullback ?? [];
-  const warnings = aiReport?.data_quality_warnings ?? [];
-  return (
-    <section className="panel ai-trade-desk">
-      <div className="ai-trade-desk-head">
-        <div>
-          <span>{text.aiToday}</span>
-          <h2>{text.aiResearchSignals}</h2>
-          <p>
-            {text.aiTodayDescription.replace("{universe}", universeOptionLabel(selectedUniverse, lang))}
-          </p>
-        </div>
-        <div className="ai-trade-desk-actions">
-          <Pill
-            tone={aiConnected ? "good" : "warn"}
-            icon={<Activity size={14} />}
-            label={aiConnected ? `AI: ${aiStatus?.models.batch ?? "batch"}` : text.aiUnavailableUntilKey}
-          />
-          <button className="primary-action" type="button" onClick={onRun} disabled={state === "loading"}>
-            <RefreshCw size={15} />
-            {state === "loading" ? text.generating : text.refreshAiSignals}
-          </button>
-        </div>
-      </div>
-      <div className="ai-trade-summary">
-        <Fact label={text.status} value={report?.status ?? "not_scanned"} />
-        <Fact label={text.autoAgent} value={autoRunState} />
-        <Fact label={text.freshness} value={report?.is_stale ? `stale ${report.age_seconds ?? "-"}s` : "fresh"} />
-        <Fact label={text.model} value={report?.model_name ?? aiStatus?.models.batch ?? "-"} />
-        <Fact label={text.candidates} value={String(report?.ai_context_candidate_count ?? 0)} />
-        <Fact label={text.readOnlyShort} value={report?.broker_order_wiring_enabled === false ? text.noBrokerNoOrder : text.guarded} />
-      </div>
-      <div className="ai-opportunity-grid">
-        <AiOpportunityColumn title={text.topAiSignals} empty={text.noAiCandidate} items={top} onPick={onPick} />
-        <AiOpportunityColumn
-          title={lang === "zh" ? "小仓试错候选" : "Probe Candidates"}
-          empty={lang === "zh" ? "暂无小仓试错候选。" : "No small-size probe candidate yet."}
-          items={probe.slice(0, 6)}
-          onPick={onPick}
-        />
-        <AiOpportunityColumn title={text.watchForPullback} empty={text.noAiWatchlist} items={watch.slice(0, 5)} onPick={onPick} />
-        <AiOpportunityColumn
-          title={text.dataRiskWarnings}
-          empty={text.noWarnings}
-          items={warnings.slice(0, 5).map((warning, index) => ({
-            symbol: `WARN${index + 1}`,
-            action: "AI_AVOID",
-            confidence: "LOW",
-            best_profile: "data_quality",
-            entry_zone: warning,
-            stop_zone: "",
-            target_zone: "",
-            risk_reward: "",
-            position_size_hint: "",
-            why_now: [warning],
-            risk_flags: [warning],
-          }))}
-          onPick={() => undefined}
-          passive
-        />
-      </div>
-      <p className="secondary-note">
-        {aiReport?.daily_summary ??
-          report?.last_error ??
-          report?.reason ??
-          text.aiDailyFallback}
-      </p>
-    </section>
-  );
-}
-
-function AiOpportunityColumn({
-  title,
-  empty,
-  items,
-  onPick,
-  passive = false,
-}: {
-  title: string;
-  empty: string;
-  items: AiDailyItem[];
-  onPick: (symbol: string) => void;
-  passive?: boolean;
-}) {
-  return (
-    <div className="ai-opportunity-column">
-      <strong>{title}</strong>
-      {items.length ? (
-        items.map((item) => (
-          <button
-            type="button"
-            className={`ai-opportunity-card ${actionClass(item.action)}`}
-            key={`${title}-${item.symbol}-${item.best_profile}`}
-            onClick={() => (!passive && item.symbol ? onPick(item.symbol) : undefined)}
-            disabled={passive}
-          >
-            {(() => {
-              const validation = item.ai_action_validation;
-              const moneyPilot = item.money_pilot_eligibility;
-              const probe = item.probe_eligibility;
-              return (
-                <>
-            <div>
-              <b>{item.symbol}</b>
-              <span>{item.action} / {item.confidence}</span>
-            </div>
-            <small>{item.best_profile || "AI plan"} / R:R {item.risk_reward || "-"}</small>
-            <div className="opportunity-quality">
-              <span>EV {formatNumber(validation?.expected_value_r)}R</span>
-              <span>Win {formatNumber(validation?.win_rate)}%</span>
-              <span>
-                {moneyPilot?.eligible_for_review
-                  ? "Money review"
-                  : probe?.eligible_for_probe_review
-                    ? "Probe review"
-                    : "Review blocked"}
-              </span>
-            </div>
-            {item.action === "AI_PROBE_BUY" ? (
-              <small>
-                Probe risk {formatNumber(item.probe_risk_policy?.default_risk_pct_of_account ?? 0.15)}% / max{" "}
-                {formatNumber(item.probe_risk_policy?.max_risk_pct_of_account ?? 0.2)}%
-              </small>
-            ) : null}
-            <p>{item.entry_zone || item.why_now?.[0] || "Open for details."}</p>
-            {item.hard_veto_applied ? <em>Hard veto applied</em> : null}
-                </>
-              );
-            })()}
-          </button>
-        ))
-      ) : (
-        <p className="probability-note">{empty}</p>
-      )}
-    </div>
-  );
-}
-
-function MondayReadinessPanel({
-  readiness,
-  text,
-}: {
-  readiness: MondayReadiness;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-}) {
-  const statusLabel =
-    readiness.status === "READY"
-      ? text.readinessReady
-      : readiness.status === "CAUTION"
-        ? text.readinessCaution
-        : text.readinessNoTrade;
-  return (
-    <section className={`panel live-readiness-panel ${readiness.status.toLowerCase().replace(/_/g, "-")}`}>
-      <div className="readiness-head">
-        <div>
-          <span className="eyebrow">{text.realMoneyPilot}</span>
-          <h2>{text.mondayReadiness}</h2>
-          <p>{readiness.summary}</p>
-        </div>
-        <b>{statusLabel}</b>
-      </div>
-      {readiness.status === "NO_TRADE" ? <p className="compare-error">{text.noRealMoneyTrade}</p> : null}
-      <div className="readiness-check-grid">
-        {readiness.checks.map((check) => (
-          <div className={`readiness-check ${check.ok ? "ok" : check.critical ? "critical" : "warn"}`} key={check.label}>
-            <span>{check.label}</span>
-            <strong>{check.value}</strong>
-          </div>
-        ))}
-      </div>
-      {readiness.reasons.length ? (
-        <div className="readiness-reasons">
-          {readiness.reasons.map((reason) => (
-            <span key={reason}>{reason}</span>
-          ))}
-        </div>
-      ) : null}
-      <div className="pilot-runbook">
-        <strong>{text.firstDayRiskRules}</strong>
-        {readiness.riskRules.map((rule) => (
-          <span key={rule}>{rule}</span>
-        ))}
-      </div>
-      <div className="pilot-runbook compact">
-        <strong>{text.mondayRunbook}</strong>
-        {[text.runbookPremarket, text.runbookOpen, text.runbookEntry, text.runbookClose].map((step) => (
-          <span key={step}>{step}</span>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ManualTradeTicketPanel({
-  ticket,
-  aiDecision,
-  text,
-  onOpenJournal,
-}: {
-  ticket: ManualTradeTicket;
-  aiDecision: AiDecisionPayload | null;
-  text: (typeof copy)["en"] | (typeof copy)["zh"];
-  onOpenJournal: () => void;
-}) {
-  const title =
-    ticket.status === "cleared_for_review"
-      ? text.clearedForReview
-      : ticket.status === "journal_required"
-        ? text.journalRequired
-        : text.ticketBlocked;
-  return (
-    <section className={`manual-ticket ${ticket.status.replace(/_/g, "-")}`}>
-      <div className="manual-ticket-head">
-        <div>
-          <span>{text.manualTradeTicket}</span>
-          <strong>{title}</strong>
-          <p>{ticket.summary}</p>
-        </div>
-        <b>{ticket.action}</b>
-      </div>
-      <div className="manual-ticket-grid">
-        <Fact label={text.entryZone} value={ticket.entryZone} />
-        <Fact label={text.stopZone} value={ticket.stopZone} />
-        <Fact label={text.targetZone} value={ticket.targetZone} />
-        <Fact label={text.riskReward} value={ticket.riskReward} />
-        <Fact label={text.sizeHint} value={ticket.positionSizeHint} />
-        <Fact label={text.hardVeto} value={aiDecision?.hard_veto?.active ? "active" : "clear"} />
-      </div>
-      <div className="readiness-check-grid compact">
-        {ticket.checks.map((check) => (
-          <div className={`readiness-check ${check.ok ? "ok" : "critical"}`} key={check.label}>
-            <span>{check.label}</span>
-            <strong>{check.value}</strong>
-          </div>
-        ))}
-      </div>
-      <div className="manual-conclusion-detail">
-        <Narrative title={text.invalidation} items={ticket.invalidatedIf.length ? ticket.invalidatedIf : ["No invalidation loaded."]} />
-        <Narrative title={text.blockers} items={ticket.reasons.length ? ticket.reasons : ["All ticket checks are clear."]} />
-      </div>
-      <div className="ticket-actions">
-        <button type="button" className="primary-action" onClick={onOpenJournal}>
-          {text.journalBeforeTrade}
-        </button>
-      </div>
-    </section>
-  );
-}
 
 function StockDecisionAnswerCard({
   selected,
@@ -4900,7 +3703,7 @@ function StockDecisionAnswerCard({
   const rawAction = decision?.action ?? selected.trade_conclusion?.action ?? selected.level;
   const liveDataReady = isLiveCandleMeta(dailyMeta) && isLiveCandleMeta(hourlyMeta);
   const isLoading = analysisState === "loading";
-  const actionAnswer = actionAnswerCopy(rawAction, lang);
+  const actionAnswer = tradeAnswerCopy(rawAction, lang);
   const headline = isLoading
     ? text.stockDecisionLoading.replace("{symbol}", selected.symbol)
     : !liveDataReady
@@ -4911,25 +3714,27 @@ function StockDecisionAnswerCard({
           ? text.answerAiUnavailable
           : actionAnswer.label;
   const tone = isLoading || aiDecisionState === "loading" ? "watch" : !liveDataReady ? "pass" : actionClass(rawAction);
-  const summary =
+  const summary = displayResearchText(
     decision?.summary ??
-    selected.trade_conclusion?.decision_summary ??
-    selected.trigger_summary ??
-    text.answerUnknown;
+      selected.trade_conclusion?.decision_summary ??
+      selected.trigger_summary ??
+      text.answerUnknown,
+    lang,
+  );
   const whyItems = (
     decision?.why_now?.length
       ? decision.why_now
       : selected.trade_conclusion?.why?.length
         ? selected.trade_conclusion.why
         : [selected.trend_summary, selected.trigger_summary]
-  ).filter(Boolean).slice(0, 4);
+  ).filter(Boolean).slice(0, 4).map((item) => displayResearchText(item, lang));
   const waitItems = (
     decision?.what_invalidates_this_setup?.length
       ? decision.what_invalidates_this_setup
       : selected.trade_conclusion?.invalidation?.length
         ? selected.trade_conclusion.invalidation
         : selected.exit_risk?.reasons ?? []
-  ).filter(Boolean).slice(0, 4);
+  ).filter(Boolean).slice(0, 4).map((item) => displayResearchText(item, lang));
   const moneyPilot = decision?.money_pilot_eligibility ?? aiDecision?.money_pilot_eligibility;
   const probe =
     decision?.probe_eligibility ??
@@ -4940,10 +3745,10 @@ function StockDecisionAnswerCard({
     aiDecision?.probe_risk_policy ??
     selected.probe_risk_policy ??
     probe?.risk_policy;
-  const probeReviewLabel = lang === "zh" ? "小仓试错" : "Probe";
+  const probeReviewLabel = lang === "zh" ? "小仓观察" : "Small-size observation";
   const probeEligibleLabel = lang === "zh" ? "可复核" : "eligible";
   const probeBlockedLabel = lang === "zh" ? "未达门槛" : "blocked";
-  const probeRiskLabel = lang === "zh" ? "试错风险" : "Probe risk";
+  const probeRiskLabel = lang === "zh" ? "小仓风险" : "Small-size risk";
   return (
     <section className={`stock-answer-card ${tone}`}>
       <div className="stock-answer-head">
@@ -4960,13 +3765,13 @@ function StockDecisionAnswerCard({
       <div className="stock-answer-facts">
         <Fact label={lang === "zh" ? "实时价格" : "Live Price"} value={realtimeSnapshot?.quote?.last == null ? "-" : formatNumber(realtimeSnapshot.quote.last)} />
         <Fact label={lang === "zh" ? "行情时间" : "Quote Time"} value={realtimeSnapshot?.quote?.quote_time ? formatDateTimeUtc8(realtimeSnapshot.quote.quote_time, { withDate: true }) : "-"} />
-        <Fact label={lang === "zh" ? "实时状态" : "Realtime"} value={`${realtimeState} / ${realtimeSnapshot?.session ?? "-"}`} />
-        <Fact label={text.aiAction} value={String(rawAction)} />
-        <Fact label={text.confidence} value={decision?.confidence ?? selected.trade_conclusion?.confidence ?? "-"} />
-        <Fact label={text.entryZone} value={decision?.entry_zone ?? "-"} />
-        <Fact label={text.stopZone} value={decision?.stop_zone ?? "-"} />
-        <Fact label={text.targetZone} value={decision?.target_zone ?? "-"} />
-        <Fact label={text.riskReward} value={decision?.risk_reward ?? "-"} />
+        <Fact label={lang === "zh" ? "实时状态" : "Realtime"} value={displayRealtimeState(realtimeState, realtimeSnapshot?.session, lang)} />
+        <Fact label={text.aiAction} value={displayTradeAction(rawAction, lang)} />
+        <Fact label={text.confidence} value={displayConfidence(decision?.confidence ?? selected.trade_conclusion?.confidence, lang)} />
+        <Fact label={text.entryZone} value={displayPlanField(decision?.entry_zone, "entry", lang)} />
+        <Fact label={text.stopZone} value={displayPlanField(decision?.stop_zone, "stop", lang)} />
+        <Fact label={text.targetZone} value={displayPlanField(decision?.target_zone, "target", lang)} />
+        <Fact label={text.riskReward} value={displayPlanField(decision?.risk_reward, "riskReward", lang)} />
       </div>
       <div className="stock-answer-body">
         <Narrative title={text.marketSetup} items={whyItems.length ? whyItems : [text.answerUnknown]} />
@@ -5010,6 +3815,7 @@ function ManualTradingConclusion({
   aiDecisionState,
   aiStatus,
   text,
+  lang,
   onReview,
 }: {
   conclusion: StockSignal["trade_conclusion"] | undefined;
@@ -5019,6 +3825,7 @@ function ManualTradingConclusion({
   aiDecisionState: "idle" | "loading" | "ready" | "error";
   aiStatus: AiReviewStatusPayload | null;
   text: (typeof copy)["en"] | (typeof copy)["zh"];
+  lang: Lang;
   onReview: () => void;
 }) {
   const action = conclusion?.action ?? "DO_NOT_BUY";
@@ -5041,48 +3848,48 @@ function ManualTradingConclusion({
   return (
     <section className={`manual-conclusion ${actionClass(displayAction)}`}>
       <div className="manual-conclusion-main">
-        <span>{text.aiTradingCommand}</span>
-        <strong>{displayAction}</strong>
+        <span>{lang === "zh" ? "交易结论" : "Trade conclusion"}</span>
+        <strong>{displayTradeAction(displayAction, lang)}</strong>
         <p>{displaySummary}</p>
         {aiReviewRequired ? (
           <p className="compare-error">
-            {text.aiReviewRequired}
+            {lang === "zh" ? "高波动形态需要更小仓位、分批入场、波动止损，并且不能追高。" : "High-beta setups require smaller size, staged entries, volatility-aware stops, and no chasing."}
           </p>
         ) : null}
       </div>
       <div className="manual-conclusion-facts">
-        <Fact label="Confidence" value={decision?.confidence ?? conclusion?.confidence ?? "-"} />
-        <Fact label="Risk Bucket" value={decision?.risk_bucket ?? conclusion?.risk_bucket ?? "-"} />
-        <Fact label="Position" value={conclusion?.position_context ?? "no_position_assumed"} />
+        <Fact label={lang === "zh" ? "结论可信度" : "Confidence"} value={displayConfidence(decision?.confidence ?? conclusion?.confidence, lang)} />
+        <Fact label={lang === "zh" ? "风险状态" : "Risk status"} value={displayRiskBucket(decision?.risk_bucket ?? conclusion?.risk_bucket, lang)} />
+        <Fact label={lang === "zh" ? "持仓假设" : "Position context"} value={conclusion?.position_context === "no_position_assumed" ? (lang === "zh" ? "未假设持仓" : "No position assumed") : String(conclusion?.position_context ?? "-")} />
       </div>
       <div className="manual-conclusion-actions">
         <button type="button" onClick={onReview} disabled={aiDecisionState === "loading"}>
-          {aiDecisionState === "loading" ? text.aiCommandGenerating : aiConnected ? text.regenerateAiCommand : text.aiKeyRequired}
+          {aiDecisionState === "loading" ? (lang === "zh" ? "更新中" : "Updating") : aiConnected ? (lang === "zh" ? "更新交易计划" : "Refresh trade plan") : (lang === "zh" ? "研究服务未连接" : "Research service unavailable")}
         </button>
         <small>
           {aiConnected
-            ? `Model: ${aiStatus?.models.review ?? "review"} / ${text.aiModelNote}`
-            : aiStatus?.setup_hint ?? text.aiUnavailableHint}
+            ? (lang === "zh" ? "研究服务已连接；所有结论仍需人工复核。" : "Research service connected; every conclusion still needs manual review.")
+            : (lang === "zh" ? "研究服务暂时不可用，当前仅展示规则与图表证据。" : "Research service is unavailable; showing rule and chart evidence only.")}
         </small>
       </div>
       {aiDecisionState === "ready" && aiDecision ? (
         <div className={`ai-decision-panel ${actionClass(decision?.action)}`}>
           <div className="ai-review-head">
-            <strong>{text.aiSignalPlan}</strong>
-            <span>{aiDecision.status} / {aiDecision.model_name}</span>
+            <strong>{lang === "zh" ? "交易计划" : "Trade plan"}</strong>
+            <span>{lang === "zh" ? "研究结果" : "Research result"}</span>
           </div>
           <div className="ai-review-facts">
-            <Fact label={text.aiAction} value={decision?.action ?? "-"} />
+            <Fact label={lang === "zh" ? "交易结论" : "Conclusion"} value={displayTradeAction(decision?.action ?? "-", lang)} />
             <Fact label={text.confidence} value={decision?.confidence ?? "-"} />
-            <Fact label={text.hardVeto} value={aiDecision.hard_veto?.active ? "active" : "clear"} />
-            <Fact label="Packet" value={decision?.ai_feature_packet_version ?? aiDecision.ai_feature_packet_version ?? "v2"} />
+            <Fact label={lang === "zh" ? "风控状态" : "Risk control"} value={aiDecision.hard_veto?.active ? (lang === "zh" ? "暂不通过" : "Not cleared") : (lang === "zh" ? "已通过" : "Cleared")} />
+            <Fact label={lang === "zh" ? "研究版本" : "Research version"} value={decision?.ai_feature_packet_version ?? aiDecision.ai_feature_packet_version ?? "v2"} />
           </div>
           <div className="ai-plan-grid">
-            <Fact label={text.entryZone} value={decision?.entry_zone ?? "-"} />
-            <Fact label={text.stopZone} value={decision?.stop_zone ?? "-"} />
-            <Fact label={text.targetZone} value={decision?.target_zone ?? "-"} />
-            <Fact label={text.riskReward} value={decision?.risk_reward ?? "-"} />
-            <Fact label={text.sizeHint} value={decision?.position_size_hint ?? "-"} />
+            <Fact label={text.entryZone} value={displayPlanField(decision?.entry_zone, "entry", lang)} />
+            <Fact label={text.stopZone} value={displayPlanField(decision?.stop_zone, "stop", lang)} />
+            <Fact label={text.targetZone} value={displayPlanField(decision?.target_zone, "target", lang)} />
+            <Fact label={text.riskReward} value={displayPlanField(decision?.risk_reward, "riskReward", lang)} />
+            <Fact label={text.sizeHint} value={displayPlanField(decision?.position_size_hint, "position", lang)} />
             <Fact label={text.bestProfile} value={decision?.best_profile ?? "-"} />
             <Fact label="Baseline R:R" value={baselineRiskReward?.risk_reward ?? "-"} />
             <Fact label="Evidence" value={actionValidation?.evidence_quality ?? "-"} />
@@ -5096,24 +3903,24 @@ function ManualTradingConclusion({
           </div>
           <div className={`strategy-quality-panel ${moneyPilot?.eligible_for_review ? "eligible" : "blocked"}`}>
             <div className="ai-review-head">
-              <strong>{text.strategyQuality}</strong>
-              <span>{moneyPilot?.eligible_for_review ? text.eligibleForReview : text.blockedForPilot}</span>
+              <strong>{lang === "zh" ? "交易资格检查" : "Trade eligibility"}</strong>
+              <span>{moneyPilot?.eligible_for_review ? (lang === "zh" ? "可人工复核" : "Reviewable") : (lang === "zh" ? "暂不满足条件" : "Not ready")}</span>
             </div>
             <div className="ai-review-facts">
-              <Fact label={text.moneyPilot} value={moneyPilot?.eligible_for_review ? text.eligibleForReview : text.blockedForPilot} />
+              <Fact label={lang === "zh" ? "当前状态" : "Current status"} value={moneyPilot?.eligible_for_review ? (lang === "zh" ? "可人工复核" : "Reviewable") : (lang === "zh" ? "暂不满足条件" : "Not ready")} />
               <Fact label={text.riskReward} value={`${formatNumber(moneyPilot?.risk_reward_value)}R / min ${formatNumber(moneyPilot?.minimum_risk_reward)}R`} />
               <Fact label="Win Rate" value={`${formatNumber(moneyPilot?.historical_win_rate)}% / min ${formatNumber(moneyPilot?.minimum_win_rate)}%`} />
               <Fact label={text.sampleQuality} value={`${formatNumber(moneyPilot?.sample_count)} / min ${formatNumber(moneyPilot?.minimum_samples)}`} />
             </div>
             {moneyPilot?.blockers?.length ? (
-              <Narrative title={text.blockers} items={moneyPilot.blockers.slice(0, 6)} />
+              <Narrative title={lang === "zh" ? "暂不满足的原因" : "What needs attention"} items={moneyPilot.blockers.slice(0, 6).map((reason) => displayEligibilityReason(reason, lang))} />
             ) : (
               <p className="secondary-note">{text.journalRequired}</p>
             )}
           </div>
           <div className={`strategy-quality-panel ${probeEligibility?.eligible_for_probe_review ? "eligible probe" : "blocked"}`}>
             <div className="ai-review-head">
-              <strong>AI Probe / 小仓试错</strong>
+              <strong>{lang === "zh" ? "小仓观察" : "Small-size observation"}</strong>
               <span>{probeEligibility?.eligible_for_probe_review ? "eligible" : "blocked"}</span>
             </div>
             <div className="ai-review-facts">
@@ -5125,45 +3932,45 @@ function ManualTradingConclusion({
               <Fact label="No averaging" value={probePolicy?.no_averaging_down ? "yes" : "required"} />
             </div>
             {probeEligibility?.blockers?.length ? (
-              <Narrative title={text.blockers} items={probeEligibility.blockers.slice(0, 6)} />
+              <Narrative title={lang === "zh" ? "暂不满足的原因" : "What needs attention"} items={probeEligibility.blockers.slice(0, 6).map((reason) => displayEligibilityReason(reason, lang))} />
             ) : (
               <p className="secondary-note">Starter only: no full-size, no chase, no averaging down, journal required.</p>
             )}
           </div>
           {actionValidation?.verdict ? (
             <p className="secondary-note">
-              AI action validation: {actionValidation.verdict} / noise {formatNumber(actionValidation.noise_rate)}%. {actionValidation.note ?? ""}
+              {lang === "zh" ? "历史验证" : "Historical validation"}: {actionValidation.verdict} / noise {formatNumber(actionValidation.noise_rate)}%. {actionValidation.note ?? ""}
             </p>
           ) : null}
-          <Narrative title={text.whyNow} items={decision?.why_now?.length ? decision.why_now : ["No AI decision reasons."]} />
-          <Narrative title={text.invalidation} items={decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : ["No AI invalidation."]} />
-          <Narrative title={text.humanChecklist} items={decision?.human_checklist?.length ? decision.human_checklist : ["Save journal before acting manually."]} />
-          {aiDecision.hard_veto?.active ? <p className="compare-error">Hard veto: {aiDecision.hard_veto.reasons.join("; ")}</p> : null}
+          <Narrative title={text.whyNow} items={(decision?.why_now?.length ? decision.why_now : [lang === "zh" ? "研究结论尚未生成。" : "No research rationale yet."]).map((item) => displayResearchText(item, lang))} />
+          <Narrative title={text.invalidation} items={(decision?.what_invalidates_this_setup?.length ? decision.what_invalidates_this_setup : [lang === "zh" ? "暂无失效条件。" : "No invalidation details yet."]).map((item) => displayResearchText(item, lang))} />
+          <Narrative title={text.humanChecklist} items={decision?.human_checklist?.length ? decision.human_checklist : [lang === "zh" ? "行动前先保存交易日志。" : "Save the journal before acting manually."]} />
+          {aiDecision.hard_veto?.active ? <p className="compare-error">{lang === "zh" ? "当前风险条件未通过：" : "Current risk conditions are not cleared: "}{aiDecision.hard_veto.reasons.map((reason) => displayRiskReason(reason, lang)).join("; ")}</p> : null}
           {aiDecision.hard_veto?.guardrail_warnings?.length ? (
-            <p className="secondary-note">Rule guardrails: {aiDecision.hard_veto.guardrail_warnings.join("; ")}</p>
+            <p className="secondary-note">{lang === "zh" ? "风险检查：" : "Risk checks: "}{aiDecision.hard_veto.guardrail_warnings.map((item) => displayResearchText(item, lang)).join("；")}</p>
           ) : null}
-          <p className="secondary-note">{decision?.summary ?? aiDecision.reason}</p>
+          <p className="secondary-note">{displayResearchText(decision?.summary ?? aiDecision.reason, lang)}</p>
         </div>
       ) : null}
       <div className="manual-conclusion-detail">
-        <Narrative title={text.why} items={conclusion?.why?.length ? conclusion.why : ["Run analysis to load rule reasons."]} />
-        <Narrative title={text.blockers} items={conclusion?.blockers?.length ? conclusion.blockers : ["No hard blocker listed."]} />
-        <Narrative title={text.invalidation} items={conclusion?.invalidation?.length ? conclusion.invalidation : ["No invalidation loaded."]} />
+        <Narrative title={text.why} items={(conclusion?.why?.length ? conclusion.why : [lang === "zh" ? "请先更新股票分析。" : "Refresh analysis to load reasons."]).map((item) => displayResearchText(item, lang))} />
+        <Narrative title={text.blockers} items={(conclusion?.blockers?.length ? conclusion.blockers : [lang === "zh" ? "暂无额外限制。" : "No additional restrictions."]).map((item) => displayResearchText(item, lang))} />
+        <Narrative title={text.invalidation} items={(conclusion?.invalidation?.length ? conclusion.invalidation : [lang === "zh" ? "暂无失效条件。" : "No invalidation details yet."]).map((item) => displayResearchText(item, lang))} />
       </div>
       {aiReviewState === "ready" && aiReview ? (
         <div className="ai-review-panel">
           <div className="ai-review-head">
-            <strong>AI Review</strong>
-            <span>{aiReview.status} / {aiReview.model_name}</span>
+            <strong>{lang === "zh" ? "补充复核" : "Supplemental review"}</strong>
+            <span>{lang === "zh" ? "研究结果" : "Research result"}</span>
           </div>
           <div className="ai-review-facts">
             <Fact label="Verdict" value={ai?.ai_review_verdict ?? "-"} />
             <Fact label="Quality" value={ai?.quality_filter ?? "-"} />
             <Fact label="Downgrade" value={ai?.downgrade_suggestion ?? "-"} />
           </div>
-          <Narrative title="R/R Improvement" items={ai?.rr_improvement_notes?.length ? ai.rr_improvement_notes : ["No AI review notes."]} />
-          <Narrative title="Risk Questions" items={ai?.risk_questions?.length ? ai.risk_questions : ["No AI risk questions."]} />
-          <Narrative title="Journal Prompt" items={ai?.journal_prompt?.length ? ai.journal_prompt : ["No AI journal prompt."]} />
+          <Narrative title="R/R Improvement" items={ai?.rr_improvement_notes?.length ? ai.rr_improvement_notes : ["No review notes."]} />
+          <Narrative title="Risk Questions" items={ai?.risk_questions?.length ? ai.risk_questions : ["No risk questions."]} />
+          <Narrative title="Journal Prompt" items={ai?.journal_prompt?.length ? ai.journal_prompt : ["No journal prompt."]} />
           <p className="secondary-note">{ai?.summary ?? aiReview.reason}</p>
         </div>
       ) : null}
@@ -5175,392 +3982,26 @@ function ManualTradingConclusion({
   );
 }
 
-function MstrJournalPanel({
-  runId,
-  journal,
-  onSave,
-}: {
-  runId?: string;
-  journal: MstrJournalPayload | null;
-  onSave: (entry: { status: string; notes: string; outcome: string }) => Promise<void>;
-}) {
-  const [status, setStatus] = useState("reviewed");
-  const [notes, setNotes] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!runId) return;
-    try {
-      setSaveState("saving");
-      await onSave({ status, notes, outcome });
-      setNotes("");
-      setOutcome("");
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  }
-
-  return (
-    <section className="panel compact-panel journal-panel">
-      <PanelTitle title="MSTR Cycle Journal" detail={`${journal?.entries.length ?? 0} entries`} />
-      <form className="journal-form" onSubmit={handleSubmit}>
-        <select value={status} onChange={(event) => setStatus(event.target.value)} disabled={!runId}>
-          <option value="reviewed">reviewed</option>
-          <option value="wait">wait</option>
-          <option value="staged-watch">staged-watch</option>
-          <option value="invalidated">invalidated</option>
-        </select>
-        <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Manual review note: BTC weekly, MSTR weekly, premium, blockers..." disabled={!runId} />
-        <input value={outcome} onChange={(event) => setOutcome(event.target.value)} placeholder="Outcome / follow-up" disabled={!runId} />
-        <button className="primary-action" type="submit" disabled={!runId || saveState === "saving"}>
-          {saveState === "saving" ? "Saving..." : "Save Journal"}
-        </button>
-        {saveState === "saved" ? <small>Saved locally.</small> : null}
-        {saveState === "error" ? <small>Save failed. Run radar first and try again.</small> : null}
-      </form>
-      <div className="journal-list">
-        {(journal?.entries ?? []).slice(0, 5).map((entry) => (
-          <div className="journal-entry" key={entry.id}>
-            <strong>{entry.status}</strong>
-            <span>{entry.reviewed_at}</span>
-            <p>{entry.notes || entry.outcome || "No note"}</p>
-            <small>
-              {entry.level} / score {formatNumber(entry.bottom_score)} / Bayes {formatNumber(entry.bayesian_bottom_probability)}%
-            </small>
-          </div>
-        ))}
-        {journal && journal.entries.length === 0 ? <p className="probability-note">No manual MSTR cycle review entries yet.</p> : null}
-      </div>
-    </section>
-  );
-}
-
-function MonteCarloPanel({ title, payload }: { title: string; payload?: MonteCarloPayload }) {
-  const horizons = Object.entries(payload?.horizons ?? {});
-  return (
-    <section className="panel probability-panel">
-      <PanelTitle
-        title={title}
-        detail={payload?.status === "available" ? `${payload.paths} paths / beta ${formatNumber(payload.beta_to_btc)}` : (payload?.status ?? "not loaded")}
-      />
-      {payload?.status === "available" && horizons.length ? (
-        <div className="scenario-table">
-          <div className="scenario-row head">
-            <span>Horizon</span>
-            <span>P10</span>
-            <span>Median</span>
-            <span>P90</span>
-            <span>Max DD</span>
-            <span>2x</span>
-            <span>5x</span>
-            <span>10x</span>
-          </div>
-          {horizons.map(([label, stats]) => (
-            <div className="scenario-row" key={label}>
-              <span>{label}</span>
-              <span>{formatNumber(stats.p10_return_pct)}%</span>
-              <span>{formatNumber(stats.median_return_pct)}%</span>
-              <span>{formatNumber(stats.p90_return_pct)}%</span>
-              <span>{formatNumber(stats.median_max_drawdown_pct)}%</span>
-              <span>{formatNumber(stats.probability_2x_pct)}%</span>
-              <span>{formatNumber(stats.probability_5x_pct)}%</span>
-              <span>{formatNumber(stats.probability_10x_pct)}%</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="probability-empty">{payload?.reason ?? "Run the radar to generate scenario distribution."}</div>
-      )}
-      {payload?.limitations?.length ? <p className="probability-note">{payload.limitations[0]}</p> : null}
-    </section>
-  );
-}
-
-function BayesianPanel({
+function EvidenceColumn({
   title,
-  probabilityLabel,
-  confidenceLabel,
-  payload,
+  entries,
+  tone,
 }: {
   title: string;
-  probabilityLabel: string;
-  confidenceLabel: string;
-  payload?: BayesianBottomPayload;
+  entries?: Array<{ factor_id: string; label?: string; contribution?: number | null; value?: string | number | boolean | null; note?: string }>;
+  tone: "positive" | "negative" | "neutral";
 }) {
   return (
-    <section className="panel probability-panel">
-      <PanelTitle title={title} detail={payload?.method ?? "not loaded"} />
-      <div className="bayes-summary">
-        <Fact label={probabilityLabel} value={`${formatNumber(payload?.bottom_probability)}%`} />
-        <Fact label={confidenceLabel} value={`${formatNumber(payload?.confidence)}%`} />
-        <Fact
-          label="Band"
-          value={
-            payload?.confidence_band
-              ? `${formatNumber(payload.confidence_band.low)}% - ${formatNumber(payload.confidence_band.high)}%`
-              : "-"
-          }
-        />
-      </div>
-      <div className="evidence-grid">
-        <EvidenceList title="Positive Evidence" items={payload?.positive_evidence ?? []} />
-        <EvidenceList title="Negative Evidence" items={payload?.negative_evidence ?? []} />
-      </div>
-      {payload?.limitations?.length ? <p className="probability-note">{payload.limitations[0]}</p> : null}
-    </section>
-  );
-}
-
-function EvidenceList({ title, items }: { title: string; items: BayesianEvidence[] }) {
-  return (
-    <div className="evidence-list">
-      <h3>{title}</h3>
-      {items.length ? (
-        items.slice(0, 5).map((item) => (
-          <p key={`${item.name}-${item.likelihood_ratio}`}>
-            <strong>{item.name}</strong>
-            <span>LR {item.likelihood_ratio}</span>
-            {item.reason}
-          </p>
-        ))
-      ) : (
-        <p>No evidence yet.</p>
-      )}
+    <div className={`factor-evidence-column ${tone}`}>
+      <strong>{title}</strong>
+      {entries?.length ? entries.slice(0, 3).map((entry) => (
+        <div key={entry.factor_id}>
+          <span>{entry.label ?? entry.factor_id}</span>
+          <small>{entry.contribution == null ? (entry.note ?? "-") : `${entry.contribution > 0 ? "+" : ""}${formatNumber(entry.contribution)}`}</small>
+        </div>
+      )) : <small>-</small>}
     </div>
-  );
-}
-
-function ChartPanel({
-  title,
-  subtitle,
-  candles,
-  theme,
-  ohlcHint,
-  emptyText,
-  meta,
-  presets,
-  presetKey,
-  onPresetChange,
-  onReload,
-  displayTimezone = "Asia/Shanghai",
-  onDisplayTimezoneChange,
-  labels,
-}: {
-  title: string;
-  subtitle: string;
-  candles: Candle[];
-  theme: Theme;
-  ohlcHint: string;
-  emptyText: string;
-  meta: CandleMeta;
-  presets: ChartPreset[];
-  presetKey: ChartPresetKey;
-  onPresetChange: (value: string) => void;
-  onReload?: () => void;
-  displayTimezone?: DisplayTimezone;
-  onDisplayTimezoneChange?: (timezone: DisplayTimezone) => void;
-  labels: {
-    source: string;
-    status: string;
-    range: string;
-    candles: string;
-    firstLast: string;
-  };
-}) {
-  const panelRef = useRef<HTMLElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [hover, setHover] = useState<OhlcState | null>(null);
-  const indicators = useMemo(
-    () => ({ ema20: ema(candles, 20), ema50: ema(candles, 50), ema200: ema(candles, 200), vwap: vwap(candles) }),
-    [candles],
-  );
-  const effectiveEmptyText = meta.providerStatus === "refreshing" ? "Refreshing real data..." : emptyText;
-  const openFullscreen = () => {
-    const node = panelRef.current;
-    if (node?.requestFullscreen) {
-      void node.requestFullscreen();
-    }
-  };
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    container.innerHTML = "";
-    const dark = theme === "dark";
-    const chart = createChart(container, {
-      width: container.clientWidth,
-      height: container.clientHeight,
-      autoSize: true,
-      layout: {
-        background: { color: dark ? "#0f172a" : "#ffffff" },
-        textColor: dark ? "#94a3b8" : "#64748b",
-        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
-      },
-      grid: {
-        vertLines: { color: dark ? "#1e293b" : "#eef2f7" },
-        horzLines: { color: dark ? "#1e293b" : "#eef2f7" },
-      },
-      rightPriceScale: { borderColor: dark ? "#263241" : "#e5e7eb" },
-      localization: {
-        timeFormatter: (time: Time) => formatChartTime(time, { withDate: true, timeZone: displayTimezone }),
-      },
-      timeScale: {
-        borderColor: dark ? "#263241" : "#e5e7eb",
-        timeVisible: true,
-        tickMarkFormatter: (time: Time) => formatChartTime(time, { withDate: false, timeZone: displayTimezone }),
-      },
-      handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
-      handleScale: { mouseWheel: false, pinch: true, axisPressedMouseMove: true },
-    });
-
-    const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#16a34a",
-      downColor: "#ef4444",
-      wickUpColor: "#16a34a",
-      wickDownColor: "#ef4444",
-      borderVisible: false,
-      priceLineColor: "#2563eb",
-    });
-    candleSeries.setData(candles as CandlestickData<Time>[]);
-
-    const volumeSeries = chart.addSeries(HistogramSeries, {
-      color: "rgba(99, 102, 241, 0.22)",
-      priceFormat: { type: "volume" },
-      priceScaleId: "",
-    });
-    volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
-    volumeSeries.setData(
-      candles.map((bar) => ({
-        time: bar.time,
-        value: bar.volume,
-        color: bar.close >= bar.open ? "rgba(22, 163, 74, 0.24)" : "rgba(239, 68, 68, 0.22)",
-      })) as HistogramData<Time>[],
-    );
-
-    addLine(chart, indicators.ema20, "#2563eb");
-    addLine(chart, indicators.ema50, "#f59e0b");
-    if (indicators.ema200.length) addLine(chart, indicators.ema200, "#0f766e");
-    addLine(chart, indicators.vwap, "#7c3aed");
-    chart.timeScale().fitContent();
-    chart.subscribeCrosshairMove((param) => {
-      const point = param.seriesData.get(candleSeries);
-      if (!point || !("open" in point)) {
-        setHover(null);
-        return;
-      }
-      setHover({
-        time: formatChartTime(point.time, { withDate: true, timeZone: displayTimezone }),
-        open: point.open,
-        high: point.high,
-        low: point.low,
-        close: point.close,
-      });
-    });
-    return () => chart.remove();
-  }, [candles, displayTimezone, indicators.ema20, indicators.ema50, indicators.ema200, indicators.vwap, theme]);
-
-  const firstLabel = candles.length ? formatCandleTime(candles[0], displayTimezone, true) : meta.first;
-  const lastLabel = candles.length ? formatCandleTime(candles[candles.length - 1], displayTimezone, true) : meta.last;
-  const timezoneLabel = displayTimezone === "Asia/Shanghai" ? "China UTC+8" : "New York ET";
-
-  return (
-    <section className="panel chart-panel" ref={panelRef}>
-      <div className="chart-header">
-        <div>
-          <h3>{title}</h3>
-          <p>{subtitle}</p>
-        </div>
-        <div className="chart-tools">
-          <Segmented value={presetKey} options={presets.map((preset) => [preset.key, preset.label])} onChange={onPresetChange} />
-          {onDisplayTimezoneChange ? (
-            <Segmented
-              value={displayTimezone}
-              options={[["Asia/Shanghai", "CN +8"], ["America/New_York", "ET"]]}
-              onChange={(value) => onDisplayTimezoneChange(value as DisplayTimezone)}
-            />
-          ) : null}
-          <button className="chart-reload" type="button" onClick={onReload}>
-            Reload Real Data
-          </button>
-          <button className="chart-reload" type="button" onClick={openFullscreen}>
-            Fullscreen
-          </button>
-          <div className="indicator-tags">
-            <span>EMA20</span>
-            <span>EMA50</span>
-            <span>EMA200</span>
-            <span>Volume MA20</span>
-            <span>ATR14</span>
-            <span>RSI14</span>
-            <span>VWAP</span>
-          </div>
-        </div>
-      </div>
-      <div className="chart-meta">
-        <span>
-          {labels.source}: <b>{meta.sourceType}</b>
-        </span>
-        <span>
-          {labels.status}: <b>{meta.providerStatus}</b>
-        </span>
-        <span>
-          Freshness: <b>{meta.freshness}</b>
-        </span>
-        <span>
-          Stale Age: <b>{meta.staleAge}</b>
-        </span>
-        <span>
-          {labels.range}: <b>{meta.range} / {meta.interval}</b>
-        </span>
-        <span>
-          {labels.candles}: <b>{meta.count}</b>
-        </span>
-        <span>
-          {labels.firstLast}: <b>{firstLabel || "-"} / {lastLabel || "-"}</b>
-        </span>
-        <span>
-          Display: <b>{timezoneLabel}</b>
-        </span>
-        {meta.exchangeTimezone ? (
-          <span>
-            Exchange: <b>{meta.exchangeTimezone}</b>
-          </span>
-        ) : null}
-        {meta.errors.length ? (
-          <span>
-            Errors: <b>{meta.errors.join("; ").slice(0, 120)}</b>
-          </span>
-        ) : null}
-      </div>
-      <div className="ohlc-row">
-        {hover ? (
-          <>
-            <span>{hover.time}</span>
-            <span>O {hover.open.toFixed(2)}</span>
-            <span>H {hover.high.toFixed(2)}</span>
-            <span>L {hover.low.toFixed(2)}</span>
-            <span>C {hover.close.toFixed(2)}</span>
-          </>
-        ) : (
-          <span>{ohlcHint}</span>
-        )}
-      </div>
-      {candles.length ? (
-        <div className="chart-canvas" ref={containerRef} />
-      ) : (
-        <div className="chart-empty">
-          <span>{effectiveEmptyText}</span>
-          {onReload ? (
-            <button type="button" onClick={onReload}>
-              Repair Chart With Real Data
-            </button>
-          ) : null}
-        </div>
-      )}
-    </section>
   );
 }
 
@@ -5649,6 +4090,24 @@ function urlRequestedFixture(): boolean {
   return false;
 }
 
+function initialUrlSymbol(): string | null {
+  try {
+    const value = new URLSearchParams(window.location.search).get("symbol")?.trim().toUpperCase() ?? "";
+    return /^[A-Z0-9.^-]{1,16}$/.test(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function initialUrlWorkspace(): WorkspaceName {
+  try {
+    const value = new URLSearchParams(window.location.search).get("workspace") as WorkspaceName | null;
+    return value && ["today", "search", "watchlist", "stock", "charts", "aiPlan", "chat", "journal", "settings"].includes(value) ? value : "today";
+  } catch {
+    return "today";
+  }
+}
+
 function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, candles: Candle[]): CandleMeta {
   return {
     symbol: String(payload.symbol ?? ""),
@@ -5659,90 +4118,14 @@ function metaFromPayload(payload: Record<string, unknown>, preset: ChartPreset, 
     freshness: String(payload.freshness ?? "unknown"),
     staleAge: formatStaleAge(payload.freshness_seconds, payload.freshness),
     count: candles.length,
-    first: formatCandleTime(candles[0], "Asia/Shanghai", true),
-    last: formatCandleTime(candles[candles.length - 1], "Asia/Shanghai", true),
+    first: formatCandleTime(candles[0]),
+    last: formatCandleTime(candles[candles.length - 1]),
     errors: Array.isArray(payload.provider_errors) ? payload.provider_errors.map(String) : [],
     session: String(payload.session ?? ""),
     quoteTime: payload.quote_time ? formatDateTimeUtc8(String(payload.quote_time), { withDate: true }) : undefined,
     exchangeTimezone: String(payload.exchange_timezone ?? "America/New_York"),
     displayTimezone: String(payload.display_timezone ?? "Asia/Shanghai"),
   };
-}
-
-function chartPayload(payload: MstrCyclePayload | null, key: string): Record<string, unknown> {
-  return ((payload?.charts?.[key] ?? {}) as Record<string, unknown>) || {};
-}
-
-function chartLabels(text: (typeof copy)["en"] | (typeof copy)["zh"]) {
-  return {
-    source: text.chartSource,
-    status: text.chartStatus,
-    range: text.chartRange,
-    candles: text.candles,
-    firstLast: text.firstLast,
-  };
-}
-
-function formatPremium(component: MstrComponent | undefined): string {
-  if (!component) return "-";
-  if (typeof component.premium_to_btc_nav === "number") return `${component.premium_to_btc_nav.toFixed(2)}x`;
-  return component.status ?? "-";
-}
-
-function metricNumber(value: MstrMetricValue): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
-  return null;
-}
-
-function metricValue(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  if (number !== null) return formatNumber(number);
-  if (typeof value === "boolean") return value ? "yes" : "no";
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "string" && value) return value;
-  return "-";
-}
-
-function metricMoney(value: MstrMetricValue): string {
-  return money(metricNumber(value));
-}
-
-function metricPct(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  return number === null ? "-" : `${formatSigned(number)}%`;
-}
-
-function metricPctFromRatio(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  return number === null ? "-" : `${formatNumber(number * 100)}%`;
-}
-
-function metricMultiple(value: MstrMetricValue): string {
-  const number = metricNumber(value);
-  return number === null ? "-" : `${formatNumber(number)}x`;
-}
-
-function formatTrackerMetric(value: MstrMetricValue, kind: "number" | "money" | "pct" | "ratioPct" | "multiple"): string {
-  if (kind === "money") return metricMoney(value);
-  if (kind === "pct") return metricPct(value);
-  if (kind === "ratioPct") return metricPctFromRatio(value);
-  if (kind === "multiple") return metricMultiple(value);
-  return metricValue(value);
-}
-
-function stateLabel(state: "idle" | "loading" | "ready" | "error"): string {
-  if (state === "loading") return "loading";
-  if (state === "error") return "unavailable";
-  if (state === "ready") return "ready";
-  return "not loaded";
-}
-
-function mstrLevelClass(level: MstrCycleLevel) {
-  if (level === "CYCLE ACCUMULATION") return "buy";
-  if (level === "BOTTOM WATCH") return "watch";
-  if (level === "DISTRIBUTION RISK") return "pass";
-  return "neutral";
 }
 
 function fixtureMeta(symbol: string, preset: ChartPreset, candles: Candle[]): CandleMeta {
@@ -5755,8 +4138,8 @@ function fixtureMeta(symbol: string, preset: ChartPreset, candles: Candle[]): Ca
     freshness: "fixture",
     staleAge: "none",
     count: candles.length,
-    first: formatCandleTime(candles[0], "Asia/Shanghai", true),
-    last: formatCandleTime(candles[candles.length - 1], "Asia/Shanghai", true),
+    first: formatCandleTime(candles[0]),
+    last: formatCandleTime(candles[candles.length - 1]),
     errors: [],
   };
 }
@@ -5766,7 +4149,7 @@ function failedMeta(symbol: string, preset: ChartPreset): CandleMeta {
     symbol,
     range: preset.range,
     interval: preset.interval,
-    sourceType: "live_yahoo_chart",
+    sourceType: "unavailable",
     providerStatus: "provider_failed",
     freshness: "missing",
     staleAge: "none",
@@ -5782,7 +4165,7 @@ function refreshingMeta(symbol: string, preset: ChartPreset): CandleMeta {
     symbol,
     range: preset.range,
     interval: preset.interval,
-    sourceType: "live_yahoo_chart",
+    sourceType: "unavailable",
     providerStatus: "refreshing",
     freshness: "loading",
     staleAge: "none",
@@ -5796,13 +4179,6 @@ function refreshingMeta(symbol: string, preset: ChartPreset): CandleMeta {
 function normalizeApiBase(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";
-  if (import.meta.env.PROD) {
-    try {
-      if (new URL(trimmed).hostname.toLowerCase().endsWith(".trycloudflare.com")) return "";
-    } catch {
-      return "";
-    }
-  }
   return trimmed.replace(/\/+$/, "");
 }
 
@@ -5816,6 +4192,14 @@ function apiFetch(path: string, init?: RequestInit): Promise<Response> {
     ...init,
     credentials: API_BASE_URL ? "include" : init?.credentials ?? "same-origin",
   });
+}
+
+function urlBase64ToUint8Array(value: string): ArrayBuffer {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const normalized = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(normalized);
+  const bytes = Uint8Array.from([...raw].map((character) => character.charCodeAt(0)));
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
 function formatStaleAge(rawSeconds: unknown, freshness: unknown): string {
@@ -5917,13 +4301,13 @@ function stocksForUniverse(universeName: UniverseName): UniverseStock[] {
 
 function universeOptionLabel(universeName: UniverseName, lang: Lang): string {
   if (lang === "zh") {
-    if (universeName === "ai_five_layer") return "AI Five-Layer";
-    if (universeName === "physical_ai") return "Physical AI";
+    if (universeName === "ai_five_layer") return "科技主题";
+    if (universeName === "physical_ai") return "机器人";
     if (universeName === "all") return "All";
     return "Core 200";
   }
-  if (universeName === "ai_five_layer") return "AI Five-Layer";
-  if (universeName === "physical_ai") return "Physical AI";
+  if (universeName === "ai_five_layer") return "Technology themes";
+  if (universeName === "physical_ai") return "Robotics";
   if (universeName === "all") return "All";
   return "Core 200";
 }
@@ -6071,7 +4455,7 @@ function makeUnavailableSignal(symbol: string, stock?: UniverseStock): StockSign
       action: "DO_NOT_BUY",
       confidence: "LOW",
       risk_bucket: "avoid",
-      decision_summary: "UNABLE TO ASSESS: primary live market data is unavailable.",
+      decision_summary: "DO NOT BUY: live public candles are unavailable.",
       why: ["Provider failed or local API is unavailable.", "No rule conclusion can be trusted without live candles."],
       blockers: ["provider_failed"],
       invalidation: ["Refresh live data and rerun analysis."],
@@ -6089,7 +4473,7 @@ function makeUnavailableSignal(symbol: string, stock?: UniverseStock): StockSign
       hourly_provider_status: "provider_failed",
       daily_candles: 0,
       hourly_candles: 0,
-      source: "live_yahoo_chart",
+      source: "unavailable",
       freshness: "missing",
       data_quality: "caution",
       live_does_not_fallback_to_fixture: true,
@@ -6174,7 +4558,6 @@ function buildLocalSignal(stock: UniverseStock): StockSignal {
       "Review daily trend and EMA20/50/200 alignment.",
       "Confirm 1h entry structure and avoid chasing extended candles.",
       "Check volume expansion and ATR risk before any manual trade.",
-      "Only after a stock BUY SETUP should ATM options be considered.",
     ],
     data_status: {
       daily_provider_status: "fixture_read_only",
@@ -6408,12 +4791,7 @@ function selectedMetaBySymbol(stocks: UniverseStock[], symbol: string) {
   return stocks.find((stock) => stock.symbol === symbol);
 }
 
-function addLine(chart: IChartApi, data: LineData<Time>[], color: string) {
-  const series = chart.addSeries(LineSeries, { color, lineWidth: 2, lastValueVisible: false, priceLineVisible: false });
-  series.setData(data);
-}
-
-function ema(candles: Candle[], period: number): LineData<Time>[] {
+function ema(candles: Candle[], period: number): Array<{ time: Time; value: number }> {
   let current = candles[0]?.close ?? 0;
   const multiplier = 2 / (period + 1);
   return candles.map((bar, index) => {
@@ -6422,40 +4800,15 @@ function ema(candles: Candle[], period: number): LineData<Time>[] {
   });
 }
 
-function sma(candles: Candle[], period: number): LineData<Time>[] {
-  if (candles.length < period) return [];
-  const result: LineData<Time>[] = [];
-  let rolling = 0;
-  candles.forEach((bar, index) => {
-    rolling += bar.close;
-    if (index >= period) rolling -= candles[index - period].close;
-    if (index >= period - 1) {
-      result.push({ time: bar.time, value: round(rolling / period) });
-    }
-  });
-  return result;
-}
-
-function vwap(candles: Candle[]): LineData<Time>[] {
-  let priceVolume = 0;
-  let volume = 0;
-  return candles.map((bar) => {
-    const typical = (bar.high + bar.low + bar.close) / 3;
-    priceVolume += typical * bar.volume;
-    volume += bar.volume;
-    return { time: bar.time, value: round(priceVolume / Math.max(volume, 1)) };
-  });
-}
-
 function lastEma(values: number[], period: number) {
   const series = ema(values.map((value, index) => ({ time: index as Time, open: value, high: value, low: value, close: value, volume: 0 })), period);
   return series[series.length - 1]?.value ?? 0;
 }
 
-function useStoredState<T extends string>(key: string, initial: T): [T, (value: T) => void] {
+function useStoredState<T extends string>(key: string, initial: T, preferInitial = false): [T, (value: T) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
-      return (window.localStorage.getItem(key) as T | null) ?? initial;
+      return preferInitial ? initial : (window.localStorage.getItem(key) as T | null) ?? initial;
     } catch {
       return initial;
     }
@@ -6492,20 +4845,18 @@ function metaFromRealtimeSnapshot(
   candles: Candle[],
 ): CandleMeta {
   const quoteAge = Number(payload.quote?.freshness_seconds ?? 0);
-  const trust = payload.data_trust;
-  const tradingGrade = trust?.state === "live_trade_eligible";
   return {
     symbol: payload.symbol,
     range: preset.range,
     interval: preset.interval,
     sourceType: "longbridge_realtime_snapshot",
     providerStatus: payload.provider_status,
-    freshness: trust?.state ?? (payload.quote_fresh ? "live_quote" : "stale_quote"),
-    staleAge: Number.isFinite(quoteAge) ? formatStaleAge(quoteAge, tradingGrade ? "live" : "stale") : "unknown",
+    freshness: payload.quote_fresh ? "live_quote" : "stale_quote",
+    staleAge: Number.isFinite(quoteAge) ? formatStaleAge(quoteAge, payload.quote_fresh ? "live" : "stale") : "unknown",
     count: candles.length,
-    first: formatCandleTime(candles[0], "Asia/Shanghai", true),
-    last: formatCandleTime(candles[candles.length - 1], "Asia/Shanghai", true),
-    errors: trust && !tradingGrade && trust.reason ? [trust.reason] : [],
+    first: formatCandleTime(candles[0]),
+    last: formatCandleTime(candles[candles.length - 1]),
+    errors: [],
     session: payload.session,
     quoteTime: payload.quote?.quote_time ? formatDateTimeUtc8(payload.quote.quote_time, { withDate: true }) : undefined,
     exchangeTimezone: payload.exchange_timezone,
@@ -6554,23 +4905,179 @@ function mergeRealtimeQuote(candles: Candle[], quote: RealtimeQuote, interval: s
 function marketDataMiniLabel(apiHealth: ApiHealthPayload | null) {
   const provider = apiHealth?.market_data?.provider ?? apiHealth?.market_data_provider ?? "live";
   const status = apiHealth?.market_data?.status ?? apiHealth?.longbridge_status ?? "";
-  const trustState = apiHealth?.market_data?.trust_state;
-  if (trustState === "live_primary") return "Longbridge Live";
-  if (trustState === "stale_primary") return "Longbridge Stale";
-  if (trustState === "reference_only") return "Reference only";
-  if (trustState === "unavailable") return "Market data unavailable";
   if (provider === "longbridge") {
+    const session = String(apiHealth?.market_data?.market_clock?.session ?? "").toLowerCase();
+    if (session === "closed") return "Longbridge 已收盘";
+    if (status !== "available") return "Longbridge 数据需确认";
+    if (session && session !== "regular") return "Longbridge 非常规时段";
     if (status === "available") return "Longbridge Live";
-    if (status === "missing") return "Longbridge Missing";
-    return "Longbridge";
+    return "Longbridge 数据需确认";
   }
-  return "Yahoo prototype";
+  return "Yahoo reference";
 }
 
-function parseRiskReward(value: string | undefined) {
-  if (!value) return 0;
-  const match = value.match(/(\d+(?:\.\d+)?)/);
-  return match ? Number(match[1]) : 0;
+function displayTradeAction(action: unknown, lang: Lang): string {
+  const value = String(action ?? "").toUpperCase();
+  const zh: Record<string, string> = {
+    AI_BUY_CANDIDATE: "可人工复核",
+    AI_PULLBACK_BUY: "等待回踩",
+    AI_PROBE_BUY: "小仓观察",
+    AI_REVERSAL_WATCH: "观察反转",
+    AI_BREAKOUT_WATCH: "观察突破",
+    AI_WAIT: "暂时等待",
+    AI_AVOID: "暂不介入",
+    AI_HOLD_TRAIL: "持有并跟踪",
+    AI_EXIT_REVIEW: "检查持仓风险",
+    BUY: "可人工复核",
+    WAIT: "暂时等待",
+    DO_NOT_BUY: "暂不介入",
+  };
+  const en: Record<string, string> = {
+    AI_BUY_CANDIDATE: "Reviewable",
+    AI_PULLBACK_BUY: "Wait for pullback",
+    AI_PROBE_BUY: "Small-size watch",
+    AI_REVERSAL_WATCH: "Watch reversal",
+    AI_BREAKOUT_WATCH: "Watch breakout",
+    AI_WAIT: "Wait",
+    AI_AVOID: "Do not enter",
+    AI_HOLD_TRAIL: "Hold and trail",
+    AI_EXIT_REVIEW: "Review position risk",
+    BUY: "Reviewable",
+    WAIT: "Wait",
+    DO_NOT_BUY: "Do not enter",
+  };
+  return (lang === "zh" ? zh : en)[value] ?? (lang === "zh" ? "等待数据" : "Awaiting data");
+}
+
+function displayDataQuality(value: unknown, lang: Lang): string {
+  const clean = String(value ?? "").toLowerCase() === "clean";
+  return lang === "zh" ? (clean ? "数据正常" : "数据需确认") : (clean ? "Data ready" : "Data needs review");
+}
+
+function displayProviderStatus(value: unknown, lang: Lang): string {
+  const status = String(value ?? "").toLowerCase();
+  if (status === "available") return lang === "zh" ? "可用" : "Available";
+  if (status === "refreshing") return lang === "zh" ? "更新中" : "Refreshing";
+  if (status === "stale") return lang === "zh" ? "已过期" : "Stale";
+  return lang === "zh" ? "待确认" : "Needs review";
+}
+
+function displayRiskReason(value: unknown, lang: Lang): string {
+  const reason = String(value ?? "").toLowerCase();
+  const zh: Record<string, string> = {
+    non_regular_session: "当前不在美股常规交易时段",
+    depth_unavailable: "深度报价暂不可用",
+    quote_unavailable: "实时价格暂不可用",
+    quote_stale: "实时价格已过期",
+    trust_unavailable: "行情可信度暂不足",
+    trust_yahoo_reference_only: "当前仅有参考行情",
+  };
+  const en: Record<string, string> = {
+    non_regular_session: "Outside regular US market hours",
+    depth_unavailable: "Depth quote unavailable",
+    quote_unavailable: "Realtime quote unavailable",
+    quote_stale: "Realtime quote is stale",
+    trust_unavailable: "Market data trust is insufficient",
+    trust_yahoo_reference_only: "Only reference market data is available",
+  };
+  return (lang === "zh" ? zh : en)[reason] ?? (lang === "zh" ? "当前风险条件需要确认" : "A current risk condition needs review");
+}
+
+function displayResearchText(value: unknown, lang: Lang): string {
+  const text = String(value ?? "").trim();
+  if (!text || lang !== "zh") return text;
+  const normalized = text.toLowerCase();
+  if (normalized.includes("deterministic hard veto") || normalized.includes("hard veto")) return "当前行情或风险条件未通过检查。";
+  if (normalized.includes("ai decision request failed") || normalized.includes("ai trading agent is unavailable")) return "研究服务暂时不可用，当前仅依据行情、规则与图表证据。";
+  if (normalized.includes("rule system and live-data guardrails")) return "规则与行情数据检查仍然生效。";
+  if (normalized.includes("trade readiness is blocked")) return "当前不满足人工交易条件。";
+  if (normalized.includes("rule system classifies")) return "当前形态尚未达到建立新仓的复核标准。";
+  if (normalized.includes("market regime is")) return "当前市场环境仍需确认。";
+  if (normalized.includes("provider status becomes stale")) return "行情更新中断或过期时，结论自动失效。";
+  if (normalized.includes("price loses the profile")) return "价格跌破当前策略的关键均线结构。";
+  if (normalized.includes("exit risk changes")) return "风险状态转弱或形态失效。";
+  if (normalized.includes("historical focus")) return "历史样本仅作参考，需结合当前行情复核。";
+  if (normalized.includes("data quality is not clean")) return "行情数据仍需确认。";
+  if (normalized.includes("data_quality=caution")) return "行情数据仍需确认。";
+  if (normalized.includes("exit_risk=data caution") || normalized.includes("exit risk is data caution")) return "当前风险状态需要确认。";
+  if (normalized.includes("market regime turns risk_off")) return "市场环境转弱时，当前计划失效。";
+  if (normalized.includes("confirm live candles")) return "请先确认实时 K 线数据可用。";
+  if (normalized.includes("check rule conclusion")) return "请检查交易结论、市场环境与风险状态。";
+  if (normalized.includes("save a journal plan")) return "行动前请先保存交易日志。";
+  if (normalized.includes("risk conditions are not cleared")) return "当前风险条件尚未通过。";
+  return text;
+}
+
+function displayPlanField(value: unknown, kind: "entry" | "stop" | "target" | "position" | "riskReward", lang: Lang): string {
+  const text = String(value ?? "").trim();
+  const normalized = text.toLowerCase();
+  if (!text || normalized === "-" || normalized === "unavailable") {
+    const zh = { entry: "待补充入场条件", stop: "待补充止损条件", target: "待补充目标条件", position: "待补充仓位计划", riskReward: "待补充" };
+    const en = { entry: "Entry conditions pending", stop: "Stop plan pending", target: "Target plan pending", position: "Position plan pending", riskReward: "Pending" };
+    return (lang === "zh" ? zh : en)[kind];
+  }
+  if (normalized.includes("ai unavailable")) {
+    if (kind === "entry") return lang === "zh" ? "研究服务暂不可用，请先按图表和规则补充入场条件。" : "Research service unavailable; define entry conditions from the chart and rules.";
+    if (kind === "stop") return lang === "zh" ? "请在人工复核前明确止损区。" : "Define a stop before manual review.";
+    if (kind === "target") return lang === "zh" ? "请在人工复核前明确目标区。" : "Define a target before manual review.";
+    if (kind === "position") return lang === "zh" ? "研究服务暂不可用，请保持仓位保守。" : "Research service unavailable; keep sizing conservative.";
+  }
+  if (normalized.includes("no ai stop plan")) return lang === "zh" ? "请在人工复核前明确止损区。" : "Define a stop before manual review.";
+  if (normalized.includes("no ai target plan")) return lang === "zh" ? "请在人工复核前明确目标区。" : "Define a target before manual review.";
+  return text;
+}
+
+function displayRealtimeState(value: unknown, session: unknown, lang: Lang): string {
+  const state = String(value ?? "").toLowerCase();
+  const marketSession = String(session ?? "").toLowerCase();
+  if (state === "live") return lang === "zh" ? "实时更新" : "Live";
+  if (state === "loading") return lang === "zh" ? "正在更新" : "Refreshing";
+  if (state === "stale") return lang === "zh" ? "数据需确认" : "Data needs review";
+  if (marketSession === "closed") return lang === "zh" ? "美股已收盘" : "US market closed";
+  return lang === "zh" ? "等待行情" : "Awaiting data";
+}
+
+function displayConfidence(value: unknown, lang: Lang): string {
+  const confidence = String(value ?? "-").toUpperCase();
+  if (confidence === "LOW") return lang === "zh" ? "较低" : "Low";
+  if (confidence === "MEDIUM") return lang === "zh" ? "中等" : "Medium";
+  if (confidence === "HIGH") return lang === "zh" ? "较高" : "High";
+  return confidence || "-";
+}
+
+function displayRiskBucket(value: unknown, lang: Lang): string {
+  const bucket = String(value ?? "-").toLowerCase();
+  if (bucket === "avoid") return lang === "zh" ? "暂不介入" : "Avoid";
+  if (bucket === "watch") return lang === "zh" ? "继续观察" : "Watch";
+  if (bucket === "review") return lang === "zh" ? "可人工复核" : "Reviewable";
+  return bucket || "-";
+}
+
+function displayEligibilityReason(value: unknown, lang: Lang): string {
+  const reason = String(value ?? "").toLowerCase();
+  if (reason.includes("action is not")) return lang === "zh" ? "当前交易结论不支持建立新仓。" : "The current conclusion does not support a new position.";
+  if (reason.includes("live daily") || reason.includes("candles are not clean")) return lang === "zh" ? "实时日线或确认周期数据尚未满足条件。" : "Live daily or confirmation data is not ready.";
+  if (reason.includes("hard veto")) return lang === "zh" ? "当前行情或风险条件仍需确认。" : "Current market or risk conditions still need review.";
+  if (reason.includes("r:r")) return lang === "zh" ? "风险收益比尚未达到门槛。" : "Risk/reward is below the required threshold.";
+  if (reason.includes("win rate")) return lang === "zh" ? "历史胜率证据尚未达到门槛。" : "Historical win-rate evidence is below the threshold.";
+  if (reason.includes("sample count")) return lang === "zh" ? "历史样本量仍然不足。" : "Historical sample size is still insufficient.";
+  if (reason.includes("entry/stop/target")) return lang === "zh" ? "入场、止损、目标或失效条件尚未完整。" : "Entry, stop, target, or invalidation is incomplete.";
+  if (reason.includes("journal")) return lang === "zh" ? "行动前需要先保存交易日志。" : "Save the trade journal before acting.";
+  return lang === "zh" ? "当前条件仍需进一步确认。" : "A current condition still needs review.";
+}
+
+function tradeAnswerCopy(action: TradeAction | AiAction | Level | string | undefined, lang: Lang) {
+  const normalized = String(action ?? "").toUpperCase();
+  const nextStep = ["AI_BUY_CANDIDATE", "AI_PULLBACK_BUY", "BUY", "BUY SETUP"].includes(normalized)
+    ? (lang === "zh" ? "确认入场区、止损区、目标区和仓位后，再进行人工复核。" : "Confirm entry, stop, target, and size before manual review.")
+    : ["AI_AVOID", "DO_NOT_BUY", "PASS"].includes(normalized)
+      ? (lang === "zh" ? "暂不建立新仓，等待结构与数据改善。" : "Do not open a new position; wait for structure and data to improve.")
+      : (lang === "zh" ? "等待价格、量能或结构给出更清晰的确认。" : "Wait for clearer confirmation from price, volume, or structure.");
+  return {
+    label: displayTradeAction(normalized, lang),
+    shortLabel: displayTradeAction(normalized, lang),
+    nextStep,
+  };
 }
 
 function explicitPlanText(value: string | undefined) {
@@ -6713,6 +5220,7 @@ function deriveManualTradeTicket({
   hourlyMeta,
   stockJournal,
   text,
+  lang,
 }: {
   selected: StockSignal;
   selectedSymbol: string;
@@ -6721,6 +5229,7 @@ function deriveManualTradeTicket({
   hourlyMeta: CandleMeta;
   stockJournal: StockJournalPayload | null;
   text: (typeof copy)["en"] | (typeof copy)["zh"];
+  lang: Lang;
 }): ManualTradeTicket {
   const decision = aiDecision?.ai_decision;
   const riskRewardValue = parseRiskReward(decision?.risk_reward);
@@ -6728,26 +5237,26 @@ function deriveManualTradeTicket({
     stockJournal?.entries.some((entry) => isManualPilotJournalReady(entry, selectedSymbol)),
   );
   const checks = [
-    { label: "AI action", value: decision?.action ?? "missing", ok: decision?.action === "AI_BUY_CANDIDATE" || decision?.action === "AI_PULLBACK_BUY" },
-    { label: "Daily K-line", value: `${dailyMeta.providerStatus} / ${dailyMeta.count}`, ok: isLiveCandleMeta(dailyMeta) },
-    { label: "Confirm K-line", value: `${hourlyMeta.providerStatus} / ${hourlyMeta.count}`, ok: isLiveCandleMeta(hourlyMeta) },
-    { label: "Hard veto", value: aiDecision?.hard_veto?.active ? "active" : "clear", ok: !aiDecision?.hard_veto?.active },
-    { label: "R:R", value: decision?.risk_reward ?? "-", ok: riskRewardValue >= 2 },
-    { label: "Stop", value: decision?.stop_zone ?? "-", ok: explicitPlanText(decision?.stop_zone) },
-    { label: "Position", value: decision?.position_size_hint ?? "-", ok: explicitPlanText(decision?.position_size_hint) },
-    { label: "No leverage", value: isLeveragedOrOptionsProxy(selectedSymbol) ? "blocked" : "stock", ok: !isLeveragedOrOptionsProxy(selectedSymbol) },
+    { label: lang === "zh" ? "交易结论" : "Conclusion", value: displayTradeAction(decision?.action ?? "", lang), ok: decision?.action === "AI_BUY_CANDIDATE" || decision?.action === "AI_PULLBACK_BUY", reason: lang === "zh" ? "当前结论不支持建立新仓。" : "The current conclusion does not support a new position." },
+    { label: lang === "zh" ? "日线数据" : "Daily data", value: `${displayProviderStatus(dailyMeta.providerStatus, lang)} / ${dailyMeta.count}`, ok: isLiveCandleMeta(dailyMeta), reason: lang === "zh" ? "日线实时数据尚未满足复核条件。" : "Daily market data is not ready for review." },
+    { label: lang === "zh" ? "确认周期" : "Confirmation", value: `${displayProviderStatus(hourlyMeta.providerStatus, lang)} / ${hourlyMeta.count}`, ok: isLiveCandleMeta(hourlyMeta), reason: lang === "zh" ? "确认周期数据尚未满足复核条件。" : "Confirmation data is not ready for review." },
+    { label: lang === "zh" ? "实时风控" : "Live risk", value: aiDecision?.hard_veto?.active ? (lang === "zh" ? "暂不通过" : "Not cleared") : (lang === "zh" ? "已通过" : "Cleared"), ok: !aiDecision?.hard_veto?.active, reason: lang === "zh" ? "当前行情或风险条件仍需确认。" : "Current market or risk conditions still need review." },
+    { label: "R:R", value: decision?.risk_reward ?? "-", ok: riskRewardValue >= 2, reason: lang === "zh" ? "风险收益比尚未达到人工复核门槛。" : "Risk/reward does not meet the manual-review threshold." },
+    { label: lang === "zh" ? "止损" : "Stop", value: decision?.stop_zone ?? "-", ok: explicitPlanText(decision?.stop_zone), reason: lang === "zh" ? "止损计划尚未完整。" : "The stop plan is incomplete." },
+    { label: lang === "zh" ? "仓位" : "Position", value: decision?.position_size_hint ?? "-", ok: explicitPlanText(decision?.position_size_hint), reason: lang === "zh" ? "仓位计划尚未完整。" : "The position plan is incomplete." },
+    { label: lang === "zh" ? "标的范围" : "Instrument scope", value: isLeveragedOrOptionsProxy(selectedSymbol) ? (lang === "zh" ? "不适用" : "Not eligible") : (lang === "zh" ? "股票/普通 ETF" : "Stock / standard ETF"), ok: !isLeveragedOrOptionsProxy(selectedSymbol), reason: lang === "zh" ? "杠杆 ETF 和期权不进入当前人工复核流程。" : "Leveraged ETFs and options are outside the current manual-review scope." },
   ];
-  const reasons = checks.filter((check) => !check.ok).map((check) => `${check.label}: ${check.value}`);
+  const reasons = checks.filter((check) => !check.ok).map((check) => check.reason);
   const status: ManualTradeTicket["status"] = reasons.length ? "blocked" : hasJournalToday ? "cleared_for_review" : "journal_required";
   return {
     status,
     title: text.manualTradeTicket,
     summary:
       status === "blocked"
-        ? "This symbol is not a real-money buy candidate under the Monday pilot rules."
+        ? (lang === "zh" ? "当前不满足人工交易条件。请先处理下方原因，并在美股常规交易时段重新检查。" : "This symbol does not currently meet the conditions for a manual trade. Review the reasons below during regular market hours.")
         : status === "journal_required"
-          ? "All ticket checks are clear, but a journal record is required before any manual entry."
-          : "Ticket checks are clear for manual review. This still does not place or recommend an automatic order.",
+          ? (lang === "zh" ? "交易计划已完整，但仍需先保存交易日志。" : "The trade plan is complete, but a journal entry is still required.")
+          : (lang === "zh" ? "交易条件已通过人工复核；KQUANT 不会连接券商或代替你下单。" : "The conditions are ready for manual review; KQUANT does not connect to a broker or place orders."),
     checks,
     action: decision?.action ?? selected.trade_conclusion?.action ?? "DO_NOT_BUY",
     entryZone: decision?.entry_zone ?? "-",
@@ -6924,6 +5433,10 @@ function formatNumber(value: number | null | undefined) {
   return value.toFixed(value > 50 ? 2 : 1);
 }
 
+function formatPrice(value: number | null | undefined): string {
+  return value == null || !Number.isFinite(value) ? "-" : `$${value.toFixed(2)}`;
+}
+
 function formatSigned(value: number | null | undefined) {
   if (value === undefined || value === null || Number.isNaN(value)) return "-";
   return `${value > 0 ? "+" : ""}${formatNumber(value)}`;
@@ -6949,34 +5462,12 @@ function money(value: number | null | undefined) {
   return `$${value.toFixed(value > 100 ? 0 : 2)}`;
 }
 
-function formatCandleTime(
-  candle: Candle | undefined,
-  timeZone: DisplayTimezone = "Asia/Shanghai",
-  withDate = false,
-) {
+function formatCandleTime(candle: Candle | undefined, timeZone: DisplayTimezone = "Asia/Shanghai") {
   if (!candle) return "";
-  if (candle.open_time) return formatDateTimeUtc8(candle.open_time, { timeZone, withDate });
+  if (candle.open_time) return formatDateTimeUtc8(candle.open_time, { timeZone });
   const seconds = Number(candle.time);
   if (!Number.isFinite(seconds)) return "";
-  return formatDateTimeUtc8(seconds * 1000, { timeZone, withDate });
-}
-
-function chartTimeToDate(time: Time): Date | null {
-  if (typeof time === "number") return new Date(time * 1000);
-  if (typeof time === "string") {
-    const parsed = new Date(time);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-  if (time && typeof time === "object" && "year" in time && "month" in time && "day" in time) {
-    return new Date(Date.UTC(Number(time.year), Number(time.month) - 1, Number(time.day)));
-  }
-  return null;
-}
-
-function formatChartTime(time: Time, options: { withDate: boolean; timeZone?: DisplayTimezone }) {
-  const date = chartTimeToDate(time);
-  if (!date) return String(time);
-  return formatDateTimeUtc8(date, options);
+  return formatDateTimeUtc8(seconds * 1000, { timeZone });
 }
 
 function formatDateTimeUtc8(

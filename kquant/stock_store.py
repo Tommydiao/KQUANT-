@@ -16,15 +16,35 @@ CREATE TABLE IF NOT EXISTS stock_universe (
   active INTEGER NOT NULL DEFAULT 1,
   updated_at TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS strategy_versions (
-  profile TEXT NOT NULL,
-  strategy_version TEXT NOT NULL,
-  config_hash TEXT NOT NULL,
-  lifecycle TEXT NOT NULL,
-  config_json TEXT NOT NULL,
-  created_at TEXT NOT NULL,
-  PRIMARY KEY (profile, strategy_version, config_hash)
+CREATE TABLE IF NOT EXISTS stock_universe_snapshots (
+  universe TEXT NOT NULL,
+  as_of_date TEXT NOT NULL,
+  definition_hash TEXT NOT NULL,
+  membership_count INTEGER NOT NULL,
+  source TEXT NOT NULL,
+  recorded_at TEXT NOT NULL,
+  PRIMARY KEY (universe, as_of_date, definition_hash)
 );
+CREATE INDEX IF NOT EXISTS idx_stock_universe_snapshots_date
+ON stock_universe_snapshots(universe, as_of_date);
+CREATE TABLE IF NOT EXISTS stock_universe_memberships (
+  universe TEXT NOT NULL,
+  as_of_date TEXT NOT NULL,
+  definition_hash TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  name TEXT NOT NULL,
+  sector TEXT NOT NULL,
+  layer TEXT NOT NULL,
+  tags_json TEXT NOT NULL,
+  rank INTEGER NOT NULL,
+  liquidity_tier TEXT NOT NULL,
+  recorded_at TEXT NOT NULL,
+  PRIMARY KEY (universe, as_of_date, definition_hash, symbol),
+  FOREIGN KEY (universe, as_of_date, definition_hash)
+    REFERENCES stock_universe_snapshots(universe, as_of_date, definition_hash)
+);
+CREATE INDEX IF NOT EXISTS idx_stock_universe_memberships_lookup
+ON stock_universe_memberships(universe, as_of_date, symbol);
 CREATE TABLE IF NOT EXISTS stock_candles (
   symbol TEXT NOT NULL,
   interval TEXT NOT NULL,
@@ -40,11 +60,71 @@ CREATE TABLE IF NOT EXISTS stock_candles (
   created_at TEXT NOT NULL,
   PRIMARY KEY (symbol, interval, open_time, source)
 );
+CREATE TABLE IF NOT EXISTS market_candles (
+  symbol TEXT NOT NULL,
+  interval TEXT NOT NULL,
+  open_time TEXT NOT NULL,
+  adjustment_mode TEXT NOT NULL,
+  dataset_version TEXT NOT NULL,
+  primary_source TEXT NOT NULL,
+  provider_symbol TEXT NOT NULL,
+  provider_status TEXT NOT NULL,
+  freshness_seconds INTEGER NOT NULL,
+  bar_state TEXT NOT NULL,
+  open REAL NOT NULL,
+  high REAL NOT NULL,
+  low REAL NOT NULL,
+  close REAL NOT NULL,
+  volume REAL NOT NULL,
+  fetched_at TEXT NOT NULL,
+  first_seen_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (symbol, interval, open_time, adjustment_mode, dataset_version)
+);
+CREATE INDEX IF NOT EXISTS idx_market_candles_lookup
+ON market_candles(symbol, interval, open_time DESC);
+CREATE TABLE IF NOT EXISTS market_candle_observations (
+  symbol TEXT NOT NULL,
+  interval TEXT NOT NULL,
+  open_time TEXT NOT NULL,
+  adjustment_mode TEXT NOT NULL,
+  dataset_version TEXT NOT NULL,
+  source TEXT NOT NULL,
+  provider_symbol TEXT NOT NULL,
+  provider_status TEXT NOT NULL,
+  freshness_seconds INTEGER NOT NULL,
+  bar_state TEXT NOT NULL,
+  open REAL NOT NULL,
+  high REAL NOT NULL,
+  low REAL NOT NULL,
+  close REAL NOT NULL,
+  volume REAL NOT NULL,
+  fetched_at TEXT NOT NULL,
+  PRIMARY KEY (symbol, interval, open_time, adjustment_mode, dataset_version, source)
+);
+CREATE TABLE IF NOT EXISTS corporate_action_events (
+  symbol TEXT NOT NULL,
+  effective_time TEXT NOT NULL,
+  interval TEXT NOT NULL,
+  adjustment_mode TEXT NOT NULL,
+  dataset_version TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  price_ratio REAL NOT NULL,
+  source TEXT NOT NULL,
+  status TEXT NOT NULL,
+  details_json TEXT NOT NULL,
+  detected_at TEXT NOT NULL,
+  PRIMARY KEY (symbol, effective_time, interval, adjustment_mode, dataset_version, action_type)
+);
+CREATE INDEX IF NOT EXISTS idx_corporate_action_events_symbol_time
+ON corporate_action_events(symbol, effective_time DESC);
 CREATE TABLE IF NOT EXISTS stock_signal_runs (
   run_id TEXT PRIMARY KEY,
   source TEXT NOT NULL,
   universe TEXT NOT NULL,
   profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   started_at TEXT NOT NULL,
   completed_at TEXT NOT NULL,
   provider_status TEXT NOT NULL,
@@ -56,6 +136,8 @@ CREATE TABLE IF NOT EXISTS stock_signal_runs (
 CREATE TABLE IF NOT EXISTS stock_signals (
   run_id TEXT NOT NULL,
   symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   score REAL NOT NULL,
   level TEXT NOT NULL,
   trend_summary TEXT NOT NULL,
@@ -72,11 +154,33 @@ CREATE TABLE IF NOT EXISTS stock_features (
   symbol TEXT NOT NULL,
   feature_time TEXT NOT NULL,
   profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   features_json TEXT NOT NULL,
   data_status_json TEXT NOT NULL,
   created_at TEXT NOT NULL,
   PRIMARY KEY (run_id, symbol)
 );
+CREATE TABLE IF NOT EXISTS factor_definitions (
+  factor_id TEXT NOT NULL,
+  registry_version TEXT NOT NULL,
+  definition_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (factor_id, registry_version)
+);
+CREATE TABLE IF NOT EXISTS factor_snapshots (
+  snapshot_hash TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  strategy_config_hash TEXT NOT NULL,
+  as_of_time TEXT NOT NULL,
+  registry_version TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_factor_snapshots_symbol_time
+ON factor_snapshots(symbol, as_of_time DESC);
 CREATE TABLE IF NOT EXISTS stock_labels (
   run_id TEXT NOT NULL,
   symbol TEXT NOT NULL,
@@ -93,6 +197,8 @@ CREATE TABLE IF NOT EXISTS stock_labels (
 CREATE TABLE IF NOT EXISTS stock_backtest_runs (
   run_id TEXT PRIMARY KEY,
   profile TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   sample_count INTEGER NOT NULL,
   win_rate_5d REAL NOT NULL,
   avg_forward_return_5d REAL NOT NULL,
@@ -137,6 +243,17 @@ CREATE TABLE IF NOT EXISTS ai_action_outcomes (
   evaluated_at TEXT NOT NULL,
   PRIMARY KEY (event_key, horizon_bars)
 );
+CREATE TABLE IF NOT EXISTS ai_decision_cache (
+  cache_key TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  model TEXT NOT NULL,
+  material_state_hash TEXT NOT NULL,
+  response_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ai_decision_cache_lookup
+ON ai_decision_cache(symbol, profile, model, material_state_hash, created_at DESC);
 CREATE TABLE IF NOT EXISTS strategy_validation_runs (
   run_id TEXT PRIMARY KEY,
   profile TEXT NOT NULL,
@@ -149,14 +266,58 @@ CREATE TABLE IF NOT EXISTS strategy_validation_runs (
   max_drawdown_r REAL NOT NULL,
   confidence_low REAL NOT NULL,
   confidence_high REAL NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   payload_json TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS strategy_validation_datasets (
+  dataset_id TEXT PRIMARY KEY,
+  evidence_source TEXT NOT NULL,
+  policy_version TEXT NOT NULL,
+  universe TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  symbols_json TEXT NOT NULL,
+  config_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS strategy_validation_trades (
+  trade_id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL,
+  dataset_id TEXT NOT NULL,
+  evidence_source TEXT NOT NULL,
+  policy_version TEXT NOT NULL,
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
+  profile TEXT NOT NULL,
+  action TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  signal_time TEXT NOT NULL,
+  entry_time TEXT,
+  exit_time TEXT,
+  split_name TEXT NOT NULL,
+  market_regime TEXT NOT NULL,
+  sector TEXT NOT NULL,
+  stock_layer TEXT NOT NULL,
+  volatility_bucket TEXT NOT NULL,
+  data_source TEXT NOT NULL,
+  outcome TEXT NOT NULL,
+  realized_r REAL NOT NULL,
+  target_first INTEGER NOT NULL,
+  stop_first INTEGER NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_strategy_validation_trades_action
+ON strategy_validation_trades(evidence_source, profile, action, signal_time);
 CREATE TABLE IF NOT EXISTS stock_signal_journal (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   run_id TEXT NOT NULL,
   symbol TEXT NOT NULL,
   strategy_profile TEXT NOT NULL DEFAULT '',
+  strategy_version TEXT NOT NULL DEFAULT 'legacy_unversioned',
+  strategy_config_hash TEXT NOT NULL DEFAULT '',
   rule_conclusion TEXT NOT NULL DEFAULT '',
   ai_review_verdict TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL,
@@ -170,6 +331,17 @@ CREATE TABLE IF NOT EXISTS stock_signal_journal (
 );
 CREATE INDEX IF NOT EXISTS idx_stock_signal_journal_symbol_time
 ON stock_signal_journal(symbol, reviewed_at DESC);
+CREATE TABLE IF NOT EXISTS strategy_versions (
+  strategy_id TEXT NOT NULL,
+  strategy_version TEXT PRIMARY KEY,
+  profile_name TEXT NOT NULL,
+  config_hash TEXT NOT NULL,
+  config_json TEXT NOT NULL,
+  specification_path TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_strategy_versions_id_hash
+ON strategy_versions(strategy_id, config_hash);
 CREATE TABLE IF NOT EXISTS provider_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   provider TEXT NOT NULL,
@@ -179,12 +351,353 @@ CREATE TABLE IF NOT EXISTS provider_events (
   message TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS market_calendar_cache (
+  market_date TEXT PRIMARY KEY,
+  is_trading_day INTEGER NOT NULL,
+  is_half_day INTEGER NOT NULL,
+  source TEXT NOT NULL,
+  regular_open_utc TEXT,
+  regular_close_utc TEXT,
+  updated_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_type TEXT NOT NULL,
   payload_json TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS strategy_freezes (
+  strategy_version TEXT PRIMARY KEY,
+  strategy_id TEXT NOT NULL,
+  profile_name TEXT NOT NULL,
+  strategy_config_hash TEXT NOT NULL,
+  validation_fingerprint TEXT NOT NULL,
+  evidence_score REAL NOT NULL,
+  status TEXT NOT NULL,
+  manifest_json TEXT NOT NULL,
+  frozen_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS decision_ledger (
+  ledger_id TEXT PRIMARY KEY,
+  signal_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  data_snapshot_json TEXT NOT NULL,
+  system_decision_json TEXT NOT NULL,
+  user_decision TEXT NOT NULL,
+  entry_plan_json TEXT NOT NULL,
+  veto_status TEXT NOT NULL,
+  final_execution TEXT NOT NULL,
+  outcome TEXT NOT NULL,
+  outcome_r REAL,
+  error_owner TEXT NOT NULL,
+  lesson TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_decision_ledger_symbol_time
+ON decision_ledger(symbol, created_at DESC);
+CREATE TABLE IF NOT EXISTS manual_trade_journal (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ledger_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  plan_followed INTEGER,
+  actual_entry REAL,
+  actual_exit REAL,
+  result_r REAL,
+  emotion TEXT NOT NULL,
+  screenshot_ref TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  review TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_manual_trade_journal_ledger
+ON manual_trade_journal(ledger_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS scheduled_task_runs (
+  run_id TEXT PRIMARY KEY,
+  task_name TEXT NOT NULL,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  completed_at TEXT NOT NULL,
+  attempt INTEGER NOT NULL,
+  detail_json TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_scheduled_task_runs_name_time
+ON scheduled_task_runs(task_name, started_at DESC);
+CREATE TABLE IF NOT EXISTS notification_events (
+  event_id TEXT PRIMARY KEY,
+  channel TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS operational_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_type TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  component TEXT NOT NULL,
+  message TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_operational_events_component_time
+ON operational_events(component, created_at DESC);
+CREATE TABLE IF NOT EXISTS backup_runs (
+  backup_id TEXT PRIMARY KEY,
+  backup_type TEXT NOT NULL,
+  path TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  version INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  applied_at TEXT NOT NULL,
+  rollback_note TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS forward_pilot_sessions (
+  session_id TEXT PRIMARY KEY,
+  strategy_version TEXT NOT NULL,
+  strategy_config_hash TEXT NOT NULL,
+  universe_name TEXT NOT NULL,
+  universe_snapshot_hash TEXT NOT NULL,
+  validation_fingerprint TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  status TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT,
+  rules_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  closed_at TEXT
+);
+CREATE TABLE IF NOT EXISTS forward_pilot_days (
+  session_id TEXT NOT NULL,
+  market_date TEXT NOT NULL,
+  phase TEXT NOT NULL,
+  preflight_json TEXT NOT NULL,
+  scan_json TEXT NOT NULL,
+  close_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (session_id, market_date)
+);
+CREATE TABLE IF NOT EXISTS forward_pilot_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  market_date TEXT NOT NULL,
+  signal_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  rank INTEGER NOT NULL,
+  level TEXT NOT NULL,
+  data_status TEXT NOT NULL,
+  veto_status TEXT NOT NULL,
+  plan_json TEXT NOT NULL,
+  snapshot_json TEXT NOT NULL,
+  trigger_status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_forward_pilot_candidates_session_date
+ON forward_pilot_candidates(session_id, market_date, rank);
+CREATE TABLE IF NOT EXISTS forward_pilot_outcomes (
+  candidate_id TEXT PRIMARY KEY,
+  outcome_status TEXT NOT NULL,
+  triggered_at TEXT,
+  completed_at TEXT,
+  entry_price REAL,
+  exit_price REAL,
+  realized_r REAL,
+  deviation_json TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS paper_simulation_accounts (
+  account_id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL UNIQUE,
+  initial_cash REAL NOT NULL,
+  cash REAL NOT NULL,
+  risk_per_trade_pct REAL NOT NULL,
+  max_positions INTEGER NOT NULL,
+  max_daily_risk_pct REAL NOT NULL,
+  no_averaging INTEGER NOT NULL,
+  no_chasing INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS paper_simulation_positions (
+  position_id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL,
+  candidate_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  entry_time TEXT NOT NULL,
+  entry_price REAL NOT NULL,
+  shares INTEGER NOT NULL,
+  stop_price REAL NOT NULL,
+  target_price REAL NOT NULL,
+  entry_plan_high REAL,
+  status TEXT NOT NULL,
+  exit_time TEXT,
+  exit_price REAL,
+  realized_r REAL,
+  notes TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_paper_positions_account_status
+ON paper_simulation_positions(account_id, status, entry_time);
+CREATE TABLE IF NOT EXISTS trade_instructions (
+  instruction_id TEXT PRIMARY KEY,
+  dedupe_key TEXT NOT NULL UNIQUE,
+  symbol TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  trigger_version TEXT NOT NULL,
+  state TEXT NOT NULL,
+  action TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  material_state_hash TEXT NOT NULL,
+  quote_time TEXT,
+  data_source TEXT NOT NULL,
+  expires_at TEXT,
+  plan_json TEXT NOT NULL,
+  evidence_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_trade_instructions_current
+ON trade_instructions(state, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_trade_instructions_symbol
+ON trade_instructions(symbol, updated_at DESC);
+CREATE TABLE IF NOT EXISTS alert_events (
+  alert_id TEXT PRIMARY KEY,
+  instruction_id TEXT,
+  dedupe_key TEXT NOT NULL UNIQUE,
+  symbol TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  delivery_status TEXT NOT NULL,
+  acknowledged_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_alert_events_unread
+ON alert_events(acknowledged_at, created_at DESC);
+CREATE TABLE IF NOT EXISTS web_push_subscriptions (
+  subscription_id TEXT PRIMARY KEY,
+  endpoint TEXT NOT NULL UNIQUE,
+  endpoint_hash TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  user_agent TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  failure_count INTEGER NOT NULL DEFAULT 0,
+  last_success_at TEXT,
+  last_failure_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_web_push_subscriptions_enabled
+ON web_push_subscriptions(enabled, updated_at DESC);
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  preference_id TEXT PRIMARY KEY,
+  web_push_enabled INTEGER NOT NULL DEFAULT 1,
+  quiet_start TEXT NOT NULL DEFAULT '22:30',
+  quiet_end TEXT NOT NULL DEFAULT '08:00',
+  timezone TEXT NOT NULL DEFAULT 'Asia/Shanghai',
+  daily_routine_limit INTEGER NOT NULL DEFAULT 5,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS alert_delivery_attempts (
+  attempt_id TEXT PRIMARY KEY,
+  alert_id TEXT,
+  subscription_id TEXT NOT NULL,
+  channel TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  attempt INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_alert_delivery_attempts_time
+ON alert_delivery_attempts(channel, status, created_at DESC);
+CREATE TABLE IF NOT EXISTS option_contract_snapshots (
+  snapshot_id TEXT PRIMARY KEY,
+  contract_symbol TEXT NOT NULL,
+  underlying_symbol TEXT NOT NULL,
+  expiry_date TEXT NOT NULL,
+  strike_price REAL NOT NULL,
+  direction TEXT NOT NULL,
+  is_standard INTEGER NOT NULL,
+  bid REAL,
+  ask REAL,
+  last REAL,
+  mid REAL,
+  spread_pct REAL,
+  implied_volatility REAL,
+  historical_volatility REAL,
+  open_interest INTEGER NOT NULL,
+  volume INTEGER NOT NULL,
+  delta REAL,
+  gamma REAL,
+  theta REAL,
+  vega REAL,
+  rho REAL,
+  quote_time TEXT,
+  provider_status TEXT NOT NULL,
+  source TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_option_snapshots_contract_time
+ON option_contract_snapshots(contract_symbol, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_option_snapshots_underlying_time
+ON option_contract_snapshots(underlying_symbol, created_at DESC);
+CREATE TABLE IF NOT EXISTS option_expression_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  instruction_id TEXT NOT NULL,
+  contract_symbol TEXT NOT NULL,
+  underlying_symbol TEXT NOT NULL,
+  expression_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  score REAL NOT NULL,
+  max_loss REAL NOT NULL,
+  breakeven REAL NOT NULL,
+  rationale_json TEXT NOT NULL,
+  snapshot_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_option_candidates_instruction
+ON option_expression_candidates(instruction_id, score DESC);
+CREATE TABLE IF NOT EXISTS option_paper_observations (
+  observation_id TEXT PRIMARY KEY,
+  candidate_id TEXT NOT NULL,
+  contract_symbol TEXT NOT NULL,
+  underlying_symbol TEXT NOT NULL,
+  contracts INTEGER NOT NULL,
+  entry_time TEXT NOT NULL,
+  entry_price REAL NOT NULL,
+  entry_underlying_price REAL NOT NULL,
+  max_loss REAL NOT NULL,
+  status TEXT NOT NULL,
+  exit_time TEXT,
+  exit_price REAL,
+  exit_underlying_price REAL,
+  realized_pnl REAL,
+  realized_return_pct REAL,
+  exit_reason TEXT,
+  notes TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_option_observations_status
+ON option_paper_observations(status, entry_time DESC);
 """
 
 
@@ -193,40 +706,79 @@ def default_db_path(root: Path | None = None) -> Path:
     return base / "work" / "kquant_us.sqlite3"
 
 
-def connect(db_path: Path) -> sqlite3.Connection:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-    _ensure_columns(
-        conn,
-        "stock_signal_journal",
-        {
-            "strategy_profile": "TEXT NOT NULL DEFAULT ''",
-            "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
-            "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
-        },
-    )
-    version_columns = {
-        "strategy_version": "TEXT NOT NULL DEFAULT ''",
+LEGACY_COLUMN_PATCHES: dict[str, dict[str, str]] = {
+    "stock_signal_journal": {
+        "strategy_profile": "TEXT NOT NULL DEFAULT ''",
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
         "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
-    }
-    for table in (
-        "stock_signal_runs",
-        "stock_signals",
-        "stock_features",
-        "stock_labels",
-        "stock_backtest_runs",
-        "ai_action_events",
-        "strategy_validation_runs",
-    ):
-        _ensure_columns(conn, table, version_columns)
+        "rule_conclusion": "TEXT NOT NULL DEFAULT ''",
+        "ai_review_verdict": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_signal_runs": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_signals": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_features": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "stock_backtest_runs": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "strategy_validation_runs": {
+        "dataset_id": "TEXT NOT NULL DEFAULT ''",
+        "evidence_source": "TEXT NOT NULL DEFAULT 'prospective_llm_actions'",
+        "policy_version": "TEXT NOT NULL DEFAULT ''",
+        "config_version": "TEXT NOT NULL DEFAULT ''",
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+    "strategy_validation_trades": {
+        "strategy_version": "TEXT NOT NULL DEFAULT 'legacy_unversioned'",
+        "strategy_config_hash": "TEXT NOT NULL DEFAULT ''",
+    },
+}
+
+
+def initialize_legacy_schema(conn: sqlite3.Connection) -> None:
+    """Apply the legacy v1 schema only from the explicit migration runner."""
+
+    conn.execute("PRAGMA journal_mode=WAL")
+    statements = SCHEMA.replace("PRAGMA journal_mode=WAL;", "", 1)
+    conn.executescript(f"BEGIN IMMEDIATE;\n{statements}\nCOMMIT;")
+    for table, columns in LEGACY_COLUMN_PATCHES.items():
+        _ensure_columns(conn, table, columns, commit=False)
+    conn.commit()
+
+
+def connect(db_path: Path) -> sqlite3.Connection:
+    """Return a compatibility connection after the explicit migration ledger is current."""
+
+    from .db.migrations import apply_sqlite_migrations
+
+    db_path = Path(db_path)
+    apply_sqlite_migrations(db_path)
+    conn = sqlite3.connect(str(db_path), timeout=15)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 
-def _ensure_columns(conn: sqlite3.Connection, table: str, columns: dict[str, str]) -> None:
+def _ensure_columns(
+    conn: sqlite3.Connection,
+    table: str,
+    columns: dict[str, str],
+    *,
+    commit: bool = True,
+) -> None:
     existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
     for name, definition in columns.items():
         if name not in existing:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
-    conn.commit()
+    if commit:
+        conn.commit()

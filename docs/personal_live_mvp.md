@@ -1,79 +1,106 @@
 # KQUANT Personal Live MVP
 
-Status: Day 2 scope freeze
+Status: scope frozen for the 84-day plan
 
-## Purpose
+## Product definition
 
-KQUANT is a private, read-only decision-support system for one human trader.
-It may produce research signals and a trade plan, but it never accesses an
-account, reads positions, submits an order, or promises a return.
+KQUANT is a decision-support terminal for one owner who manually trades
+long-only US stocks and ETFs. Its job is to make a candidate review repeatable:
+show reliable market data, apply a fixed rule set, expose uncertainty, define
+entry/stop/target, and keep a journal.
 
-## In Scope
+`Live` in this document means the owner may use the research to make a manual
+trade in a separate brokerage application. It does **not** mean KQUANT connects
+to a brokerage account, reads holdings, or submits an order.
 
-- Market: liquid US-listed stocks and ETFs only.
-- Direction: long-only.
-- Active validation strategy: `swing_long_v1`.
-- Intended holding period: approximately one week to two months.
-- Decision timeframes: daily trend with a completed 1-hour confirmation bar.
-- Primary data: Longbridge read-only US quote and candle data.
-- Reference-only data: Yahoo public chart data. It may be displayed with an
-  explicit label but cannot support a real-money BUY decision.
-- Execution: manual in the trader's own broker application.
-- Record keeping: a pre-trade and post-trade journal entry for every manual
-  trade or explicit skip.
+## Target user
 
-## Standard User Flow
+- One experienced owner, operating locally on a trusted Windows computer.
+- US listed stocks and ETFs only; long positions only.
+- Primary holding window: approximately one week, with a fixed daily-trend and
+  1-hour confirmation workflow.
+- The user remains responsible for position size, order placement, and every
+  execution decision.
 
-1. Start KQUANT and run the local self-check.
-2. Confirm Longbridge data is available, fresh, and in the regular session.
-3. Generate or open the current daily shortlist for `swing_long_v1`.
-4. Open one symbol and review the completed daily and 1-hour bars.
-5. Review the deterministic entry, stop, target, invalidation, risk/reward,
-   and data-quality state.
-6. Treat AI output as a structured research plan. The hard-veto result wins
-   over an AI recommendation.
-7. Save the journal plan before making any manual order outside KQUANT.
-8. Record the outcome and any plan deviation after the position is closed.
+## Daily workflow
 
-## No Trade Conditions
+The main workflow has six steps. A blocked step ends the workflow; it never
+falls through to a trade suggestion.
 
-The correct decision is `NO TRADE` when any condition below is true:
+1. **Start and self-check**: open KQUANT, confirm database write access,
+   Longbridge credentials/SDK/quote entitlement, market calendar, and the
+   read-only route scan. Secrets are reported only as configured or missing.
+2. **Establish market state**: read regular-session status, SPY/QQQ/IWM/VIX
+   regime, provider health, and the market-data trust label. `DATA_CAUTION` or
+   `RISK_OFF` blocks new long review.
+3. **Scan the frozen universe**: run the canonical `swing_long_v1.1.0` scan on
+   the point-in-time eligible universe. Use Longbridge closed daily and 1-hour
+   bars for any candidate that could advance.
+4. **Review one candidate**: check the rule level, score components, price and
+   BBO freshness, daily/1-hour structure, entry/stop/target, R:R, historical
+   evidence, hard veto, and AI explanation. AI is context, never permission.
+5. **Decide and journal**: if every gate is clear, save the entry, stop,
+   target, invalidation, and decision note in KQUANT. Any execution then occurs
+   manually outside KQUANT. Otherwise record `watch`, `skipped`, or
+   `paper-observed`.
+6. **Close the loop**: update the journal with outcome and reason, inspect data
+   incidents, and review whether the action behaved as the recorded plan said.
 
-- Longbridge is unavailable, stale, lacks US quote entitlement, or returns a
-  partial/invalid response.
-- The decision uses Yahoo/reference-only data rather than fresh Longbridge
-  data.
-- A required daily or 1-hour candle is forming, missing, stale, or outside the
-  documented trading-session contract.
-- The active strategy version, data snapshot, entry, stop, target, or
-  invalidation is missing.
-- A hard veto is active: provider failure, severe staleness, market risk
-  block, unacceptable volatility/liquidity, or incomplete plan.
-- Historical evidence is marked insufficient or limited for a real-money
-  decision.
-- The journal entry has not been saved.
+## Required MVP capabilities
 
-## Explicitly Excluded
+- A point-in-time US stock/ETF universe with an auditable membership history.
+- Longbridge quote, BBO, daily bars, and 1-hour bars with explicit freshness,
+  session, source, and candle-completion state.
+- Clearly marked Yahoo reference fallback that hard-vetoes new buy-class action.
+- One versioned deterministic strategy: `swing_long_v1.1.0`.
+- Market-regime, data-quality, liquidity, risk/reward, and historical-evidence
+  gates that cannot be bypassed by AI.
+- Entry, stop, target, invalidation, position-risk guidance, and a manual
+  journal. These are research plans, not executable orders.
+- Historical policy replay and prospective AI-action evidence reported as two
+  separate datasets.
+- A repeatable local verification command and CI with no real credentials.
 
-- Options, leveraged ETFs, short selling, crypto, MSTR-specific expansion,
-  account/position reads, broker order APIs, paper execution, and automatic
-  execution.
-- The frozen profiles `tactical_1w_v1`, `swing_1_2m_v1`, `position_6m_v1`,
-  `cycle_1_3y_v1`, and `high_beta_growth_v1` are visible legacy research
-  modules only. They are not part of formal validation or the Personal Live
-  MVP decision path.
+## Explicitly paused
 
-## MVP Acceptance Criteria
+- Automated, broker, account, position, portfolio, or order APIs.
+- Options, short sales, leverage, margin, crypto assets, and crypto exchanges.
+- MSTR/BTC or other underlying-crypto special research paths.
+- Additional strategy profiles, new indicator families, social/community
+  features, mobile apps, and unrelated visual redesign.
+- AI agents that create data, alter scores, override vetoes, or execute trades.
 
-The MVP is ready to begin forward observation, not real-money trading, only
-when all of the following are true:
+## MVP release conditions
 
-- Every reviewed symbol has a fresh Longbridge primary-data record with
-  provider lineage and bar state.
-- Every signal references an immutable strategy version and configuration hash.
-- The validation suite, frontend build, runtime self-check, and secret scan
-  pass from one command.
-- The system can produce and retain a complete journal record without an order
-  integration.
-- The trader can identify a clear `NO TRADE` reason without reading internal
-  implementation diagnostics.
+The research terminal may be used for paper-observed work only when all of the
+following are true:
+
+- the current strategy version, data contract, and source policy are published;
+- the route boundary scan, test suite, and production frontend build pass in a
+  freshly created local environment;
+- Longbridge health, calendar, quote, and depth are verified without exposing
+  credentials;
+- every buy-class candidate uses clean Longbridge data, closed confirmation
+  bars, a regular US session, and a hard-veto-clear market state;
+- the journal can record a complete plan and outcome; and
+- historical and prospective evidence are visibly labelled as different
+  evidence chains.
+
+## Not a real-money release condition
+
+No manual real-money use is approved merely because the UI shows a `BUY`,
+`WATCH`, or AI action. It remains blocked until the later Go/No-Go gates in the
+84-day plan are met, including reproducible validation, at least 100 completed
+historical samples, positive out-of-sample expectancy after costs, acceptable
+drawdown, and at least 15 full forward/paper trading days without a safety or
+data-integrity failure.
+
+## Current alignment gaps
+
+- The implementation still exposes legacy profile names alongside
+  `swing_long_v1`; the user-facing and validation default must converge on the
+  canonical version after the version registry exists.
+- Some legacy copy in the signal module mentions options even though no options
+  route exists. That copy must be removed during scope-alignment cleanup.
+- The local Python environment must be restored before any capability is
+  accepted as currently verified.

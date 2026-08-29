@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import math
+import random
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Iterable
+
+from .execution_costs import execution_cost_parameters
 
 
 UTC = timezone.utc
@@ -119,6 +122,40 @@ def evaluate_long_trade(
     }
 
 
+def evaluate_long_trade_scenarios(
+    candles: list[dict[str, Any]],
+    signal_index: int,
+    stop_price: float,
+    target_price: float,
+    horizon_bars: int,
+    *,
+    average_dollar_volume: float,
+) -> dict[str, dict[str, Any]]:
+    entry_index = signal_index + 1
+    entry_price = _number(candles[entry_index].get("open")) if entry_index < len(candles) else 0.0
+    results: dict[str, dict[str, Any]] = {}
+    for scenario in ("optimistic", "baseline", "conservative"):
+        costs = execution_cost_parameters(
+            scenario=scenario,
+            price=entry_price,
+            average_dollar_volume=average_dollar_volume,
+        )
+        outcome = evaluate_long_trade(
+            candles,
+            signal_index,
+            stop_price,
+            target_price,
+            horizon_bars,
+            BacktestConfig(
+                commission_bps_per_side=float(costs["commission_bps_per_side"]),
+                slippage_bps_per_side=float(costs["slippage_bps_per_side"]),
+            ),
+        )
+        outcome["execution_costs"] = costs
+        results[scenario] = outcome
+    return results
+
+
 def wilson_interval(wins: int, samples: int, z: float = 1.96) -> tuple[float, float]:
     if samples <= 0:
         return 0.0, 0.0
@@ -129,16 +166,66 @@ def wilson_interval(wins: int, samples: int, z: float = 1.96) -> tuple[float, fl
     return max(0.0, center - margin), min(1.0, center + margin)
 
 
-def walk_forward_split(items: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+def walk_forward_split(
+    items: list[dict[str, Any]],
+    embargo_bars: int = 0,
+) -> dict[str, list[dict[str, Any]]]:
+    """Split by trading date, keeping every symbol from a date in one partition.
+
+    The embargo is expressed in distinct signal dates, not row count. This avoids
+    cross-symbol leakage and removes labels close to a partition boundary.
+    """
+
     ordered = sorted(items, key=lambda item: str(item.get("signal_time") or item.get("created_at") or ""))
-    total = len(ordered)
-    train_end = int(total * 0.6)
-    validation_end = int(total * 0.8)
+    by_date: dict[str, list[dict[str, Any]]] = {}
+    for item in ordered:
+        value = str(item.get("signal_time") or item.get("created_at") or "")
+        if len(value) > 10 and value[10] not in {"T", " "}:
+            by_date.setdefault(value, []).append(item)
+            continue
+        candidate = value[:10]
+        try:
+            date.fromisoformat(candidate)
+            partition_date = candidate
+        except ValueError:
+            # Preserve malformed fixture identifiers as distinct values rather
+            # than silently grouping an entire test/history into one date.
+            partition_date = value
+        by_date.setdefault(partition_date, []).append(item)
+    dates = sorted(by_date)
+    total_dates = len(dates)
+    train_end = int(total_dates * 0.6)
+    validation_end = int(total_dates * 0.8)
+    embargo = max(0, int(embargo_bars))
+    train_dates = dates[: max(0, train_end - embargo)]
+    validation_dates = dates[min(total_dates, train_end + embargo) : max(train_end, validation_end - embargo)]
+    test_dates = dates[min(total_dates, validation_end + embargo) :]
     return {
-        "train": ordered[:train_end],
-        "validation": ordered[train_end:validation_end],
-        "test": ordered[validation_end:],
+        "train": [item for date in train_dates for item in by_date[date]],
+        "validation": [item for date in validation_dates for item in by_date[date]],
+        "test": [item for date in test_dates for item in by_date[date]],
     }
+
+
+def bootstrap_mean_interval(
+    values: Iterable[float],
+    *,
+    samples: int = 2_000,
+    seed: int = 20260713,
+) -> tuple[float, float]:
+    data = [float(value) for value in values]
+    if not data:
+        return 0.0, 0.0
+    if len(data) == 1:
+        return data[0], data[0]
+    rng = random.Random(seed)
+    means = sorted(
+        sum(rng.choice(data) for _ in data) / len(data)
+        for _ in range(max(100, samples))
+    )
+    low_index = int((len(means) - 1) * 0.025)
+    high_index = int((len(means) - 1) * 0.975)
+    return means[low_index], means[high_index]
 
 
 def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
@@ -157,6 +244,7 @@ def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
         peak = max(peak, cumulative)
         max_drawdown_r = min(max_drawdown_r, cumulative - peak)
     low, high = wilson_interval(wins, samples)
+    expected_low, expected_high = bootstrap_mean_interval(values)
     evidence = "robust" if samples >= 100 else "limited" if samples >= 30 else "insufficient"
     return {
         "sample_count": samples,
@@ -171,6 +259,7 @@ def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "target_first_rate": round(sum(bool(item.get("target_first")) for item in completed) / samples * 100, 2) if samples else 0.0,
         "stop_first_rate": round(sum(bool(item.get("stop_first")) for item in completed) / samples * 100, 2) if samples else 0.0,
         "confidence_interval_95": [round(low * 100, 2), round(high * 100, 2)],
+        "expected_r_interval_95": [round(expected_low, 4), round(expected_high, 4)],
         "evidence_quality": evidence,
         "limited_evidence": samples < 100,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -178,14 +267,21 @@ def summarize_outcomes(outcomes: Iterable[dict[str, Any]]) -> dict[str, Any]:
 
 
 def summarize_by_dimensions(events: list[dict[str, Any]]) -> dict[str, Any]:
+    dimensions = (
+        "profile",
+        "action",
+        "market_regime",
+        "sector",
+        "stock_layer",
+        "volatility_bucket",
+        "data_source",
+        "split_name",
+    )
     result: dict[str, Any] = {}
-    for item in events:
-        key = "|".join(
-            [
-                str(item.get("profile") or "unknown"),
-                str(item.get("action") or "unknown"),
-                str(item.get("market_regime") or "unknown"),
-            ]
-        )
-        result.setdefault(key, []).append(item)
-    return {key: summarize_outcomes(items) for key, items in sorted(result.items())}
+    for dimension in dimensions:
+        buckets: dict[str, list[dict[str, Any]]] = {}
+        for item in events:
+            key = str(item.get(dimension) or "unknown")
+            buckets.setdefault(key, []).append(item)
+        result[dimension] = {key: summarize_outcomes(rows) for key, rows in sorted(buckets.items())}
+    return result

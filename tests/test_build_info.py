@@ -3,8 +3,8 @@ from __future__ import annotations
 import yaml
 from fastapi.testclient import TestClient
 
-from btc_eth_15m.dashboard.app import create_app
 from kquant.build_info import build_info
+from kquant.dashboard.app import create_app
 
 
 def test_build_info_uses_explicit_release_environment(monkeypatch) -> None:

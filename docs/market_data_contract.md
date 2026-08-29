@@ -1,67 +1,125 @@
-# KQUANT Market Data Contract
+# Market Data Contract
 
-Status: Day 4 data contract
+Status: contract frozen for the 84-day plan; implementation alignment follows
 
-## Provider Roles
+## Purpose
 
-| Provider | Role | Real-money eligibility |
-|---|---|---|
-| Longbridge read-only quote/candles | Primary US market-data source | Required for BUY-class research actions |
-| Longbridge stale cache | Recovery evidence only | Never sufficient for BUY |
-| Yahoo public chart | Reference-only historical fallback | Never sufficient for BUY |
-| Fixture data | Internal tests only | Never user-visible, never tradable |
+This contract separates data that may be displayed from data that may support a
+new manual long review. It protects KQUANT from silently treating delayed,
+fallback, incomplete, or mixed-source data as live trading evidence.
 
-KQUANT uses no account, position, or trading context from Longbridge.
+## Time and exchange contract
 
-## Time Contract
+- Backend timestamps use UTC ISO-8601 with an explicit offset.
+- The exchange timezone is `America/New_York`; the default display timezone is
+  `Asia/Shanghai`.
+- Trading days, regular open/close, early closes, weekends, holidays, and DST
+  are resolved from Longbridge when available and cached in SQLite. The
+  `exchange_calendars:XNYS` calendar is the deterministic fallback.
+- Session labels are `pre_market`, `regular`, `after_hours`, or `closed`.
+- Only the US `regular` session may support a fresh buy-class decision.
 
-- Storage time is UTC ISO-8601 with an explicit offset.
-- `open_time` is the start of the candle interval, not the publication time.
-- The exchange calendar is `America/New_York`; display defaults to
-  `Asia/Shanghai` while preserving a New York-time toggle in the UI.
-- The market clock handles US daylight saving time, weekends, published US
-  holidays, and documented early closes.
-- A naive provider timestamp is interpreted as UTC only when the provider
-  contract documents it as UTC. It is never silently treated as New York time.
+## Source precedence
 
-## Session and Candle State
+| Source/state | Display | Historical/reference research | New buy-class review |
+| --- | --- | --- | --- |
+| Longbridge quote + depth + closed Longbridge bars | Yes | Yes | Yes, if all freshness and session gates pass |
+| Longbridge closed-bar cache | Yes, marked stale | Yes, marked stale | No |
+| Yahoo public fallback | Yes, marked `yahoo_reference_only` | Reference only | No |
+| Fixture data | Tests only | Tests only | No |
+| Missing, malformed, or future-dated data | No conclusion | No | No |
 
-| State | Meaning | Eligible for signal generation |
-|---|---|---|
-| `live_quote` | Current quote with provider timestamp | Quote display only |
-| `forming_candle` | Current unclosed interval updated by quote | No |
-| `closed_candle` | Completed exchange interval | Yes |
-| `stale_longbridge_cache` | Previously real Longbridge data | No |
-| `yahoo_reference_only` | Public reference data | No |
-| `provider_failed` | Required response absent or invalid | No |
+KQUANT must never merge source families into a single unlabelled candle series.
+When Longbridge is configured as the primary provider, both daily and 1H bars
+for a buy-class candidate must be `longbridge_candles` and `available`.
 
-The current quote may update a forming 1-minute bar. A five-minute bar is
-formed by aggregating complete one-minute bars and must remain forming until
-its interval closes.
+## Quote and BBO contract
 
-## Freshness Rules
+- Quote fields are `last`, `bid`, `ask`, `bid_size`, `ask_size`, `spread`,
+  `spread_pct`, `quote_time`, and `freshness_seconds`.
+- BBO comes from Longbridge depth when the entitlement is available. Missing BBO
+  is a data-quality failure for a fresh buy-class review during regular hours.
+- During a regular session, a quote is fresh only at age `<= 15 seconds`.
+- A quote may update a visible forming 1-minute bar; it cannot close a bar or
+  confirm a strategy signal.
 
-- Quote freshness is evaluated against provider quote time, not browser time.
-- Regular-session quote freshness target is 15 seconds.
-- Maximum intraday bar lag for a live trigger is 180 seconds.
-- Provider status, source type, quote time, candle time, session, bar state,
-  and stale age are returned with every relevant API response.
-- Freshness failure applies the hard veto before any AI BUY-class action.
+## Candle contract
 
-## Price and Corporate Actions
+Each retrieved candle must carry, or be derivable with no ambiguity from, these
+fields:
 
-- Raw and adjusted series must never be mixed within one validation run.
-- The current implementation stores provider-returned OHLCV and source lineage;
-  explicit split/dividend adjustment policy and corporate-action processing are
-  Week 2 tasks, not assumed complete today.
-- A validation run must declare its adjustment convention and reject mixed
-  conventions.
+```text
+symbol, interval, open_time_utc, open, high, low, close, volume,
+source, provider_status, fetched_at_utc, freshness_seconds,
+bar_state, adjustment_mode, dataset_version
+```
 
-## Storage and Idempotency
+- `open_time_utc` is the opening time, not a rendered display label.
+- `bar_state` is `forming_candle` or `closed_candle`.
+- Forming candles can update the chart only. Features, classification, AI
+  packet state, validation signals, and backtests use closed candles only.
+- 5-minute candles are aggregates of their 1-minute components. A 5-minute bar
+  is closed only after all five component 1-minute bars are closed; partial
+  component counts remain forming.
+- Duplicate fetches must upsert the same logical observation. The target
+  canonical identity is `(symbol, interval, open_time_utc, adjustment_mode,
+  dataset_version)`. Provider/source observations remain traceable metadata,
+  not a reason to create unlabelled duplicate market bars.
+- Invalid OHLC (`low > high`, non-positive prices, non-finite values) or a
+  future timestamp is rejected and emits a provider event.
 
-- Candle identity is `(symbol, interval, open_time, source)`.
-- Writes are idempotent for an identical source/time candle.
-- Source lineage and provider status are retained; a stale cache is never
-  relabeled as live.
-- Signals and outcomes bind the data source plus immutable strategy version and
-  configuration hash.
+## Freshness and trust states
+
+`/api/stocks/realtime-snapshot` exposes one of these trust states:
+
+- `live_quote`: fresh Longbridge quote and available Longbridge intraday bars.
+- `stale_longbridge_cache`: a cached Longbridge observation is available but
+  cannot support new buy-class action.
+- `yahoo_reference_only`: public fallback/reference data only.
+- `unavailable`: no usable timely source.
+
+For intraday Longbridge bars, stale during a regular session means the most
+recent expected bar close is older than `max(2 * interval_seconds, 180 seconds)`.
+Outside regular hours, values are labelled `market_closed`, not live triggers.
+
+## Adjustment and corporate-action policy
+
+Until Day 11 implements company-action support, the provider adjustment mode
+must be explicitly persisted. A dataset may not mix adjusted and unadjusted
+prices. Any known split, dividend, symbol change, or unexplained discontinuity
+creates a `corporate_action_caution` state that blocks backtest comparisons and
+fresh strategy conclusions until reviewed.
+
+## Missing and degraded data
+
+The following produce `DATA_CAUTION` and hard-veto new buy-class action:
+
+- unavailable, stale, rate-limited, malformed, or future-dated required data;
+- no regular-session Longbridge quote/depth where a current decision is needed;
+- missing daily/1H history or a forming confirmation bar;
+- Longbridge failure followed by Yahoo reference fallback; and
+- database write failure for the requested data/audit event.
+
+The UI must state the source and reason. It must not invent values, substitute
+fixture data, or keep an old BUY conclusion without marking it stale.
+
+## Storage and audit requirements
+
+- SQLite stores raw candle payload fields, source, provider status, freshness,
+  fetched time, and data-quality events. The canonical `market_candles` table
+  is unique by `(symbol, interval, open_time_utc, adjustment_mode,
+  dataset_version)`; `market_candle_observations` retains every source's
+  observation without allowing a lower-priority fallback to overwrite a
+  Longbridge primary record.
+- Each signal, journal entry, validation run, and report references its market
+  dataset/version and strategy version.
+- Credential values never enter SQLite, API responses, logs, reports, or the
+  frontend bundle. Health checks report only configured/missing state.
+
+## Verification requirements
+
+Automated tests must cover DST, holiday, early close, session boundaries,
+forming/closed transitions, 1m-to-5m aggregation, quote freshness, source
+fallback, duplicate upsert, future timestamps, provider timeout, and database
+write failure. A real Longbridge smoke is manual and opt-in; regular CI uses
+mocks and no credentials.

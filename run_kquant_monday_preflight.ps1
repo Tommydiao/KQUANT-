@@ -61,7 +61,6 @@ function Start-KquantBackend {
     if ($missingLongbridge.Count -gt 0) {
       Write-Host "Monday Pilot requires Longbridge realtime market data." -ForegroundColor Red
       Write-Host "Missing: $($missingLongbridge -join ', ')" -ForegroundColor Yellow
-      Write-Host "Run .\KQUANT_SETUP_LONGBRIDGE.cmd first." -ForegroundColor Green
       throw "Monday preflight blocked: Longbridge credentials are missing."
     }
   }

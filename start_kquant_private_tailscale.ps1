@@ -5,7 +5,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Python = Join-Path $Root ".venv-win\Scripts\python.exe"
 $DashboardUrl = "http://127.0.0.1:$Port"
 
 function Import-LocalEnv {
@@ -51,15 +50,27 @@ function Get-TailscaleCli {
   return $null
 }
 
-if (-not (Test-Path $Python)) {
-  throw "Python runtime not found: $Python"
+function Get-PythonRuntime {
+  foreach ($candidate in @(
+    (Join-Path $Root ".venv\Scripts\python.exe"),
+    (Join-Path $Root ".venv-win\Scripts\python.exe")
+  )) {
+    if (Test-Path $candidate) { return $candidate }
+  }
+  $command = Get-Command python -ErrorAction SilentlyContinue
+  if ($command) { return $command.Source }
+  return $null
 }
 
 Import-LocalEnv (Join-Path $Root ".env")
+$Python = Get-PythonRuntime
+if (-not $Python) {
+  throw "Python runtime not found. Create .venv or install Python."
+}
 
 if (-not (Test-LocalDashboard)) {
   Start-Process -FilePath $Python `
-    -ArgumentList @("-m", "btc_eth_15m.dashboard.stdlib_server", "--host", "127.0.0.1", "--port", "$Port") `
+    -ArgumentList @("-m", "kquant.dashboard", "--host", "127.0.0.1", "--port", "$Port") `
     -WorkingDirectory $Root `
     -WindowStyle Hidden
   Start-Sleep -Seconds 3
