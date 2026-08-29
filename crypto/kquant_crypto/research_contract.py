@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Mapping
 
+from .data_trust import normalize_source_status
+
 
 RESEARCH_METADATA_VERSION = "research_metadata_v1.0.0"
 KNOWN_SOURCE_STATUSES = frozenset({"live", "closed", "complete", "verified", "stale", "partial", "unknown"})
@@ -81,6 +83,7 @@ class ResearchMetadata:
             "model_version": self.model_version,
             "data_cutoff_time": self.data_cutoff_time,
             "source_status": self.source_status,
+            "normalized_source_status": normalize_source_status(self.source_status),
             "coverage": self.coverage,
             "hard_veto": self.hard_veto,
             "research_only": self.research_only,

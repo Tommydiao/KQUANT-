@@ -1,0 +1,50 @@
+:root { color: #e8f1f8; background: #071019; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; overflow: hidden; }
+button, a { font: inherit; }
+button { color: inherit; }
+.platform-shell { display: grid; grid-template: 64px minmax(0, 1fr) / 212px minmax(0, 1fr); height: 100vh; background: #071019; }
+.topbar { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(210px, 1fr) auto minmax(210px, 1fr); align-items: center; gap: 18px; padding: 0 18px; border-bottom: 1px solid #1e3445; background: #08111a; }
+.brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #3f718b; border-radius: 6px; color: #7dd3fc; background: #0d202c; font-weight: 800; }
+.brand div { display: grid; gap: 1px; }
+.brand strong { font-size: 15px; }
+.brand small { color: #8199aa; font-size: 11px; }
+.mode-switch { display: grid; grid-template-columns: repeat(2, 1fr); width: 210px; padding: 3px; border: 1px solid #294258; border-radius: 6px; background: #0b1823; }
+.mode-switch button { min-height: 32px; border: 0; border-radius: 4px; color: #8ca4b5; background: transparent; cursor: pointer; }
+.mode-switch button.active { color: #071019; background: #e8f1f8; font-weight: 700; }
+.system-status { justify-self: end; display: flex; align-items: center; gap: 8px; color: #93a9b9; font-size: 12px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #657786; }
+.status-dot.ok { background: #39d89c; box-shadow: 0 0 0 4px rgb(57 216 156 / 12%); }
+.status-dot.warn { background: #f4be5b; }
+.sha { padding-left: 8px; border-left: 1px solid #294258; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+.sidebar { display: flex; flex-direction: column; min-height: 0; padding: 12px 10px; border-right: 1px solid #1e3445; background: #08131d; }
+.sidebar nav { display: grid; gap: 4px; }
+.sidebar nav button { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 11px; border: 1px solid transparent; border-radius: 5px; color: #91a8b8; background: transparent; cursor: pointer; text-align: left; }
+.sidebar nav button:hover { color: #e8f1f8; background: #0e1d29; }
+.sidebar nav button.active { color: #bfeaff; border-color: #31566d; background: #102330; }
+.sidebar-foot { display: grid; gap: 7px; margin-top: auto; padding: 13px 10px 4px; border-top: 1px solid #1e3445; color: #829aab; }
+.sidebar-foot span { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+.sidebar-foot small { font-size: 10px; line-height: 1.45; }
+.workspace { display: grid; grid-template-rows: 54px minmax(0, 1fr); min-width: 0; min-height: 0; padding: 0 12px 12px; }
+.workspace-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-head div:first-child { display: flex; align-items: baseline; gap: 9px; }
+.workspace-head h1 { margin: 0; font-size: 16px; letter-spacing: 0; }
+.eyebrow { color: #70c9ef; font-size: 10px; text-transform: uppercase; }
+.workspace-actions { display: flex; align-items: center; gap: 6px; }
+.workspace-actions button, .workspace-actions a { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #294258; border-radius: 5px; color: #9db3c2; background: #0b1823; cursor: pointer; }
+.backend-frame { min-height: 0; overflow: hidden; border: 1px solid #294258; border-radius: 6px; background: #061019; }
+.backend-frame iframe { display: block; width: 100%; height: 100%; border: 0; background: #071019; }
+@media (max-width: 720px) {
+  body { overflow: auto; }
+  .platform-shell { grid-template: 58px minmax(0, 1fr) 58px / 1fr; min-height: 100dvh; }
+  .topbar { grid-row: 1; grid-template-columns: 1fr auto; padding: 0 10px; }
+  .brand small, .system-status { display: none; }
+  .mode-switch { width: 150px; }
+  .sidebar { grid-row: 3; grid-column: 1; z-index: 4; padding: 5px 7px; border: 0; border-top: 1px solid #1e3445; }
+  .sidebar nav { display: flex; justify-content: space-around; overflow-x: auto; }
+  .sidebar nav button { flex: 0 0 52px; justify-content: center; min-height: 46px; padding: 0; }
+  .sidebar nav button span, .sidebar-foot { display: none; }
+  .workspace { grid-row: 2; grid-column: 1; padding: 0 6px 6px; }
+  .backend-frame { min-height: 620px; }
+}

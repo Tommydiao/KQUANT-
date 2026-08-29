@@ -50,6 +50,20 @@ def allowed_origins() -> list[str]:
     return [item.strip() for item in configured.split(",") if item.strip()]
 
 
+def allowed_frame_ancestors() -> tuple[str, ...]:
+    """Return explicitly configured HTTP(S) origins allowed to frame the UI."""
+
+    configured = os.getenv("KQUANT_FRAME_ANCESTORS", "").strip()
+    if not configured:
+        return ()
+    values: list[str] = []
+    for item in configured.replace(",", " ").split():
+        candidate = item.strip().rstrip("/")
+        if candidate.startswith(("http://", "https://")) and candidate not in values:
+            values.append(candidate)
+    return tuple(values)
+
+
 def _bounded_integer(name: str, default: int, *, lower: int, upper: int) -> int:
     """Read an operational setting without allowing a malformed env value to break startup."""
 
@@ -259,6 +273,19 @@ class ApiSecurityMiddleware(BaseHTTPMiddleware):
             return "public, max-age=31536000, immutable"
         return "no-cache, no-store, must-revalidate"
 
+    @staticmethod
+    def _apply_frame_policy(response: Response) -> None:
+        ancestors = allowed_frame_ancestors()
+        if ancestors:
+            if "X-Frame-Options" in response.headers:
+                del response.headers["X-Frame-Options"]
+            response.headers["Content-Security-Policy"] = (
+                "frame-ancestors 'self' " + " ".join(ancestors)
+            )
+            return
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+
     async def dispatch(self, request: Request, call_next) -> Response:  # type: ignore[no-untyped-def]
         path = request.url.path
         is_api = path.startswith("/api/")
@@ -288,16 +315,16 @@ class ApiSecurityMiddleware(BaseHTTPMiddleware):
         if is_api and not is_auth_endpoint and session and self.settings.local_login_ready:
             self.session_auth.set_session_cookie(response, self.session_auth.issue_session(issued_at=session["iat"], expires_at=session["exp"]))
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
+        self._apply_frame_policy(response)
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Cache-Control"] = self._cache_control(path)
         return response
 
-    @staticmethod
-    def _response(status_code: int, payload: dict[str, object]) -> JSONResponse:
+    @classmethod
+    def _response(cls, status_code: int, payload: dict[str, object]) -> JSONResponse:
         response = JSONResponse(payload, status_code=status_code)
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
+        cls._apply_frame_policy(response)
         response.headers["Cache-Control"] = "no-store"
         return response

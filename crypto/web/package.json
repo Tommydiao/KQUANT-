@@ -6,18 +6,22 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "lint": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
-    "vite": "latest",
-    "vitest": "latest",
-    "typescript": "latest",
+    "@vitejs/plugin-react": "latest",
+    "jsdom": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "jsdom": "latest"
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5"
+  }
 }

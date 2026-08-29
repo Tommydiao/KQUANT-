@@ -128,6 +128,19 @@ from kquant.web_push import (
 API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v4"
 
 
+def _build_metadata() -> dict[str, str]:
+    return {
+        "build_sha": (
+            os.getenv("KQUANT_BUILD_SHA")
+            or os.getenv("GITHUB_SHA")
+            or os.getenv("VERCEL_GIT_COMMIT_SHA")
+            or "local"
+        )[:80],
+        "environment": os.getenv("KQUANT_ENVIRONMENT", "development")[:40],
+        "build_time": os.getenv("KQUANT_BUILD_TIME", "unknown")[:80],
+    }
+
+
 FORBIDDEN_ROUTE_TOKENS = (
     "/account",
     "/broker",
@@ -449,6 +462,7 @@ def create_app(
         market_data = api_stock_market_data_status(db_path=settings.db_path)
         safety = route_safety_report(app)
         migration = migration_readiness(default_path=settings.db_path)
+        build = _build_metadata()
         return {
             "product": settings.product,
             "status": "online" if safety["status"] == "pass" else "unsafe",
@@ -465,6 +479,7 @@ def create_app(
                 "trigger_policy_version": TRIGGER_POLICY_VERSION,
                 "options_expression_version": OPTION_EXPRESSION_VERSION,
                 "stock_quant_model_version": MODEL_0_VERSION,
+                **build,
             },
             "stock_database": str(settings.db_path),
             "database_migration": migration["migration"],
@@ -474,6 +489,21 @@ def create_app(
             "safety": safety,
             "supervisor": supervisor.status(),
             "read_only_research": True,
+        }
+
+    @app.get("/api/version")
+    def version() -> dict[str, Any]:
+        migration = migration_readiness(default_path=settings.db_path)
+        return {
+            "product": settings.product,
+            "application": "kquant-stock-terminal",
+            "api": API_CONTRACT_VERSION,
+            "schema": migration["migration"].get("schema_version", 0),
+            "strategy": "swing_long_v1.1.0",
+            **_build_metadata(),
+            "research_only": True,
+            "account_access": False,
+            "order_submission": False,
         }
 
     @app.get("/api/instructions/current")

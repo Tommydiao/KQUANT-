@@ -48,6 +48,14 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.json()["database_migration"]["checksum_verified"] is True
     assert health.json()["safety"]["options_research_enabled"] is True
     assert health.json()["safety"]["options_order_submission_enabled"] is False
+    assert health.json()["runtime"]["build_sha"] == "local"
+    assert health.json()["runtime"]["environment"] == "development"
+    version = TestClient(app).get("/api/version")
+    assert version.status_code == 200
+    assert version.json()["api"] == API_CONTRACT_VERSION
+    assert version.json()["strategy"] == "swing_long_v1.1.0"
+    assert version.json()["build_sha"] == "local"
+    assert version.json()["order_submission"] is False
 
 
 def test_removed_legacy_paths_are_not_registered(tmp_path: Path) -> None:

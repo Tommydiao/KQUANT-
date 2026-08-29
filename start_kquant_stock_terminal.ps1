@@ -169,6 +169,11 @@ if (Test-KquantDashboardOnline) {
 $Python = Resolve-KquantPython
 
 Write-Host "Starting KQUANT US Stock Signal Terminal..." -ForegroundColor Cyan
+$env:KQUANT_FRAME_ANCESTORS = if ($env:KQUANT_FRAME_ANCESTORS) {
+    $env:KQUANT_FRAME_ANCESTORS
+} else {
+    "http://127.0.0.1:8020 http://localhost:8020"
+}
 Write-Host "URL: $Url" -ForegroundColor Green
 Write-Host "Database: work/kquant_us.sqlite3" -ForegroundColor DarkGray
 Write-Host "Mode: read-only stock research" -ForegroundColor DarkGray

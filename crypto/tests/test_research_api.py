@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+import importlib
+
 from fastapi.testclient import TestClient
 
 from kquant_crypto.dashboard.app import create_app
@@ -95,6 +98,7 @@ def test_roll_feature_packet_and_ocr_preview_never_write_permissions(settings):
     body = packet.json()
     assert body["research_only"] is True
     assert body["decision"]["payload"]["allowed_paper"] is False
+    assert body["payload"]["research_metadata"]["normalized_source_status"] == "live_primary"
     preview = client.post("/api/crypto/roll/ledger/ocr-preview", json={
         "text": "symbol: ETH\nrealized profit: 100\nroll capital: 50\nremaining risk: 50"
     })
@@ -134,6 +138,32 @@ def test_roll_feature_packet_and_ocr_preview_never_write_permissions(settings):
         "confirm_write": True,
     })
     assert duplicate.status_code == 422
+
+
+def test_roll_journal_image_upload_creates_preview_but_never_writes(settings, monkeypatch):
+    dashboard_module = importlib.import_module("kquant_crypto.dashboard.app")
+    monkeypatch.setattr(
+        dashboard_module,
+        "extract_roll_journal_image_text",
+        lambda _: {
+            "status": "ocr_complete",
+            "text": "symbol: ETH\nrealized profit: 100\nroll capital: 50\nremaining risk: 50",
+            "image_sha256": "test-hash",
+            "engine": "test",
+        },
+    )
+    client = _client(settings)
+    png = b"\x89PNG\r\n\x1a\n" + b"test-image"
+    response = client.post(
+        "/api/crypto/roll-journal/image-preview",
+        json={"content_type": "image/png", "image_base64": base64.b64encode(png).decode("ascii")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ocr_complete"
+    assert body["preview"]["symbol"] == "ETH"
+    assert body["confirmation_required"] is True
+    assert body["write_allowed"] is False
 
 
 def test_shadow_observation_requires_no_downstream_permission(settings):

@@ -5008,3 +5008,10 @@ p {
     flex-direction: column;
   }
 }
+.sidebar-build-sha {
+  display: block;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}

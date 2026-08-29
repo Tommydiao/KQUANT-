@@ -294,11 +294,16 @@ provider, unknown security state or closed model gate remains blocked.
 
 ## Stocks/Crypto gateway
 
-The optional local gateway is a navigation and health boundary, not a data
-proxy. Start it with `python -m kquant_crypto gateway` on port `8020`. It links
-to the independent stock backend on `8001` and crypto backend on `8010`, while
-keeping database, session and API contracts separate. A gateway health result
-with `data_mixing=false` is required before using it as the shared entry point.
+The optional local gateway now serves the first unified React shell plus a
+platform health contract. Build `../platform/web`, then start it with
+`python -m kquant_crypto gateway` on port `8020`. The shell links to the
+independent stock backend on `8001` and crypto backend on `8010`, while keeping
+database, session and API contracts separate. A gateway health result with
+`data_mixing=false` is required before using it as the shared entry point.
+
+The current shell is a local composition layer, not a production single-origin
+reverse proxy. A hosted deployment still needs stable backend URLs, shared
+authentication design, monitoring, backup and rollback verification.
 
 Staging Postgres is represented by a fail-closed readiness contract and is not
 claimed as configured until `KQUANT_CRYPTO_STAGING_DATABASE_URL` is supplied
@@ -324,9 +329,10 @@ python scripts/collect_configured_evidence.py --source official_etf_feed --categ
 python scripts/collect_configured_evidence.py --source onchain_metrics_feed --category onchain --symbol BTC --symbol ETH
 ```
 
-The Stocks/Crypto gateway at `http://127.0.0.1:8020/` is a navigation and
-health boundary. `/api/gateway/config` exposes the two independent modes; it
-does not merge sessions, proxy market data, or create a shared trading path.
+The Stocks/Crypto gateway at `http://127.0.0.1:8020/` serves the unified shell.
+`/api/platform/health` and `/api/platform/summary` expose the two independent
+modes; the gateway does not merge sessions, proxy market data, or create a
+shared trading path.
 
 The Shadow Observation Ledger records real calendar observations, user review
 status and immutable outcomes. Simulated days cannot satisfy its 15-trading-day

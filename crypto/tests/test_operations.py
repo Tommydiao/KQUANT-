@@ -46,6 +46,7 @@ def test_gateway_exposes_separate_mode_config_without_proxying_sessions():
     assert {item["id"] for item in config["modes"]} == {"stocks", "crypto"}
     assert config["data_mixing"] is False
     assert config["secrets_exposed"] is False
+    assert config["build_sha"] == "local"
 
 
 def test_backup_and_restore_preserve_sqlite_content(settings, tmp_path):
@@ -79,14 +80,22 @@ def test_gateway_keeps_backends_separate():
     page = client.get("/")
     assert page.status_code == 200
     assert "KQUANT" in page.text
-    assert "Stocks" in page.text
-    assert "Crypto" in page.text
-    assert "/api/gateway/health" in page.text
+    config = client.get("/api/gateway/config").json()
+    assert {item["id"] for item in config["modes"]} == {"stocks", "crypto"}
+    assert config["data_mixing"] is False
     health = client.get("/api/gateway/health").json()
     assert health["gateway_version"] == GATEWAY_VERSION
     assert health["data_mixing"] is False
     assert health["session_mode"] == "separate_backend_sessions"
     assert health["order_submission"] is False
+    assert health["build_sha"] == "local"
+    assert client.get("/api/version").json()["order_submission"] is False
+    platform_health = client.get("/api/platform/health").json()
+    assert platform_health["status"] == "degraded"
+    summary = client.get("/api/platform/summary").json()
+    assert {item["id"] for item in summary["modes"]} == {"stocks", "crypto"}
+    assert summary["data_mixing"] is False
+    assert summary["order_submission"] is False
 
 
 def test_observability_summary_is_read_only(settings):

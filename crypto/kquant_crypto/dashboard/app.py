@@ -43,6 +43,20 @@ from ..data_trust import DataTrustStore
 from ..factor_registry import FactorRegistry, MemeFactorRegistry
 from ..evaluation_models import EVAL_POLICY_VERSION, TradePlanDraft
 from ..backtest import BacktestBar, BacktestConfig, bars_for_duration
+
+
+def _build_metadata() -> dict[str, str]:
+    return {
+        "build_sha": (
+            os.getenv("KQUANT_BUILD_SHA")
+            or os.getenv("KQUANT_CRYPTO_BUILD_SHA")
+            or os.getenv("GITHUB_SHA")
+            or os.getenv("VERCEL_GIT_COMMIT_SHA")
+            or "local"
+        )[:80],
+        "environment": os.getenv("KQUANT_ENVIRONMENT", "development")[:40],
+        "build_time": os.getenv("KQUANT_BUILD_TIME", "unknown")[:80],
+    }
 from ..validation import ValidationConfig, ValidationSeries, evaluate_validation_gate, run_walk_forward_validation
 from ..validation_store import latest_validation_run, save_validation_run
 from ..historical_dataset import load_parquet_validation_dataset
@@ -78,6 +92,7 @@ from ..roll_validation import RollBar, RollValidationConfig, build_roll_series_f
 from ..roll_validation_store import get_roll_validation_report, latest_roll_validation_report, save_roll_validation_report
 from ..roll_packet import build_roll_feature_packet_from_db
 from ..roll_journal import preview_roll_journal_text
+from ..roll_journal_ocr import decode_journal_image, extract_roll_journal_image_text
 from ..roll_journal_store import confirm_roll_journal_preview, save_roll_journal_preview
 from ..shadow_store import (
     get_shadow_observation,
@@ -289,12 +304,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def health() -> dict[str, Any]:
         universe = getattr(app.state, "universe_snapshot", None) or {}
         schema = migration_status(resolved.db_path)
+        build = _build_metadata()
         return {
             "status": "ok",
             "app_version": APP_VERSION,
             "api_contract_version": API_CONTRACT_VERSION,
             "frontend_contract_version": FRONTEND_CONTRACT_VERSION,
-            "build_sha": os.getenv("KQUANT_CRYPTO_BUILD_SHA", "local")[:80],
+            **build,
             "started_at": app.state.started_at,
             "schema": schema,
             "version_matrix": {
@@ -351,7 +367,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "bayesian": "crypto_bayesian_v1.0.0",
             "monte_carlo": "crypto_monte_carlo_v1.0.0",
             "eval_policy": EVAL_POLICY_VERSION,
-            "build_sha": os.getenv("KQUANT_CRYPTO_BUILD_SHA", "local")[:80],
+            **_build_metadata(),
             "research_only": True,
             "order_submission": False,
         }
@@ -595,6 +611,34 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=422, detail="ocr preview text is required")
         preview = preview_roll_journal_text(text).to_mapping()
         return save_roll_journal_preview(resolved.db_path, preview)
+
+    @app.post("/api/crypto/roll-journal/image-preview")
+    async def preview_roll_journal_image(payload: dict[str, Any]):
+        try:
+            image = decode_journal_image(
+                str(payload.get("image_base64") or ""),
+                str(payload.get("content_type") or ""),
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        ocr = extract_roll_journal_image_text(image)
+        if ocr["status"] != "ocr_complete":
+            return {
+                **ocr,
+                "preview": None,
+                "confirmation_required": True,
+                "write_allowed": False,
+                "research_only": True,
+            }
+        preview = preview_roll_journal_text(str(ocr["text"])).to_mapping()
+        saved = save_roll_journal_preview(resolved.db_path, preview)
+        return {
+            **ocr,
+            "preview": saved,
+            "confirmation_required": True,
+            "write_allowed": False,
+            "research_only": True,
+        }
 
     @app.post("/api/crypto/roll-journal/confirm")
     @app.post("/api/crypto/roll/ledger")

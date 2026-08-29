@@ -13,6 +13,20 @@ PRIMARY_LONGBRIDGE_SOURCE = "longbridge_candles"
 STALE_LONGBRIDGE_SOURCE = "stale_longbridge_cache"
 YAHOO_SOURCES = {"live_yahoo_chart", "yahoo_public_fallback"}
 KNOWN_ADJUSTMENT_MODES = {"unadjusted", "fixture", "provider_default_unknown"}
+PUBLIC_SOURCE_STATUSES = frozenset({"live_primary", "stale_primary", "reference_only", "unavailable"})
+
+
+def normalize_source_status(*, source: str, provider_status: str, stale: bool = False) -> str:
+    """Map provider-specific lineage into the public cross-asset trust contract."""
+    normalized_source = str(source or "").lower()
+    normalized_provider = str(provider_status or "unknown").lower()
+    if normalized_source == PRIMARY_LONGBRIDGE_SOURCE and normalized_provider == "available" and not stale:
+        return "live_primary"
+    if normalized_source == STALE_LONGBRIDGE_SOURCE or normalized_provider == "stale_cache" or stale:
+        return "stale_primary"
+    if normalized_source in YAHOO_SOURCES or normalized_source.startswith(("yahoo", "fixture")):
+        return "reference_only"
+    return "unavailable"
 
 
 def _as_time(value: object) -> datetime | None:
@@ -97,6 +111,7 @@ def assess_candle_payload(
     interval = str(payload.get("interval") or "")
     max_freshness = {"1m": 180, "5m": 600, "15m": 1800, "1h": 7200}.get(interval)
     stale = isinstance(freshness, (int, float)) and max_freshness is not None and freshness > max_freshness
+    source_status = normalize_source_status(source=source, provider_status=provider_status, stale=stale)
     hard_veto_reasons: list[str] = []
     caution_reasons: list[str] = []
 
@@ -134,6 +149,7 @@ def assess_candle_payload(
         "status": status,
         "buy_data_eligible": status == "clean",
         "source": source,
+        "source_status": source_status,
         "provider_status": provider_status,
         "adjustment_mode": adjustment_mode or None,
         "dataset_version": payload.get("dataset_version"),

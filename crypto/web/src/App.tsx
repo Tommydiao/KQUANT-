@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 
 type Session = { authenticated: boolean; email?: string | null; configured: boolean };
-type Health = { app_version: string; providers: Record<string, { enabled: boolean; status: string }>; eval_policy_version: string; read_only: boolean };
+type Health = { app_version: string; build_sha?: string; environment?: string; providers: Record<string, { enabled: boolean; status: string }>; eval_policy_version: string; read_only: boolean };
 type Evaluation = { evaluation_id: string; decision: string; evaluation_status: string; blockers: Array<{ message: string }>; warnings: Array<{ message: string }> };
 type SignalStatus = { status: string; strategy_version: string; events_seen: number; candidates_seen: number; evaluations_created: number; skipped_insufficient_history: number; last_evaluation_at: string | null; last_error: string | null; paper_enabled: boolean; shadow_enabled: boolean; order_submission: boolean };
 type ValidationLatest = { status: string; report?: { test_evidence_status?: string; feature_scope?: string; oos_fold_count?: number; partitions?: { test?: { summary?: { sample_count?: number } } }; dataset_coverage?: { storage_mode?: string; closed_bar_count?: number; eligible_series_count?: number } } };
@@ -25,10 +25,10 @@ async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-function decodeBase64Url(value: string): Uint8Array {
+function decodeBase64Url(value: string): ArrayBuffer {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
   const raw = window.atob((value + padding).replace(/-/g, "+").replace(/_/g, "/"));
-  return Uint8Array.from(raw, (character) => character.charCodeAt(0));
+  return Uint8Array.from(raw, (character) => character.charCodeAt(0)).buffer;
 }
 
 function Login({ onLogin }: { onLogin: (session: Session) => void }) {
@@ -304,7 +304,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
   const monitoringTitle = signalStatus?.events_seen ? "公共行情监测中" : "等待闭合行情数据";
   const testSummary = validation?.report?.partitions?.test?.summary;
   const validationScope = validation?.report?.feature_scope === "ohlcv_only_limited" ? "OHLCV-only / limited evidence" : validation?.report?.feature_scope ?? "未生成";
-  return <main className="app-shell"><a className="mode-link gateway-link" href="http://127.0.0.1:8020/">KQUANT workspace gateway · Shadow {shadowSummary?.status ?? "loading"}</a>
+  return <main className="app-shell"><span className="build-sha-badge">Build {health?.build_sha?.slice(0, 8) ?? "unknown"}</span><a className="mode-link gateway-link" href="http://127.0.0.1:8020/">KQUANT workspace gateway · Shadow {shadowSummary?.status ?? "loading"}</a>
     <header className="topbar"><div className="brand"><div className="brand-mark small">KQ</div><div><strong>KQUANT CRYPTO</strong><span>启动监测与计划审核</span></div></div><div className="top-actions"><a className="mode-link" href="http://127.0.0.1:8001/">Stocks</a><span className="status-pill green">研究只读</span><span className="status-pill amber">EVAL 锁定</span><button className="quiet-button" onClick={logout}>退出</button></div></header>
     <div className="workspace"><aside className="sidebar"><p className="eyebrow">导航</p><button className="nav-item active">今日监测</button><button className="nav-item">市场状态</button><button className="nav-item">CEX 雷达</button><button className="nav-item">DEX / MEME</button><button className="nav-item">预警中心</button><button className="nav-item">数据可信度</button><div className="sidebar-footer"><span>{session.email}</span><small>所有动作均需经过 EVAL</small></div></aside>
       <section className="content"><div className="page-heading"><div><p className="eyebrow">今日监测</p><h1>{monitoringTitle}</h1><p className="muted">系统只使用闭合 K 线生成研究草案；任何候选都必须先经过确定性 EVAL，数据不足时保持观察状态。</p></div><span className="timestamp">策略版本：{signalStatus?.strategy_version ?? "loading"}</span></div>

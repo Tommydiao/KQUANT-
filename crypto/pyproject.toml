@@ -24,6 +24,10 @@ dev = [
 quant = [
   "lightgbm>=4.0",
 ]
+ocr = [
+  "Pillow>=11.0",
+  "pytesseract>=0.3.13",
+]
 staging = [
   "psycopg[binary]>=3.2",
 ]

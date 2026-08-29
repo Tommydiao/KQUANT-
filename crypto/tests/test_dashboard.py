@@ -19,6 +19,9 @@ def test_health_is_public_but_research_is_authenticated(settings):
     version = client.get("/api/version")
     assert version.status_code == 200
     assert version.json()["strategy"] == "crypto_roll_v1.0.0"
+    assert version.json()["build_sha"] == "local"
+    assert version.json()["environment"] == "development"
+    assert version.json()["order_submission"] is False
     assert client.get("/api/crypto/evaluations/latest").status_code == 401
     assert client.get("/api/auth/session").json()["authenticated"] is False
 

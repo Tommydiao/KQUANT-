@@ -12,6 +12,19 @@ from .evaluation_models import stable_hash
 
 
 TRUST_STATUSES = frozenset({"live", "stale", "partial", "cross_source_conflict", "provider_unavailable", "security_unknown", "unavailable"})
+PUBLIC_SOURCE_STATUSES = frozenset({"live_primary", "stale_primary", "reference_only", "unavailable"})
+
+
+def normalize_source_status(status: str) -> str:
+    """Expose crypto lineage through the same public contract as stock data."""
+    normalized = str(status or "unknown").lower()
+    if normalized in {"live", "closed", "complete", "verified"}:
+        return "live_primary"
+    if normalized == "stale":
+        return "stale_primary"
+    if normalized in {"partial", "cross_source_conflict", "security_unknown"}:
+        return "reference_only"
+    return "unavailable"
 
 
 def _now() -> str:
@@ -69,6 +82,7 @@ class DataSnapshot:
             "available_at": self.available_at,
             "fetched_at": self.fetched_at,
             "trust_status": self.trust_status,
+            "source_status": normalize_source_status(self.trust_status),
             "content_hash": self.content_hash,
             "payload": self.payload,
         }

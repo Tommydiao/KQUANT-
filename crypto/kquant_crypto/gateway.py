@@ -9,14 +9,29 @@ Each product keeps its own backend, database, and login boundary.
 
 import html
 import os
+from pathlib import Path
 from typing import Any
 
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 
-GATEWAY_VERSION = "kquant_gateway_v1.2.0"
+GATEWAY_VERSION = "kquant_gateway_v1.3.0"
+
+
+def _build_metadata() -> dict[str, str]:
+    return {
+        "build_sha": (
+            os.getenv("KQUANT_BUILD_SHA")
+            or os.getenv("GITHUB_SHA")
+            or os.getenv("VERCEL_GIT_COMMIT_SHA")
+            or "local"
+        )[:80],
+        "environment": os.getenv("KQUANT_ENVIRONMENT", "development")[:40],
+        "build_time": os.getenv("KQUANT_BUILD_TIME", "unknown")[:80],
+    }
 
 
 GATEWAY_PAGE_TEMPLATE = """<!doctype html>
@@ -125,9 +140,15 @@ def create_gateway_app(*, stocks_url: str | None = None, crypto_url: str | None 
     stocks = (stocks_url or _url("KQUANT_GATEWAY_STOCKS_URL", "http://127.0.0.1:8001")).rstrip("/")
     crypto = (crypto_url or _url("KQUANT_GATEWAY_CRYPTO_URL", "http://127.0.0.1:8010")).rstrip("/")
     app = FastAPI(title="KQUANT Gateway", version=GATEWAY_VERSION)
+    platform_dist = Path(__file__).resolve().parents[2] / "platform" / "web" / "dist"
+    platform_index = platform_dist / "index.html"
+    if (platform_dist / "assets").is_dir():
+        app.mount("/assets", StaticFiles(directory=platform_dist / "assets"), name="platform-assets")
 
     @app.get("/", response_class=HTMLResponse)
     async def landing() -> str:
+        if platform_index.is_file():
+            return platform_index.read_text(encoding="utf-8")
         return _render_gateway_page(stocks, crypto)
 
     @app.get("/stocks")
@@ -144,6 +165,7 @@ def create_gateway_app(*, stocks_url: str | None = None, crypto_url: str | None 
 
         return {
             "gateway_version": GATEWAY_VERSION,
+            **_build_metadata(),
             "modes": [
                 {"id": "stocks", "label": "Stocks", "url": stocks + "/", "session": "stock_backend"},
                 {"id": "crypto", "label": "Crypto", "url": crypto + "/", "session": "crypto_backend"},
@@ -167,6 +189,7 @@ def create_gateway_app(*, stocks_url: str | None = None, crypto_url: str | None 
                 "http_status": response.status_code,
                 "app_version": body.get("app_version") or runtime.get("app_version") or runtime.get("strategy_version"),
                 "api_contract_version": body.get("api_contract_version") or runtime.get("api_contract_version"),
+                "build_sha": body.get("build_sha") or runtime.get("build_sha") or "unknown",
                 "read_only": body.get("read_only") if body.get("read_only") is not None else body.get("read_only_research", runtime.get("read_only")),
                 "url_configured": True,
                 "secrets_exposed": False,
@@ -176,16 +199,52 @@ def create_gateway_app(*, stocks_url: str | None = None, crypto_url: str | None 
 
     @app.get("/api/gateway/health")
     async def gateway_health() -> dict[str, Any]:
+        return await platform_health()
+
+    @app.get("/api/version")
+    async def version() -> dict[str, Any]:
+        return {
+            "application": "kquant-unified-gateway",
+            "gateway_version": GATEWAY_VERSION,
+            **_build_metadata(),
+            "research_only": True,
+            "account_access": False,
+            "wallet_access": False,
+            "order_submission": False,
+        }
+
+    @app.get("/api/platform/health")
+    async def platform_health() -> dict[str, Any]:
+        stocks_health = await probe("stocks", stocks)
+        crypto_health = await probe("crypto", crypto)
         return {
             "gateway_version": GATEWAY_VERSION,
-            "stocks": await probe("stocks", stocks),
-            "crypto": await probe("crypto", crypto),
+            **_build_metadata(),
+            "status": "available" if stocks_health["status"] == crypto_health["status"] == "available" else "degraded",
+            "stocks": stocks_health,
+            "crypto": crypto_health,
             "session_mode": "separate_backend_sessions",
             "data_mixing": False,
             "account_access": False,
             "wallet_access": False,
             "order_submission": False,
             "research_only": True,
+        }
+
+    @app.get("/api/platform/summary")
+    async def platform_summary() -> dict[str, Any]:
+        health = await platform_health()
+        return {
+            "platform": "KQUANT",
+            "modes": [
+                {"id": "stocks", "label": "Stocks", "url": stocks + "/", "health": health["stocks"]},
+                {"id": "crypto", "label": "Crypto", "url": crypto + "/", "health": health["crypto"]},
+            ],
+            "build_sha": health["build_sha"],
+            "status": health["status"],
+            "data_mixing": False,
+            "research_only": True,
+            "order_submission": False,
         }
 
     return app

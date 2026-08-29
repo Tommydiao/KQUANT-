@@ -16,12 +16,28 @@ def _app(tmp_path: Path):
 
 def test_local_cors_is_restricted_and_security_headers_are_present(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("KQUANT_CORS_ORIGINS", raising=False)
+    monkeypatch.delenv("KQUANT_FRAME_ANCESTORS", raising=False)
     client = TestClient(_app(tmp_path))
     response = client.get("/api/health", headers={"Origin": "https://untrusted.example"})
     assert response.status_code == 200
     assert response.headers.get("access-control-allow-origin") is None
     assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["content-security-policy"] == "frame-ancestors 'none'"
     assert response.json()["security"]["secrets_exposed"] is False
+
+
+def test_explicit_local_gateway_origin_can_frame_dashboard(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv(
+        "KQUANT_FRAME_ANCESTORS",
+        "http://127.0.0.1:8020 http://localhost:8020 javascript:alert(1)",
+    )
+    response = TestClient(_app(tmp_path)).get("/")
+
+    assert response.status_code == 200
+    assert "x-frame-options" not in response.headers
+    assert response.headers["content-security-policy"] == (
+        "frame-ancestors 'self' http://127.0.0.1:8020 http://localhost:8020"
+    )
 
 
 def test_optional_api_auth_fails_closed_without_leaking_token(tmp_path: Path, monkeypatch) -> None:

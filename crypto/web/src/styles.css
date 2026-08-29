@@ -83,3 +83,15 @@ h1, h2, p { margin-top: 0; } h1 { margin-bottom: 10px; font-size: clamp(26px, 4v
 @media (max-width: 800px) { .security-row { grid-template-columns: 1fr 1fr; gap: 7px; } .security-row em { grid-column: 1 / -1; } }
 @media (max-width: 800px) { .runtime-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 800px) { .research-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .roll-row { grid-template-columns: 1fr 1fr; gap: 7px; } .roll-row span:nth-child(3) { grid-column: 1 / -1; } .roll-row em { text-align: left; } .evidence-row { grid-template-columns: 1fr 1fr; gap: 7px; } .evidence-row > div { grid-column: 1 / -1; } .evidence-row em { text-align: left; } .roll-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .roll-result { grid-template-columns: repeat(2, minmax(0, 1fr)); } .journal-grid { grid-template-columns: 1fr; } }
+.build-sha-badge {
+  position: fixed;
+  right: 14px;
+  bottom: 12px;
+  z-index: 30;
+  padding: 5px 8px;
+  border: 1px solid #294258;
+  border-radius: 6px;
+  color: #8ea5b8;
+  background: #071019e8;
+  font: 11px ui-monospace, SFMono-Regular, Consolas, monospace;
+}

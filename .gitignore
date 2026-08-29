@@ -27,5 +27,7 @@ crypto/*.sqlite3-shm
 crypto/*.sqlite3-wal
 crypto/web/node_modules/
 crypto/web/dist/
+platform/web/node_modules/
+platform/web/dist/
 
 .vercel

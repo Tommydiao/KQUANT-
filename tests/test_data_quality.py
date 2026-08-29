@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from kquant.data_quality import assess_candle_payload, assess_realtime_market_data
+from kquant.data_quality import assess_candle_payload, assess_realtime_market_data, normalize_source_status
 
 
 def _payload(*, source: str = "longbridge_candles", status: str = "available") -> dict:
@@ -61,3 +61,10 @@ def test_realtime_quality_requires_regular_session_fresh_quote_and_depth() -> No
     assert clean["buy_data_eligible"] is True
     assert blocked["buy_data_eligible"] is False
     assert "depth_unavailable" in blocked["hard_veto_reasons"]
+
+
+def test_public_source_status_contract_distinguishes_primary_reference_and_unavailable() -> None:
+    assert normalize_source_status(source="longbridge_candles", provider_status="available") == "live_primary"
+    assert normalize_source_status(source="stale_longbridge_cache", provider_status="stale_cache") == "stale_primary"
+    assert normalize_source_status(source="live_yahoo_chart", provider_status="available") == "reference_only"
+    assert normalize_source_status(source="longbridge_candles", provider_status="unavailable") == "unavailable"

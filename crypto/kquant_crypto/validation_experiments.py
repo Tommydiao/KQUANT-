@@ -91,13 +91,14 @@ def run_validation_experiment(
 
     ordered = sorted(candidate_rows, key=rank, reverse=True)
     selected = ordered[0]["candidate_id"] if ordered else None
-    experiment_id = f"experiment_{stable_hash({
+    experiment_payload = {
         'strategy_version': base_config.strategy_version,
         'dataset_version': base_config.dataset_version,
         'bar_interval': base_config.bar_interval,
         'weights': dict(sorted(weights.items())),
         'candidates': [dict(item) for item in candidate_rows],
-    })[:24]}"
+    }
+    experiment_id = f"experiment_{stable_hash(experiment_payload)[:24]}"
     return ValidationExperiment(
         experiment_id=experiment_id,
         selection_partition="validation",

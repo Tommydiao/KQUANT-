@@ -215,6 +215,8 @@ type ApiHealthPayload = {
     started_at_utc?: string;
     auth_routes_version?: string;
     static_assets_version?: string;
+    build_sha?: string;
+    environment?: string;
   };
 };
 
@@ -3035,6 +3037,9 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
               onChange={(value) => setTheme(value as Theme)}
               icon={theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
             />
+            <small className="sidebar-build-sha">
+              Build {apiHealth?.runtime?.build_sha?.slice(0, 8) ?? "unknown"}
+            </small>
           </div>
         </aside>
         <div className="stock-workspace-main">

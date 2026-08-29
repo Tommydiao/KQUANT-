@@ -12,6 +12,39 @@ Vercel configuration and local paths remain compatible. The crypto project is a
 separate Python package, database, frontend and runtime under `crypto/`; it does
 not import the stock package or share runtime data.
 
+## Unified Local Workspace
+
+The first unified shell is served by the read-only gateway on port `8020`. It
+provides one navigation, mode switch and health surface while the stock and
+crypto applications keep independent APIs, databases and sessions.
+
+Build the shell, then start the three local processes:
+
+```powershell
+# 1. Build the unified shell
+cd platform\web
+npm.cmd ci
+npm.cmd run build
+
+# 2. Start Stocks from the repository root (new PowerShell window)
+cd ..\..
+.\start_kquant_stock_terminal.ps1 -KillExisting
+
+# 3. Start Crypto from crypto/ (new PowerShell window)
+cd crypto
+.\start_kquant_crypto.ps1 -KillExisting
+
+# 4. Start the unified gateway from crypto/ (new PowerShell window)
+.\.venv\Scripts\python.exe -m kquant_crypto gateway
+```
+
+Open [http://127.0.0.1:8020/](http://127.0.0.1:8020/). The shell embeds the two
+local applications by their configured URLs. It is not yet a production
+single-origin reverse proxy and is not a claim of shared data or shared login.
+The stock launcher permits framing only from the two local gateway origins;
+direct server starts remain frame-denied unless `KQUANT_FRAME_ANCESTORS` is
+explicitly configured.
+
 ## Safety Boundary
 
 Both terminals are research-only:
