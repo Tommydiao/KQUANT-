@@ -6,7 +6,7 @@ from dataclasses import replace
 from fastapi.testclient import TestClient
 
 from kquant_crypto.dashboard.app import create_app
-from kquant_crypto.config import ProviderFlags
+from kquant_crypto.config import ProviderFlags, RuntimeMode
 from kquant_crypto.dex_models import DexMarketStore, DexPairSnapshot, DexSecurityStore, TokenSecurityInput, assess_token_security
 from kquant_crypto.market_structure_evidence import fetch_binance_market_structure_evidence
 
@@ -21,6 +21,23 @@ def test_health_is_public_but_research_is_authenticated(settings):
     assert version.json()["strategy"] == "crypto_roll_v1.0.0"
     assert client.get("/api/crypto/evaluations/latest").status_code == 401
     assert client.get("/api/auth/session").json()["authenticated"] is False
+
+
+def test_unconfigured_development_loopback_can_use_explicit_preview(settings):
+    preview = replace(
+        settings,
+        mode=RuntimeMode.DEVELOPMENT,
+        login_email="",
+        login_password_hash="",
+        session_secret="",
+        local_preview_enabled=True,
+    )
+    client = TestClient(create_app(preview), client=("127.0.0.1", 50000))
+    session = client.get("/api/auth/session")
+    assert session.status_code == 200
+    assert session.json()["authenticated"] is True
+    assert session.json()["preview"] is True
+    assert client.get("/api/crypto/evaluations/latest").status_code == 200
 
 
 def test_health_backfills_public_collector_providers_for_older_session_file(settings):
@@ -50,6 +67,67 @@ def test_login_unlocks_read_only_routes(settings):
     assert client.get("/api/runtime/boundary").json()["eval_is_final_reviewer"] is True
 
 
+def test_execution_routes_are_authenticated_and_fail_closed_by_default(settings):
+    client = TestClient(create_app(settings))
+    assert client.get("/api/crypto/execution/status").status_code == 401
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    status = client.get("/api/crypto/execution/status")
+    assert status.status_code == 200
+    assert status.json()["mode"] == "disabled"
+    assert status.json()["armed"] is False
+    assert status.json()["secrets_exposed"] is False
+    arm = client.post("/api/crypto/execution/arm", json={"confirmation": "ARM TESTNET AUTO"})
+    assert arm.status_code == 409
+    assert "execution_disabled" in arm.json()["detail"]
+    assert client.post("/api/crypto/execution/orders", json={}).status_code == 405
+    assert client.post("/api/crypto/execution/order", json={}).status_code == 405
+
+
+def test_execution_preflight_and_testnet_readiness_are_read_only(settings):
+    client = TestClient(create_app(settings))
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+
+    preflight = client.get("/api/crypto/execution/preflight")
+    assert preflight.status_code == 200
+    assert preflight.json()["status"] == "NO_GO"
+    assert preflight.json()["side_effects"] is False
+    assert preflight.json()["armed"] is False
+    assert preflight.json()["secrets_exposed"] is False
+
+    readiness = client.get("/api/crypto/execution/testnet-readiness")
+    assert readiness.status_code == 200
+    assert readiness.json()["status"] == "NO_GO"
+    assert readiness.json()["order_submission"] is False
+    assert "mode_is_testnet" in readiness.json()["launch_blockers"]
+
+
+def test_provider_status_exposes_public_market_data_endpoint(settings):
+    client = TestClient(create_app(settings))
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    body = client.get("/api/crypto/providers/status").json()
+    assert body["binance_public_endpoints"]["market_data_only"] is True
+    assert body["binance_public_endpoints"]["spot_rest"] == "https://data-api.binance.vision"
+    assert body["providers"]["binance"]["endpoint_family"] == "binance_public_market_data"
+
+
+def test_model_evidence_by_plan_is_authenticated_and_missing_plan_is_404(settings):
+    client = TestClient(create_app(settings))
+    assert client.get("/api/crypto/models/evidence/plan_missing").status_code == 401
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    assert client.get("/api/crypto/models/evidence/plan_missing").status_code == 404
+
+
+def test_scanner_routes_are_authenticated_and_empty_before_collection(settings):
+    client = TestClient(create_app(settings))
+    assert client.get("/api/crypto/scanner/status").status_code == 401
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    status = client.get("/api/crypto/scanner/status")
+    assert status.status_code == 200
+    assert status.json()["status"] == "not_collected"
+    assert client.get("/api/crypto/opportunities/current").json()["items"] == []
+    assert client.get("/api/crypto/opportunities/history").json()["items"] == []
+
+
 def test_factor_registry_is_exposed_after_login(settings):
     client = TestClient(create_app(settings))
     client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
@@ -73,6 +151,10 @@ def test_data_coverage_exposes_canonical_registry(settings):
     assert body["registry"]["asset_count"] >= 0
     assert body["coverage_gate"]["evidence_scope"] == "persisted_parquet_span"
     assert "missing_symbols" in body["coverage_gate"]
+    assert body["historical_coverage_gate"]["evidence_scope"] == "immutable_compacted_closed_klines"
+    assert body["historical_coverage_gate"]["required_ratio"] == 0.9
+    assert body["historical_coverage_gate"]["status"] == "NO_GO"
+    assert set(body["historical_coverage_gate"]["by_interval"]) == {"1h", "5m"}
     assert body["continuous_collection_gate"]["evidence_scope"] == "independent_collector_session"
 
 
@@ -112,6 +194,36 @@ def test_validation_gate_endpoint_is_authenticated_and_fail_closed(settings):
     response = client.get("/api/crypto/validation/gate")
     assert response.status_code == 200
     assert response.json()["status"] == "not_collected"
+
+
+def test_candidate_assets_are_visible_but_not_execution_allowlisted(settings):
+    client = TestClient(create_app(settings))
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    response = client.get("/api/crypto/execution/strategies")
+    assert response.status_code == 200
+    body = response.json()
+    candidates = {item["symbol"]: item for item in body["candidate_assets"]}
+    assert set(candidates) == {"ARBUSDT", "ZECUSDT", "PUMPUSDT", "HYPEUSDT"}
+    assert candidates["HYPEUSDT"]["market_type"] == "perpetual"
+    assert candidates["PUMPUSDT"]["risk_fraction_cap"] == 0.0025
+    assert all(item["execution_allowlisted"] is False for item in candidates.values())
+    assert all(item["testnet_eligible"] is False for item in candidates.values())
+    assert body["execution_allowlist"] == ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+
+
+def test_candidate_validation_gate_is_independent_and_fail_closed(settings):
+    client = TestClient(create_app(settings))
+    client.post("/api/auth/login", json={"email": settings.login_email, "password": "correct horse battery staple"})
+    response = client.get(
+        "/api/crypto/validation/gate",
+        params={"symbol": "HYPEUSDT", "market_type": "perpetual"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "not_collected"
+    assert body["symbol"] == "HYPEUSDT"
+    assert body["market_type"] == "perpetual"
+    assert body["strategy_version"] == "crypto_perpetual_long_v2.0.0"
 
 
 def test_holder_snapshot_is_authenticated_data_only(settings):

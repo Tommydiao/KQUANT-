@@ -1,6 +1,7 @@
 # KQUANT CRYPTO
 
-KQUANT CRYPTO is an independent, read-only crypto market research terminal.
+KQUANT CRYPTO is an independent crypto market research and gated-execution
+terminal.
 It is intentionally separate from the US equity KQUANT repository and starts
 on port `8010`.
 
@@ -13,10 +14,11 @@ market data -> data trust -> factors -> signal proposal
                                       LLM advisory only
 ```
 
-The foundation release does not connect exchange accounts, wallets, private
-keys or order APIs. Providers are disabled by default. The EVAL policy returns
-only `REJECTED` or `WATCH_ONLY` until later weekly gates are explicitly
-implemented and passed.
+Execution is disabled by default. The Binance adapter can read a configured
+Testnet or Live account and submit strategy-generated orders only after the
+historical validation, EVAL, account-risk, manual Arm and reconciliation gates
+all pass. There is no arbitrary order API, wallet integration, withdrawal
+permission or private-key storage.
 
 The default CEX watchlist is versioned in `config/crypto_universe.yml` and is
 split into `CORE`, `MAJOR_ALT`, `CEX_HIGH_BETA` and `MEME` tiers. The runtime
@@ -28,16 +30,54 @@ Every EVAL input must bind the same evidence set: `market`, `regime`, `factor`,
 `security`, `liquidity`, `derivative`, `signal`, `plan`, `model`, `universe`
 and `eval_policy`. Missing or mismatched bindings are recorded as blockers and
 cannot authorize an alert, Paper observation or Shadow observation. The
-database migration for this contract is schema v17; v9 adds the EVAL-derived
+database migration for this contract is schema v21; v9 adds the EVAL-derived
 research instruction projection and its state events, v10 adds immutable
 model-evidence metadata, v11 records validation partition/OOS-fold evidence,
 and v12 records signal-time factor values for leakage-safe model benchmarks.
 v13 adds the crypto roll ledger and Bayesian/Monte Carlo research records,
 v14 adds point-in-time ETF, derivatives, on-chain and whale evidence, v15
 adds the locked crypto roll validation report, v16 adds the immutable Shadow
-Observation Ledger, and v17 adds the OCR Roll Journal preview/confirmation
-record. Existing rows remain additive; model files
-themselves are never stored by the app.
+Observation Ledger, v17 adds the OCR Roll Journal preview/confirmation record,
+v18 adds the gated execution audit schema, v19 adds dynamic market scans and opportunity
+snapshots, and v20 adds deduplicated exchange account events. Existing rows remain additive; model files
+themselves are never stored by the app. v21 adds point-in-time instrument
+memberships and immutable mathematical evidence packets for candidate assets.
+
+## Candidate execution assets
+
+Universe `crypto_universe_v1.2.0` adds four research candidates without
+changing the execution allowlist:
+
+- `ARBUSDT`, `ZECUSDT` and `PUMPUSDT`: Binance Spot research and independent validation.
+- `HYPEUSDT`: Binance USD-M perpetual research only; it is never treated as a Spot instrument.
+- `PUMPUSDT` and `HYPEUSDT` use a maximum candidate risk fraction of `0.25%`.
+- `ARBUSDT` and `ZECUSDT` use a maximum candidate risk fraction of `0.50%`.
+
+Each candidate remains `RESEARCH_ONLY` until its own point-in-time model
+evidence, OOS validation, EVAL and Testnet gates pass. The default execution
+allowlist remains `BTCUSDT,ETHUSDT,SOLUSDT`.
+
+Plan or run listing-bounded public Binance backfills with:
+
+```powershell
+python scripts/backfill_candidate_assets.py
+python scripts/backfill_candidate_assets.py --execute
+```
+
+Print the complete research-Universe archive plan without starting network
+downloads:
+
+```powershell
+python scripts/plan_research_backfill.py --as-of 2026-09-04T00:00:00+00:00
+```
+
+The plan covers closed monthly 1H/5m archives for every configured Binance
+instrument, a rolling 1m window for BTC/ETH/SOL, and separate Funding history
+for perpetual candidates. Current-month tails remain an explicit REST backfill.
+
+The script starts at the configured listing month and never fabricates data
+before listing. A dry run is the default because a complete 1m archive import
+is intentionally large.
 
 ## Local setup
 
@@ -58,6 +98,13 @@ For local login, generate values without placing secrets in source control:
 
 Put the returned values in `.env` as `KQUANT_CRYPTO_LOGIN_PASSWORD_HASH`
 and `KQUANT_CRYPTO_SESSION_SECRET`, together with the local email.
+
+For a local development preview, login is bypassed only when the server is in
+`development` mode, bound to loopback, and no login credentials are configured.
+Set `KQUANT_CRYPTO_LOCAL_PREVIEW=false` to require login immediately. This
+preview does not change the disabled execution mode or expose wallet and
+withdrawal capabilities. Configuring an email, password hash, or non-loopback
+host automatically disables the bypass.
 
 For optional iPhone Web Push, generate VAPID values locally and copy the
 three printed lines into `.env`. Keep notifications disabled until the keys
@@ -110,6 +157,22 @@ it can deliver EVAL-approved research alerts but cannot submit trades.
 - `GET /api/crypto/validation/latest`
 - `GET /api/crypto/validation/gate` (locked test/OOS evidence gate; research-only)
 - `GET /api/crypto/validation/model-benchmarks/latest`
+- `GET /api/crypto/execution/status`
+- `GET /api/crypto/execution/strategies`
+- `GET /api/crypto/execution/account-summary`
+- `GET /api/crypto/execution/positions`
+- `GET /api/crypto/execution/orders`
+- `GET /api/crypto/execution/risk`
+- `GET /api/crypto/execution/preflight` (read-only; never Arms or submits)
+- `GET /api/crypto/execution/testnet-readiness`
+- `POST /api/crypto/execution/arm`
+- `POST /api/crypto/execution/disarm`
+- `POST /api/crypto/execution/kill-switch`
+- `POST /api/crypto/execution/reconcile`
+- `GET /api/crypto/scanner/status`
+- `GET /api/crypto/data/coverage` (includes an interval-aware 1H/5m historical Gate)
+- `GET /api/crypto/opportunities/current`
+- `GET /api/crypto/opportunities/history`
 - `GET /api/crypto/roll/current`
 - `GET /api/crypto/roll/history`
 - `GET /api/crypto/roll/ledger`
@@ -173,7 +236,7 @@ python scripts/collect_market_structure_evidence.py --symbol BTC
 
 # Collect the registered public evidence set for the 999 plan.  This is
 # source-timed research data only; failed providers remain N/A/data_caution.
-python scripts/collect_999_public_evidence.py --symbol BTC --symbol ETH --symbol SOL --symbol AAVE --symbol ENA --symbol ZEC --symbol PUMP
+python scripts/collect_999_public_evidence.py --symbol BTC --symbol ETH --symbol SOL --symbol AAVE --symbol ENA --symbol ZEC --symbol PUMP --symbol ARB --symbol HYPE
 ```
 - `POST /api/crypto/validation/roll-runs/from-parquet` (closed-bar roll replay)
 - `GET /api/crypto/validation/roll-latest`

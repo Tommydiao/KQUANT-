@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import asyncio
+import hmac
 import os
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -35,6 +37,9 @@ from ..notifications import (
     set_notification_preferences,
 )
 from ..provider_runtime import ProviderSupervisor, provider_health
+from ..market_scanner import BinanceMarketScanner, list_opportunities, scanner_status
+from ..candidate_market import BinanceCandidateMarketVerifier
+from ..hyperliquid_reference import HyperliquidPublicReference
 from ..market_runtime import MarketDataRuntime
 from ..market_regime_runtime import MarketRegimeRuntime
 from ..dex_runtime import DexDiscoveryRuntime
@@ -44,7 +49,7 @@ from ..factor_registry import FactorRegistry, MemeFactorRegistry
 from ..evaluation_models import EVAL_POLICY_VERSION, TradePlanDraft
 from ..backtest import BacktestBar, BacktestConfig, bars_for_duration
 from ..validation import ValidationConfig, ValidationSeries, evaluate_validation_gate, run_walk_forward_validation
-from ..validation_store import latest_validation_run, save_validation_run
+from ..validation_store import latest_validation_gate_for_unit, latest_validation_run, save_validation_run
 from ..historical_dataset import load_parquet_validation_dataset
 from ..paper_store import PaperGateError, close_paper_observation, create_paper_observation, list_paper_observations
 from ..meme_factors import MemeObservation, compute_meme_factors
@@ -64,6 +69,12 @@ from ..research_store import (
     latest_monte_carlo_result,
     save_bayesian_posterior,
     save_monte_carlo_result,
+)
+from ..model_evidence import (
+    build_model_evidence_packet,
+    get_model_evidence_packet,
+    latest_model_evidence_packet,
+    save_model_evidence_packet,
 )
 from ..roll_engine import RollInput, evaluate_roll
 from ..roll_store import (
@@ -105,6 +116,16 @@ from ..observability import build_observability_summary
 from ..staging import staging_status
 from ..readiness import evaluate_readiness
 from ..collection_session import read_collection_gate, read_collection_session
+from ..execution_service import ExecutionController
+from ..execution_orchestrator import ExecutionOrchestrator
+from ..binance_user_stream import BinanceUserDataRuntime
+from ..execution_store import (
+    latest_account_snapshot,
+    list_execution_orders,
+    list_execution_positions,
+)
+from ..strategy_manifest import list_strategy_manifests
+from ..universe_catalog import candidate_strategy_version, configured_instruments
 
 
 class LoginRequest(BaseModel):
@@ -128,6 +149,14 @@ class NotificationPreferencesRequest(BaseModel):
     quiet_start: str | None = Field(default=None, max_length=5)
     quiet_end: str | None = Field(default=None, max_length=5)
     timezone: str = Field(default="Asia/Shanghai", min_length=3, max_length=64)
+
+
+class ExecutionArmRequest(BaseModel):
+    confirmation: str = Field(min_length=1, max_length=80)
+
+
+class ExecutionReasonRequest(BaseModel):
+    reason: str = Field(default="operator_request", min_length=1, max_length=240)
 
 
 PUBLIC_API_PATHS = {
@@ -159,6 +188,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     factor_registry = FactorRegistry(resolved.db_path)
     meme_factor_registry = MemeFactorRegistry(resolved.db_path)
     model_registry = ModelArtifactRegistry(resolved.db_path)
+    execution_controller = ExecutionController(resolved.db_path, resolved.execution)
+    execution_orchestrator = ExecutionOrchestrator(resolved.db_path, execution_controller)
+    account_stream = BinanceUserDataRuntime(resolved.db_path, execution_controller)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -166,6 +198,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         factor_registry.register()
         meme_factor_registry.register()
         supervisor = ProviderSupervisor(resolved)
+        market_scanner = BinanceMarketScanner(
+            resolved.db_path,
+            base_url=resolved.binance_public_endpoints.spot_rest,
+        )
         runtime = MarketDataRuntime(
             resolved.data_dir,
             db_path=resolved.db_path,
@@ -174,11 +210,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             quote_sample_seconds=resolved.market_quote_sample_seconds,
             ticker_sample_seconds=resolved.market_ticker_sample_seconds,
         )
-        instruction_supervisor = RealtimeSupervisor(resolved.db_path, hub, resolved)
+        instruction_supervisor = RealtimeSupervisor(
+            resolved.db_path, hub, resolved,
+            execution_sink=execution_orchestrator.admit,
+        )
         universe_snapshot = UniverseRegistry(resolved.db_path).ensure_cex_snapshot(
             resolved.core_symbols,
             root_dir=resolved.root_dir,
         )
+        candidate_definitions = tuple(item for item in configured_instruments(resolved.root_dir) if item.research_status == "candidate")
+        candidate_market_status = {
+            "status": "not_checked",
+            "items": [item.as_dict() for item in candidate_definitions],
+            "execution_allowlist_unchanged": True,
+        }
+        if resolved.providers.binance and resolved.mode.value != "test":
+            candidate_market_status = await asyncio.to_thread(
+                BinanceCandidateMarketVerifier(resolved.db_path).verify,
+                candidate_definitions,
+            )
         hydration = await asyncio.to_thread(
             runtime.hydrate_recent_closed_klines,
             resolved.core_symbols,
@@ -214,12 +264,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.signal_runtime = signal_runtime
         app.state.market_regime_runtime = regime_runtime
         app.state.market_hydration = hydration
+        app.state.market_scanner = market_scanner
+        app.state.candidate_market_status = candidate_market_status
         task = None
+        scanner_task = None
+        account_stream_task = None
         dex_runtime = DexDiscoveryRuntime(resolved) if resolved.providers.dexscreener else None
         dex_task = None
         app.state.dex_discovery_runtime = dex_runtime
         if any(resolved.providers.as_dict().get(name, False) for name in ("binance", "okx", "coinbase", "kraken")):
             task = asyncio.create_task(supervisor.run(list(resolved.core_symbols)))
+        if resolved.providers.binance:
+            async def apply_scan(result: dict[str, Any]) -> None:
+                if result.get("status") != "available" or not result.get("watch_symbols"):
+                    return
+                supervisor.update_symbols(result["watch_symbols"], result.get("deep_symbols") or [])
+
+            scanner_task = asyncio.create_task(market_scanner.run_forever(apply_scan, interval_seconds=900.0))
+        if resolved.execution.credentials_configured and resolved.execution.mode.value != "disabled":
+            account_stream_task = asyncio.create_task(account_stream.run())
         if dex_runtime is not None:
             dex_task = asyncio.create_task(dex_runtime.run_forever())
         try:
@@ -231,6 +294,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if task:
                 task.cancel()
                 await asyncio.gather(task, return_exceptions=True)
+            if scanner_task:
+                scanner_task.cancel()
+                await asyncio.gather(scanner_task, return_exceptions=True)
+            if account_stream_task:
+                account_stream_task.cancel()
+                await asyncio.gather(account_stream_task, return_exceptions=True)
             if dex_task:
                 dex_task.cancel()
                 await asyncio.gather(dex_task, return_exceptions=True)
@@ -245,6 +314,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # lifespan; the lifespan replaces this with the runtime-owned instance.
     app.state.realtime_supervisor = RealtimeSupervisor(resolved.db_path, hub, resolved)
     app.state.signal_runtime = None
+    app.state.execution_controller = execution_controller
+    app.state.execution_orchestrator = execution_orchestrator
+    app.state.binance_account_stream = account_stream
 
     def _current_provider_health() -> dict[str, dict[str, Any]]:
         values = provider_health(resolved, getattr(app.state, "provider_supervisor", None))
@@ -279,16 +351,54 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def require_local_session(request: Request, call_next):
         path = request.url.path
         if path.startswith("/api/") and path not in PUBLIC_API_PATHS:
-            email = auth.authenticate(request.cookies.get(SessionAuth.cookie_name))
+            client_host = request.client.host if request.client else ""
+            local_preview = (
+                resolved.local_preview_enabled
+                and resolved.mode.value == "development"
+                and resolved.host in {"127.0.0.1", "localhost", "::1"}
+                and client_host in {"127.0.0.1", "::1", "localhost"}
+                and not auth.configured
+            )
+            internal_token = request.headers.get("X-KQUANT-CRYPTO-INTERNAL-TOKEN", "")
+            gateway_token = os.getenv("KQUANT_GATEWAY_CRYPTO_API_TOKEN", "").strip()
+            expected_internal_tokens = tuple(
+                token for token in (resolved.internal_api_token, gateway_token) if token
+            )
+            internal_authenticated = bool(
+                expected_internal_tokens
+                and client_host in {"127.0.0.1", "::1", "localhost"}
+                and any(hmac.compare_digest(internal_token, token) for token in expected_internal_tokens)
+            )
+            email = (
+                request.headers.get("X-KQUANT-WORKSPACE-USER", "").strip()
+                if internal_authenticated
+                else auth.authenticate(request.cookies.get(SessionAuth.cookie_name))
+            )
+            if not email and local_preview:
+                email = "local-preview@localhost"
+                request.state.local_preview = True
             if not email:
                 return JSONResponse({"detail": "请先登录本机研究终端。"}, status_code=401)
             request.state.user_email = email
         return await call_next(request)
 
     @app.get("/api/health")
-    async def health() -> dict[str, Any]:
+    async def health(request: Request) -> dict[str, Any]:
         universe = getattr(app.state, "universe_snapshot", None) or {}
         schema = migration_status(resolved.db_path)
+        probe_token = request.headers.get("X-KQUANT-CRYPTO-INTERNAL-TOKEN", "")
+        probe_expected = tuple(
+            token
+            for token in (resolved.internal_api_token, os.getenv("KQUANT_GATEWAY_CRYPTO_API_TOKEN", "").strip())
+            if token
+        )
+        probe_host = request.client.host if request.client else ""
+        probe_valid = bool(
+            probe_token
+            and probe_host in {"127.0.0.1", "::1", "localhost"}
+            and any(hmac.compare_digest(probe_token, token) for token in probe_expected)
+        )
+        probe_status = "valid" if probe_valid else ("missing" if not probe_token else "invalid")
         return {
             "status": "ok",
             "app_version": APP_VERSION,
@@ -296,17 +406,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "frontend_contract_version": FRONTEND_CONTRACT_VERSION,
             "build_sha": os.getenv("KQUANT_CRYPTO_BUILD_SHA", "local")[:80],
             "started_at": app.state.started_at,
+            "runtime_source": {
+                "package_file": str(Path(__file__).resolve()),
+                "project_root": str(resolved.root_dir.resolve()),
+            },
             "schema": schema,
             "version_matrix": {
                 "application": APP_VERSION,
                 "api": API_CONTRACT_VERSION,
                 "frontend": FRONTEND_CONTRACT_VERSION,
                 "schema": schema.get("current_version", 0),
-                "strategy": "crypto_roll_v1.0.0",
+                "strategy": "crypto_spot_momentum_v2.1.0",
                 "eval_policy": EVAL_POLICY_VERSION,
             },
             "runtime_mode": resolved.mode.value,
             "auth": {"configured": auth.configured, "session_cookie": SessionAuth.cookie_name},
+            "internal_gateway_auth": {
+                "configured": bool(resolved.internal_api_token),
+                "loopback_only": True,
+                "gateway_alias_configured": bool(os.getenv("KQUANT_GATEWAY_CRYPTO_API_TOKEN", "").strip()),
+                "token_alignment": bool(
+                    resolved.internal_api_token
+                    and os.getenv("KQUANT_GATEWAY_CRYPTO_API_TOKEN", "").strip()
+                    and hmac.compare_digest(
+                        resolved.internal_api_token,
+                        os.getenv("KQUANT_GATEWAY_CRYPTO_API_TOKEN", "").strip(),
+                    )
+                ),
+                "health_probe": probe_status,
+            },
             "providers": _current_provider_health(),
             "collector_session": _collector_session_status(),
             "dex_discovery": getattr(getattr(app.state, "dex_discovery_runtime", None), "status", lambda: {"status": "disabled"})(),
@@ -322,10 +450,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "status": universe.get("status", "not_started"),
                 "symbols": list(resolved.core_symbols),
             },
-            "read_only": True,
-            "account_access": False,
+            "read_only": resolved.execution.mode.value == "disabled",
+            "account_access": resolved.execution.mode.value != "disabled" and resolved.execution.credentials_configured,
             "wallet_access": False,
-            "order_submission": False,
+            "order_submission": execution_controller.armed,
+            "execution": execution_controller.status(),
             "eval_policy_version": EVAL_POLICY_VERSION,
             "research_layers": {
                 "crypto_roll_strategy_version": "crypto_roll_v1.0.0",
@@ -352,8 +481,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "monte_carlo": "crypto_monte_carlo_v1.0.0",
             "eval_policy": EVAL_POLICY_VERSION,
             "build_sha": os.getenv("KQUANT_CRYPTO_BUILD_SHA", "local")[:80],
-            "research_only": True,
-            "order_submission": False,
+            "research_only": resolved.execution.mode.value == "disabled",
+            "order_submission": execution_controller.armed,
         }
 
     @app.get("/api/operations/observability")
@@ -459,7 +588,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/auth/session")
     async def session(request: Request):
         email = auth.authenticate(request.cookies.get(SessionAuth.cookie_name))
-        return {"authenticated": bool(email), "email": email, "configured": auth.configured}
+        local_preview = (
+            resolved.local_preview_enabled
+            and resolved.mode.value == "development"
+            and resolved.host in {"127.0.0.1", "localhost", "::1"}
+            and not auth.configured
+        )
+        return {
+            "authenticated": bool(email) or local_preview,
+            "email": email or ("local-preview@localhost" if local_preview else None),
+            "configured": auth.configured,
+            "preview": local_preview,
+        }
 
     @app.get("/api/crypto/trade-plans/current")
     async def current_trade_plans():
@@ -707,6 +847,60 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         item = latest_monte_carlo_result(resolved.db_path, asset_id)
         return {"status": "available" if item else "not_collected", "item": item, "research_only": True}
 
+    @app.post("/api/crypto/research/model-evidence")
+    async def create_model_evidence(payload: dict[str, Any]):
+        asset_id = str(payload.get("asset_id") or "")
+        market_type = str(payload.get("market_type") or "spot").lower()
+        bayesian = payload.get("bayesian_posterior")
+        if not isinstance(bayesian, dict):
+            latest_bayesian_value = latest_bayesian_posterior(resolved.db_path, asset_id)
+            bayesian = dict((latest_bayesian_value or {}).get("posterior") or {})
+        monte_carlo = payload.get("monte_carlo_result")
+        if not isinstance(monte_carlo, dict):
+            monte_carlo = dict(latest_monte_carlo_result(resolved.db_path, asset_id) or {})
+        try:
+            packet = build_model_evidence_packet(
+                asset_id=asset_id,
+                symbol=str(payload.get("symbol") or ""),
+                market_type=market_type,
+                strategy_version=str(payload.get("strategy_version") or ""),
+                signal_time=str(payload.get("signal_time") or ""),
+                available_at=str(payload.get("available_at") or ""),
+                evidence_history_start=payload.get("evidence_history_start"),
+                bayesian_posterior=bayesian,
+                monte_carlo_result=monte_carlo,
+                logistic_result=payload.get("logistic_result"),
+                expected_return_quantiles=payload.get("expected_return_quantiles"),
+                calibration_status=str(payload.get("calibration_status") or "not_trained"),
+                source_snapshot_ids=tuple(str(item) for item in payload.get("source_snapshot_ids", ()) if str(item)),
+                minimum_history_observations=int(payload.get("minimum_history_observations", 220)),
+            )
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"model evidence invalid: {exc}") from exc
+        return {**save_model_evidence_packet(resolved.db_path, packet), "research_only": True, "eval_authority": "EVAL only"}
+
+    @app.get("/api/crypto/assets/{asset_id}/model-evidence")
+    async def current_model_evidence(asset_id: str, market_type: str | None = None):
+        item = latest_model_evidence_packet(resolved.db_path, asset_id, market_type)
+        return {"status": "available" if item else "not_collected", "item": item, "research_only": True}
+
+    @app.get("/api/crypto/models/evidence/{plan_id}")
+    async def model_evidence_for_plan(plan_id: str):
+        plan = get_trade_plan(resolved.db_path, plan_id)
+        if plan is None:
+            raise HTTPException(status_code=404, detail="trade plan not found")
+        payload = dict(plan.get("payload") or {})
+        packet = payload.get("model_evidence_packet")
+        packet_id = str(packet.get("packet_id") or "") if isinstance(packet, dict) else str(payload.get("model_evidence_packet_id") or "")
+        stored = get_model_evidence_packet(resolved.db_path, packet_id) if packet_id else None
+        return {
+            "status": "available" if stored else "not_collected",
+            "plan_id": plan_id,
+            "packet": stored,
+            "research_only": True,
+            "eval_authority": "EVAL only",
+        }
+
     @app.post("/api/crypto/validation/roll-runs")
     async def create_roll_validation_run(payload: dict[str, Any]):
         try:
@@ -937,7 +1131,30 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/crypto/providers/status")
     async def providers_status():
-        return {"providers": _current_provider_health(), "dex_discovery": getattr(getattr(app.state, "dex_discovery_runtime", None), "status", lambda: {"status": "disabled"})(), "symbols": list(resolved.core_symbols), "market_data_only": True}
+        return {"providers": _current_provider_health(), "dex_discovery": getattr(getattr(app.state, "dex_discovery_runtime", None), "status", lambda: {"status": "disabled"})(), "symbols": list(resolved.core_symbols), "market_data_only": True, "binance_public_endpoints": resolved.binance_public_endpoints.report()}
+
+    @app.get("/api/crypto/scanner/status")
+    async def market_scanner_status():
+        result = scanner_status(resolved.db_path)
+        scanner = getattr(app.state, "market_scanner", None)
+        result["runtime"] = {
+            "last_scan_at": getattr(scanner, "last_scan_at", None),
+            "last_scan_id": getattr(scanner, "last_scan_id", None),
+            "last_error": getattr(scanner, "last_error", None),
+            "endpoint_family": getattr(scanner, "endpoint_family", "binance_public_market_data"),
+            "endpoint": getattr(scanner, "base_url", resolved.binance_public_endpoints.spot_rest),
+            "market_data_only": True,
+            "interval_seconds": 900,
+        }
+        return result
+
+    @app.get("/api/crypto/opportunities/current")
+    async def current_opportunities(limit: int = 150):
+        return {"items": list_opportunities(resolved.db_path, current=True, limit=limit)}
+
+    @app.get("/api/crypto/opportunities/history")
+    async def opportunity_history(limit: int = 300):
+        return {"items": list_opportunities(resolved.db_path, current=False, limit=limit)}
 
     @app.get("/api/crypto/evidence/capabilities")
     async def evidence_capabilities():
@@ -1102,6 +1319,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def data_coverage():
         runtime = getattr(app.state, "market_runtime", None)
         storage = runtime.coverage() if runtime else {"storage": {"status": "not_collected"}, "in_memory_instruments": []}
+        closed_coverage = runtime.store.closed_kline_coverage() if runtime else {"status": "not_collected", "streams": []}
         from ..db.migrations import connect
 
         storage_streams = {
@@ -1163,6 +1381,65 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "evidence_scope": "persisted_parquet_span",
             "note": "This is storage coverage evidence; it is not proof of one uninterrupted collector session.",
         }
+        historical_streams = {
+            (
+                str(item.get("instrument_id") or "").rsplit(":", 1)[-1].upper(),
+                str(item.get("market_type") or "").lower(),
+                str(item.get("interval") or ""),
+            ): item
+            for item in closed_coverage.get("streams", [])
+            if item.get("instrument_id") and item.get("interval")
+        }
+        research_spot_symbols = sorted({
+            item.symbol for item in configured_instruments(resolved.root_dir)
+            if item.venue == "binance" and item.market_type == "spot"
+        })
+        interval_minimums = {"1h": 220, "5m": 220}
+        historical_matrix: list[dict[str, Any]] = []
+        qualified: list[str] = []
+        for symbol in research_spot_symbols:
+            intervals: dict[str, Any] = {}
+            complete = True
+            for interval, minimum in interval_minimums.items():
+                row = historical_streams.get((symbol, "spot", interval))
+                observed = int((row or {}).get("event_count") or 0)
+                passed = observed >= minimum
+                complete = complete and passed
+                intervals[interval] = {
+                    "status": "available" if passed else "insufficient",
+                    "closed_bars": observed,
+                    "minimum_closed_bars": minimum,
+                    "first_bar": (row or {}).get("min_source_time"),
+                    "last_bar": (row or {}).get("max_source_time"),
+                    "source": "compacted_closed_klines" if row else None,
+                }
+            if complete:
+                qualified.append(symbol)
+            historical_matrix.append({"symbol": symbol, "market_type": "spot", "eligible": complete, "intervals": intervals})
+        historical_ratio = len(qualified) / len(research_spot_symbols) if research_spot_symbols else 0.0
+        interval_coverage: dict[str, Any] = {}
+        for interval in interval_minimums:
+            eligible_for_interval = [
+                item["symbol"] for item in historical_matrix
+                if item["intervals"][interval]["status"] == "available"
+            ]
+            interval_coverage[interval] = {
+                "eligible_symbols": eligible_for_interval,
+                "coverage_ratio": round(
+                    len(eligible_for_interval) / len(research_spot_symbols), 6
+                ) if research_spot_symbols else 0.0,
+            }
+        historical_gate = {
+            "status": "PASS" if historical_ratio >= 0.90 else "NO_GO",
+            "coverage_ratio": round(historical_ratio, 6),
+            "required_ratio": 0.90,
+            "eligible_symbols": qualified,
+            "missing_symbols": sorted(set(research_spot_symbols) - set(qualified)),
+            "interval_minimums": interval_minimums,
+            "by_interval": interval_coverage,
+            "matrix": historical_matrix,
+            "evidence_scope": "immutable_compacted_closed_klines",
+        }
         continuous_gate: dict[str, Any]
         session = read_collection_session(resolved.outputs_dir)
         if session.get("status") == "completed":
@@ -1194,6 +1471,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "instrument_count": sum(len(item["instruments"]) for item in assets_by_id.values()),
             },
             "coverage_gate": coverage_gate,
+            "historical_coverage_gate": historical_gate,
             "continuous_collection_gate": continuous_gate,
             "storage": storage,
             "note": "覆盖率只统计已经落地的公开行情，不代表策略或 Paper 证据。",
@@ -1401,11 +1679,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         with connect(resolved.db_path) as conn:
             row = conn.execute("SELECT * FROM crypto_universe_snapshots ORDER BY as_of_time DESC LIMIT 1").fetchone()
+            instruments = conn.execute(
+                "SELECT * FROM crypto_universe_instrument_memberships WHERE effective_to IS NULL ORDER BY tier,symbol,market_type"
+            ).fetchall()
         if row is None:
             return {"status": "not_collected", "items": []}
         value = dict(row)
         value["members"] = json.loads(value.pop("members_json"))
+        value["instruments"] = []
+        for instrument_row in instruments:
+            instrument = dict(instrument_row)
+            instrument["risk_tags"] = json.loads(instrument.pop("risk_tags_json"))
+            instrument["metadata"] = json.loads(instrument.pop("metadata_json"))
+            value["instruments"].append(instrument)
         return {"status": "available", **value}
+
+    @app.get("/api/crypto/universe/verification")
+    async def universe_verification():
+        return getattr(app.state, "candidate_market_status", {"status": "not_checked", "items": []})
+
+    @app.get("/api/crypto/market-reference/hyperliquid/HYPE")
+    async def hyperliquid_hype_reference():
+        return await asyncio.to_thread(HyperliquidPublicReference().hype_snapshot)
 
     @app.get("/api/crypto/market-regime/current")
     async def current_market_regime():
@@ -1430,8 +1725,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"status": "available", **value}
 
     @app.get("/api/crypto/validation/gate")
-    async def latest_validation_gate():
-        value = latest_validation_run(resolved.db_path)
+    async def latest_validation_gate(
+        strategy_version: str | None = None,
+        symbol: str | None = None,
+        market_type: str | None = None,
+        direction: str = "long",
+    ):
+        if symbol:
+            normalized_symbol = symbol.upper()
+            candidate = next((item for item in configured_instruments(resolved.root_dir) if item.symbol == normalized_symbol and item.research_status == "candidate"), None)
+            selected_market = str(market_type or (candidate.market_type if candidate else "spot")).lower()
+            selected_strategy = str(strategy_version or (candidate_strategy_version(candidate) if candidate else "crypto_spot_momentum_v2.0.0"))
+            gate = latest_validation_gate_for_unit(
+                resolved.db_path,
+                strategy_version=selected_strategy,
+                symbol=normalized_symbol,
+                market_type=selected_market,
+                direction=direction,
+            )
+            return {
+                "status": "available" if gate else "not_collected",
+                "symbol": normalized_symbol,
+                "market_type": selected_market,
+                "direction": direction,
+                "strategy_version": selected_strategy,
+                "validation_gate": gate,
+            }
+        value = latest_validation_run(resolved.db_path, strategy_version)
         if value is None:
             return {"status": "not_collected", "validation_gate": None}
         return {
@@ -1615,13 +1935,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 oos_folds=int(payload.get("oos_folds", 3)),
             )
             raw_weights = payload.get("weights")
-            if raw_weights:
+            score_policy = None
+            if config.strategy_version == "crypto_spot_momentum_v2.1.0":
+                if include_derivatives:
+                    raise ValueError("crypto_spot_momentum_v2.1.0 requires spot OHLCV input")
+                from ..strategy_momentum_v21 import FACTOR_IDS, LIVE_ONLY_FACTOR_IDS, score_spot_momentum_v21
+
+                weights = {factor_id: 1.0 for factor_id in FACTOR_IDS if factor_id not in LIVE_ONLY_FACTOR_IDS}
+                score_policy = lambda registry, values: score_spot_momentum_v21(registry, values, include_live_only=False)
+                config = replace(config, feature_scope="ohlcv_only_limited_v21")
+            elif raw_weights:
                 weights = {str(key): float(value) for key, value in raw_weights.items()}
             else:
                 from ..strategy_scopes import HISTORICAL_DERIVATIVE_WEIGHTS, HISTORICAL_OHLCV_WEIGHTS
 
                 weights = dict(HISTORICAL_DERIVATIVE_WEIGHTS if include_derivatives else HISTORICAL_OHLCV_WEIGHTS)
-            result = run_walk_forward_validation(dataset.series, registry=factor_registry, weights=weights, config=config)
+            result = run_walk_forward_validation(
+                dataset.series,
+                registry=factor_registry,
+                weights=weights,
+                config=config,
+                score_policy=score_policy,
+            )
             report = result["report"]
             report["dataset_coverage"] = dataset.coverage
             if bool(payload.get("include_model_benchmarks", False)):
@@ -1709,14 +2044,135 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def update_notification_preferences(payload: NotificationPreferencesRequest, request: Request):
         return set_notification_preferences(resolved.db_path, request.state.user_email, payload.model_dump())
 
+    @app.get("/api/crypto/execution/status")
+    async def execution_status():
+        value = execution_controller.status()
+        value["orchestrator"] = execution_orchestrator.status()
+        value["account_stream"] = account_stream.status()
+        return value
+
+    @app.get("/api/crypto/execution/preflight")
+    async def execution_preflight():
+        value = await asyncio.to_thread(execution_controller.preflight)
+        value["account_stream"] = account_stream.status()
+        return value
+
+    @app.get("/api/crypto/execution/testnet-readiness")
+    async def execution_testnet_readiness():
+        preflight = await asyncio.to_thread(execution_controller.preflight)
+        mode_is_testnet = resolved.execution.mode.value == "testnet"
+        launch_checks = {
+            **preflight["checks"],
+            "mode_is_testnet": mode_is_testnet,
+            "account_stream_configured": bool(resolved.execution.credentials_configured and mode_is_testnet),
+        }
+        launch_blockers = [name for name, passed in launch_checks.items() if not passed]
+        return {
+            "status": "PASS" if not launch_blockers else "NO_GO",
+            "launch_checks": launch_checks,
+            "launch_blockers": launch_blockers,
+            "observation_release_gate": preflight["observation_release_gate"],
+            "account_stream": account_stream.status(),
+            "armed": execution_controller.armed,
+            "order_submission": execution_controller.armed,
+            "secrets_exposed": False,
+        }
+
+    @app.get("/api/crypto/execution/strategies")
+    async def execution_strategies():
+        candidates = []
+        for item in configured_instruments(resolved.root_dir):
+            if item.research_status != "candidate":
+                continue
+            strategy_version = candidate_strategy_version(item)
+            gate = latest_validation_gate_for_unit(
+                resolved.db_path,
+                strategy_version=strategy_version,
+                symbol=item.symbol,
+                market_type=item.market_type,
+                direction="long",
+            )
+            candidates.append({
+                **item.as_dict(),
+                "strategy_version": strategy_version,
+                "validation_gate": gate,
+                "execution_allowlisted": item.symbol in resolved.execution.symbols,
+                "testnet_eligible": bool(gate and gate.get("status") == "PASS" and item.symbol in resolved.execution.symbols),
+            })
+        return {
+            "strategies": list_strategy_manifests(),
+            "validation_gates": execution_controller.validation_gates(),
+            "candidate_assets": candidates,
+            "execution_allowlist": list(resolved.execution.symbols),
+        }
+
+    @app.get("/api/crypto/execution/account-summary")
+    async def execution_account_summary():
+        try:
+            return execution_controller.account_summary()
+        except Exception as exc:
+            return {
+                "status": "unavailable",
+                "reason": f"binance_account_sync_failed:{type(exc).__name__}",
+                "secrets_exposed": False,
+            }
+
+    @app.get("/api/crypto/execution/positions")
+    async def execution_positions():
+        return {"positions": list_execution_positions(resolved.db_path), "source": "reconciled_local_ledger"}
+
+    @app.get("/api/crypto/execution/orders")
+    async def execution_orders(limit: int = 100):
+        return {"orders": list_execution_orders(resolved.db_path, limit=limit), "source": "execution_audit_ledger"}
+
+    @app.get("/api/crypto/execution/risk")
+    async def execution_risk():
+        return {
+            "latest_account_snapshot": latest_account_snapshot(resolved.db_path),
+            "limits": execution_controller.status()["limits"],
+            "armed": execution_controller.armed,
+        }
+
+    @app.post("/api/crypto/execution/arm")
+    async def execution_arm(payload: ExecutionArmRequest):
+        try:
+            return execution_controller.arm(payload.confirmation)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.post("/api/crypto/execution/disarm")
+    async def execution_disarm(payload: ExecutionReasonRequest):
+        return execution_controller.disarm(payload.reason)
+
+    @app.post("/api/crypto/execution/kill-switch")
+    async def execution_kill_switch(payload: ExecutionReasonRequest):
+        return execution_controller.kill(payload.reason)
+
+    @app.post("/api/crypto/execution/reconcile")
+    async def execution_reconcile():
+        return execution_controller.reconcile()
+
     @app.get("/api/runtime/boundary")
     async def runtime_boundary():
         return {
-            "read_only": True,
-            "allowed": ["market_research", "paper_observation", "shadow_observation"],
-            "forbidden": ["account_access", "wallet_access", "private_keys", "order_submission", "automatic_execution"],
+            "read_only": resolved.execution.mode.value == "disabled",
+            "allowed": [
+                "market_research",
+                "paper_observation",
+                "shadow_observation",
+                "gated_binance_account_sync",
+                "gated_strategy_execution",
+            ],
+            "forbidden": [
+                "wallet_access",
+                "private_keys",
+                "withdrawals",
+                "arbitrary_manual_order_submission",
+                "llm_order_submission",
+            ],
             "eval_is_final_reviewer": True,
             "llm_is_advisory_only": True,
+            "execution": execution_controller.status(),
         }
 
     @app.get("/manifest.webmanifest")

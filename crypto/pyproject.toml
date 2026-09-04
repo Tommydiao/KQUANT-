@@ -1,7 +1,7 @@
 [project]
 name = "kquant-crypto"
-version = "0.3.3"
-description = "Read-only crypto market monitoring and early-start research terminal."
+version = "0.6.0"
+description = "Crypto market research, validation, and gated Binance execution terminal."
 requires-python = ">=3.11"
 dependencies = [
   "duckdb>=1.1",

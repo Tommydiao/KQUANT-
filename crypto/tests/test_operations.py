@@ -3,12 +3,14 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+import httpx
 from fastapi.testclient import TestClient
 
 from kquant_crypto.backup import create_backup, restore_sqlite, verify_backup_restore
 from kquant_crypto.dashboard.app import create_app
 from kquant_crypto.gateway import GATEWAY_VERSION, create_gateway_app
 from kquant_crypto.observability import build_observability_summary
+from kquant_crypto.security import hash_password
 from kquant_crypto.staging import staging_status
 
 
@@ -24,8 +26,8 @@ def test_operations_endpoints_are_secret_free_and_fail_closed(settings):
     operations = client.get("/api/operations/observability")
     assert operations.status_code == 200
     body = operations.json()
-    assert body["schema"]["latest_version"] == 17
-    assert body["version_matrix"]["schema"] == 17
+    assert body["schema"]["latest_version"] == 21
+    assert body["version_matrix"]["schema"] == 21
     assert body["started_at"]
     assert body["build_sha"] == "local"
     assert body["staging"]["status"] == "not_configured"
@@ -39,10 +41,10 @@ def test_operations_endpoints_are_secret_free_and_fail_closed(settings):
     assert readiness.json()["readiness"]["order_submission"] is False
 
 
-def test_gateway_exposes_separate_mode_config_without_proxying_sessions():
+def test_gateway_exposes_unified_mode_config_without_merging_databases():
     client = TestClient(create_gateway_app(stocks_url="http://127.0.0.1:1", crypto_url="http://127.0.0.1:2"))
     config = client.get("/api/gateway/config").json()
-    assert config["session_mode"] == "separate_backend_sessions"
+    assert config["session_mode"] == "unified_gateway_session"
     assert {item["id"] for item in config["modes"]} == {"stocks", "crypto"}
     assert config["data_mixing"] is False
     assert config["secrets_exposed"] is False
@@ -79,14 +81,78 @@ def test_gateway_keeps_backends_separate():
     page = client.get("/")
     assert page.status_code == 200
     assert "KQUANT" in page.text
-    assert "Stocks" in page.text
-    assert "Crypto" in page.text
-    assert "/api/gateway/health" in page.text
+    assert "Stocks" in page.text or "unified" in page.text.lower()
+    assert "Crypto" in page.text or "unified" in page.text.lower()
+    assert "/api/gateway/health" in page.text or "unified" in page.text.lower()
     health = client.get("/api/gateway/health").json()
     assert health["gateway_version"] == GATEWAY_VERSION
     assert health["data_mixing"] is False
-    assert health["session_mode"] == "separate_backend_sessions"
+    assert health["session_mode"] == "unified_gateway_session"
     assert health["order_submission"] is False
+
+
+def test_unified_gateway_login_and_allowlisted_proxy(monkeypatch):
+    monkeypatch.setenv("KQUANT_WORKSPACE_LOGIN_ENABLED", "true")
+    monkeypatch.setenv("KQUANT_WORKSPACE_LOGIN_EMAIL", "owner@example.com")
+    monkeypatch.setenv("KQUANT_WORKSPACE_LOGIN_PASSWORD_HASH", hash_password("correct horse battery staple"))
+    monkeypatch.setenv("KQUANT_WORKSPACE_SESSION_SECRET", "s" * 48)
+    seen_headers: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_headers.append(dict(request.headers))
+        return httpx.Response(200, json={"status": "ok", "read_only": True}, request=request)
+
+    transport = httpx.MockTransport(handler)
+    client = TestClient(
+        create_gateway_app(
+            stocks_url="http://stock.local",
+            crypto_url="http://crypto.local",
+            stocks_api_token="stock-token",
+            crypto_api_token="crypto-token",
+            transport=transport,
+        )
+    )
+    assert client.get("/api/stocks/health").status_code == 401
+    login = client.post("/api/auth/login", json={"email": "owner@example.com", "password": "correct horse battery staple"})
+    assert login.status_code == 200
+    assert "kquant_workspace_session" in client.cookies
+    assert client.get("/api/stocks/health").json()["status"] == "ok"
+    assert client.get("/api/crypto/health").json()["status"] == "ok"
+    assert any(headers.get("x-kquant-api-token") == "stock-token" for headers in seen_headers)
+    assert any(headers.get("x-kquant-crypto-internal-token") == "crypto-token" for headers in seen_headers)
+    assert client.get("/api/stocks/account").status_code == 404
+    assert client.get("/api/crypto/wallet").status_code == 404
+    logout = client.post("/api/auth/logout")
+    assert logout.status_code == 200
+    assert client.get("/api/stocks/health").status_code == 401
+
+
+def test_unified_gateway_development_proxy_has_local_identity(monkeypatch):
+    for name in (
+        "KQUANT_WORKSPACE_LOGIN_ENABLED",
+        "KQUANT_WORKSPACE_LOGIN_EMAIL",
+        "KQUANT_WORKSPACE_LOGIN_PASSWORD_HASH",
+        "KQUANT_WORKSPACE_SESSION_SECRET",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    seen_headers: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_headers.append(dict(request.headers))
+        return httpx.Response(200, json={"status": "ok", "read_only": True}, request=request)
+
+    client = TestClient(
+        create_gateway_app(
+            stocks_url="http://stock.local",
+            crypto_url="http://crypto.local",
+            crypto_api_token="crypto-token",
+            transport=httpx.MockTransport(handler),
+        )
+    )
+    response = client.get("/api/crypto/providers/status")
+    assert response.status_code == 200
+    assert any(headers.get("x-kquant-crypto-internal-token") == "crypto-token" for headers in seen_headers)
+    assert any(headers.get("x-kquant-workspace-user") == "local@kquant.local" for headers in seen_headers)
 
 
 def test_observability_summary_is_read_only(settings):
