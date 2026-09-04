@@ -82,6 +82,7 @@ def load_parquet_validation_dataset(
     min_bars: int = 55,
     limit: int = 250_000,
     include_derivatives: bool = False,
+    market_type: str = "spot",
 ) -> ParquetValidationDataset:
     """Build a PIT validation dataset from closed, persisted market events.
 
@@ -90,12 +91,25 @@ def load_parquet_validation_dataset(
     membership, forming candles, or synthetic bars.
     """
 
+    normalized_market_type = str(market_type).strip().lower()
+    if normalized_market_type not in {"spot", "perpetual"}:
+        raise ValueError(f"Unsupported validation market type: {market_type}")
     wanted = {str(item).upper() for item in (symbols or ()) if str(item).strip()}
     store = ParquetMarketStore(data_dir)
     requested_interval = str(interval).strip().lower()
-    native_compacted = store.compacted_closed_kline_path_for(requested_interval)
+    native_compacted = store.compacted_closed_kline_path_for(requested_interval, normalized_market_type)
+    native_manifest = store.compacted_closed_kline_manifest_path_for(requested_interval, normalized_market_type)
+    if not native_compacted.exists():
+        native_compacted = store.compacted_closed_kline_path_for(requested_interval)
+        native_manifest = store.compacted_closed_kline_manifest_path_for(requested_interval)
     use_native_interval = requested_interval != "1m" and native_compacted.exists()
-    compacted = native_compacted if use_native_interval else store.compacted_closed_kline_path
+    market_one_minute = store.compacted_closed_kline_path_for("1m", normalized_market_type)
+    one_minute_manifest = store.compacted_closed_kline_manifest_path_for("1m", normalized_market_type)
+    if not market_one_minute.exists():
+        market_one_minute = store.compacted_closed_kline_path
+        one_minute_manifest = store.compacted_closed_kline_manifest_path
+    compacted = native_compacted if use_native_interval else market_one_minute
+    compacted_manifest_path = native_manifest if use_native_interval else one_minute_manifest
     storage_mode = "raw_events"
     compacted_manifest: dict[str, Any] | None = None
     source_interval = requested_interval if use_native_interval or requested_interval == "1m" else "1m"
@@ -104,7 +118,7 @@ def load_parquet_validation_dataset(
 
         try:
             compacted_manifest = json.loads(
-                store.compacted_closed_kline_manifest_path_for(source_interval).read_text(encoding="utf-8")
+                compacted_manifest_path.read_text(encoding="utf-8")
             )
         except (OSError, json.JSONDecodeError):
             compacted_manifest = None
@@ -116,11 +130,11 @@ def load_parquet_validation_dataset(
                        received_at, provider_status, interval, open, high, low,
                        close, volume
                 FROM read_parquet(?)
-                WHERE venue = 'binance' AND market_type = 'spot' AND interval = ?
+                WHERE venue = 'binance' AND market_type = ? AND interval = ?
                 ORDER BY instrument_id, source_time
                 LIMIT ?
                 """,
-                [[str(compacted)], source_interval, max(1, min(limit, 1_000_000))],
+                [[str(compacted)], normalized_market_type, source_interval, max(1, min(limit, 1_000_000))],
             )
             columns = [item[0] for item in result.description]
             rows = [dict(zip(columns, row)) for row in result.fetchall()]
@@ -145,7 +159,7 @@ def load_parquet_validation_dataset(
             },
         )
     else:
-        rows = store.query(venue="binance", market_type="spot", limit=max(1, min(limit, 1_000_000)))
+        rows = store.query(venue="binance", market_type=normalized_market_type, limit=max(1, min(limit, 1_000_000)))
     grouped: dict[str, dict[str, Any]] = {}
     seen: set[tuple[str, str]] = set()
     for row in rows:
@@ -223,8 +237,8 @@ def load_parquet_validation_dataset(
             bars=bars,
             benchmark_bars=dict(benchmark_map),
             instrument_id=instrument_id,
-            asset_type="crypto_spot" if str(instrument_id).startswith("binance:spot:") else "",
-            instrument_data_status="actual" if str(instrument_id).startswith("binance:spot:") else "",
+            asset_type=f"crypto_{normalized_market_type}",
+            instrument_data_status="actual" if str(instrument_id).startswith(f"binance:{normalized_market_type}:") else "",
             derivative_series=(
                 align_derivatives_to_bars(bars, derivative_dataset.for_symbol(item["symbol"]))
                 if derivative_dataset is not None
@@ -233,7 +247,8 @@ def load_parquet_validation_dataset(
         ))
 
     coverage = {
-        "source": "parquet:binance:spot",
+        "source": f"parquet:binance:{normalized_market_type}",
+        "market_type": normalized_market_type,
         "storage_mode": storage_mode,
         "compacted_manifest": compacted_manifest,
         "interval": interval,
@@ -247,7 +262,8 @@ def load_parquet_validation_dataset(
         "excluded": excluded,
         "derivative_coverage": derivative_dataset.coverage if derivative_dataset is not None else None,
         "dataset_hash": stable_hash({
-            "source": "parquet:binance:spot",
+            "source": f"parquet:binance:{normalized_market_type}",
+            "market_type": normalized_market_type,
             "interval": interval,
             "series": [
                 {

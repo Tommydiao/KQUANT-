@@ -105,6 +105,8 @@ class ProviderHealth:
     last_error: str | None = None
     clock_offset_seconds: float | None = None
     clock_source: str | None = None
+    endpoint_family: str | None = None
+    endpoint: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         quality_errors = self.sequence_gaps + self.duplicate_events + self.out_of_order_events + self.handler_errors
@@ -136,4 +138,7 @@ class ProviderHealth:
             "last_error": self.last_error,
             "clock_offset_seconds": self.clock_offset_seconds,
             "clock_source": self.clock_source,
+            "endpoint_family": self.endpoint_family,
+            "endpoint": self.endpoint,
+            "last_success_at": self.last_received_at,
         }

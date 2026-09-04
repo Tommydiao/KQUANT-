@@ -50,5 +50,7 @@ def test_derivatives_align_only_after_source_and_available_time():
 
     assert aligned[0] == {"funding_rate": None, "oi_change": None}
     assert aligned[1]["funding_rate"] == 0.0001
+    assert aligned[2]["funding_rate"] is None
+    assert aligned[3]["funding_rate"] is None
     assert aligned[2]["oi_change"] is None
     assert aligned[3]["oi_change"] is None

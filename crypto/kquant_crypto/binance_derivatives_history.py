@@ -123,7 +123,13 @@ class BinancePublicDerivativeClient:
         return [dict(row) for row in payload if isinstance(row, dict)]
 
 
-def funding_event(symbol: str, row: dict[str, Any], *, fetched_at: datetime) -> NormalizedMarketEvent | None:
+def funding_event(
+    symbol: str,
+    row: dict[str, Any],
+    *,
+    fetched_at: datetime,
+    source: str = "binance_public_rest_funding_rate",
+) -> NormalizedMarketEvent | None:
     normalized = _normalise_symbol(symbol)
     source_ms = _timestamp_from_row(row, "fundingTime")
     if source_ms is None or source_ms >= int(fetched_at.astimezone(UTC).timestamp() * 1000):
@@ -139,7 +145,7 @@ def funding_event(symbol: str, row: dict[str, Any], *, fetched_at: datetime) -> 
         "mark_price": row.get("markPrice"),
         "rate_type": row.get("rateType", "Regular"),
         "funding_time": source_time,
-        "source": "binance_public_rest_funding_rate",
+        "source": source,
         "available_at": source_time,
         "retrieved_at": fetched_at.astimezone(UTC).isoformat(),
         "provenance": "historical_rest_replay",

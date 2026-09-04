@@ -130,6 +130,10 @@ def fetch_binance_derivatives_evidence(
         index = _number(premium.get("indexPrice"))
         if funding is not None:
             values["funding_rate"] = funding
+        if mark is not None:
+            values["mark_price"] = mark
+        if index is not None:
+            values["index_price"] = index
         if mark is not None and index is not None and index > 0:
             values["basis"] = (mark / index) - 1.0
         if (timestamp := _iso_from_ms(premium.get("time"))):
@@ -301,12 +305,16 @@ def fetch_okx_derivatives_evidence(
     mark_rows = responses.get("mark_price")
     mark = mark_rows[0] if isinstance(mark_rows, list) and mark_rows and isinstance(mark_rows[0], dict) else {}
     mark_price = _number(mark.get("markPx") or mark.get("markPrice"))
+    if mark_price is not None:
+        values["mark_price"] = mark_price
     if (timestamp := _iso_from_ms(mark.get("ts"))):
         source_times.append(datetime.fromisoformat(timestamp))
 
     index_rows = responses.get("index_ticker")
     index = index_rows[0] if isinstance(index_rows, list) and index_rows and isinstance(index_rows[0], dict) else {}
     index_price = _number(index.get("idxPx") or index.get("indexPx"))
+    if index_price is not None:
+        values["index_price"] = index_price
     if mark_price is not None and index_price is not None and index_price > 0:
         values["basis"] = (mark_price / index_price) - 1.0
     if (timestamp := _iso_from_ms(index.get("ts"))):

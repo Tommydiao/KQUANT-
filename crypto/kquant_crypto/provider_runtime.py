@@ -17,10 +17,13 @@ from .providers import BinancePublicAdapter, CoinbasePublicAdapter, KrakenPublic
 def provider_health(settings: Settings, supervisor: "ProviderSupervisor | None" = None) -> dict[str, dict[str, Any]]:
     if supervisor is not None:
         return {name: value.as_dict() for name, value in supervisor.health.items()}
-    return {
+    values = {
         name: ProviderHealth(name, enabled, status="disabled" if not enabled else "configured_pending").as_dict()
         for name, enabled in settings.providers.as_dict().items()
     }
+    values["binance"]["endpoint_family"] = "binance_public_market_data"
+    values["binance"]["endpoint"] = settings.binance_public_endpoints.spot_stream
+    return values
 
 
 def record_provider_event(db_path: Path, event: NormalizedMarketEvent, *, event_type: str = "market_event") -> None:
@@ -42,18 +45,45 @@ class ProviderSupervisor:
         self.health = {name: ProviderHealth(name, enabled, status="disabled" if not enabled else "configured_pending") for name, enabled in settings.providers.as_dict().items()}
         self.sequence = SequenceTracker()
         self._stop = asyncio.Event()
+        self._restart = asyncio.Event()
+        self._symbols: tuple[str, ...] = ()
+        binance_health = self.health.get("binance")
+        if binance_health is not None:
+            binance_health.endpoint_family = "binance_public_market_data"
+            binance_health.endpoint = settings.binance_public_endpoints.spot_stream
 
     async def _default_handler(self, event: NormalizedMarketEvent) -> None:
         record_provider_event(self.settings.db_path, event)
 
     def stop(self) -> None:
         self._stop.set()
+        self._restart.set()
+
+    def update_symbols(self, symbols: list[str], high_frequency_symbols: list[str] | None = None) -> bool:
+        normalized = tuple(dict.fromkeys(str(value).upper() for value in symbols if value))
+        if not normalized:
+            return False
+        high_frequency = set(str(value).upper() for value in (high_frequency_symbols or ()) if value)
+        changed = normalized != self._symbols or high_frequency != self.high_frequency_symbols
+        self._symbols = normalized
+        self.high_frequency_symbols = high_frequency
+        if changed:
+            self._restart.set()
+        return changed
 
     def _adapters(self, name: str):
         if name == "binance":
             return [
-                BinancePublicAdapter(futures=False, high_frequency_symbols=self.high_frequency_symbols),
-                BinancePublicAdapter(futures=True, high_frequency_symbols=self.high_frequency_symbols),
+                BinancePublicAdapter(
+                    futures=False,
+                    high_frequency_symbols=self.high_frequency_symbols,
+                    stream_url=self.settings.binance_public_endpoints.spot_stream,
+                ),
+                BinancePublicAdapter(
+                    futures=True,
+                    high_frequency_symbols=self.high_frequency_symbols,
+                    stream_url=self.settings.binance_public_endpoints.futures_stream,
+                ),
             ]
         return {
             "okx": OKXPublicAdapter(high_frequency_symbols=self.high_frequency_symbols),
@@ -117,7 +147,10 @@ class ProviderSupervisor:
                 # provider health record, so each adapter uses the same
                 # fail-closed timestamp contract.
                 if health.clock_offset_seconds is None:
-                    calibration = await calibrate_provider_clock(name)
+                    calibration = await calibrate_provider_clock(
+                        name,
+                        binance_base_url=self.settings.binance_public_endpoints.spot_rest,
+                    )
                     if calibration:
                         health.clock_offset_seconds = calibration.offset_seconds
                         health.clock_source = calibration.source
@@ -145,9 +178,35 @@ class ProviderSupervisor:
         adapters = self._adapters(name)
         if not adapters or not self.health[name].enabled:
             return
-        await asyncio.gather(*(self._run_adapter(name, adapter, symbols) for adapter in adapters))
+        jobs = []
+        for adapter in adapters:
+            # The dynamic universe is a Binance Spot scanner. Futures and
+            # cross-source reference venues stay on the configured core set
+            # until their own instrument registry and validation gates exist.
+            adapter_symbols = symbols
+            if name != "binance" or bool(getattr(adapter, "futures", False)):
+                adapter_symbols = list(self.settings.core_symbols)
+            jobs.append(self._run_adapter(name, adapter, adapter_symbols))
+        await asyncio.gather(*jobs)
 
     async def run(self, symbols: list[str]) -> None:
-        tasks = [asyncio.create_task(self.run_provider(name, symbols)) for name, value in self.settings.providers.as_dict().items() if value and name in {"binance", "okx", "coinbase", "kraken"}]
-        if tasks:
-            await asyncio.gather(*tasks)
+        self.update_symbols(symbols, list(self.high_frequency_symbols))
+        while not self._stop.is_set():
+            self._restart.clear()
+            current = list(self._symbols)
+            tasks = [
+                asyncio.create_task(self.run_provider(name, current))
+                for name, value in self.settings.providers.as_dict().items()
+                if value and name in {"binance", "okx", "coinbase", "kraken"}
+            ]
+            restart_wait = asyncio.create_task(self._restart.wait())
+            stop_wait = asyncio.create_task(self._stop.wait())
+            waiters = [*tasks, restart_wait, stop_wait]
+            if not tasks:
+                await stop_wait
+            else:
+                await asyncio.wait(waiters, return_when=asyncio.FIRST_COMPLETED)
+            for task in waiters:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*waiters, return_exceptions=True)

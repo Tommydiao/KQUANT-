@@ -10,11 +10,13 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from .binance_endpoints import SPOT_MARKET_DATA_REST
 from .market_models import NormalizedMarketEvent, content_hash, timestamp_ms
 from .parquet_store import ParquetMarketStore
 
 
-BINANCE_SPOT_KLINES_URL = "https://api.binance.com/api/v3/klines"
+BINANCE_SPOT_KLINES_URL = f"{SPOT_MARKET_DATA_REST}/api/v3/klines"
+BINANCE_FUTURES_KLINES_URL = "https://fapi.binance.com/fapi/v1/klines"
 INTERVAL_MS: dict[str, int] = {
     "1m": 60_000,
     "3m": 180_000,
@@ -143,6 +145,8 @@ def kline_event(
     *,
     interval: str,
     fetched_at: datetime,
+    market_type: str = "spot",
+    source: str | None = None,
 ) -> NormalizedMarketEvent | None:
     """Convert one Binance REST row into the normalised closed-bar contract."""
 
@@ -165,6 +169,9 @@ def kline_event(
             trade_count = int(values[8])
         except (TypeError, ValueError):
             trade_count = None
+    normalized_market_type = str(market_type).strip().lower()
+    if normalized_market_type not in {"spot", "perpetual"}:
+        raise ValueError(f"Unsupported Binance market type: {market_type}")
     payload: dict[str, Any] = {
         "interval": interval,
         "open": str(values[1]),
@@ -178,16 +185,20 @@ def kline_event(
         "trade_count": trade_count,
         "taker_buy_volume": str(values[9]) if len(values) > 9 else None,
         "taker_buy_quote_volume": str(values[10]) if len(values) > 10 else None,
-        "source": "binance_public_rest_klines",
+        "source": source or (
+            "binance_public_rest_klines"
+            if normalized_market_type == "spot"
+            else "binance_public_rest_perpetual_klines"
+        ),
         "available_at": fetched_at.astimezone(UTC).isoformat(),
     }
     payload = {key: value for key, value in payload.items() if value is not None}
     normalized_symbol = _normalise_symbol(symbol)
     return NormalizedMarketEvent(
-        asset_id=f"cex:binance:spot:{normalized_symbol}",
+        asset_id=f"cex:binance:{normalized_market_type}:{normalized_symbol}",
         venue="binance",
-        instrument_id=f"binance:spot:{normalized_symbol}",
-        market_type="spot",
+        instrument_id=f"binance:{normalized_market_type}:{normalized_symbol}",
+        market_type=normalized_market_type,
         event_type="kline",
         source_time=timestamp_ms(open_time_ms),
         received_at=fetched_at.astimezone(UTC).isoformat(),
@@ -234,10 +245,16 @@ class BinanceKlineBackfill:
         *,
         state_path: Path | None = None,
         now: Callable[[], datetime] | None = None,
+        market_type: str = "spot",
     ):
         self.store = store
         self.client = client
-        self.state_path = state_path or (store.root.parent / "backfill" / "binance_klines_state.json")
+        self.market_type = str(market_type).strip().lower()
+        if self.market_type not in {"spot", "perpetual"}:
+            raise ValueError(f"Unsupported Binance market type: {market_type}")
+        self.state_path = state_path or (
+            store.root.parent / "backfill" / f"binance_{self.market_type}_klines_state.json"
+        )
         self.now = now or (lambda: datetime.now(UTC))
 
     def run(
@@ -327,7 +344,13 @@ class BinanceKlineBackfill:
                 if open_time < cursor or open_time > requested_end:
                     continue
                 max_open_time = max(open_time, max_open_time or open_time)
-                event = kline_event(symbol, row, interval=interval, fetched_at=fetched_at)
+                event = kline_event(
+                    symbol,
+                    row,
+                    interval=interval,
+                    fetched_at=fetched_at,
+                    market_type=self.market_type,
+                )
                 if event is not None and int(row[6]) <= requested_end:
                     events.append(event)
             if events:

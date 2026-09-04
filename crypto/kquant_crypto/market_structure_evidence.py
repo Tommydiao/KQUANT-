@@ -14,10 +14,11 @@ from typing import Any, Mapping
 
 import httpx
 
+from .binance_endpoints import SPOT_MARKET_DATA_REST
 from .external_evidence import EvidenceCategory, ExternalEvidenceSnapshot
 
 
-BINANCE_SPOT_REST = "https://api.binance.com"
+BINANCE_SPOT_REST = SPOT_MARKET_DATA_REST
 MARKET_STRUCTURE_EVIDENCE_VERSION = "crypto_market_structure_public_v1.0.0"
 
 

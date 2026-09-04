@@ -1,4 +1,4 @@
-version: crypto_universe_v1.1.0
+version: crypto_universe_v1.2.0
 
 # Public CEX observation universe. This is a research watchlist, not a
 # recommendation or an orderable universe.
@@ -21,6 +21,7 @@ cex:
     - AAVEUSDT
     - NEARUSDT
     - ATOMUSDT
+    - ZECUSDT
   CEX_HIGH_BETA:
     - SUIUSDT
     - INJUSDT
@@ -36,6 +37,53 @@ cex:
     - WIFUSDT
     - BONKUSDT
     - FLOKIUSDT
+    - PUMPUSDT
+
+# Candidate execution assets carry an explicit venue and market contract.
+# listed_since is the first Binance market time, not the token launch date.
+# These entries are research-only until their independent validation and
+# Testnet gates pass. They do not modify the execution allowlist.
+instruments:
+  - symbol: ZECUSDT
+    venue: binance
+    market_type: spot
+    tier: MAJOR_ALT
+    listed_since: "2019-03-21T04:00:00+00:00"
+    listing_status: verify_at_runtime
+    research_status: candidate
+    execution_stage: RESEARCH_ONLY
+    risk_fraction_cap: 0.005
+    risk_tags: [privacy_asset, policy_sensitive]
+  - symbol: ARBUSDT
+    venue: binance
+    market_type: spot
+    tier: CEX_HIGH_BETA
+    listed_since: "2023-03-23T17:00:00+00:00"
+    listing_status: verify_at_runtime
+    research_status: candidate
+    execution_stage: RESEARCH_ONLY
+    risk_fraction_cap: 0.005
+    risk_tags: [high_beta]
+  - symbol: PUMPUSDT
+    venue: binance
+    market_type: spot
+    tier: MEME
+    listed_since: "2025-09-11T12:30:00+00:00"
+    listing_status: verify_at_runtime
+    research_status: candidate
+    execution_stage: RESEARCH_ONLY
+    risk_fraction_cap: 0.0025
+    risk_tags: [seed_tag, meme, high_volatility]
+  - symbol: HYPEUSDT
+    venue: binance
+    market_type: perpetual
+    tier: CEX_HIGH_BETA
+    listed_since: "2025-05-30T10:30:00+00:00"
+    listing_status: verify_at_runtime
+    research_status: candidate
+    execution_stage: RESEARCH_ONLY
+    risk_fraction_cap: 0.0025
+    risk_tags: [perpetual_only, high_beta, deleveraging_sensitive]
 
 dex_chains:
   - solana

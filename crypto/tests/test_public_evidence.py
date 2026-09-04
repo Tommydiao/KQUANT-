@@ -54,6 +54,8 @@ def test_binance_public_derivatives_snapshot_normalizes_all_available_endpoints(
     assert result.snapshot.source == "binance_public_derivatives"
     assert result.snapshot.values["funding_rate"] == 0.0002
     assert result.snapshot.values["open_interest"] == 12345.0
+    assert result.snapshot.values["mark_price"] == 101.0
+    assert result.snapshot.values["index_price"] == 100.0
     assert result.snapshot.values["spread_bps"] > 0
     assert result.snapshot.values["depth_usd"] == 503.0
     assert result.snapshot.values["active_buy_volume"] == 200.0
@@ -131,6 +133,8 @@ def test_okx_public_evidence_uses_public_endpoints_and_source_lineage():
     assert result.snapshot.source_version == "crypto_public_evidence_v1.2.0"
     assert result.snapshot.values["open_interest"] == 123
     assert result.snapshot.values["funding_rate"] == 0.0001
+    assert result.snapshot.values["mark_price"] == 100.0
+    assert result.snapshot.values["index_price"] == 99.0
     assert result.snapshot.values["basis"] == pytest.approx(100 / 99 - 1)
     assert result.snapshot.values["spread_bps"] > 0
     assert result.snapshot.values["active_buy_volume"] == 200

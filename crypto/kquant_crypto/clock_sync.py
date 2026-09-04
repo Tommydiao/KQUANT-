@@ -6,6 +6,8 @@ from typing import Any
 
 import httpx
 
+from .binance_endpoints import SPOT_MARKET_DATA_REST
+
 
 @dataclass(frozen=True)
 class ClockCalibration:
@@ -37,9 +39,14 @@ def _server_ms(provider: str, payload: dict[str, Any]) -> int | None:
     return None
 
 
-async def calibrate_provider_clock(provider: str, *, client: httpx.AsyncClient | None = None) -> ClockCalibration | None:
+async def calibrate_provider_clock(
+    provider: str,
+    *,
+    client: httpx.AsyncClient | None = None,
+    binance_base_url: str = SPOT_MARKET_DATA_REST,
+) -> ClockCalibration | None:
     urls = {
-        "binance": "https://api.binance.com/api/v3/time",
+        "binance": f"{binance_base_url.rstrip('/')}/api/v3/time",
         "okx": "https://www.okx.com/api/v5/public/time",
         "kraken": "https://api.kraken.com/0/public/Time",
     }

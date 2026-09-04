@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Callable
 
 
-LATEST_SCHEMA_VERSION = 17
+LATEST_SCHEMA_VERSION = 21
 
 
 class MigrationError(RuntimeError):
@@ -804,6 +804,272 @@ def _apply_validation_factor_values_column(conn: sqlite3.Connection) -> None:
         )
 
 
+EXECUTION_V1_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_strategy_manifests (
+  strategy_version TEXT PRIMARY KEY,
+  market_type TEXT NOT NULL,
+  direction TEXT NOT NULL,
+  signal_interval TEXT NOT NULL,
+  status TEXT NOT NULL,
+  executable INTEGER NOT NULL DEFAULT 0,
+  manifest_json TEXT NOT NULL,
+  manifest_hash TEXT NOT NULL,
+  registered_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crypto_execution_intents (
+  intent_id TEXT PRIMARY KEY,
+  evaluation_id TEXT NOT NULL,
+  strategy_version TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  market_type TEXT NOT NULL,
+  direction TEXT NOT NULL,
+  status TEXT NOT NULL,
+  validation_gate_status TEXT NOT NULL,
+  material_state_hash TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  UNIQUE(evaluation_id, material_state_hash)
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_execution_intents_status_time
+ON crypto_execution_intents(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS crypto_account_risk_snapshots (
+  snapshot_id TEXT PRIMARY KEY,
+  execution_mode TEXT NOT NULL,
+  equity_usdt REAL NOT NULL,
+  available_usdt REAL NOT NULL,
+  daily_realized_pnl_usdt REAL NOT NULL,
+  open_risk_usdt REAL NOT NULL,
+  payload_json TEXT NOT NULL,
+  captured_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crypto_execution_risk_decisions (
+  decision_id TEXT PRIMARY KEY,
+  intent_id TEXT NOT NULL REFERENCES crypto_execution_intents(intent_id),
+  account_snapshot_id TEXT NOT NULL REFERENCES crypto_account_risk_snapshots(snapshot_id),
+  allowed INTEGER NOT NULL,
+  blockers_json TEXT NOT NULL,
+  warnings_json TEXT NOT NULL,
+  quantity REAL NOT NULL,
+  estimated_notional REAL NOT NULL,
+  estimated_risk_usdt REAL NOT NULL,
+  decision_json TEXT NOT NULL,
+  decided_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crypto_exchange_orders (
+  local_order_id TEXT PRIMARY KEY,
+  intent_id TEXT NOT NULL REFERENCES crypto_execution_intents(intent_id),
+  client_order_id TEXT NOT NULL UNIQUE,
+  exchange_order_id TEXT,
+  execution_mode TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  market_type TEXT NOT NULL,
+  order_role TEXT NOT NULL,
+  side TEXT NOT NULL,
+  order_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  quantity REAL NOT NULL,
+  price REAL,
+  stop_price REAL,
+  reduce_only INTEGER NOT NULL DEFAULT 0,
+  request_hash TEXT NOT NULL,
+  response_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_exchange_orders_status_time
+ON crypto_exchange_orders(status, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS crypto_exchange_fills (
+  fill_id TEXT PRIMARY KEY,
+  local_order_id TEXT NOT NULL REFERENCES crypto_exchange_orders(local_order_id),
+  exchange_trade_id TEXT,
+  quantity REAL NOT NULL,
+  price REAL NOT NULL,
+  commission REAL NOT NULL,
+  commission_asset TEXT,
+  realized_pnl_usdt REAL,
+  funding_usdt REAL,
+  filled_at TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  UNIQUE(local_order_id, exchange_trade_id)
+);
+
+CREATE TABLE IF NOT EXISTS crypto_exchange_positions (
+  position_key TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL,
+  market_type TEXT NOT NULL,
+  direction TEXT NOT NULL,
+  quantity REAL NOT NULL,
+  entry_price REAL NOT NULL,
+  mark_price REAL NOT NULL,
+  stop_price REAL,
+  source_time TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crypto_reconciliation_runs (
+  reconciliation_id TEXT PRIMARY KEY,
+  execution_mode TEXT NOT NULL,
+  status TEXT NOT NULL,
+  discrepancy_count INTEGER NOT NULL,
+  details_json TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crypto_kill_switch_events (
+  event_id TEXT PRIMARY KEY,
+  action TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  source TEXT NOT NULL,
+  details_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crypto_daily_risk_states (
+  risk_date TEXT PRIMARY KEY,
+  capital_basis_usdt REAL NOT NULL,
+  realized_pnl_usdt REAL NOT NULL,
+  open_risk_usdt REAL NOT NULL,
+  loss_limit_usdt REAL NOT NULL,
+  blocked INTEGER NOT NULL,
+  details_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+"""
+
+MARKET_SCANNER_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_market_scan_runs (
+  scan_id TEXT PRIMARY KEY,
+  universe_version TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  status TEXT NOT NULL,
+  source_time TEXT NOT NULL,
+  received_at TEXT NOT NULL,
+  eligible_count INTEGER NOT NULL,
+  watch_count INTEGER NOT NULL,
+  deep_count INTEGER NOT NULL,
+  content_hash TEXT NOT NULL UNIQUE,
+  details_json TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_market_scan_runs_time
+ON crypto_market_scan_runs(received_at DESC);
+
+CREATE TABLE IF NOT EXISTS crypto_opportunity_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  scan_id TEXT NOT NULL REFERENCES crypto_market_scan_runs(scan_id),
+  symbol TEXT NOT NULL,
+  rank INTEGER NOT NULL,
+  tier TEXT NOT NULL CHECK(tier IN ('watch','deep')),
+  quote_volume_24h REAL NOT NULL,
+  price_change_pct_24h REAL NOT NULL,
+  spread_bps REAL,
+  opportunity_score REAL NOT NULL,
+  tradable INTEGER NOT NULL,
+  execution_allowlisted INTEGER NOT NULL,
+  material_state_hash TEXT NOT NULL,
+  source_time TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  UNIQUE(scan_id, symbol)
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_opportunity_candidates_current
+ON crypto_opportunity_candidates(scan_id, tier, rank);
+CREATE INDEX IF NOT EXISTS idx_crypto_opportunity_candidates_symbol_time
+ON crypto_opportunity_candidates(symbol, source_time DESC);
+"""
+
+ACCOUNT_STREAM_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_exchange_account_events (
+  event_id TEXT PRIMARY KEY,
+  execution_mode TEXT NOT NULL,
+  market_type TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  source_time TEXT NOT NULL,
+  received_at TEXT NOT NULL,
+  sequence_key TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  content_hash TEXT NOT NULL,
+  UNIQUE(execution_mode, market_type, sequence_key, content_hash)
+);
+
+CREATE INDEX IF NOT EXISTS idx_crypto_account_events_time
+ON crypto_exchange_account_events(execution_mode, market_type, source_time DESC);
+"""
+
+CANDIDATE_ASSET_EVIDENCE_SQL = """
+CREATE TABLE IF NOT EXISTS crypto_universe_instrument_memberships (
+  snapshot_id TEXT NOT NULL REFERENCES crypto_universe_snapshots(snapshot_id),
+  instrument_id TEXT NOT NULL REFERENCES crypto_instruments(instrument_id),
+  asset_id TEXT NOT NULL REFERENCES crypto_assets(asset_id),
+  symbol TEXT NOT NULL,
+  venue TEXT NOT NULL,
+  market_type TEXT NOT NULL CHECK(market_type IN ('spot','perpetual')),
+  tier TEXT NOT NULL,
+  listed_since TEXT,
+  listing_status TEXT NOT NULL,
+  research_status TEXT NOT NULL,
+  execution_stage TEXT NOT NULL,
+  risk_fraction_cap REAL NOT NULL,
+  risk_tags_json TEXT NOT NULL DEFAULT '[]',
+  effective_from TEXT NOT NULL,
+  effective_to TEXT,
+  membership_status TEXT NOT NULL,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY(snapshot_id, instrument_id)
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_universe_instrument_time
+ON crypto_universe_instrument_memberships(instrument_id, effective_from DESC);
+CREATE INDEX IF NOT EXISTS idx_crypto_universe_candidate_stage
+ON crypto_universe_instrument_memberships(execution_stage, market_type, symbol);
+
+CREATE TABLE IF NOT EXISTS crypto_model_evidence_packets (
+  packet_id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  market_type TEXT NOT NULL CHECK(market_type IN ('spot','perpetual')),
+  strategy_version TEXT NOT NULL,
+  signal_time TEXT NOT NULL,
+  available_at TEXT NOT NULL,
+  evidence_history_start TEXT,
+  limited_history INTEGER NOT NULL,
+  calibration_status TEXT NOT NULL,
+  promotion_status TEXT NOT NULL,
+  bayesian_posterior_json TEXT NOT NULL,
+  monte_carlo_result_json TEXT NOT NULL,
+  logistic_result_json TEXT NOT NULL,
+  expected_return_quantiles_json TEXT NOT NULL,
+  source_snapshot_ids_json TEXT NOT NULL,
+  blockers_json TEXT NOT NULL,
+  content_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crypto_model_evidence_asset_time
+ON crypto_model_evidence_packets(asset_id, market_type, signal_time DESC);
+CREATE INDEX IF NOT EXISTS idx_crypto_model_evidence_symbol_time
+ON crypto_model_evidence_packets(symbol, market_type, signal_time DESC);
+"""
+
+
+def _apply_execution_validation_columns(conn: sqlite3.Connection) -> None:
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(crypto_validation_trades)")}
+    additions = {
+        "market_type": "TEXT NOT NULL DEFAULT 'spot'",
+        "direction": "TEXT NOT NULL DEFAULT 'long'",
+        "gross_r": "REAL",
+        "trading_cost_r": "REAL NOT NULL DEFAULT 0",
+        "funding_r": "REAL NOT NULL DEFAULT 0",
+    }
+    for name, declaration in additions.items():
+        if name not in columns:
+            conn.execute(f"ALTER TABLE crypto_validation_trades ADD COLUMN {name} {declaration}")
+
+
 MIGRATIONS = (
     Migration(1, "crypto_foundation", FOUNDATION_SQL),
     Migration(2, "crypto_evaluation_v1", EVALUATION_SQL),
@@ -822,6 +1088,10 @@ MIGRATIONS = (
     Migration(15, "crypto_roll_validation_v1", ROLL_VALIDATION_SQL),
     Migration(16, "crypto_shadow_observation_v1", SHADOW_SQL),
     Migration(17, "crypto_roll_journal_preview_v1", ROLL_JOURNAL_PREVIEW_SQL),
+    Migration(18, "crypto_execution_v1", EXECUTION_V1_SQL, _apply_execution_validation_columns),
+    Migration(19, "crypto_market_scanner_v1", MARKET_SCANNER_SQL),
+    Migration(20, "crypto_exchange_account_stream_v1", ACCOUNT_STREAM_SQL),
+    Migration(21, "crypto_candidate_assets_model_evidence_v1", CANDIDATE_ASSET_EVIDENCE_SQL),
 )
 
 

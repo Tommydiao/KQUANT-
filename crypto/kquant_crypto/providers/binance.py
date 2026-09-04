@@ -6,11 +6,12 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Any
 
+from ..binance_endpoints import FUTURES_MARKET_DATA_STREAM, SPOT_MARKET_DATA_STREAM
 from ..market_models import NormalizedMarketEvent, content_hash, timestamp_ms
 
 
-SPOT_STREAM_URL = "wss://stream.binance.com:9443/stream"
-FUTURES_STREAM_URL = "wss://fstream.binance.com/stream"
+SPOT_STREAM_URL = SPOT_MARKET_DATA_STREAM
+FUTURES_STREAM_URL = FUTURES_MARKET_DATA_STREAM
 _QUOTE_ASSETS = ("USDT", "USDC", "FDUSD", "BTC", "ETH", "BNB")
 
 
@@ -102,8 +103,9 @@ def build_stream_url(
     *,
     futures: bool = False,
     high_frequency_symbols: set[str] | None = None,
+    stream_url: str | None = None,
 ) -> str:
-    base = FUTURES_STREAM_URL if futures else SPOT_STREAM_URL
+    base = stream_url or (FUTURES_STREAM_URL if futures else SPOT_STREAM_URL)
     streams = "/".join(build_stream_names(
         symbols,
         futures=futures,
@@ -115,15 +117,17 @@ def build_stream_url(
 class BinancePublicAdapter:
     name = "binance"
 
-    def __init__(self, *, futures: bool = False, high_frequency_symbols: set[str] | None = None):
+    def __init__(self, *, futures: bool = False, high_frequency_symbols: set[str] | None = None, stream_url: str | None = None):
         self.futures = futures
         self.high_frequency_symbols = high_frequency_symbols
+        self.stream_url = stream_url
 
     def subscription_url(self, symbols: list[str]) -> str:
         return build_stream_url(
             symbols,
             futures=self.futures,
             high_frequency_symbols=self.high_frequency_symbols,
+            stream_url=self.stream_url,
         )
 
     async def stream(self, symbols: list[str], callback: Callable[[NormalizedMarketEvent], Awaitable[None]]) -> None:

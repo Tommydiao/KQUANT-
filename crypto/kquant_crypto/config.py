@@ -5,11 +5,12 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from .universe_catalog import DEFAULT_CEX_SYMBOLS, configured_cex_symbols
+from .binance_endpoints import BinancePublicEndpoints
+from .universe_catalog import DEFAULT_CEX_SYMBOLS, configured_cex_symbols, configured_instruments
 
 
-APP_VERSION = "0.3.3"
-API_CONTRACT_VERSION = "kquant-crypto-api-2026-08-24-evidence-v5"
+APP_VERSION = "0.7.0"
+API_CONTRACT_VERSION = "kquant-crypto-api-2026-09-04-evidence-testnet-v1"
 FRONTEND_CONTRACT_VERSION = "kquant-crypto-web-2026-08-23-roll-research-v1"
 
 
@@ -17,6 +18,55 @@ class RuntimeMode(StrEnum):
     DEVELOPMENT = "development"
     TEST = "test"
     SHADOW = "shadow"
+
+
+class ExecutionMode(StrEnum):
+    DISABLED = "disabled"
+    TESTNET = "testnet"
+    LIVE = "live"
+
+
+@dataclass(frozen=True)
+class ExecutionSettings:
+    mode: ExecutionMode = ExecutionMode.DISABLED
+    autotrade_enabled: bool = False
+    live_capital_limit: float = 50.0
+    risk_per_trade_fraction: float = 0.01
+    daily_loss_fraction: float = 0.01
+    total_open_risk_fraction: float = 0.01
+    max_leverage: int = 2
+    max_entry_slippage_bps: float = 20.0
+    symbols: tuple[str, ...] = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
+    testnet_api_key: str = ""
+    testnet_api_secret: str = ""
+    live_api_key: str = ""
+    live_api_secret: str = ""
+    spot_testnet_base_url: str = "https://testnet.binance.vision"
+    futures_testnet_base_url: str = "https://testnet.binancefuture.com"
+    spot_live_base_url: str = "https://api.binance.com"
+    futures_live_base_url: str = "https://fapi.binance.com"
+
+    @property
+    def credentials_configured(self) -> bool:
+        if self.mode == ExecutionMode.TESTNET:
+            return bool(self.testnet_api_key and self.testnet_api_secret)
+        if self.mode == ExecutionMode.LIVE:
+            return bool(self.live_api_key and self.live_api_secret)
+        return False
+
+    @property
+    def api_key(self) -> str:
+        return self.live_api_key if self.mode == ExecutionMode.LIVE else self.testnet_api_key
+
+    @property
+    def api_secret(self) -> str:
+        return self.live_api_secret if self.mode == ExecutionMode.LIVE else self.testnet_api_secret
+
+    def base_url(self, market_type: str) -> str:
+        futures = str(market_type).lower() == "perpetual"
+        if self.mode == ExecutionMode.LIVE:
+            return self.futures_live_base_url if futures else self.spot_live_base_url
+        return self.futures_testnet_base_url if futures else self.spot_testnet_base_url
 
 
 def _bool(name: str, default: bool = False) -> bool:
@@ -99,6 +149,7 @@ class Settings:
     notifications_enabled: bool
     telegram_enabled: bool
     providers: ProviderFlags
+    local_preview_enabled: bool = False
     core_symbols: tuple[str, ...] = DEFAULT_CEX_SYMBOLS
     high_frequency_symbols: tuple[str, ...] = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
     web_push_public_key: str = ""
@@ -111,10 +162,13 @@ class Settings:
     etf_evidence_url: str = ""
     onchain_evidence_url: str = ""
     staging_database_url: str = ""
+    internal_api_token: str = ""
     market_trade_bucket_seconds: int = 60
     market_quote_sample_seconds: float = 5.0
     market_ticker_sample_seconds: float = 10.0
     market_storage_flush_every: int = 5000
+    binance_public_endpoints: BinancePublicEndpoints = BinancePublicEndpoints()
+    execution: ExecutionSettings = ExecutionSettings()
 
     @property
     def auth_configured(self) -> bool:
@@ -143,11 +197,51 @@ def load_settings(root_dir: Path | None = None) -> Settings:
         coinglass=_bool("KQUANT_CRYPTO_ENABLE_COINGLASS"),
         defillama=_bool("KQUANT_CRYPTO_ENABLE_DEFILLAMA"),
     )
+    raw_execution_mode = os.getenv("KQUANT_CRYPTO_EXECUTION_MODE", ExecutionMode.DISABLED.value).strip().lower()
+    try:
+        execution_mode = ExecutionMode(raw_execution_mode)
+    except ValueError as exc:
+        raise ValueError(f"Unsupported KQUANT_CRYPTO_EXECUTION_MODE: {raw_execution_mode}") from exc
+    execution = ExecutionSettings(
+        mode=execution_mode,
+        autotrade_enabled=_bool("KQUANT_CRYPTO_AUTOTRADE_ENABLED"),
+        live_capital_limit=max(0.0, float(os.getenv("KQUANT_CRYPTO_LIVE_CAPITAL_LIMIT", "50"))),
+        risk_per_trade_fraction=max(0.0, min(0.01, float(os.getenv("KQUANT_CRYPTO_RISK_PER_TRADE", "0.01")))),
+        daily_loss_fraction=max(0.0, min(0.01, float(os.getenv("KQUANT_CRYPTO_DAILY_LOSS_LIMIT", "0.01")))),
+        total_open_risk_fraction=max(0.0, min(0.01, float(os.getenv("KQUANT_CRYPTO_TOTAL_OPEN_RISK_LIMIT", "0.01")))),
+        max_leverage=max(1, min(2, int(os.getenv("KQUANT_CRYPTO_MAX_LEVERAGE", "2")))),
+        max_entry_slippage_bps=max(0.0, float(os.getenv("KQUANT_CRYPTO_MAX_ENTRY_SLIPPAGE_BPS", "20"))),
+        symbols=tuple(
+            value.strip().upper()
+            for value in os.getenv("KQUANT_CRYPTO_EXECUTION_SYMBOLS", "BTCUSDT,ETHUSDT,SOLUSDT").split(",")
+            if value.strip()
+        ),
+        testnet_api_key=os.getenv("BINANCE_TESTNET_API_KEY", "").strip(),
+        testnet_api_secret=os.getenv("BINANCE_TESTNET_API_SECRET", "").strip(),
+        live_api_key=os.getenv("BINANCE_LIVE_API_KEY", "").strip(),
+        live_api_secret=os.getenv("BINANCE_LIVE_API_SECRET", "").strip(),
+        spot_testnet_base_url=os.getenv("BINANCE_SPOT_TESTNET_BASE_URL", "https://testnet.binance.vision").rstrip("/"),
+        futures_testnet_base_url=os.getenv("BINANCE_FUTURES_TESTNET_BASE_URL", "https://testnet.binancefuture.com").rstrip("/"),
+        spot_live_base_url=os.getenv("BINANCE_SPOT_LIVE_BASE_URL", "https://api.binance.com").rstrip("/"),
+        futures_live_base_url=os.getenv("BINANCE_FUTURES_LIVE_BASE_URL", "https://fapi.binance.com").rstrip("/"),
+    )
     default_symbols = configured_cex_symbols(root)
+    host = os.getenv("KQUANT_CRYPTO_HOST", "127.0.0.1").strip()
+    local_preview_default = mode == RuntimeMode.DEVELOPMENT and host in {"127.0.0.1", "localhost", "::1"}
+    configured_symbols = tuple(
+        value.strip().upper()
+        for value in os.getenv("KQUANT_CRYPTO_CORE_SYMBOLS", ",".join(default_symbols)).split(",")
+        if value.strip()
+    )
+    candidate_spot_symbols = tuple(
+        item.symbol
+        for item in configured_instruments(root)
+        if item.market_type == "spot" and item.research_status == "candidate"
+    )
     settings = Settings(
         root_dir=root,
         mode=mode,
-        host=os.getenv("KQUANT_CRYPTO_HOST", "127.0.0.1"),
+        host=host,
         port=port,
         db_path=_path(root, "KQUANT_CRYPTO_DB_PATH", "work/kquant_crypto.sqlite3"),
         data_dir=_path(root, "KQUANT_CRYPTO_DATA_DIR", "data"),
@@ -161,11 +255,8 @@ def load_settings(root_dir: Path | None = None) -> Settings:
         notifications_enabled=_bool("KQUANT_CRYPTO_ENABLE_NOTIFICATIONS"),
         telegram_enabled=_bool("KQUANT_CRYPTO_ENABLE_TELEGRAM"),
         providers=providers,
-        core_symbols=tuple(
-            value.strip().upper()
-            for value in os.getenv("KQUANT_CRYPTO_CORE_SYMBOLS", ",".join(default_symbols)).split(",")
-            if value.strip()
-        ),
+        local_preview_enabled=_bool("KQUANT_CRYPTO_LOCAL_PREVIEW", local_preview_default),
+        core_symbols=tuple(dict.fromkeys((*configured_symbols, *candidate_spot_symbols))),
         high_frequency_symbols=tuple(
             value.strip().upper()
             for value in os.getenv("KQUANT_CRYPTO_HIGH_FREQUENCY_SYMBOLS", "BTCUSDT,ETHUSDT,SOLUSDT").split(",")
@@ -181,10 +272,18 @@ def load_settings(root_dir: Path | None = None) -> Settings:
         etf_evidence_url=os.getenv("KQUANT_CRYPTO_ETF_EVIDENCE_URL", "").strip(),
         onchain_evidence_url=os.getenv("KQUANT_CRYPTO_ONCHAIN_EVIDENCE_URL", "").strip(),
         staging_database_url=os.getenv("KQUANT_CRYPTO_STAGING_DATABASE_URL", "").strip(),
+        internal_api_token=os.getenv("KQUANT_CRYPTO_INTERNAL_API_TOKEN", "").strip(),
         market_trade_bucket_seconds=max(1, int(os.getenv("KQUANT_CRYPTO_TRADE_BUCKET_SECONDS", "60"))),
         market_quote_sample_seconds=max(0.0, float(os.getenv("KQUANT_CRYPTO_QUOTE_SAMPLE_SECONDS", "5"))),
         market_ticker_sample_seconds=max(0.0, float(os.getenv("KQUANT_CRYPTO_TICKER_SAMPLE_SECONDS", "10"))),
         market_storage_flush_every=max(1, int(os.getenv("KQUANT_CRYPTO_STORAGE_FLUSH_EVERY", "5000"))),
+        binance_public_endpoints=BinancePublicEndpoints(
+            spot_rest=os.getenv("BINANCE_SPOT_MARKET_DATA_BASE_URL", "https://data-api.binance.vision").rstrip("/"),
+            spot_stream=os.getenv("BINANCE_SPOT_MARKET_DATA_STREAM_URL", "wss://data-stream.binance.vision/stream").rstrip("?"),
+            futures_rest=os.getenv("BINANCE_FUTURES_MARKET_DATA_BASE_URL", "https://fapi.binance.com").rstrip("/"),
+            futures_stream=os.getenv("BINANCE_FUTURES_MARKET_DATA_STREAM_URL", "wss://fstream.binance.com/stream").rstrip("?"),
+        ),
+        execution=execution,
     )
     settings.db_path.parent.mkdir(parents=True, exist_ok=True)
     settings.data_dir.mkdir(parents=True, exist_ok=True)

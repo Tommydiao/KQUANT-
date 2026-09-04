@@ -13,6 +13,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping
+from uuid import uuid4
 
 from .market_models import NormalizedMarketEvent
 
@@ -41,10 +42,13 @@ class ParquetMarketStore:
     def compacted_closed_kline_path(self) -> Path:
         return self._compacted_kline_path
 
-    def compacted_closed_kline_path_for(self, interval: str) -> Path:
+    def compacted_closed_kline_path_for(self, interval: str, market_type: str | None = None) -> Path:
         """Return the immutable closed-K-line snapshot for one interval."""
 
         normalized = str(interval).strip().lower()
+        market = _safe(str(market_type).strip().lower()) if market_type else ""
+        if market:
+            return self._compacted_dir / f"closed_klines_{market}_{_safe(normalized)}.parquet"
         if normalized == "1m":
             return self._compacted_kline_path
         return self._compacted_dir / f"closed_klines_{_safe(normalized)}.parquet"
@@ -53,8 +57,11 @@ class ParquetMarketStore:
     def compacted_closed_kline_manifest_path(self) -> Path:
         return self._compacted_manifest_path
 
-    def compacted_closed_kline_manifest_path_for(self, interval: str) -> Path:
+    def compacted_closed_kline_manifest_path_for(self, interval: str, market_type: str | None = None) -> Path:
         normalized = str(interval).strip().lower()
+        market = _safe(str(market_type).strip().lower()) if market_type else ""
+        if market:
+            return self._compacted_dir / f"closed_klines_{market}_{_safe(normalized)}.manifest.json"
         if normalized == "1m":
             return self._compacted_manifest_path
         return self._compacted_dir / f"closed_klines_{_safe(normalized)}.manifest.json"
@@ -172,6 +179,18 @@ class ParquetMarketStore:
             "raw_index_repair_required": True,
         }
 
+    def closed_kline_coverage(self) -> dict[str, Any]:
+        """Return interval-aware coverage from immutable closed-bar snapshots."""
+
+        recovered = self._coverage_from_compacted()
+        if recovered is None:
+            return {
+                "status": "not_collected",
+                "streams": [],
+                "coverage_basis": "compacted_closed_klines",
+            }
+        return recovered
+
     @contextmanager
     def _writer_lock(self):
         """Serialize writers and keep partial Parquet files invisible."""
@@ -238,7 +257,7 @@ class ParquetMarketStore:
         written: list[Path] = []
         with self._writer_lock():
             for directory, rows in grouped.items():
-                stem = f"events-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}"
+                stem = f"events-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}-{uuid4().hex[:12]}"
                 file = directory / f"{stem}.parquet"
                 temporary = directory / f".{stem}.tmp"
                 try:
@@ -941,8 +960,8 @@ class ParquetMarketStore:
         requested_symbols = tuple(sorted({
             _safe(str(item).upper()) for item in (symbols or ()) if str(item).strip()
         }))
-        output_path = self.compacted_closed_kline_path_for(normalized_interval)
-        output_manifest_path = self.compacted_closed_kline_manifest_path_for(normalized_interval)
+        output_path = self.compacted_closed_kline_path_for(normalized_interval, market_type)
+        output_manifest_path = self.compacted_closed_kline_manifest_path_for(normalized_interval, market_type)
         files = self.files(
             venue=venue,
             market_type=market_type,

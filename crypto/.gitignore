@@ -14,5 +14,6 @@ data/
 *.sqlite3-wal
 web/node_modules/
 web/dist/
+web/dist-unified/
 coverage/
 .coverage

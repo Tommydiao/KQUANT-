@@ -23,18 +23,18 @@ class EvidenceCategory(StrEnum):
 # This is the evidence universe, not a claim that every asset has a live
 # provider.  A listed proxy or altcoin remains visible as N/A until a real
 # source snapshot is available.
-SUPPORTED_EVIDENCE_ASSETS = ("BTC", "ETH", "SOL", "ETHU", "MSTR", "MSTU", "AAVE", "ENA", "ZEC", "PUMP")
+SUPPORTED_EVIDENCE_ASSETS = ("BTC", "ETH", "SOL", "ETHU", "MSTR", "MSTU", "AAVE", "ENA", "ZEC", "PUMP", "ARB", "HYPE")
 EVIDENCE_ASSET_SCOPE: dict[str, tuple[str, ...]] = {
     "etf_flow": ("BTC", "ETH"),
-    "exchange_derivatives": ("BTC", "ETH", "SOL", "AAVE", "ENA", "ZEC", "PUMP"),
-    "onchain": ("BTC", "ETH", "SOL", "AAVE", "ENA", "ZEC", "PUMP"),
-    "whale": ("BTC", "ETH", "SOL", "AAVE", "ENA", "ZEC", "PUMP"),
+    "exchange_derivatives": ("BTC", "ETH", "SOL", "AAVE", "ENA", "ZEC", "PUMP", "ARB", "HYPE"),
+    "onchain": ("BTC", "ETH", "SOL", "AAVE", "ENA", "ZEC", "PUMP", "ARB", "HYPE"),
+    "whale": ("BTC", "ETH", "SOL", "AAVE", "ENA", "ZEC", "PUMP", "ARB", "HYPE"),
     "market_structure": ("BTC", "ETH"),
     "protocol_metric": ("AAVE", "ENA"),
 }
 EVIDENCE_FIELDS: dict[str, tuple[str, ...]] = {
     EvidenceCategory.ETF_FLOW.value: ("flow_usd", "flow_7d_usd", "flow_30d_usd", "aum_usd", "premium_discount"),
-    EvidenceCategory.EXCHANGE_DERIVATIVES.value: ("cvd", "active_buy_volume", "active_sell_volume", "open_interest", "funding_rate", "basis", "liquidations_usd", "spread_bps", "depth_usd"),
+    EvidenceCategory.EXCHANGE_DERIVATIVES.value: ("cvd", "active_buy_volume", "active_sell_volume", "open_interest", "funding_rate", "mark_price", "index_price", "basis", "liquidations_usd", "spread_bps", "depth_usd"),
     EvidenceCategory.ONCHAIN.value: ("exchange_netflow", "stablecoin_supply", "active_addresses", "holder_concentration", "dex_volume_usd", "dex_tvl_usd", "mvrv", "sopr", "nupl", "realized_cap_usd"),
     EvidenceCategory.WHALE.value: ("large_transfer_count", "large_transfer_volume_usd", "exchange_inflow_usd", "exchange_outflow_usd", "top_holder_concentration"),
     EvidenceCategory.MARKET_STRUCTURE.value: ("market_regime", "breadth", "btc_dominance", "eth_btc", "sol_btc"),

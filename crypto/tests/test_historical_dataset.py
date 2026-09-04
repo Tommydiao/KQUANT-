@@ -90,6 +90,8 @@ def test_compacted_snapshots_are_partitioned_by_interval(tmp_path):
     assert store.compacted_closed_kline_path_for("1m") == store.compacted_closed_kline_path
     assert store.compacted_closed_kline_path_for("1h").name == "closed_klines_1h.parquet"
     assert store.compacted_closed_kline_manifest_path_for("15m").name == "closed_klines_15m.manifest.json"
+    assert store.compacted_closed_kline_path_for("1h", "spot").name == "closed_klines_spot_1h.parquet"
+    assert store.compacted_closed_kline_path_for("1h", "perpetual").name == "closed_klines_perpetual_1h.parquet"
 
 
 def test_loader_uses_native_compacted_interval_when_available(tmp_path):

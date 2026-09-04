@@ -151,10 +151,12 @@ def align_derivatives_to_bars(
     )
     output: list[Mapping[str, float | None]] = []
     cursor = 0
-    funding_rate: float | None = None
     open_interest: float | None = None
     oi_change: float | None = None
     for bar in bars:
+        # Funding is a discrete cash-flow event. It must never be carried
+        # forward and charged again on every bar between settlement times.
+        funding_rate: float | None = None
         bar_time = _as_datetime(bar.start_time)
         if bar_time is None:
             output.append({})
