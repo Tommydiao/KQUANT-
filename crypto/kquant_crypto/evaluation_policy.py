@@ -12,6 +12,8 @@ from .evaluation_models import (
     iso_now,
 )
 from .calibration import model_evidence_gate
+from .model_evidence import verify_model_evidence_packet
+from .universe_catalog import candidate_instrument
 
 
 BLOCK_PRIORITY = {
@@ -205,6 +207,63 @@ def evaluate_plan(
         code = "model_calibration_gate_closed" if reason == "calibration_gate_closed" else reason
         if not any(item["code"] == code for item in blockers):
             blockers.append(_block("model_evidence", code, "模型概率或制品证据未通过当前 Gate。"))
+
+    candidate = candidate_instrument(draft.symbol)
+    if candidate is not None:
+        packet = draft.payload.get("model_evidence_packet")
+        if not isinstance(packet, dict):
+            blockers.append(_block(
+                "model_evidence",
+                "model_evidence_packet_missing",
+                "Candidate assets require a versioned mathematical evidence packet.",
+            ))
+        else:
+            packet_market = str(packet.get("market_type") or "").lower()
+            packet_asset = str(packet.get("asset_id") or "")
+            if (
+                packet_asset != draft.asset_id
+                or packet_asset != candidate.asset_id
+                or str(packet.get("symbol") or "").upper() != candidate.symbol
+                or packet_market != candidate.market_type
+            ):
+                blockers.append(_block(
+                    "model_evidence", "model_evidence_instrument_mismatch",
+                    "The evidence packet does not match the candidate instrument.",
+                ))
+            if str(packet.get("strategy_version") or "") != draft.strategy_version:
+                blockers.append(_block(
+                    "model_evidence", "model_evidence_strategy_mismatch",
+                    "The evidence packet strategy version does not match the trade plan.",
+                ))
+            if not packet.get("content_hash") or packet.get("promotion_status") not in {"SHADOW_ELIGIBLE", "TESTNET_CANDIDATE", "TESTNET_ENABLED"}:
+                blockers.append(_block(
+                    "model_evidence", "model_evidence_promotion_closed",
+                    "Mathematical evidence is incomplete, uncalibrated or still limited-history.",
+                    details={"packet_blockers": list(packet.get("blockers") or [])},
+                ))
+            packet_valid, packet_issues = verify_model_evidence_packet(packet)
+            if not packet_valid:
+                blockers.append(_block(
+                    "model_evidence", "model_evidence_integrity_failed",
+                    "The mathematical evidence packet failed its integrity check.",
+                    details={"issues": list(packet_issues)},
+                ))
+            if draft.payload.get("model_evidence_persisted") is not True:
+                blockers.append(_block(
+                    "model_evidence", "model_evidence_not_persisted",
+                    "The mathematical evidence packet is not bound to the audit database.",
+                ))
+        requested_risk = draft.payload.get("requested_risk_fraction")
+        if requested_risk is not None:
+            try:
+                if float(requested_risk) > candidate.risk_fraction_cap:
+                    blockers.append(_block(
+                        "trade_plan", "candidate_risk_cap_exceeded",
+                        "The requested risk exceeds the candidate asset cap.",
+                        details={"requested": requested_risk, "maximum": candidate.risk_fraction_cap},
+                    ))
+            except (TypeError, ValueError):
+                blockers.append(_block("trade_plan", "candidate_risk_fraction_invalid", "Candidate risk fraction is invalid."))
 
     missing_plan_fields = []
     if not draft.entry_zone:

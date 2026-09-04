@@ -40,6 +40,7 @@ ROLL_ASSET_MAP: dict[str, dict[str, str]] = {
     "ENA": {"instrument_id": "binance:spot:ENAUSDT", "asset_type": "crypto_spot"},
     "ZEC": {"instrument_id": "binance:spot:ZECUSDT", "asset_type": "crypto_spot"},
     "PUMP": {"instrument_id": "binance:spot:PUMPUSDT", "asset_type": "crypto_spot"},
+    "ARB": {"instrument_id": "binance:spot:ARBUSDT", "asset_type": "crypto_spot"},
 }
 
 

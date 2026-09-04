@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .alert_agent import emit_evaluated_alert
 from .config import Settings
@@ -23,7 +23,13 @@ class RealtimeSupervisor:
     current foundation policy keeps that downstream path closed.
     """
 
-    def __init__(self, db_path: Path, hub: NotificationHub, settings: Settings | None = None):
+    def __init__(
+        self,
+        db_path: Path,
+        hub: NotificationHub,
+        settings: Settings | None = None,
+        execution_sink: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ):
         self.db_path = db_path
         self.hub = hub
         self.settings = settings
@@ -35,6 +41,8 @@ class RealtimeSupervisor:
         self.instructions_created = 0
         self.duplicates_suppressed = 0
         self.alerts_emitted = 0
+        self.execution_sink = execution_sink
+        self.last_execution_admission: dict[str, Any] | None = None
 
     def on_market_event(self, event: Any) -> None:
         self.last_market_event_at = str(getattr(event, "received_at", None) or _now())
@@ -66,7 +74,11 @@ class RealtimeSupervisor:
             )
             if alert is not None:
                 self.alerts_emitted += 1
-        return {"instruction": value, "created": created, "alert": alert}
+        execution = None
+        if created and self.execution_sink is not None:
+            execution = self.execution_sink(evaluation)
+            self.last_execution_admission = execution
+        return {"instruction": value, "created": created, "alert": alert, "execution": execution}
 
     def status(self) -> dict[str, Any]:
         return {
@@ -80,6 +92,7 @@ class RealtimeSupervisor:
             "instructions_created": self.instructions_created,
             "duplicates_suppressed": self.duplicates_suppressed,
             "alerts_emitted": self.alerts_emitted,
+            "last_execution_admission": self.last_execution_admission,
             "alert_path": "EVAL only",
             "paper_enabled": False,
             "shadow_enabled": False,

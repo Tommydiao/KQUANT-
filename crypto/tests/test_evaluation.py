@@ -210,3 +210,36 @@ def test_dex_lp_and_tax_blockers_are_explicit():
     )))
     codes = {item["code"] for item in result.blockers}
     assert {"lp_not_safe", "buy_tax_too_high", "sell_tax_too_high"} <= codes
+
+
+def test_candidate_asset_requires_mathematical_evidence_packet():
+    result = evaluate_plan(TradePlanDraft.from_mapping(plan(
+        plan_id="plan_pump",
+        asset_id="asset:pump",
+        symbol="PUMPUSDT",
+        strategy_version="crypto_spot_momentum_v2.0.0",
+    )))
+    assert result.decision == "WATCH_ONLY"
+    assert result.allowed_paper is False
+    assert any(item["code"] == "model_evidence_packet_missing" for item in result.blockers)
+
+
+def test_candidate_asset_risk_cap_is_enforced_by_eval():
+    result = evaluate_plan(TradePlanDraft.from_mapping(plan(
+        plan_id="plan_pump_risk",
+        asset_id="asset:pump",
+        symbol="PUMPUSDT",
+        strategy_version="crypto_spot_momentum_v2.0.0",
+        payload={
+            "model_evidence_packet": {
+                "symbol": "PUMPUSDT",
+                "market_type": "spot",
+                "strategy_version": "crypto_spot_momentum_v2.0.0",
+                "promotion_status": "SHADOW_ELIGIBLE",
+                "content_hash": "packet-hash",
+            },
+            "requested_risk_fraction": 0.005,
+        },
+    )))
+    assert result.decision == "WATCH_ONLY"
+    assert any(item["code"] == "candidate_risk_cap_exceeded" for item in result.blockers)

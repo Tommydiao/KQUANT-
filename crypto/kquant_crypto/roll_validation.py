@@ -234,7 +234,7 @@ class RollValidationConfig:
     target_return: float = 0.10
     stop_return: float = -0.05
     max_hold_bars: int = 20
-    fee_bps_per_side: float = 1.0
+    fee_bps_per_side: float = 10.0
     slippage_bps_per_side: float = 5.0
     train_ratio: float = 0.60
     validation_ratio: float = 0.20

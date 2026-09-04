@@ -63,7 +63,7 @@ def test_forming_candle_never_reaches_signal_runtime(settings):
     assert latest_evaluations(settings.db_path) == []
 
 
-def test_closed_candidate_is_evaluated_but_stays_eval_blocked(settings):
+def test_closed_candidate_without_sixty_closed_hourly_bars_is_blocked(settings):
     runtime = MarketDataRuntime(settings.data_dir, db_path=settings.db_path, flush_every=10_000)
     registry = FactorRegistry(settings.db_path)
     supervisor = RealtimeSupervisor(settings.db_path, NotificationHub(), settings)
@@ -76,15 +76,11 @@ def test_closed_candidate_is_evaluated_but_stays_eval_blocked(settings):
         signals.on_market_event(value)
 
     status = signals.status()
-    assert status["evaluations_created"] >= 1
+    assert status["evaluations_created"] == 0
     evaluations = latest_evaluations(settings.db_path)
-    assert evaluations
-    latest = evaluations[0]
-    assert latest["allowed_alert"] is False
-    assert latest["allowed_paper"] is False
-    assert latest["decision"] in {"REJECTED", "WATCH_ONLY", "INVALIDATED"}
-    assert any(item["blocker_group"] in {"security", "model_evidence", "market_regime"} for item in latest["blockers"])
+    assert evaluations == []
 
-    duplicate = signals.on_market_event(_event(299))
+    assert status["skipped_insufficient_history"] > 0
+    duplicate = signals.on_market_event(_event(309))
     assert duplicate is not None
     assert duplicate["status"] == "duplicate"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from dataclasses import dataclass, replace
+from typing import Any, Callable, Mapping, Sequence
 
 from .backtest import BacktestBar, BacktestConfig, TradeOutcome, run_early_start_backtest, summarize_outcomes
 from .evaluation_models import stable_hash
@@ -18,6 +18,9 @@ def evaluate_validation_gate(
     minimum_test_trades: int = 200,
     minimum_bootstrap_expected_r_lower: float = 0.0,
     minimum_profit_factor: float = 1.25,
+    minimum_stress_profit_factor: float = 1.05,
+    minimum_average_win_loss_ratio: float = 1.5,
+    minimum_unit_trades: int = 30,
     maximum_drawdown_r: float = 10.0,
 ) -> dict[str, Any]:
     """Evaluate the locked research-performance gate without changing EVAL.
@@ -39,6 +42,9 @@ def evaluate_validation_gate(
         "test_trade_count": test_summary.get("sample_count", 0),
         "bootstrap_expected_r_lower_95": bootstrap_lower,
         "profit_factor": test_summary.get("profit_factor"),
+        "stress_profit_factor": report.get("stress", {}).get("test", {}).get("profit_factor"),
+        "average_win_loss_ratio": test_summary.get("average_win_loss_ratio"),
+        "best_symbol_removed_expected_r": test_summary.get("best_symbol_removed_expected_r"),
         "max_drawdown_r": test_summary.get("max_drawdown_r"),
     }
     checks = [
@@ -64,6 +70,13 @@ def evaluate_validation_gate(
             "required": {"operator": ">=", "value": minimum_test_trades},
         },
         {
+            "id": "unit_trades",
+            "label": "strategy-product-direction unit has enough test trades",
+            "passed": int(observed["test_trade_count"] or 0) >= minimum_unit_trades,
+            "observed": observed["test_trade_count"],
+            "required": {"operator": ">=", "value": minimum_unit_trades},
+        },
+        {
             "id": "bootstrap_expected_r",
             "label": "locked test bootstrap expected-R lower bound",
             "passed": bootstrap_lower is not None and float(bootstrap_lower) > minimum_bootstrap_expected_r_lower,
@@ -76,6 +89,27 @@ def evaluate_validation_gate(
             "passed": test_summary.get("profit_factor") is not None and float(test_summary["profit_factor"]) >= minimum_profit_factor,
             "observed": observed["profit_factor"],
             "required": {"operator": ">=", "value": minimum_profit_factor},
+        },
+        {
+            "id": "stress_profit_factor",
+            "label": "locked test profit factor under doubled costs",
+            "passed": observed["stress_profit_factor"] is not None and float(observed["stress_profit_factor"]) >= minimum_stress_profit_factor,
+            "observed": observed["stress_profit_factor"],
+            "required": {"operator": ">=", "value": minimum_stress_profit_factor},
+        },
+        {
+            "id": "average_win_loss_ratio",
+            "label": "locked test realized win/loss ratio",
+            "passed": observed["average_win_loss_ratio"] is not None and float(observed["average_win_loss_ratio"]) >= minimum_average_win_loss_ratio,
+            "observed": observed["average_win_loss_ratio"],
+            "required": {"operator": ">=", "value": minimum_average_win_loss_ratio},
+        },
+        {
+            "id": "best_symbol_removed",
+            "label": "expected R remains positive after removing the best symbol",
+            "passed": observed["best_symbol_removed_expected_r"] is not None and float(observed["best_symbol_removed_expected_r"]) > 0.0,
+            "observed": observed["best_symbol_removed_expected_r"],
+            "required": {"operator": ">", "value": 0.0},
         },
         {
             "id": "max_drawdown",
@@ -94,7 +128,7 @@ def evaluate_validation_gate(
         "failed_checks": failed,
         "test_is_locked": report.get("test_is_locked") is True,
         "test_evidence_status": test_summary.get("evidence_status", "insufficient"),
-        "note": "Research evidence only; this gate never authorizes orders or changes EVAL permissions.",
+        "note": "This performance gate is necessary but not sufficient for execution; EVAL, account risk, Testnet, arming, and reconciliation gates still apply.",
     }
 
 
@@ -126,6 +160,8 @@ class ValidationConfig:
     bootstrap_iterations: int = 1000
     bootstrap_seed: int = 7
     oos_folds: int = 3
+    market_type: str = "spot"
+    direction: str = "long"
 
 
 def _partition_dates(dates: Sequence[str], train_ratio: float, validation_ratio: float) -> dict[str, tuple[str, ...]]:
@@ -187,6 +223,8 @@ def _dataset_hash(series: Sequence[ValidationSeries], config: ValidationConfig, 
         "strategy_version": config.strategy_version,
         "dataset_version": config.dataset_version,
         "feature_scope": config.feature_scope,
+        "market_type": config.market_type,
+        "direction": config.direction,
         "bar_interval": config.bar_interval,
         "weights": dict(sorted(weights.items())),
         "backtest": config.backtest.__dict__,
@@ -206,6 +244,7 @@ def _run_partition(
     registry: FactorRegistry,
     weights: dict[str, float],
     config: ValidationConfig,
+    score_policy: Callable[[FactorRegistry, Mapping[str, float | None]], Mapping[str, Any]] | None = None,
 ) -> tuple[list[TradeOutcome], int, int]:
     if not dates or not series.bars:
         return [], 0, 0
@@ -232,6 +271,7 @@ def _run_partition(
         signal_end_index=end,
         asset_id=series.asset_id,
         symbol=series.symbol,
+        score_policy=score_policy,
     )
     last_date = dates[-1]
     kept: list[TradeOutcome] = []
@@ -250,6 +290,7 @@ def run_walk_forward_validation(
     registry: FactorRegistry,
     weights: dict[str, float],
     config: ValidationConfig | None = None,
+    score_policy: Callable[[FactorRegistry, Mapping[str, float | None]], Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Run a deterministic date-level 60/20/20 validation report.
 
@@ -269,6 +310,8 @@ def run_walk_forward_validation(
         "dataset_hash": _dataset_hash(clean_series, policy, weights),
         "feature_scope": policy.feature_scope,
         "bar_interval": policy.bar_interval,
+        "market_type": policy.market_type,
+        "direction": policy.direction,
         "feature_factor_ids": sorted(weights),
         "excluded_factor_ids": sorted(registry.ids - set(weights)),
         "feature_scope_limitations": (
@@ -319,8 +362,10 @@ def run_walk_forward_validation(
                 bootstrap_iterations=policy.bootstrap_iterations,
                 bootstrap_seed=policy.bootstrap_seed,
                 oos_folds=policy.oos_folds,
+                market_type=policy.market_type,
+                direction=policy.direction,
             )
-            values, count, embargo_count = _run_partition(item, partitions[name], registry=registry, weights=weights, config=partition_config)
+            values, count, embargo_count = _run_partition(item, partitions[name], registry=registry, weights=weights, config=partition_config, score_policy=score_policy)
             outcomes.extend(values)
             censored += count
             embargoed += embargo_count
@@ -360,6 +405,7 @@ def run_walk_forward_validation(
                 registry=registry,
                 weights=weights,
                 config=policy,
+                score_policy=score_policy,
             )
             fold_outcomes.extend(values)
             censored += censored_count
@@ -384,6 +430,32 @@ def run_walk_forward_validation(
         bootstrap_iterations=policy.bootstrap_iterations,
         bootstrap_seed=policy.bootstrap_seed,
     )
+    stress_backtest = replace(
+        policy.backtest,
+        fee_bps_per_side=policy.backtest.fee_bps_per_side * 2.0,
+        slippage_bps_per_side=policy.backtest.slippage_bps_per_side * 2.0,
+    )
+    stress_config = replace(policy, backtest=stress_backtest)
+    stress_outcomes: list[TradeOutcome] = []
+    for item in clean_series:
+        values, _, _ = _run_partition(
+            item,
+            partitions["test"],
+            registry=registry,
+            weights=weights,
+            config=stress_config,
+            score_policy=score_policy,
+        )
+        stress_outcomes.extend(values)
+    report["stress"] = {
+        "cost_multiplier": 2.0,
+        "backtest_config": stress_backtest.__dict__,
+        "test": summarize_outcomes(
+            stress_outcomes,
+            bootstrap_iterations=policy.bootstrap_iterations,
+            bootstrap_seed=policy.bootstrap_seed,
+        ),
+    }
     report["validation_gate"] = evaluate_validation_gate(report)
     return {
         "report": report,

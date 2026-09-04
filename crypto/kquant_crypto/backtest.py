@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 import re
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from .factor_engine import FactorMarketInput, OHLCVBar, compute_factor_value_series
 from .factor_registry import FactorRegistry, score_registered_factors
@@ -28,9 +28,12 @@ class BacktestConfig:
     stop_atr_multiple: float = 1.5
     target_r_multiple: float = 2.0
     max_hold_bars: int = 24
-    fee_bps_per_side: float = 1.0
+    fee_bps_per_side: float = 10.0
     slippage_bps_per_side: float = 5.0
     min_history_bars: int = 55
+    market_type: str = "spot"
+    direction: str = "long"
+    include_funding: bool = False
 
     @property
     def cost_rate_per_side(self) -> float:
@@ -68,6 +71,11 @@ class TradeOutcome:
     # Point-in-time inputs at the signal bar.  Keeping these with the outcome
     # lets model benchmarks use only information available before entry.
     factor_values: tuple[tuple[str, float | None], ...] = ()
+    market_type: str = "spot"
+    direction: str = "long"
+    gross_r: float | None = None
+    trading_cost_r: float = 0.0
+    funding_r: float = 0.0
 
     @property
     def win(self) -> bool:
@@ -152,10 +160,15 @@ def run_early_start_backtest(
     signal_end_index: int | None = None,
     asset_id: str | None = None,
     symbol: str | None = None,
+    score_policy: Callable[[FactorRegistry, Mapping[str, float | None]], Mapping[str, Any]] | None = None,
 ) -> list[TradeOutcome]:
     """Replay the deterministic setup policy without looking beyond a signal bar."""
 
     policy = config or BacktestConfig()
+    if policy.direction != "long":
+        raise ValueError("crypto_early_v1.0.0 is a long-only policy; use a separately versioned short policy")
+    if policy.market_type not in {"spot", "perpetual"}:
+        raise ValueError(f"Unsupported market type: {policy.market_type}")
     if len(bars) < policy.min_history_bars + 2:
         return []
     factor_bars = tuple(item.as_factor_bar() for item in bars)
@@ -179,7 +192,11 @@ def run_early_start_backtest(
             signal_index += 1
             continue
         values = factor_series[signal_index]
-        scored = score_registered_factors(registry, values, weights)
+        scored = (
+            dict(score_policy(registry, values))
+            if score_policy is not None
+            else score_registered_factors(registry, values, weights)
+        )
         if scored["missing_factor_ids"] or float(scored["score"]) < policy.setup_threshold:
             signal_index += 1
             continue
@@ -204,6 +221,15 @@ def run_early_start_backtest(
             target_price=target_price,
             config=policy,
         )
+        raw_exit_price = exit_price / (1.0 - policy.cost_rate_per_side)
+        gross_r = (raw_exit_price - raw_entry) / risk
+        funding_r = 0.0
+        if policy.include_funding and derivative_series:
+            for funding_index in range(next_index, min(exit_index + 1, len(derivative_series))):
+                funding = derivative_series[funding_index].get("funding_rate")
+                if funding is not None:
+                    funding_r -= float(funding) * entry_price / risk
+        realized_r = (exit_price - entry_price) / risk + funding_r
         outcomes.append(TradeOutcome(
             signal_time=bars[signal_index].start_time,
             entry_time=bars[next_index].start_time,
@@ -212,7 +238,7 @@ def run_early_start_backtest(
             exit_price=exit_price,
             stop_price=stop_price,
             target_price=target_price,
-            realized_r=(exit_price - entry_price) / risk,
+            realized_r=realized_r,
             exit_reason=reason,
             setup_score=float(scored["score"]),
             factor_ids=tuple(sorted(weights)),
@@ -224,6 +250,11 @@ def run_early_start_backtest(
                     for key, value in values.items()
                 )
             ),
+            market_type=policy.market_type,
+            direction=policy.direction,
+            gross_r=gross_r,
+            trading_cost_r=gross_r - ((exit_price - entry_price) / risk),
+            funding_r=funding_r,
         ))
         next_available_signal = exit_index + 1
         signal_index = next_available_signal
@@ -264,6 +295,11 @@ def summarize_outcomes(
     values = [item.realized_r for item in outcomes]
     wins = [value for value in values if value > 0]
     losses = [value for value in values if value < 0]
+    consecutive_losses = 0
+    max_consecutive_losses = 0
+    for value in values:
+        consecutive_losses = consecutive_losses + 1 if value < 0 else 0
+        max_consecutive_losses = max(max_consecutive_losses, consecutive_losses)
     gross_profit = sum(wins)
     gross_loss = abs(sum(losses))
     equity = 0.0
@@ -276,15 +312,21 @@ def summarize_outcomes(
     sample_count = len(values)
     status = "insufficient" if sample_count < 30 else "limited" if sample_count < 100 else "robust"
     by_symbol: dict[str, dict[str, Any]] = {}
+    net_r_by_symbol: dict[str, float] = {}
     if _include_breakdown:
         symbols = sorted({item.symbol for item in outcomes if item.symbol})
         for symbol in symbols:
+            symbol_outcomes = [item for item in outcomes if item.symbol == symbol]
             by_symbol[symbol] = summarize_outcomes(
-                [item for item in outcomes if item.symbol == symbol],
+                symbol_outcomes,
                 bootstrap_iterations=bootstrap_iterations,
                 bootstrap_seed=bootstrap_seed,
                 _include_breakdown=False,
             )
+            net_r_by_symbol[symbol] = sum(item.realized_r for item in symbol_outcomes)
+    best_symbol = max(net_r_by_symbol, key=net_r_by_symbol.get) if net_r_by_symbol else None
+    without_best = [item.realized_r for item in outcomes if item.symbol != best_symbol] if best_symbol else []
+    positive_symbol_profit = sum(max(0.0, value) for value in net_r_by_symbol.values())
     return {
         "sample_count": sample_count,
         "evidence_status": status,
@@ -293,6 +335,7 @@ def summarize_outcomes(
         "average_r": sum(values) / sample_count if sample_count else None,
         "average_win_r": sum(wins) / len(wins) if wins else None,
         "average_loss_r": sum(losses) / len(losses) if losses else None,
+        "average_win_loss_ratio": (sum(wins) / len(wins)) / abs(sum(losses) / len(losses)) if wins and losses else None,
         "expected_r": sum(values) / sample_count if sample_count else None,
         "bootstrap_expected_r_interval_95": _bootstrap_mean_interval(
             values,
@@ -301,6 +344,22 @@ def summarize_outcomes(
         ),
         "profit_factor": gross_profit / gross_loss if gross_loss else None,
         "max_drawdown_r": abs(max_drawdown),
+        "max_consecutive_losses": max_consecutive_losses,
+        "gross_average_r": (
+            sum(float(item.gross_r) for item in outcomes if item.gross_r is not None)
+            / sum(item.gross_r is not None for item in outcomes)
+            if any(item.gross_r is not None for item in outcomes)
+            else None
+        ),
+        "average_trading_cost_r": sum(float(item.trading_cost_r) for item in outcomes) / sample_count if sample_count else None,
+        "average_funding_r": sum(float(item.funding_r) for item in outcomes) / sample_count if sample_count else None,
+        "best_symbol": best_symbol,
+        "best_symbol_removed_expected_r": sum(without_best) / len(without_best) if without_best else None,
+        "largest_symbol_profit_contribution": (
+            max((max(0.0, value) for value in net_r_by_symbol.values()), default=0.0) / positive_symbol_profit
+            if positive_symbol_profit > 0
+            else None
+        ),
         "target_first_rate": sum(item.exit_reason in {"target", "gap_target"} for item in outcomes) / sample_count if sample_count else None,
         "stop_first_rate": sum(item.exit_reason in {"stop", "stop_first", "gap_stop"} for item in outcomes) / sample_count if sample_count else None,
         "by_symbol": by_symbol,

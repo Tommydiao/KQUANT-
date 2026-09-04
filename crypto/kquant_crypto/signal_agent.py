@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
+from typing import Any, Mapping
 
 from .evaluation_models import iso_now, stable_hash
 from .factor_registry import FactorRegistry, score_registered_factors
@@ -81,6 +81,7 @@ def propose_signal(
     liquidity_status: str = "unknown",
     market_regime: str = "unknown",
     as_of_time: str | None = None,
+    scored_result: Mapping[str, Any] | None = None,
 ) -> SignalProposal:
     """Create a deterministic candidate stage from registered factors only.
 
@@ -93,7 +94,12 @@ def propose_signal(
     if unknown:
         raise ValueError(f"Unknown factor IDs: {', '.join(unknown)}")
 
-    scored = score_registered_factors(registry, factor_values, weights)
+    scored = dict(scored_result) if scored_result is not None else score_registered_factors(registry, factor_values, weights)
+    unknown_contributions = registry.validate(list(scored.get("contributions") or {}))
+    if unknown_contributions:
+        raise ValueError(f"Unknown contribution factor IDs: {', '.join(unknown_contributions)}")
+    scored.setdefault("factor_version", registry.factor_version)
+    scored.setdefault("missing_factor_ids", sorted(key for key in weights if factor_values.get(key) is None))
     setup_score = float(scored["score"])
     stage = SetupStage.MONITORING.value
     if setup_score >= 60:
@@ -108,7 +114,7 @@ def propose_signal(
     if invalidated:
         stage = SetupStage.INVALIDATED.value
 
-    contributions = scored["contributions"]
+    contributions = dict(scored["contributions"])
     supporting = tuple(
         {"factor_id": factor_id, "value": factor_values.get(factor_id), "contribution": contribution}
         for factor_id, contribution in sorted(contributions.items(), key=lambda item: item[1], reverse=True)

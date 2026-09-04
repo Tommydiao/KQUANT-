@@ -159,6 +159,12 @@ FEATURE_DISTRIBUTIONS: dict[str, dict[str, tuple[float, float]]] = {
     "volume_pressure": {"BULL": (0.50, 0.45), "ACCUMULATION": (0.25, 0.50), "DISTRIBUTION": (-0.10, 0.50), "BEAR_STRESS": (-0.45, 0.45)},
     "funding_stress": {"BULL": (0.05, 0.55), "ACCUMULATION": (0.00, 0.55), "DISTRIBUTION": (0.25, 0.55), "BEAR_STRESS": (0.55, 0.50)},
     "drawdown_risk": {"BULL": (-0.35, 0.40), "ACCUMULATION": (-0.10, 0.45), "DISTRIBUTION": (0.30, 0.45), "BEAR_STRESS": (0.70, 0.40)},
+    "gap_risk": {"BULL": (-0.30, 0.45), "ACCUMULATION": (-0.10, 0.50), "DISTRIBUTION": (0.35, 0.45), "BEAR_STRESS": (0.70, 0.40)},
+    "volume_decay": {"BULL": (-0.35, 0.40), "ACCUMULATION": (-0.05, 0.45), "DISTRIBUTION": (0.40, 0.45), "BEAR_STRESS": (0.65, 0.40)},
+    "abnormal_volatility": {"BULL": (-0.20, 0.50), "ACCUMULATION": (-0.15, 0.45), "DISTRIBUTION": (0.35, 0.50), "BEAR_STRESS": (0.70, 0.45)},
+    "oi_change": {"BULL": (0.45, 0.50), "ACCUMULATION": (0.15, 0.45), "DISTRIBUTION": (-0.10, 0.50), "BEAR_STRESS": (-0.55, 0.45)},
+    "basis_signal": {"BULL": (0.25, 0.50), "ACCUMULATION": (0.05, 0.45), "DISTRIBUTION": (0.20, 0.55), "BEAR_STRESS": (-0.30, 0.55)},
+    "deleveraging_risk": {"BULL": (-0.45, 0.40), "ACCUMULATION": (-0.15, 0.45), "DISTRIBUTION": (0.35, 0.45), "BEAR_STRESS": (0.75, 0.35)},
 }
 
 

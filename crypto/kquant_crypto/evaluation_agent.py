@@ -8,6 +8,7 @@ from .evaluation_models import EvaluationDecision, TradePlanDraft
 from .evaluation_policy import evaluate_plan
 from .evaluation_store import latest_evaluation_for_plan, save_evaluation, save_trade_plan
 from .factor_registry import FactorRegistry
+from .model_evidence import get_model_evidence_packet, verify_model_evidence_packet
 from .model_registry import ModelArtifactRegistry
 
 
@@ -35,13 +36,37 @@ class EvaluationAgent:
         self.allow_shadow = bool(allow_shadow)
 
     def _bind_model_evidence(self, draft: TradePlanDraft) -> TradePlanDraft:
-        """Copy immutable model metadata into the EVAL payload when bound."""
+        """Copy immutable model metadata into the EVAL payload when bound.
+
+        Candidate assets must reference a packet that already exists in the
+        audit database.  The request payload is never trusted as proof of
+        persistence; the canonical stored packet is reloaded and verified.
+        """
+
+        payload = dict(draft.payload)
+        packet = payload.get("model_evidence_packet")
+        if isinstance(packet, dict):
+            packet_id = str(packet.get("packet_id") or "")
+            stored = get_model_evidence_packet(self.db_path, packet_id) if packet_id else None
+            if stored is None:
+                payload["model_evidence_persisted"] = False
+                payload["model_evidence_integrity_issues"] = ["packet_not_found"]
+            else:
+                valid, issues = verify_model_evidence_packet(stored)
+                request_hash = str(packet.get("content_hash") or "")
+                stored_hash = str(stored.get("content_hash") or "")
+                if request_hash != stored_hash:
+                    issues = tuple(dict.fromkeys((*issues, "request_packet_hash_mismatch")))
+                    valid = False
+                payload["model_evidence_persisted"] = valid
+                payload["model_evidence_integrity_issues"] = list(issues)
+                if valid:
+                    payload["model_evidence_packet"] = stored
 
         model_id = draft.snapshot_bindings.get("model")
         if not model_id:
-            return draft
+            return replace(draft, payload=payload)
         allowed, reasons, artifact = self.model_registry.evidence_gate(model_id)
-        payload = dict(draft.payload)
         payload["model_id"] = model_id
         if artifact is None:
             payload["model_integrity_ok"] = False

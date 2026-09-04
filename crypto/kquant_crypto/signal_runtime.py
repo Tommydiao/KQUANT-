@@ -7,6 +7,7 @@ from typing import Any
 
 from .evaluation_agent import EvaluationAgent
 from .evaluation_models import EVAL_POLICY_VERSION, stable_hash
+from .evidence_pipeline import build_research_model_evidence
 from .factor_engine import FactorMarketInput, OHLCVBar, compute_factor_values
 from .factor_registry import FactorRegistry, score_registered_factors
 from .market_buffer import Candle
@@ -16,28 +17,12 @@ from .market_regime_runtime import MarketRegimeRuntime
 from .model_registry import ModelArtifactRegistry
 from .realtime_supervisor import RealtimeSupervisor
 from .signal_agent import SetupStage, SignalProposal, propose_signal
+from .strategy_momentum_v21 import (
+    STRATEGY_VERSION,
+    evaluate_spot_momentum_v21,
+    score_spot_momentum_v21,
+)
 from .trade_plan_agent import build_trade_plan_draft
-
-
-STRATEGY_VERSION = "crypto_early_v1.0.0"
-
-# These are deliberately explicit and versioned with the runtime.  They are
-# research weights, not a live trading authorization.  EVAL remains closed
-# until data, security, model and Paper gates are independently passed.
-SETUP_WEIGHTS: dict[str, float] = {
-    "trend_ema_reclaim": 25.0,
-    "trend_ema_slope": 500.0,
-    "relative_strength_btc": 120.0,
-    "relative_strength_eth": 120.0,
-    "momentum_acceleration": 100.0,
-    "volume_acceleration": 20.0,
-    "cvd_bias": 10.0,
-    "volatility_compression": 5.0,
-    "oi_price_alignment": 5.0,
-    "funding_extreme": 5.0,
-    "liquidity_spread": 5.0,
-    "breakout_distance": -25.0,
-}
 
 
 def _bar(value: Candle) -> OHLCVBar:
@@ -129,10 +114,11 @@ class CEXSignalRuntime:
             return {"status": "duplicate", "instrument_id": event.instrument_id, "candle": latest.start_time}
         self.last_processed[event.instrument_id] = latest.start_time
 
-        bars = self.market_runtime.buffer.closed_history(event.instrument_id, "5m")
-        if len(bars) < 60:
+        trigger_bars = self.market_runtime.buffer.closed_history(event.instrument_id, "5m")
+        setup_bars = self.market_runtime.buffer.closed_history(event.instrument_id, "1H")
+        if len(trigger_bars) < 60 or len(setup_bars) < 60:
             self.skipped_insufficient_history += 1
-            return {"status": "insufficient_history", "instrument_id": event.instrument_id, "bars": len(bars)}
+            return {"status": "insufficient_history", "instrument_id": event.instrument_id, "setup_bars": len(setup_bars), "trigger_bars": len(trigger_bars)}
 
         snapshot = self.market_runtime.snapshot(event.instrument_id)
         benchmark_bars: dict[str, tuple[OHLCVBar, ...]] = {}
@@ -140,12 +126,12 @@ class CEXSignalRuntime:
             instrument_id = self._find_spot_instrument(event.venue, symbol)
             if instrument_id:
                 benchmark_bars[symbol.removesuffix("USDT")] = tuple(
-                    _bar(item) for item in self.market_runtime.buffer.closed_history(instrument_id, "5m")
+                    _bar(item) for item in self.market_runtime.buffer.closed_history(instrument_id, "1H")
                 )
 
         derivative = snapshot.get("derivative") or {}
         market_input = FactorMarketInput(
-            bars=tuple(_bar(item) for item in bars),
+            bars=tuple(_bar(item) for item in setup_bars),
             benchmark_bars=benchmark_bars,
             cvd=(snapshot.get("order_flow") or {}).get("cvd"),
             buy_volume=(snapshot.get("order_flow") or {}).get("buy_volume"),
@@ -154,24 +140,23 @@ class CEXSignalRuntime:
             spread_bps=self._number(snapshot.get("spread_bps")),
         )
         values = compute_factor_values(market_input)
-        scored = score_registered_factors(self.factor_registry, values, SETUP_WEIGHTS)
+        scored = score_spot_momentum_v21(self.factor_registry, values)
 
-        confirmation_bars = self.market_runtime.buffer.closed_history(event.instrument_id, "1H")
         trigger_score: float | None = None
-        if len(confirmation_bars) >= 20:
-            confirmation_input = FactorMarketInput(
-                bars=tuple(_bar(item) for item in confirmation_bars),
+        if len(trigger_bars) >= 20:
+            trigger_input = FactorMarketInput(
+                bars=tuple(_bar(item) for item in trigger_bars),
                 benchmark_bars={
                     key: tuple(_bar(item) for item in self.market_runtime.buffer.closed_history(
-                        self._find_spot_instrument(event.venue, symbol) or "", "1H"
+                        self._find_spot_instrument(event.venue, symbol) or "", "5m"
                     ))
                     for key, symbol in (("BTC", "BTCUSDT"), ("ETH", "ETHUSDT"))
                     if self._find_spot_instrument(event.venue, symbol)
                 },
                 spread_bps=self._number(snapshot.get("spread_bps")),
             )
-            confirmation_values = compute_factor_values(confirmation_input)
-            trigger_score = float(score_registered_factors(self.factor_registry, confirmation_values, SETUP_WEIGHTS)["score"])
+            trigger_values = compute_factor_values(trigger_input)
+            trigger_score = float(score_spot_momentum_v21(self.factor_registry, trigger_values)["score"])
 
         trust = str(snapshot.get("trust") or event.provider_status).lower()
         data_quality = "live" if trust == "live" and (snapshot.get("age_seconds") is None or float(snapshot["age_seconds"]) <= 30) else "stale"
@@ -179,22 +164,18 @@ class CEXSignalRuntime:
         ask = self._number(snapshot.get("ask"))
         spread_bps = self._number(snapshot.get("spread_bps"))
         liquidity = "pass" if bid is not None and ask is not None and spread_bps is not None and spread_bps <= 80 else "unavailable"
-        five_bar_return = _return(bars, 5)
-        ema20 = self._ema(tuple(item.close for item in bars), 20)
-        ema20_deviation = None if ema20 in (None, 0) else bars[-1].close / ema20 - 1.0
-        signal = propose_signal(
+        five_bar_return = _return(setup_bars, 5)
+        ema20 = self._ema(tuple(item.close for item in setup_bars), 20)
+        ema20_deviation = None if ema20 in (None, 0) else setup_bars[-1].close / ema20 - 1.0
+        signal = evaluate_spot_momentum_v21(
             self.factor_registry,
             asset_id=event.asset_id,
             symbol=_instrument_symbol(event.instrument_id),
-            asset_type="cex_spot",
-            strategy_version=STRATEGY_VERSION,
-            factor_values=values,
-            weights=SETUP_WEIGHTS,
+            setup_values=values,
             trigger_score=trigger_score,
-            five_day_return=five_bar_return,
+            five_period_return=five_bar_return,
             ema20_deviation=ema20_deviation,
             data_quality_status=data_quality,
-            security_status="unknown",
             liquidity_status=liquidity,
             market_regime=str((self.regime_runtime.latest() if self.regime_runtime else {}).get("regime") or "DATA_CAUTION"),
             as_of_time=latest.start_time,
@@ -211,10 +192,10 @@ class CEXSignalRuntime:
             contributions=scored["contributions"],
             missing_factor_ids=scored["missing_factor_ids"],
         )
-        atr = _atr(bars)
-        if atr is None or atr <= 0 or bars[-1].close <= 0:
+        atr = _atr(setup_bars)
+        if atr is None or atr <= 0 or setup_bars[-1].close <= 0:
             return {"status": "candidate_without_plan", "signal": signal.to_mapping(), "reason": "atr_unavailable"}
-        close = bars[-1].close
+        close = setup_bars[-1].close
         entry_zone = [close * 0.995, close * 1.005]
         stop_zone = [max(0.0, close - 1.5 * atr), max(0.0, close - atr)]
         target_zone = [close + 2.5 * atr, close + 3.5 * atr]
@@ -222,6 +203,28 @@ class CEXSignalRuntime:
         candle_key = f"{event.instrument_id}:{latest.start_time}:{STRATEGY_VERSION}"
         plan_id = f"plan_{stable_hash(candle_key)[:24]}"
         regime_snapshot = self.regime_runtime.latest() if self.regime_runtime else None
+        evidence_source_ids = [
+            f"market:{event.instrument_id}:{latest.start_time}",
+            factor_snapshot["content_hash"],
+            str(regime_snapshot.get("regime_snapshot_id") if regime_snapshot else f"regime:pending:{latest.start_time}"),
+            self.universe_snapshot_id,
+        ]
+        evidence_packet = build_research_model_evidence(
+            db_path=self.db_path,
+            asset_id=signal.asset_id,
+            symbol=signal.symbol,
+            market_type="spot",
+            strategy_version=STRATEGY_VERSION,
+            signal_time=event.source_time,
+            available_at=event.source_time,
+            hourly_bars=setup_bars,
+            factor_values={**values, "spread_bps": spread_bps},
+            entry_zone=entry_zone,
+            stop_zone=stop_zone,
+            target_zone=target_zone,
+            source_snapshot_ids=evidence_source_ids,
+            source_status=data_quality,
+        )
         bindings = {
             "market": f"market:{event.instrument_id}:{latest.start_time}",
             "regime": str(regime_snapshot.get("regime_snapshot_id") if regime_snapshot else f"regime:pending:{latest.start_time}"),
@@ -231,7 +234,7 @@ class CEXSignalRuntime:
             "derivative": f"derivative:pending:{latest.start_time}",
             "signal": f"signal:{signal.material_state_hash}",
             "plan": plan_id,
-            "model": "model:rules_pending_oos_gate",
+            "model": evidence_packet.packet_id,
             "universe": self.universe_snapshot_id,
             "eval_policy": EVAL_POLICY_VERSION,
         }
@@ -245,7 +248,7 @@ class CEXSignalRuntime:
             factor_snapshot_hash=factor_snapshot["content_hash"],
             snapshot_bindings=bindings,
             valid_minutes=30,
-            model_status="pending",
+            model_status="available",
             requested_execution_class="paper_only",
             as_of_time=latest.start_time,
             plan_id=plan_id,
@@ -264,6 +267,10 @@ class CEXSignalRuntime:
             "trigger_score": trigger_score,
             "supporting_factors": list(signal.supporting_factors),
             "opposing_factors": list(signal.opposing_factors),
+            "model_evidence_packet_id": evidence_packet.packet_id,
+            "model_evidence_packet": evidence_packet.to_mapping(),
+            "model_evidence_persisted": True,
+            "evidence_pipeline_version": "crypto_evidence_pipeline_v1.0.0",
         }
         draft = replace(draft, payload=payload)
         evaluation = self.evaluator.evaluate(draft).to_mapping()
