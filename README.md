@@ -1,11 +1,17 @@
 # KQUANT
 
-KQUANT is a read-only research workspace containing two independent terminals:
+KQUANT is a read-only research workspace with one unified browser workspace and
+two isolated market runtimes behind it:
 
-| Project | Scope | Local URL | Source directory |
+| Runtime | Scope | Direct fallback URL | Source directory |
 | --- | --- | --- | --- |
 | KQUANT US Stocks | Longbridge stock/ETF market data, transparent factors, strategy validation, journal and manual research | http://127.0.0.1:8001/ | repository root |
 | KQUANT CRYPTO | CEX, DEX and MEME monitoring, EVAL Agent review, Paper/Shadow research and alerts | http://127.0.0.1:8010/ | [`crypto/`](crypto/) |
+
+The normal browser entry is the unified workspace at
+http://127.0.0.1:8020/. It owns one login session, lets you switch between
+Stocks and Crypto, and keeps the two databases, providers and strategy
+versions separate. The 8001 and 8010 URLs are local fallback/debug entries.
 
 The stock project stays at the repository root so its existing Windows launchers,
 Vercel configuration and local paths remain compatible. The crypto project is a
@@ -28,6 +34,16 @@ plan drafts. LLM output is advisory and cannot change an EVAL decision, alter
 Entry/Stop/Target, bypass a security blocker or send an alert directly.
 
 ## US Stock Terminal
+
+Start both runtimes and the unified UI from the repository root:
+
+```powershell
+.\KQUANT_START.cmd
+```
+
+Open [http://127.0.0.1:8020/](http://127.0.0.1:8020/). To restart an existing
+local session, run `powershell -ExecutionPolicy Bypass -File
+.\start_kquant_workspace.ps1 -KillExisting`.
 
 Run from the repository root:
 

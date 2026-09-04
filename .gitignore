@@ -13,6 +13,7 @@ work/
 *.sqlite3-wal
 web/node_modules/
 web/dist/
+web/dist-unified/
 KQUANT-github-main/
 
 # Independent crypto runtime (source is committed under crypto/)

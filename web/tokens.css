@@ -1,0 +1,51 @@
+/* Hallmark - macrostructure: Workbench - tone: calm technical - anchor hue: cobalt */
+:root {
+  --color-bg: oklch(16% 0.015 250);
+  --color-bg-raised: oklch(19% 0.018 250);
+  --color-panel: oklch(21% 0.02 250);
+  --color-panel-strong: oklch(24% 0.022 250);
+  --color-ink: oklch(95% 0.008 250);
+  --color-ink-2: oklch(82% 0.014 250);
+  --color-muted: oklch(64% 0.018 250);
+  --color-rule: oklch(32% 0.025 250);
+  --color-rule-strong: oklch(42% 0.035 250);
+  --color-accent: oklch(72% 0.14 245);
+  --color-accent-strong: oklch(80% 0.14 245);
+  --color-accent-ink: oklch(16% 0.015 250);
+  --color-positive: oklch(76% 0.15 152);
+  --color-caution: oklch(82% 0.14 87);
+  --color-negative: oklch(72% 0.16 28);
+  --color-info: oklch(76% 0.12 215);
+  --color-overlay: oklch(10% 0.02 250 / 0.72);
+
+  --font-display: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 40px;
+  --space-2xl: 56px;
+  --space-3xl: 72px;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-display: 2.75rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 160ms;
+  --dur-base: 240ms;
+  --dur-slow: 320ms;
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --shadow-drawer-left: -10px 0 30px oklch(8% 0.02 250 / 0.25);
+  --shadow-nav-right: 10px 0 30px oklch(8% 0.02 250 / 0.3);
+  --focus-ring: 0 0 0 3px oklch(72% 0.14 245 / 0.28);
+}
