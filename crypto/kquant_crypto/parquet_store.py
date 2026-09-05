@@ -106,6 +106,16 @@ class ParquetMarketStore:
         """
 
         paths = sorted(self._compacted_dir.glob("closed_klines*.parquet"))
+        # Market-specific snapshots supersede the older generic snapshots.
+        # Reading both would duplicate the same closed bars in coverage and
+        # could make a data gate look healthier than the underlying evidence.
+        specific_paths = [
+            path for path in paths
+            if path.name.startswith("closed_klines_spot_")
+            or path.name.startswith("closed_klines_perpetual_")
+        ]
+        if specific_paths:
+            paths = specific_paths
         if not paths:
             return None
         import duckdb
@@ -154,7 +164,14 @@ class ParquetMarketStore:
                 "coverage_basis": "compacted_closed_klines",
             })
         manifests: list[dict[str, Any]] = []
-        for path in sorted(self._compacted_dir.glob("closed_klines*.manifest.json")):
+        manifest_paths = sorted(self._compacted_dir.glob("closed_klines*.manifest.json"))
+        if specific_paths:
+            manifest_paths = [
+                path for path in manifest_paths
+                if path.name.startswith("closed_klines_spot_")
+                or path.name.startswith("closed_klines_perpetual_")
+            ]
+        for path in manifest_paths:
             try:
                 value = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, ValueError, TypeError, json.JSONDecodeError):

@@ -11,6 +11,7 @@ rather than independently claiming release readiness.
 | Stock runtime | local `8001` | stock health | unavailable during the 2026-09-05 probe; must be rechecked before a release claim |
 | Crypto runtime | `0.7.0`, schema `21`, local `8010` | crypto health | available, read-only |
 | Crypto public collection | Binance market-data-only collector | collector heartbeat | running; collection is not strategy evidence |
+| Crypto historical coverage | market-specific immutable closed-K-line snapshots | data coverage API | ARB, PUMP and ZEC complete for 1H/5m; research-universe gate remains `NO_GO` |
 | Crypto strategy | `crypto_spot_momentum_v2.1.0` | locked validation report | `NO_GO` |
 | Crypto execution | disabled, unarmed, no credentials configured | execution status | `NO_GO` |
 | Testnet | no closed testnet trades recorded | execution status | not started |

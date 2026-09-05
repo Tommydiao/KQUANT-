@@ -131,6 +131,29 @@ def test_symbol_compaction_merges_into_existing_interval_snapshot(tmp_path):
     assert sorted(item.symbol for item in dataset.series) == ["ETHUSDT", "SOLUSDT"]
 
 
+def test_coverage_prefers_market_specific_snapshot_over_legacy_generic_snapshot(tmp_path):
+    runtime = MarketDataRuntime(tmp_path / "data", flush_every=100)
+
+    async def write():
+        source = _event(0)
+        payload = {**source.payload, "interval": "1h"}
+        await runtime.ingest(replace(source, payload=payload, content_hash=content_hash(payload)))
+        runtime.flush()
+
+    asyncio.run(write())
+    store = ParquetMarketStore(tmp_path / "data")
+    store.compact_closed_klines(interval="1h")
+    store.compact_closed_klines(interval="1h", market_type="spot")
+
+    streams = store.closed_kline_coverage()["streams"]
+    matching = [
+        item for item in streams
+        if item["instrument_id"] == "binance:spot:SOLUSDT" and item["interval"] == "1h"
+    ]
+    assert len(matching) == 1
+    assert matching[0]["event_count"] == 1
+
+
 def test_loader_aggregates_closed_one_minute_bars_without_future_rows(tmp_path):
     runtime = MarketDataRuntime(tmp_path / "data", flush_every=100)
 
