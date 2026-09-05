@@ -32,9 +32,9 @@ compatibility but no longer inflate the active coverage gate.
 ## Current gate result
 
 The research-Universe historical coverage Gate remains `NO_GO`. The eligible
-Spot symbols are currently `ARBUSDT`, `PUMPUSDT`, and `ZECUSDT`; the configured
-Universe still needs the remaining symbols and the core assets need their 5m
-validation snapshots compacted under the current contract. This is not a
+Spot symbols are currently `BTCUSDT`, `ETHUSDT`, `SOLUSDT`, `ARBUSDT`,
+`PUMPUSDT`, and `ZECUSDT`. The configured Universe still needs the remaining
+25 symbols before the 90% research-coverage target is met. This is not a
 strategy result and does not authorize Paper, Shadow, Testnet, or Live use.
 
 The independent 24-hour public collector is still running for BTC, ETH, SOL,
@@ -60,8 +60,6 @@ execution allowlist.
 
 1. Complete 1H/5m backfill and market-specific compaction for the rest of the
    frozen research Universe.
-2. Compact the core BTC/ETH/SOL 5m validation snapshots under the current
-   contract.
-3. Complete and archive the independent 24-hour collector report.
-4. Re-run coverage, gap, duplicate, ordering, and point-in-time checks before
+2. Complete and archive the independent 24-hour collector report.
+3. Re-run coverage, gap, duplicate, ordering, and point-in-time checks before
    starting the P3 strategy experiments.
