@@ -36,6 +36,9 @@ jobs:
       - name: Build frontend
         working-directory: web
         run: npm run build
+      - name: Build unified workspace frontend
+        working-directory: web
+        run: npm run build:unified
       - name: Verify read-only runtime boundary
         run: python scripts/verify_read_only_boundary.py
 
