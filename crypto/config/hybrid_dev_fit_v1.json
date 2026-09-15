@@ -1,0 +1,23 @@
+{
+  "version": "hybrid_dev_fit_v1",
+  "scope": "DEV_ONLY",
+  "exposure": "EXPOSED_RESEARCH",
+  "dataset": "outputs/hybrid_regime_v1/m2_development_20260905_04",
+  "label_policy": "27 mature A executed_virtual LEGACY_BAR_PROXY_BASE_10_5; all exposed-development splits authorized for fitting; 23 unavailable excluded NEVER zero; B185 excluded; no heldout market rows",
+  "features": ["er24_1h"],
+  "transform": "mean and population SD fitted on the 27 authorized development rows only",
+  "priors": {"alpha_sd": 0.5, "beta_sd": 0.25, "tau_halfnormal_sd": 0.5, "sigma_halfnormal_sd": 1.0, "nu_minus_two_exponential_rate": 0.1},
+  "chains": 4,
+  "seed": 20260905,
+  "prior_seed": 20260906,
+  "predictive_seed": 20260907,
+  "tune": 1500,
+  "draws": 1500,
+  "prior_draws": 2000,
+  "target_accept": 0.95,
+  "diagnostics": {"rhat_max": 1.01, "ess_bulk_min": 400, "ess_tail_min": 400, "divergences_max": 0, "bfmi_min": 0.3, "impossible_loss_mass_max": 0.01},
+  "dependence": "One row per economic signal; retain all 27, report UTC-day groups and inclusive holding-interval overlaps. Conditional independence is an unverified working likelihood, not 27 independent market experiments. No group adjustment claimed.",
+  "baseline": "zero-edge and fitted per-mode constant mean, descriptive in-sample RMSE only",
+  "stopping": "One fixed configuration and seed, no automatic retries or tuning after predictive checks",
+  "validity": "No OOS, calibration, admission, runtime integration or production registry; all validity claims remain false"
+}

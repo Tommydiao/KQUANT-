@@ -4,6 +4,7 @@ import json
 import asyncio
 import hmac
 import os
+from urllib.parse import urlencode
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -11,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..config import API_CONTRACT_VERSION, APP_VERSION, FRONTEND_CONTRACT_VERSION, Settings, load_settings
@@ -39,6 +40,7 @@ from ..notifications import (
 from ..provider_runtime import ProviderSupervisor, provider_health
 from ..market_scanner import BinanceMarketScanner, list_opportunities, scanner_status
 from ..candidate_market import BinanceCandidateMarketVerifier
+from ..candidate_api import create_candidate_router
 from ..hyperliquid_reference import HyperliquidPublicReference
 from ..market_runtime import MarketDataRuntime
 from ..market_regime_runtime import MarketRegimeRuntime
@@ -306,6 +308,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             runtime.flush(force=True)
 
     app = FastAPI(title="KQUANT CRYPTO", version=APP_VERSION, lifespan=lifespan)
+    app.include_router(create_candidate_router(resolved.root_dir))
     app.state.started_at = datetime.now(UTC).isoformat()
     app.state.settings = resolved
     app.state.auth = auth
@@ -2197,7 +2200,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return Response("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='#08111d'/><text x='12' y='42' fill='#6ad2ff' font-size='24'>KQ</text></svg>", media_type="image/svg+xml")
 
     @app.get("/", response_class=HTMLResponse)
-    async def index():
+    async def index(request: Request):
+        if os.getenv("KQUANT_UNIFIED_UI_REDIRECT", "false").strip().lower() == "true":
+            base_url = os.getenv("KQUANT_UNIFIED_UI_URL", "http://127.0.0.1:8020").rstrip("/")
+            params = dict(request.query_params)
+            legacy_view = str(params.get("view") or "today").lower()
+            params["workspace"] = "crypto"
+            params["view"] = {"discover": "opportunities", "plan": "plans", "research": "review", "journal": "review", "status": "settings"}.get(legacy_view, legacy_view)
+            params.pop("market", None)
+            return RedirectResponse(f"{base_url}/?{urlencode(params)}", status_code=307)
         path = _frontend_index(resolved)
         if path:
             return FileResponse(path)

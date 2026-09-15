@@ -21,6 +21,21 @@ def _client(settings) -> TestClient:
     return client
 
 
+def test_gateway_prefers_fast_liveness_and_rejects_html_health():
+    import asyncio
+    from kquant_crypto.gateway import Backend, _probe_backend
+    paths=[]
+    def handler(request):
+        paths.append(request.url.path)
+        return httpx.Response(200,json={'status':'online','market_data_checked':False})
+    backend=Backend('stocks','http://stock.local','','x-kquant-api-token')
+    result=asyncio.run(_probe_backend(backend,transport=httpx.MockTransport(handler)))
+    assert result['status']=='available' and result['market_data_checked'] is False
+    assert paths==['/api/health/live']
+    result=asyncio.run(_probe_backend(backend,transport=httpx.MockTransport(lambda req:httpx.Response(200,text='<html>fallback</html>'))))
+    assert result['status']=='unhealthy'
+
+
 def test_operations_endpoints_are_secret_free_and_fail_closed(settings):
     client = _client(settings)
     operations = client.get("/api/operations/observability")
@@ -45,7 +60,7 @@ def test_gateway_exposes_unified_mode_config_without_merging_databases():
     client = TestClient(create_gateway_app(stocks_url="http://127.0.0.1:1", crypto_url="http://127.0.0.1:2"))
     config = client.get("/api/gateway/config").json()
     assert config["session_mode"] == "unified_gateway_session"
-    assert {item["id"] for item in config["modes"]} == {"stocks", "crypto"}
+    assert {item["id"] for item in config["modes"]} == {"stocks", "options", "crypto"}
     assert config["data_mixing"] is False
     assert config["secrets_exposed"] is False
 
@@ -153,6 +168,29 @@ def test_unified_gateway_development_proxy_has_local_identity(monkeypatch):
     assert response.status_code == 200
     assert any(headers.get("x-kquant-crypto-internal-token") == "crypto-token" for headers in seen_headers)
     assert any(headers.get("x-kquant-workspace-user") == "local@kquant.local" for headers in seen_headers)
+
+
+def test_gateway_options_proxy_is_explicitly_allowlisted() -> None:
+    seen: list[tuple[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path))
+        return httpx.Response(200, json={"status": "ok"}, request=request)
+
+    client = TestClient(
+        create_gateway_app(
+            stocks_url="http://stock.local",
+            crypto_url="http://crypto.local",
+            transport=httpx.MockTransport(handler),
+        )
+    )
+
+    assert client.get("/api/options/radar/signals").status_code == 200
+    assert client.post("/api/options/watchlist", json={"plan_id": "plan-1"}).status_code == 200
+    assert client.post("/api/options/status", json={}).status_code == 404
+    assert client.get("/api/options/orders").status_code == 404
+    assert ("GET", "/api/options/radar/signals") in seen
+    assert ("POST", "/api/options/watchlist") in seen
 
 
 def test_observability_summary_is_read_only(settings):

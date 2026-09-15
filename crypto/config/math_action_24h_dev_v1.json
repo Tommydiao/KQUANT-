@@ -1,0 +1,131 @@
+{
+  "version": "math_action_24h_dev_v1.0.0",
+  "scope": "DEV_ONLY",
+  "exposure": "EXPOSED_RESEARCH",
+  "execution_enabled": false,
+  "admission_enabled": false,
+  "universe": {
+    "spot_long": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT"
+    ],
+    "perpetual_short": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT"
+    ]
+  },
+  "actions": [
+    "SPOT_LONG_BTCUSDT",
+    "SPOT_LONG_ETHUSDT",
+    "SPOT_LONG_SOLUSDT",
+    "PERPETUAL_SHORT_BTCUSDT",
+    "PERPETUAL_SHORT_ETHUSDT",
+    "PERPETUAL_SHORT_SOLUSDT",
+    "WAIT"
+  ],
+  "dataset": {
+    "spot_capsule": "outputs/hybrid_delivery/multifactor_dataset_capsule_20260909_01",
+    "perpetual_source": null,
+    "sampling_interval_seconds": 3600,
+    "feature_warmup_hours": 168,
+    "label_horizon_hours": 24,
+    "training_stride_hours": 24,
+    "availability_contract": "assumed_close_historical_replay",
+    "turnover_contract": "ohlcv_close_times_base_volume_proxy"
+  },
+  "features": {
+    "spot_long": [
+      "log_return_1h",
+      "log_return_6h",
+      "log_return_24h",
+      "realized_volatility_24h",
+      "downside_volatility_24h",
+      "turnover_log_change_24h",
+      "relative_return_6h"
+    ],
+    "perpetual_short": [
+      "log_return_1h",
+      "log_return_6h",
+      "log_return_24h",
+      "realized_volatility_24h",
+      "downside_volatility_24h",
+      "turnover_log_change_24h",
+      "relative_return_6h",
+      "funding_rate"
+    ]
+  },
+  "trade_plan": {
+    "volatility_lookback_hours": 168,
+    "stop_sigma_24h": 1.0,
+    "target_sigma_24h": 2.0,
+    "max_holding_hours": 24,
+    "entry": "next_exact_closed_5m_bar_open",
+    "same_bar_collision": "stop_first",
+    "gap_policy": "actual_open",
+    "entry_outside_plan": "not_filled",
+    "terminal_exit": "last_5m_close"
+  },
+  "costs": {
+    "spot": {
+      "fee_bps_per_side": 10.0,
+      "slippage_bps_per_side": 5.0
+    },
+    "perpetual": {
+      "fee_bps_per_side": 5.0,
+      "slippage_bps_per_side": 5.0,
+      "funding": "historical_actual_required"
+    },
+    "stress_multiplier": 2.0
+  },
+  "portfolio": {
+    "research_capital": 10000.0,
+    "risk_per_trade": 0.0025,
+    "max_open_risk": 0.005,
+    "max_positions": 2,
+    "max_symbol_notional": 0.25,
+    "daily_loss_limit": 0.01,
+    "loss_streak": 3,
+    "pause_hours": 2
+  },
+  "partitions": {
+    "train_fraction": 0.6,
+    "validation_fraction": 0.2,
+    "diagnostic_fraction": 0.2,
+    "purge_hours": 24,
+    "embargo_hours": 24,
+    "test_claim": false
+  },
+  "ridge_baseline": {
+    "l2_penalty": 10.0,
+    "minimum_predicted_net_r": 0.0
+  },
+  "bayesian": {
+    "likelihood": "hierarchical_student_t",
+    "alpha_sd": 0.5,
+    "beta_sd": 0.25,
+    "symbol_tau_sd": 0.5,
+    "sigma_sd": 1.0,
+    "nu_minus_two_rate": 0.1,
+    "chains": 4,
+    "tune": 1000,
+    "draws": 1000,
+    "target_accept": 0.95,
+    "seed": 20260913,
+    "action_gate": "posterior_q05_conditional_mean_gt_zero"
+  },
+  "monte_carlo": {
+    "role": "risk_veto_only",
+    "paths": 5000,
+    "block_hours": 24,
+    "seed": 20260914
+  },
+  "claims": {
+    "independent_oos": false,
+    "calibrated_probability": false,
+    "performance_gate_passed": false,
+    "runtime_admission": false,
+    "live_trading": false
+  }
+}

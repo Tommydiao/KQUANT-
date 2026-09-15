@@ -1,0 +1,11 @@
+# Isolated research environment only; never install into collector Python.
+numpy==2.2.6
+pandas==2.2.3
+pyarrow==19.0.1
+numba==0.61.2
+pytest==8.3.5
+psutil==7.0.0
+requests==2.32.3
+duckdb==1.2.2
+PyYAML==6.0.2
+# Install torch separately from https://download.pytorch.org/whl/cpu

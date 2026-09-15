@@ -1,0 +1,17 @@
+{
+  "version": "hybrid_exit_research_dev_v1",
+  "scope": "DEV_ONLY_EXPOSED_RESEARCH",
+  "execution_enabled": false,
+  "entry_policy": "original_A_fixed_entries_first_then_full_portfolio",
+  "initial_stop": "unchanged_original",
+  "candidates": ["T1", "T2"],
+  "comparators": ["ORIGINAL", "FIXED_2_5R", "FIXED_3R"],
+  "T1": "On a fully closed hour, close below minimum low of six preceding contiguous closed hours queues exit for next tradable bar; no arbitrary six-hour timeout or fixed profit cap",
+  "T2": "T1 plus stop=max(previous_stop, previous_six_hour_low-0.25*current_Wilder_ATR14), effective only on the next tradable bar",
+  "fixed_targets": "net target multiples of frozen BASE unit risk including actual entry fee and BASE exit fee/slippage; original other exit rules retained",
+  "range": "original policy unchanged",
+  "gap": "unverifiable path separately censored; never synthesize missing prices",
+  "terminal": "explicit terminal liquidation, not normal strategy exit",
+  "selection": "no automatic winner selection or parameter search",
+  "validation": "holding overlap must be remeasured; original six-hour embargo cannot be reused mechanically"
+}

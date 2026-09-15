@@ -1,0 +1,12 @@
+{
+  "scope": "DEV_ONLY_NUMERICAL_ENGINEERING",
+  "registered_before_compiled_fit": true,
+  "reason": "PyMC interpreted NUTS has exceeded 30 CPU minutes without a completed posterior; no C++ compiler available. Use another isolated environment with compiled NumPyro NUTS for the SAME PyMC model.",
+  "fixed_model_config_sha256": "825e79b614cd3c2edc72dd530cdc143d30f150a47720549f42a122ffd5693f0f",
+  "changes": ["NUTS implementation pymc to numpyro", "sequential CPU chains with JAX float64", "unrounded diagnostic serialization"],
+  "unchanged": ["27 A labels", "one ER feature", "likelihood and priors", "seed", "4 chains", "1500 tune and 1500 retained draws per chain", "target_accept 0.95", "diagnostic thresholds", "A/B strategy", "cost and risk", "all admission switches off"],
+  "result_selection": "Compiled implementation is the engineering delivery regardless of fit or predictive results; no profitability comparison or choice between numerical backends.",
+  "original_attempt": "dev_fit_20260905_02 preserved, no output overwritten; if still running after compiled artifact is verified, stop only that isolated fitting process and record incomplete status.",
+  "no_refit_after_diagnostics": true,
+  "runtime_loading": false
+}

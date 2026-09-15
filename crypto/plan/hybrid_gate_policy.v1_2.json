@@ -1,0 +1,236 @@
+{
+  "schema_version": "kquant_delivery_gate_policy_v1.2",
+  "artifact_kind": "design_template_not_production_configuration",
+  "status": "REQUIRES_LOCAL_CONTRACT_MAPPING",
+  "runtime_permissions": {
+    "codex_live_order_submission": false,
+    "llm_live_order_submission": false,
+    "development_runner_reads_production_secrets": false,
+    "withdrawals": false,
+    "transfers": false,
+    "margin_or_derivatives": false,
+    "live_enabled": false,
+    "auto_scale_capital": false,
+    "auto_promote_production_model": false
+  },
+  "research_scope": {
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT"
+    ],
+    "market": "spot",
+    "direction": "long_only",
+    "regime_interval": "1h",
+    "signal_interval": "5m",
+    "llm_required_for_first_release": false
+  },
+  "inherited_risk_contract": {
+    "source": "P1 section 6.6; must verify actual frozen code/policy",
+    "per_trade_expected_risk_fraction": 0.0025,
+    "aggregate_expected_risk_fraction": 0.005,
+    "max_positions": 2,
+    "per_symbol_notional_fraction": 0.25,
+    "daily_loss_fraction": 0.01,
+    "consecutive_losses_to_pause": 3,
+    "pause_hours": 2,
+    "cost_policy_id": null,
+    "risk_basis_policy_id": null,
+    "freeze_hash": null
+  },
+  "inherited_performance_contract": {
+    "source": "P1 section 10.4; not a training-start condition",
+    "net_payoff_min": 1.8,
+    "base_profit_factor_min": 1.3,
+    "mean_net_R_strictly_greater_than": 0,
+    "fixed_trade_double_cost_profit_factor_min": 1.05,
+    "full_stress_expectancy_strictly_greater_than": 0,
+    "portfolio_max_drawdown_max": 0.05,
+    "independent_executed_virtual_trades_min": 200,
+    "per_mode_executed_trades_min": 50,
+    "per_claimed_symbol_mode_executed_trades_min": 30,
+    "ten_R_definition": null,
+    "ten_R_source_evidence": null,
+    "metric_definition_hash": null,
+    "statistical_acceptance_policy_hash": null,
+    "sample_floor_is_sufficient_proof": false
+  },
+  "new_micro_pilot_proposal": {
+    "status": "PROPOSED_NOT_APPROVED",
+    "capital_cap": null,
+    "currency": null,
+    "absolute_loss_cap": null,
+    "per_trade_expected_risk_fraction_max": 0.0005,
+    "aggregate_expected_risk_fraction_max": 0.001,
+    "max_positions": 1,
+    "per_symbol_notional_fraction_max": 0.05,
+    "max_new_entries_per_day": 1,
+    "daily_loss_fraction_max": 0.0025,
+    "cumulative_loss_fraction_max": 0.01,
+    "initial_observation_days": 14,
+    "min_notional_failure_action": "SKIP_NOT_UPSIZE",
+    "limits_are_guaranteed_max_realized_losses": false
+  },
+  "data_and_observation_proposals": {
+    "status": "FREEZE_BEFORE_MEASUREMENT_NOT_AUTOMATIC_AUTHORIZATION",
+    "engineering_continuous_observation_hours": 72,
+    "initial_quote_qualified_time_fraction_target": 0.99,
+    "availability_denominator": "predeclared_required_observation_seconds_not_received_message_count",
+    "formal_forward_observation_min_calendar_days": 28,
+    "formal_forward_observation_max_calendar_days": 84,
+    "formal_decision_policy": "final_predeclared_checkpoint_unless_valid_sequential_testing_policy_frozen",
+    "freshness_threshold_ms": null,
+    "clock_uncertainty_threshold_ms": null,
+    "signal_expiry_ms": null,
+    "slo_policy_hash": null
+  },
+  "model_diagnostics": {
+    "source": "P1 numerical contract plus official diagnostics; reuse frozen values before creating new ones",
+    "rhat_max": null,
+    "bulk_ess_min": null,
+    "tail_ess_min": null,
+    "divergences_max": null,
+    "critical_quantity_mcse_max": null,
+    "treedepth_warning_requires_documented_assessment": true,
+    "support_mismatch_policy_hash": null,
+    "calibration_policy_hash": null,
+    "posterior_draws_are_market_samples": false
+  },
+  "gates": [
+    {
+      "id": "G0",
+      "description": "现有代码/产物/合同的增量接续核验",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T00",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G1",
+      "description": "开发数据来源、时点、代理政策和标签可用性",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T13",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G2",
+      "description": "实际后验推断与输出适用范围诊断",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T15",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G3",
+      "description": "当前报价时钟与真实自然机会标签闭环",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T12",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G4",
+      "description": "多币组合风险的语义、数值与性能验证",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T21",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G5",
+      "description": "独立虚拟账户的双通道、幂等、恢复与集成",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T22",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G6",
+      "description": "匹配执行目标的冻结时间外模型验证",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T24",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G7",
+      "description": "原收益/样本/压力/稳定性门槛",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T25",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G8",
+      "description": "订单管理、保护与交易适配的测试验收",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T35",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G9",
+      "description": "运维、安全、发布与只读对账准备",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T42",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G10",
+      "description": "用户对准确账户/版本/资金/期限的受保护启用",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T51",
+      "requires_protected_owner_action": true,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    },
+    {
+      "id": "G11",
+      "description": "真实小资金运行记录和首轮复盘",
+      "state": "NOT_EVALUATED",
+      "evidence": [],
+      "producer_task": "T53",
+      "requires_protected_owner_action": false,
+      "requirement": "Verify scope, raw evidence, timestamps, code/data/policy hashes and current validity; a JSON true flag is not approval."
+    }
+  ],
+  "aggregate_rules": {
+    "ready_for_owner_live_approval_requires": [
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9"
+    ],
+    "live_enable_requires": [
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6",
+      "G7",
+      "G8",
+      "G9",
+      "G10"
+    ],
+    "readiness_only_does_not_activate": true,
+    "critical_incidents_must_be_zero": true,
+    "unresolved_essential_definitions_block_live": true,
+    "expired_authorization_stops_new_entries_keeps_protection": true
+  }
+}

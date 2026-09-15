@@ -1,0 +1,33 @@
+{
+  "version": "trend_evidence_controls_v1.0.1",
+  "scope": "DEV_ONLY_EXPOSED_RESEARCH",
+  "source_contract_hash": "8b9fc1f545568951351fd958160b47aa03a58ca15ecbec972cf3437b0ff74852",
+  "cash_control": true,
+  "buy_hold_control": {
+    "allocation": "equal_weight_btc_eth_sol",
+    "entry": "first_evaluation_5m_open",
+    "exit": "last_evaluation_5m_close"
+  },
+  "price_momentum_control": {
+    "feature": "trailing_log_return_6h",
+    "gate": "greater_than_zero",
+    "portfolio_policy": "source_contract"
+  },
+  "random_control": {
+    "frequency_basis": "realized_portfolio_trades_by_candidate_and_fold",
+    "repetitions": 200,
+    "seed": 20260913
+  },
+  "uncertainty": {
+    "block_days": 7,
+    "paths": 2000,
+    "seed": 20260914,
+    "minimum_weeks_for_stability": 12
+  },
+  "claims": {
+    "independent_oos": false,
+    "calibrated_probability": false,
+    "performance_gate_passed": false,
+    "runtime_admission": false
+  }
+}

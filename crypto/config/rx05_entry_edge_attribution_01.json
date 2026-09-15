@@ -1,0 +1,39 @@
+{
+  "version": "ENTRY_EDGE_ATTRIBUTION_01_PREREG_V1",
+  "scope": "DEV_ONLY_EXPOSED_DESCRIPTIVE_REFERENCE_COMPARISON",
+  "purpose": "Assess original A technical entry information against matched earlier market times; not deploy a new signal",
+  "strategy_candidate_selection": false,
+  "execution_enabled": false,
+  "training_enabled": false,
+  "data": "Only authorized existing capsule plus its warmup; no restricted tail",
+  "signal_population": "Frozen50 original A economic signals; report filled27 and unfilled23 separately",
+  "reference_selection": {
+    "version": "PAST7D_SAME_SYMBOL_MODE_OFFSET_V1",
+    "lookback_seconds": 604800,
+    "same_symbol": true,
+    "same_closed_hour_regime": true,
+    "same_5m_offset_within_hour": true,
+    "volatility": "Use closed-hour ATR14/close, reference-to-signal ratio in [0.8,1.25]",
+    "exclude_frozen_signal_times": true,
+    "controls_per_signal": 1,
+    "selection": "Minimum SHA256 of canonical [20260909,economic_signal_id,reference_time] among eligible candidates; no outcome access",
+    "seed": 20260909,
+    "no_match": "Report unmatched; no relaxed thresholds, wider dates or replacement search",
+    "reuse": "Reference reuse allowed only if recorded; shared reference and overlapping label windows are one dependence group"
+  },
+  "outcomes": {
+    "fixed_horizon": "6H gross reference movement and BASE10/5 costed movement reported separately",
+    "policy": "ORIGINAL exit only; anchor relative stop/target distances at reference entry, preserve source mode and timeout; explicit synthetic reference plan, never actual signal",
+    "risk": "Reference plan BASE denominator computed solely from reference-time plan and frozen costs; do not copy future realized risk",
+    "missing": "Null/censored, never zero; do not replace missing controls after reading outcomes"
+  },
+  "required_before_execution": [
+    "Audit availability and closed-hour state mapping for all selected references",
+    "Freeze selected reference IDs and input hashes before resolving outcomes",
+    "Verify synthetic reference geometry and shared ORIGINAL resolver parity",
+    "Keep no-match and dependency records in the final report"
+  ],
+  "budget": "One registered matching rule and one immutable result; no threshold sweep or winner selection",
+  "failure_branch": "Weak or insufficient evidence ends this hypothesis; no extension filter activation",
+  "limitations": "Matched historical times are observational controls, not randomized causal evidence or independent OOS"
+}

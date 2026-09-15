@@ -1,0 +1,33 @@
+{
+  "version": "multiscale_path_forecast_v1.0.0",
+  "scope": "DEV_ONLY_EXPOSED_RESEARCH",
+  "execution_enabled": false,
+  "runtime_enabled": false,
+  "symbols": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+  "start": "2017-07-01",
+  "cutoff_exclusive": "2026-04-13",
+  "sealed_from": "2026-04-13",
+  "reuse": "outputs/start_pullback_research/start_pullback_20260913_02/build_attempt_001",
+  "reuse_start": "2021-01-01",
+  "reuse_end": "2025-01-01",
+  "windows": {"1h": 168, "4h": 180, "1d": 180},
+  "features": ["anchored_log_close", "log_high_low", "log1p_quote_volume", "log1p_trade_count", "taker_buy_fraction"],
+  "horizon": 24,
+  "embargo_hours": 24,
+  "neighbours": 20,
+  "group_days": 7,
+  "dtw_band_fraction": 0.1,
+  "dtw_distance": "sqrt(sum_of_local_squared_distances)/sqrt(sequence_length*features); equal_scale_mean",
+  "dtw_search": "exact_all_training_samples; no_future_outcome_selection",
+  "quantiles": [0.1, 0.5, 0.9],
+  "folds": [
+    {"id": "dev_2022", "train_end": "2021-01-01", "validation_end": "2022-01-01", "report_end": "2023-01-01"},
+    {"id": "dev_2023", "train_end": "2022-01-01", "validation_end": "2023-01-01", "report_end": "2024-01-01"},
+    {"id": "dev_2024", "train_end": "2023-01-01", "validation_end": "2024-01-01", "report_end": "2025-01-01"}
+  ],
+  "appendix": {"start": "2025-01-01", "uses_fold": "dev_2024", "selection_enabled": false},
+  "tcn": {"channels": 32, "kernel": 3, "dilations": [1, 2, 4, 8, 16, 32, 64], "dropout": 0.1, "learning_rate": 0.001, "weight_decay": 0.01, "batch_size": 128, "epochs": 40, "patience": 5, "seeds": [20260913, 20260914, 20260915], "cpu_threads": 2},
+  "statistics": {"block_days": 30, "replicates": 2000, "seed": 20260913, "alpha": 0.05, "minimum_blocks": 12},
+  "gate": {"minimum_skill": 0.05, "positive_years": 2, "pointwise_coverage_lower": 0.75, "pointwise_coverage_upper": 0.85},
+  "claims": {"independent_oos": false, "calibrated_probability": false, "profitability_pass": false}
+}

@@ -1,0 +1,20 @@
+{
+  "version": "RX06_PROSPECTIVE_PAIR_DEV_V1",
+  "scope": "EXPOSED_DEV_CONDITIONAL_RISK",
+  "selection": "Every originally admitted opportunity-policy record from frozen50; reject records remain excluded, no selection by results",
+  "paths_per_record": 5000,
+  "engineering_paths_per_record": 2,
+  "horizon_bars": 576,
+  "block_bars": 12,
+  "history_bars": 2017,
+  "minimum_conditioned_blocks": 30,
+  "seed": 20260912,
+  "pair": "Same frozen state WITH target pending versus WITHOUT only target pending; no cash refund, no new signals",
+  "first_hour": "Seed historical closed5m prefix known at decision; never manufacture a complete confirmation hour",
+  "terminal": "Costed mark of remaining positions, not successful realized exit",
+  "risk_metric": "Booked estimated entry risk/current costed NAV, not realized loss or remaining stop risk",
+  "sample_dependence": "Repeated policies/opportunities and overlapping histories are dependent; no pooled calibrated probability",
+  "runtime_enabled": false,
+  "winner_selection": false,
+  "performance_admission": false
+}

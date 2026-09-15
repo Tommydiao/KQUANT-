@@ -28,6 +28,15 @@ class StrategyManifest:
 
 STRATEGY_MANIFESTS: Final[tuple[StrategyManifest, ...]] = (
     StrategyManifest(
+        strategy_version="crypto_spot_dual_regime_v1.0.0",
+        market_type="spot",
+        direction="long",
+        signal_interval="1h_setup_5m_trigger",
+        status="research_challenger",
+        executable=False,
+        notes=("Independent candidate simulation; never grants execution admission.",),
+    ),
+    StrategyManifest(
         strategy_version="crypto_spot_momentum_v2.1.0",
         market_type="spot",
         direction="long",

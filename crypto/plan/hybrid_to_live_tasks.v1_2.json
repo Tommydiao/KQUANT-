@@ -1,0 +1,1614 @@
+{
+  "schema_version": "kquant_delivery_taskboard_v1.2",
+  "artifact_kind": "planning_template_not_executed_workflow",
+  "plan_path": "crypto/docs/HYBRID_TO_LIVE_MASTER_PLAN_V1_2.md",
+  "source_plan_sha256": "c072b3ba9e03ff9d63d84d2299253e0828bfe222261e4804b02cf8913d666ffa",
+  "initial_state": "NOT_STARTED_BY_THIS_PACKAGE",
+  "reported_checkpoint": {
+    "evidence_type": "user_screenshot_not_independently_verified",
+    "m2": "PARTIAL",
+    "m3": "TRAINED_DEV_ONLY_ABSTAIN",
+    "mature_A_labels": 27,
+    "posterior_chains": 4,
+    "posterior_draws_per_chain": 1500,
+    "max_rhat": 1.00292,
+    "min_bulk_ess": 1271,
+    "min_tail_ess": 1052,
+    "divergences": 0,
+    "max_treedepth_hit_fraction": 0.0568,
+    "accepted_quote_messages_last_segment": 322,
+    "rejected_quote_messages_last_segment": 533,
+    "new_opportunities": 0,
+    "new_labels": 0,
+    "reported_crypto_tests_passed": 618
+  },
+  "task_statuses": [
+    "TODO",
+    "READY",
+    "RUNNING",
+    "VERIFYING",
+    "VERIFIED",
+    "RETRYABLE_ERROR",
+    "BLOCKED_CONTRACT",
+    "WAIT_DATA",
+    "WAIT_EXTERNAL",
+    "WAIT_OWNER",
+    "NO_GO",
+    "SUPERSEDED"
+  ],
+  "scheduling": {
+    "policy": "lowest_priority_number_among_authorized_ready_tasks",
+    "do_not_stop_at_task_boundary": true,
+    "max_parallel_roles": 3,
+    "single_integration_owner": true,
+    "targeted_repair_limit": 2,
+    "root_cause_repair_limit": 1,
+    "blocker_scope": "only_affected_dependencies",
+    "waiting_tasks_are_not_verified": true,
+    "gate_authorization_is_not_writable_task_status": true,
+    "no_live_orders_from_coding_agent": true
+  },
+  "task_count": 34,
+  "tasks": [
+    {
+      "id": "T00",
+      "title": "增量接续当前M2/M3证据，不重做M0",
+      "phase": "W0",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 0,
+      "depends_on": [],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§1",
+      "suggested_files_or_reuse_targets": [
+        "现有M2/M3报告",
+        "既有artifact与依赖锁",
+        "Git工作区与运行进程"
+      ],
+      "deliverables": [
+        "准确的baseline/artifact/HEAD/dirty/process映射",
+        "已有任务的证据索引"
+      ],
+      "acceptance": [
+        "27条标签、4链拟合与实际文件一致，或逐项标不确定",
+        "确认原服务与writer所有权",
+        "已有成果可复用，不虚构已执行测试"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G0"
+      ]
+    },
+    {
+      "id": "T01",
+      "title": "实现或复用任务状态、gate验证、自动选择与恢复",
+      "phase": "W0",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 1,
+      "depends_on": [
+        "T00"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§3/4/17",
+      "suggested_files_or_reuse_targets": [
+        "crypto/plan/hybrid_to_live_tasks.v1_2.json",
+        "crypto/work/hybrid_delivery/state.json",
+        "现有CLI/任务运行器"
+      ],
+      "deliverables": [
+        "持久任务状态与追加事件",
+        "status/next/run-ready/resume等实际入口",
+        "单实例锁与恢复证据"
+      ],
+      "acceptance": [
+        "完成任务后自动选择下一READY任务",
+        "WAIT_DATA/WAIT_OWNER不冻结无关分支",
+        "未通过gate或无权限不能执行受限任务",
+        "状态JSON不等同真实资金批准"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T02",
+      "title": "集中合同差异与批准表，冻结开发范围",
+      "phase": "W0",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 2,
+      "depends_on": [
+        "T00"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§0/4/9/12",
+      "suggested_files_or_reuse_targets": [
+        "原A/B/成本/10R规格",
+        "既有hybrid policy",
+        "审批模板"
+      ],
+      "deliverables": [
+        "合同来源映射和未决项影响范围",
+        "A1一次性批准请求",
+        "开发配置/实验数量/资源预算"
+      ],
+      "acceptance": [
+        "原策略/成本/风险未被无痕改变",
+        "10R未决只阻塞相关收益PASS",
+        "DEV_ONLY不被200笔或testnet凭据误阻塞"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T03",
+      "title": "核验已有定时任务并交付可恢复运行机制",
+      "phase": "W0",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 10,
+      "depends_on": [
+        "T01",
+        "T02"
+      ],
+      "requires_gates": [],
+      "requires_approval": "A1_SCHEDULER_IF_INSTALL_REQUIRED",
+      "scope": "approved_local_runtime",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§3.6/17",
+      "suggested_files_or_reuse_targets": [
+        "已有Codex定时任务",
+        "受限开发runner/调度配置",
+        "运行手册"
+      ],
+      "deliverables": [
+        "实际运行机制、锁、预算与退出证据",
+        "没有调度权限时的已验证单次恢复入口"
+      ],
+      "acceptance": [
+        "不重复创建两小时任务",
+        "不启用绕过沙箱选项",
+        "开发runner无生产交易凭据",
+        "不把会话结束称作后台仍运行"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Scheduler install unavailable: deliver one-shot/resume path, mark schedule subtask WAIT_OWNER, and continue development.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T10",
+      "title": "核验时钟区段与ticker报价语义",
+      "phase": "W1",
+      "role": "data",
+      "status": "TODO",
+      "priority": 3,
+      "depends_on": [
+        "T00",
+        "T02"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§5.1",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_clock.py",
+        "hybrid_observation.py",
+        "run_hybrid_clock_observer.py"
+      ],
+      "deliverables": [
+        "报价字段/单位/时钟误差合同",
+        "缺失/冲突/乱序/跳变测试",
+        "源粒度和可执行性限制"
+      ],
+      "acceptance": [
+        "不伪造source event time或改写历史",
+        "ticker的E不冒充每个价位变化时间",
+        "已有320秒根因与处理可追踪",
+        "缺数据保护不受新仓同步阻塞"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T11",
+      "title": "增量特征、标签、时间和恢复闭环",
+      "phase": "W1",
+      "role": "data",
+      "status": "TODO",
+      "priority": 6,
+      "depends_on": [
+        "T10",
+        "T13"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§5.2–5.4",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_observation.py",
+        "hybrid_features.py",
+        "hybrid_labels.py",
+        "hybrid_dataset.py"
+      ],
+      "deliverables": [
+        "持续成熟的标签流水线",
+        "机会/成交/成熟数量漏斗",
+        "独立存储与恢复游标"
+      ],
+      "acceptance": [
+        "fill_status和label_status分离",
+        "earliest_fill_at之前报价不能成交",
+        "真实与反事实/代理目标分离",
+        "重复恢复不新增同一机会或标签"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T12",
+      "title": "连续观察与首条自然报价标签验收",
+      "phase": "W1",
+      "role": "data",
+      "status": "TODO",
+      "priority": 12,
+      "depends_on": [
+        "T11"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "public_observation",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§5.4–5.5",
+      "suggested_files_or_reuse_targets": [
+        "现有公共采集进程",
+        "hybrid独立观察服务",
+        "质量报告"
+      ],
+      "deliverables": [
+        "24/72小时观察报告",
+        "至少一条自然机会完整生命周期或WAIT_DATA",
+        "分母明确的连续性/拒绝原因"
+      ],
+      "acceptance": [
+        "不强制生成信号",
+        "数据合格率以预定观察时间为分母",
+        "断线/日界证据完整",
+        "只有自然合格完整标签才标该项通过"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "run_existing_authorized_observer",
+        "inspect_logs",
+        "save_evidence",
+        "run_isolated_tests"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G3"
+      ]
+    },
+    {
+      "id": "T13",
+      "title": "冻结已存在开发数据和训练目标",
+      "phase": "W1",
+      "role": "data",
+      "status": "TODO",
+      "priority": 3,
+      "depends_on": [
+        "T00",
+        "T02"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§5.2/6.1/6.4",
+      "suggested_files_or_reuse_targets": [
+        "27条成熟A标签",
+        "hybrid_dataset.py",
+        "data manifest"
+      ],
+      "deliverables": [
+        "可复现DEV数据快照及hash",
+        "执行/数量/成本/依赖组定义",
+        "明确EXPOSED_RESEARCH与代理标记"
+      ],
+      "acceptance": [
+        "不把A27和B185拼成同一独立数据集",
+        "23未成交不填0R",
+        "already_exposed代码原因有准确解释",
+        "数据无效时给出具体字段和记录"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G1"
+      ]
+    },
+    {
+      "id": "T14",
+      "title": "诊断现有后验，处理treedepth与支持域",
+      "phase": "W1",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 4,
+      "depends_on": [
+        "T13"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§6.2–6.3",
+      "suggested_files_or_reuse_targets": [
+        "现有训练artifact",
+        "hybrid_bayesian.py",
+        "hybrid_training.py"
+      ],
+      "deliverables": [
+        "先验/后验/预测检查与关键量数值误差",
+        "诊断修复记录与适用组范围"
+      ],
+      "acceptance": [
+        "不只为消警告提高treedepth",
+        "Rhat/ESS不被解释成预测准确度",
+        "支持域/尾部/均值权限分别表达",
+        "不读取最终评估结果调参"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T15",
+      "title": "完成可复现DEV_ONLY模型与基准",
+      "phase": "W1",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 5,
+      "depends_on": [
+        "T14"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§6",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_training.py",
+        "hybrid_bayesian.py",
+        "model registry"
+      ],
+      "deliverables": [
+        "实际fit命令、artifact和诊断",
+        "简单基准与主模型版本",
+        "拒绝自动加载生产测试"
+      ],
+      "acceptance": [
+        "G1通过即可开发拟合不等200笔",
+        "准确的标签/模型可用时间",
+        "p_win/p_edge/q05_mu不混用",
+        "无支持组输出ABSTAIN"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G2"
+      ]
+    },
+    {
+      "id": "T16",
+      "title": "实现冻结模型的旁路预测与目标匹配",
+      "phase": "W1",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 8,
+      "depends_on": [
+        "T15",
+        "T11"
+      ],
+      "requires_gates": [
+        "G2"
+      ],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§6.4/8.3",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_runtime.py",
+        "hybrid_contracts.py",
+        "posterior_predictions存储"
+      ],
+      "deliverables": [
+        "不影响基线的预测链",
+        "模型目标与执行政策匹配检查"
+      ],
+      "acceptance": [
+        "代理目标模型不伪装QUOTE_AWARE",
+        "模型先于预测时点登记",
+        "未合格模型输出仅研究状态",
+        "SHADOW不改变基线成交、延迟、资金"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T17",
+      "title": "形成真实报价目标的开发拟合与适配证据",
+      "phase": "W1",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 14,
+      "depends_on": [
+        "T11",
+        "T15"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§6.4–6.6",
+      "suggested_files_or_reuse_targets": [
+        "quote目标数据快照",
+        "hybrid_training.py",
+        "目标迁移验证报告"
+      ],
+      "deliverables": [
+        "匹配目标的新模型或明确数据/覆盖不足",
+        "执行版本对照及诊断"
+      ],
+      "acceptance": [
+        "只用合法成熟标签",
+        "不把生产目标改变称为同一模型更新",
+        "开发拟合可进行但不足不获准预测",
+        "旧模型/旧数据保留"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T18",
+      "title": "预登记实验窗口与模型/统计验收规则",
+      "phase": "W1",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 7,
+      "depends_on": [
+        "T02",
+        "T13"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§9",
+      "suggested_files_or_reuse_targets": [
+        "HYBRID_EXPERIMENT_PROTOCOL",
+        "HYBRID_METRIC_SPEC",
+        "gate policy"
+      ],
+      "deliverables": [
+        "开发/校准/评估窗口与访问控制",
+        "主模型/对照/预算/停止规则",
+        "必须的指标定义与阻塞映射"
+      ],
+      "acceptance": [
+        "评估前定义阈值，不能看结果后定",
+        "同日跨币和重叠标签正确隔离",
+        "未定义10R不伪造",
+        "多次正式检验有预算或只最终裁决"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T20",
+      "title": "同步多币路径和当前风险快照",
+      "phase": "W2",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 7,
+      "depends_on": [
+        "T02",
+        "T13"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§7",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_monte_carlo.py",
+        "hybrid_risk_state.py"
+      ],
+      "deliverables": [
+        "保留相关性的路径模拟",
+        "日初/高水位/预留/保护快照"
+      ],
+      "acceptance": [
+        "不独立洗牌三币",
+        "已有与pending风险都进入",
+        "未来路径不递归产生新新闻/入场",
+        "proxy路径清楚标注"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T21",
+      "title": "风险数值、压力、共同随机路径和性能",
+      "phase": "W2",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 9,
+      "depends_on": [
+        "T20"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§7",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_monte_carlo.py",
+        "MC数值合同与测试"
+      ],
+      "deliverables": [
+        "风险事件概率上界和有限比较预算",
+        "压力与概率分离报告",
+        "不阻塞保护的性能证据"
+      ],
+      "acceptance": [
+        "k=0/k=N/临界阈值用例",
+        "同种子可复现",
+        "不得重抽直到通过",
+        "m=0也不忽略原组合越限"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G4"
+      ]
+    },
+    {
+      "id": "T22",
+      "title": "双通道候选集成与独立虚拟账本",
+      "phase": "W2",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 13,
+      "depends_on": [
+        "T01",
+        "T11",
+        "T16",
+        "T21"
+      ],
+      "requires_gates": [
+        "G2",
+        "G4"
+      ],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§8",
+      "suggested_files_or_reuse_targets": [
+        "candidate_simulation.py最小扩展",
+        "hybrid_runtime.py",
+        "hybrid_decision.py",
+        "hybrid_store.py"
+      ],
+      "deliverables": [
+        "关闭/SHADOW兼容轨迹",
+        "虚拟候选集成/事务/恢复用例",
+        "最终portfolio_version复核"
+      ],
+      "acceptance": [
+        "保护不等待模型",
+        "三类身份/现金/风险原子提交",
+        "失效结果不新增意图",
+        "DEV_ONLY默认不筛选；合格研究臂独立启用"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G5"
+      ]
+    },
+    {
+      "id": "T23",
+      "title": "冻结无LLM候选实验与只读展示",
+      "phase": "W2",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 16,
+      "depends_on": [
+        "T22",
+        "T18",
+        "T17"
+      ],
+      "requires_gates": [
+        "G2",
+        "G3",
+        "G4",
+        "G5"
+      ],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§8/9/16",
+      "suggested_files_or_reuse_targets": [
+        "候选CLI/API",
+        "CandidatePanel",
+        "实验运行配置"
+      ],
+      "deliverables": [
+        "T/T_latency/T+B/T+M/T+B+M/暴露/Cash对照",
+        "只读决策链与五类状态",
+        "冻结的预测和实际虚拟交易记录"
+      ],
+      "acceptance": [
+        "实验臂独立资金与冷却",
+        "目标和执行政策一致",
+        "模型/数据资格明确",
+        "没有界面绿色等同live权限"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T24",
+      "title": "持续前向验证、样本ETA与模型验证",
+      "phase": "W2",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 30,
+      "depends_on": [
+        "T23"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "public_observation",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§9",
+      "suggested_files_or_reuse_targets": [
+        "前向观察服务",
+        "验证报告",
+        "冻结评估清单"
+      ],
+      "deliverables": [
+        "真实新样本与模型评分",
+        "预登记检查节点及ETA",
+        "通过或不足/失败结论"
+      ],
+      "acceptance": [
+        "不偷看改模后再称未见OOS",
+        "独立交易数和标签数分开",
+        "不因无交易调阈值",
+        "G6由实际证据而非天数通过"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G6"
+      ]
+    },
+    {
+      "id": "T25",
+      "title": "正式收益/压力/样本门槛裁决",
+      "phase": "W2",
+      "role": "quant",
+      "status": "TODO",
+      "priority": 31,
+      "depends_on": [
+        "T24"
+      ],
+      "requires_gates": [
+        "G6"
+      ],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§9.3–9.6",
+      "suggested_files_or_reuse_targets": [
+        "performance_report",
+        "metric contract",
+        "G7证据"
+      ],
+      "deliverables": [
+        "原门槛逐项结果",
+        "分组/依赖/成本/敏感性报告",
+        "PASS / WAIT_DATA / NO_GO"
+      ],
+      "acceptance": [
+        "总200、模式50、适用组30原必要下限",
+        "10R准确来源已解决方可PASS",
+        "零分母不填999",
+        "不选择最高收益臂替换主实验"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G7"
+      ]
+    },
+    {
+      "id": "T30",
+      "title": "Spot适配能力矩阵与MockBroker",
+      "phase": "W3",
+      "role": "execution",
+      "status": "TODO",
+      "priority": 8,
+      "depends_on": [
+        "T00",
+        "T02"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§10.1–10.2",
+      "suggested_files_or_reuse_targets": [
+        "已有broker接口",
+        "新execution命名空间",
+        "official API capability记录"
+      ],
+      "deliverables": [
+        "实际venue/规则/保护能力矩阵",
+        "MockBroker与fixture",
+        "生产网络默认deny"
+      ],
+      "acceptance": [
+        "公共Binance数据不等同真实账户确认",
+        "不混用服务实体",
+        "开发模型不持有交易凭据",
+        "未批准testnet仍可完成Mock"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T31",
+      "title": "订单意图/outbox/未知状态与幂等",
+      "phase": "W3",
+      "role": "execution",
+      "status": "TODO",
+      "priority": 10,
+      "depends_on": [
+        "T30",
+        "T01"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§10.3",
+      "suggested_files_or_reuse_targets": [
+        "OMS state machine",
+        "transactional outbox",
+        "broker adapter"
+      ],
+      "deliverables": [
+        "完整订单状态机",
+        "稳定client ID/重启核对",
+        "UNKNOWN专项用例"
+      ],
+      "acceptance": [
+        "超时/5xx不盲目再下单",
+        "本地事务不宣称外部exactly-once",
+        "原意图不重复预留",
+        "接收ACK与fill分开"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T32",
+      "title": "成交回报、部分成交、撤单竞态和对账",
+      "phase": "W3",
+      "role": "execution",
+      "status": "TODO",
+      "priority": 11,
+      "depends_on": [
+        "T31"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§10.4/11",
+      "suggested_files_or_reuse_targets": [
+        "execution stream adapter",
+        "fills ledger",
+        "account reconciler"
+      ],
+      "deliverables": [
+        "去重/乱序/部分成交处理",
+        "费用币种、可售数量、dust账务",
+        "账户重启核对"
+      ],
+      "acceptance": [
+        "实际fill为事实",
+        "撤单后仍核对成交",
+        "手工变化停止新仓并标差异",
+        "测试网reset不作为市场损失"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T33",
+      "title": "保护单与策略退出协调",
+      "phase": "W3",
+      "role": "execution",
+      "status": "TODO",
+      "priority": 12,
+      "depends_on": [
+        "T32"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§10.6/14",
+      "suggested_files_or_reuse_targets": [
+        "protective order manager",
+        "退出政策",
+        "模拟故障测试"
+      ],
+      "deliverables": [
+        "部分成交保护策略",
+        "保护数量锁定与取消替换竞态用例",
+        "保护失败应急接口"
+      ],
+      "acceptance": [
+        "未保护敞口不能继续扩仓",
+        "保护触发不宣称保证成交",
+        "不能超卖现货",
+        "无应急政策不获准live"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T34",
+      "title": "精度、过滤、权限和配置隔离",
+      "phase": "W3",
+      "role": "execution",
+      "status": "TODO",
+      "priority": 12,
+      "depends_on": [
+        "T31",
+        "T02"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§10.5/12",
+      "suggested_files_or_reuse_targets": [
+        "Decimal/交易过滤",
+        "secret reference配置",
+        "network allowlist"
+      ],
+      "deliverables": [
+        "动态规则缓存/过期校验",
+        "mock/testnet/live显式隔离",
+        "金额不足SKIP测试"
+      ],
+      "acceptance": [
+        "不放宽最小量导致越风险",
+        "无提现/借贷等能力",
+        "禁止agent读取生产secret",
+        "host与key环境不匹配拒绝"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T35",
+      "title": "测试网完整订单生命周期验收",
+      "phase": "W3",
+      "role": "execution",
+      "status": "TODO",
+      "priority": 18,
+      "depends_on": [
+        "T32",
+        "T33",
+        "T34"
+      ],
+      "requires_gates": [],
+      "requires_approval": "A1_TESTNET",
+      "scope": "testnet_only",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§11.1–11.2",
+      "suggested_files_or_reuse_targets": [
+        "Testnet adapter",
+        "测试账户回报",
+        "testnet审计报告"
+      ],
+      "deliverables": [
+        "下单/撤单/成交/保护/恢复实际证据",
+        "测试网epoch与余额初始化",
+        "Mock注入覆盖自然难测故障"
+      ],
+      "acceptance": [
+        "真实测试网连接与证据",
+        "order/test不等同撮合测试",
+        "测试网PNL不当Alpha",
+        "不访问生产交易endpoint"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "use_owner_provisioned_testnet_credentials",
+        "testnet_order_lifecycle",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Missing approved testnet credentials: finish mock coverage; mark testnet branch WAIT_OWNER and continue quant/ops.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G8"
+      ]
+    },
+    {
+      "id": "T40",
+      "title": "监控、告警、观察服务与只读控制台",
+      "phase": "W4",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 17,
+      "depends_on": [
+        "T01",
+        "T11",
+        "T31"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§11.4/16",
+      "suggested_files_or_reuse_targets": [
+        "health/status接口",
+        "CandidatePanel",
+        "运行监控"
+      ],
+      "deliverables": [
+        "数据/模型/订单/保护/进程健康",
+        "有界观察和报告",
+        "实际批准通道通知演练"
+      ],
+      "acceptance": [
+        "无重复两小时任务",
+        "数据等待不浪费LLM",
+        "无秘密进入日志",
+        "没有通知权限仅该项等待"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T41",
+      "title": "故障/备份/恢复/发布演练",
+      "phase": "W4",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 19,
+      "depends_on": [
+        "T22",
+        "T32",
+        "T33",
+        "T34"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§11/14",
+      "suggested_files_or_reuse_targets": [
+        "backup/restore工具",
+        "release目录",
+        "fault fixtures"
+      ],
+      "deliverables": [
+        "真实恢复文件演练",
+        "所有关键故障记录",
+        "回退不抹掉外部成交测试"
+      ],
+      "acceptance": [
+        "DB失败不重复交易",
+        "恢复先对账",
+        "持仓代码不可热替换",
+        "停止新仓不撤掉保护"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T42",
+      "title": "生产只读核对与安全运行验收",
+      "phase": "W4",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 22,
+      "depends_on": [
+        "T35",
+        "T40",
+        "T41"
+      ],
+      "requires_gates": [],
+      "requires_approval": "A1_PRODUCTION_READONLY_AND_OPS",
+      "scope": "production_readonly",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§11/12",
+      "suggested_files_or_reuse_targets": [
+        "只读账户适配",
+        "发布配置",
+        "安全/权限报告"
+      ],
+      "deliverables": [
+        "账户/费用/过滤/权限核对",
+        "72小时集成运行与已冻结SLO",
+        "无critical blocker的安全验收"
+      ],
+      "acceptance": [
+        "只读批准存在，不能实际下单",
+        "无未知账实差异",
+        "人工保护与自动保护所有权明确",
+        "合规账户资格由用户确认"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "owner_approved_account_readonly",
+        "run_isolated_tests",
+        "inspect_health",
+        "save_redacted_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G9"
+      ]
+    },
+    {
+      "id": "T43",
+      "title": "汇总实盘准备门槛并产出正式release",
+      "phase": "W4",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 32,
+      "depends_on": [
+        "T25",
+        "T42"
+      ],
+      "requires_gates": [
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§4/11/12",
+      "suggested_files_or_reuse_targets": [
+        "readiness validator",
+        "immutable release manifest",
+        "实盘审批准备报告"
+      ],
+      "deliverables": [
+        "准确release/policy/model/account绑定",
+        "所有门槛逐项验证",
+        "READY或精确阻塞结论"
+      ],
+      "acceptance": [
+        "G7失败不能READY",
+        "未决10R阻止完整PASS",
+        "没有true开关绕过证据",
+        "仍无真实交易权限"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T50",
+      "title": "生成一次性用户小资金审批包",
+      "phase": "W5",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 33,
+      "depends_on": [
+        "T43"
+      ],
+      "requires_gates": [],
+      "requires_approval": null,
+      "scope": "development",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§12–13",
+      "suggested_files_or_reuse_targets": [
+        "protected approval UI设计",
+        "审批表",
+        "实盘运行手册"
+      ],
+      "deliverables": [
+        "A2账户/版本/本金/绝对损失/期限/保护政策表",
+        "用户亲自启用步骤",
+        "撤销/停止步骤"
+      ],
+      "acceptance": [
+        "金额未知保持空白",
+        "用户明白不是收益保证",
+        "批准不从开发state读取",
+        "编码代理无生产交易秘密"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    },
+    {
+      "id": "T51",
+      "title": "用户亲自确认与启用小资金运行",
+      "phase": "W5",
+      "role": "owner",
+      "status": "TODO",
+      "priority": 40,
+      "depends_on": [
+        "T50"
+      ],
+      "requires_gates": [
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ],
+      "requires_approval": "A2_LIVE_ACTIVATION",
+      "scope": "owner_only",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§12/13",
+      "suggested_files_or_reuse_targets": [
+        "用户控制的应用或交易所界面"
+      ],
+      "deliverables": [
+        "受保护用户授权凭据",
+        "应用实际启用或拒绝事件"
+      ],
+      "acceptance": [
+        "明确账户/金额/风险/版本/有效期",
+        "生产gate实时通过",
+        "Codex不代下真实订单",
+        "无自然机会就不交易"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "owner_manual_activation_outside_coding_agent"
+      ],
+      "on_insufficient_data": "WAIT_OWNER; coding agent only provides instructions and checks redacted proof, never sends live orders.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": false,
+      "produces_gates": [
+        "G10"
+      ]
+    },
+    {
+      "id": "T52",
+      "title": "用户应用实盘记录核对与日常风险报告",
+      "phase": "W5",
+      "role": "runtime_owner",
+      "status": "TODO",
+      "priority": 41,
+      "depends_on": [
+        "T51"
+      ],
+      "requires_gates": [
+        "G10"
+      ],
+      "requires_approval": null,
+      "scope": "owner_runtime_only",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§13–14",
+      "suggested_files_or_reuse_targets": [
+        "用户已授权运行应用",
+        "只读成交/账单",
+        "live报告"
+      ],
+      "deliverables": [
+        "真实订单/fill/费用/保护/权益证据",
+        "每日实盘摘要与风险事件"
+      ],
+      "acceptance": [
+        "只读分析不替代应用交易",
+        "审批过期停新仓保留保护",
+        "实际与模拟完全分开",
+        "无机会不得强制下单"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "owner_application_runs_under_approval",
+        "analyze_owner_authorized_readonly_evidence",
+        "save_redacted_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": false,
+      "produces_gates": []
+    },
+    {
+      "id": "T53",
+      "title": "首轮实盘复盘和交付，不自动扩资",
+      "phase": "W5",
+      "role": "integration",
+      "status": "TODO",
+      "priority": 42,
+      "depends_on": [
+        "T52"
+      ],
+      "requires_gates": [
+        "G10"
+      ],
+      "requires_approval": null,
+      "scope": "readonly_review",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§13.4–13.5/17",
+      "suggested_files_or_reuse_targets": [
+        "14日或批准期限的真实运行证据",
+        "复盘报告"
+      ],
+      "deliverables": [
+        "完整实际交易生命周期复盘或NO_ELIGIBLE_TRADE",
+        "成本/风险/故障/用户偏差报告",
+        "下一版本仍受gate约束"
+      ],
+      "acceptance": [
+        "没有真实fill不声称已实盘闭环",
+        "少量盈利不声称长期优势",
+        "亏损不删证据",
+        "不自动增加资金或续期"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "analyze_owner_authorized_readonly_evidence",
+        "save_redacted_evidence"
+      ],
+      "on_insufficient_data": "If no eligible trade by approval expiry, report LIVE_ARMED_NO_ELIGIBLE_TRADE and stop new entries; no forced order.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": [
+        "G11"
+      ]
+    },
+    {
+      "id": "T60",
+      "title": "可选LLM事件旁路与真实增益研究",
+      "phase": "W6",
+      "role": "research",
+      "status": "TODO",
+      "priority": 90,
+      "depends_on": [
+        "T22",
+        "T18"
+      ],
+      "requires_gates": [],
+      "requires_approval": "OPTIONAL_LLM_BUDGET",
+      "scope": "optional_research",
+      "verify_existing_before_implementation": true,
+      "reference_section": "§2.2/16",
+      "suggested_files_or_reuse_targets": [
+        "hybrid_llm_events.py",
+        "hybrid_llm_client.py",
+        "事件标注/缓存"
+      ],
+      "deliverables": [
+        "证据抽取/跨来源去重/缓存",
+        "安全/费用/准确性报告",
+        "独立T+B+M+L实验"
+      ],
+      "acceptance": [
+        "不阻塞无LLM发布路径",
+        "无购买或调用费用默认授权",
+        "不能改数值决策",
+        "历史知识污染不能当OOS"
+      ],
+      "evidence": [],
+      "allowed_actions": [
+        "inspect_authorized_local_files",
+        "implement_in_owned_worktree",
+        "run_isolated_tests",
+        "save_evidence"
+      ],
+      "on_insufficient_data": "Mark only the affected result WAIT_DATA; continue other eligible tasks.",
+      "on_failure": "Retain evidence; at most 2 targeted repairs and 1 bounded root-cause repair. Never relax a gate or fabricate evidence.",
+      "next_action_after_verified": "Recompute ready tasks and continue automatically; do not ask for the next plan.",
+      "auto_start_after_dependencies": true,
+      "produces_gates": []
+    }
+  ]
+}

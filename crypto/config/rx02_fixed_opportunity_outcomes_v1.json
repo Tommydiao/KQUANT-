@@ -1,0 +1,21 @@
+{
+  "version": "rx02_fixed_opportunity_outcomes_v1",
+  "scope": "DEV_ONLY_EXPOSED_DESCRIPTIVE_ATTRIBUTION",
+  "population": "All 50 frozen original_A_portfolio_path_candidates; no new signal search",
+  "candidates": ["ORIGINAL", "T1", "T2"],
+  "entry": "LEGACY_BAR_PROXY: next contiguous 5m bar open at original signal close; no strict quote claim",
+  "quantity": "One reference unit for all policy pairs; not an account-sized position or portfolio return",
+  "risk": "Frozen original signal unit_net_risk; do not recompute from hindsight",
+  "fee_bps_per_side": 10,
+  "slippage_bps_per_side": 5,
+  "exit": "Existing exit_on_bar/structural_exit primitives; ORIGINAL mode invalidation and timeout; RANGE unchanged",
+  "availability": "Historical assumed-close only; exit bar close is conservative label availability",
+  "missing_path": "Censored with null result; no zero-return imputation",
+  "terminal": "Explicit terminal liquidation, not ordinary strategy success",
+  "capital_competition": "Not simulated in paired unit outcomes; use preserved full portfolio runs separately",
+  "counterfactual": "Every row is hypothetical unit-policy outcome; link but never replace original 27 filled or 23 unfilled labels",
+  "validation": "Require all 27 ORIGINAL realized outcomes to match existing netR/time/reason before interpreting unfilled outcomes",
+  "selection_enabled": false,
+  "training_enabled": false,
+  "execution_enabled": false
+}

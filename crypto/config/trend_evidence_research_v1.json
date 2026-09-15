@@ -1,0 +1,156 @@
+{
+  "version": "trend_evidence_research_v1.0.0",
+  "scope": "DEV_ONLY",
+  "exposure": "EXPOSED_RESEARCH",
+  "execution_enabled": false,
+  "admission_enabled": false,
+  "universe": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+  "dataset": {
+    "spot_capsule": "outputs/hybrid_delivery/multifactor_dataset_capsule_20260909_01",
+    "raw_spot_root": "data/market/venue=binance/market_type=spot",
+    "availability_contract": "assumed_close_historical_replay",
+    "signal_interval_hours": 1,
+    "feature_warmup_hours": 174
+  },
+  "candidates": [
+    {
+      "id": "H1_FLOW_24H",
+      "hypothesis": "aggressive_buying_persistence",
+      "horizon_hours": 24,
+      "features": [
+        "aggressor_imbalance_6h",
+        "aggressor_imbalance_change_6h",
+        "quote_volume_log_acceleration_6h",
+        "trade_count_log_acceleration_6h",
+        "log_return_6h",
+        "return_overextension_24h"
+      ],
+      "ablation_features": ["log_return_6h", "return_overextension_24h"]
+    },
+    {
+      "id": "H1_FLOW_72H",
+      "hypothesis": "aggressive_buying_persistence",
+      "horizon_hours": 72,
+      "features": [
+        "aggressor_imbalance_6h",
+        "aggressor_imbalance_change_6h",
+        "quote_volume_log_acceleration_6h",
+        "trade_count_log_acceleration_6h",
+        "log_return_6h",
+        "return_overextension_24h"
+      ],
+      "ablation_features": ["log_return_6h", "return_overextension_24h"]
+    },
+    {
+      "id": "H2_RESIDUAL_24H",
+      "hypothesis": "market_residual_leadership",
+      "horizon_hours": 24,
+      "features": [
+        "residual_return_6h",
+        "residual_acceleration_6h",
+        "residual_strength_z_6h",
+        "quote_volume_log_acceleration_6h",
+        "market_log_return_6h",
+        "realized_volatility_24h"
+      ],
+      "ablation_features": [
+        "residual_return_6h",
+        "residual_acceleration_6h",
+        "residual_strength_z_6h",
+        "market_log_return_6h",
+        "realized_volatility_24h"
+      ]
+    },
+    {
+      "id": "H2_RESIDUAL_72H",
+      "hypothesis": "market_residual_leadership",
+      "horizon_hours": 72,
+      "features": [
+        "residual_return_6h",
+        "residual_acceleration_6h",
+        "residual_strength_z_6h",
+        "quote_volume_log_acceleration_6h",
+        "market_log_return_6h",
+        "realized_volatility_24h"
+      ],
+      "ablation_features": [
+        "residual_return_6h",
+        "residual_acceleration_6h",
+        "residual_strength_z_6h",
+        "market_log_return_6h",
+        "realized_volatility_24h"
+      ]
+    }
+  ],
+  "trade_plan": {
+    "volatility_lookback_hours": 168,
+    "stop_sigma_24h": 1.0,
+    "target_sigma_24h": 2.0,
+    "entry": "next_exact_closed_5m_bar_open",
+    "same_bar_collision": "stop_first",
+    "gap_policy": "actual_open",
+    "entry_outside_plan": "not_filled",
+    "terminal_exit": "last_5m_close"
+  },
+  "costs": {
+    "spot": {"fee_bps_per_side": 10.0, "slippage_bps_per_side": 5.0},
+    "stress_multiplier": 2.0
+  },
+  "portfolio": {
+    "research_capital": 10000.0,
+    "risk_per_trade": 0.0025,
+    "max_open_risk": 0.005,
+    "max_positions": 2,
+    "max_symbol_notional": 0.25,
+    "daily_loss_limit": 0.01,
+    "loss_streak": 3,
+    "pause_hours": 2
+  },
+  "walk_forward": {
+    "folds": 3,
+    "first_evaluation_fraction": 0.4,
+    "evaluation_fraction": 0.2,
+    "purge_hours": 72,
+    "embargo_hours": 72
+  },
+  "ridge": {"l2_penalty": 10.0, "minimum_predicted_net_r": 0.0},
+  "bayesian": {
+    "likelihood": "hierarchical_student_t",
+    "alpha_sd": 0.5,
+    "beta_sd": 0.25,
+    "symbol_tau_sd": 0.5,
+    "sigma_sd": 1.0,
+    "nu_minus_two_rate": 0.1,
+    "chains": 4,
+    "tune": 1000,
+    "draws": 1000,
+    "target_accept": 0.97,
+    "seed": 20260913,
+    "action_gate": "posterior_q05_conditional_mean_gt_zero"
+  },
+  "monte_carlo": {
+    "role": "risk_veto_only",
+    "paths": 5000,
+    "block_hours": 72,
+    "seed": 20260914,
+    "synchronized_symbols": true
+  },
+  "targets": {
+    "net_payoff_min": 1.8,
+    "base_profit_factor_min": 1.3,
+    "mean_net_r_min": 0.0,
+    "double_cost_profit_factor_min": 1.05,
+    "maximum_drawdown_fraction_max": 0.05,
+    "independent_trades_min": 200,
+    "trades_per_hypothesis_min": 50,
+    "trades_per_symbol_hypothesis_min": 30,
+    "legacy_10r_contract_resolved": false
+  },
+  "claims": {
+    "independent_oos": false,
+    "calibrated_probability": false,
+    "performance_gate_passed": false,
+    "runtime_admission": false,
+    "live_trading": false
+  }
+}

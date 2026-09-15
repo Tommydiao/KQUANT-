@@ -29,9 +29,9 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from pydantic import BaseModel, Field
 
 
-GATEWAY_VERSION = "kquant_gateway_v2.0.0"
-API_CONTRACT_VERSION = "kquant-workspace-api-2026-08-30"
-FRONTEND_CONTRACT_VERSION = "kquant-workspace-web-graphite-signal-v1"
+GATEWAY_VERSION = "kquant_gateway_v2.1.0"
+API_CONTRACT_VERSION = "kquant-workspace-api-2026-09-14"
+FRONTEND_CONTRACT_VERSION = "kquant-workspace-web-graphite-signal-v2"
 SESSION_COOKIE_NAME = "kquant_workspace_session"
 LOCAL_WORKSPACE_IDENTITY = "local@kquant.local"
 
@@ -285,6 +285,10 @@ STOCK_WRITE_PREFIXES = {
     "alerts/",
     "notifications/",
     "options/paper-observations",
+    "options/radar/runs",
+    "options/watchlist",
+    "options/manual-outcomes",
+    "options/simulations",
     "quant/stocks/validation/runs",
     "decision-ledger",
     "forward-pilot",
@@ -325,6 +329,9 @@ def _resolve_backend_path(domain: str, path: str, method: str) -> str | None:
     normalized = path.strip("/")
     if not normalized or not _safe_path(normalized):
         return None
+    if domain == "crypto" and normalized.startswith("candidate-simulation"):
+        allowed = {"candidate-simulation/status", "candidate-simulation/trades", "candidate-simulation/report"}
+        return "/api/crypto/" + normalized if method.upper() == "GET" and normalized in allowed else None
     aliases = STOCK_ALIAS_PREFIXES if domain == "stocks" else CRYPTO_ALIAS_PREFIXES
     direct_prefixes = STOCK_DIRECT_PREFIXES if domain == "stocks" else CRYPTO_DIRECT_PREFIXES
     writes = STOCK_WRITE_PREFIXES if domain == "stocks" else CRYPTO_WRITE_PREFIXES
@@ -366,13 +373,19 @@ async def _probe_backend(backend: Backend, *, transport: httpx.AsyncBaseTranspor
     headers = {backend.header_name: backend.token} if backend.token else {}
     try:
         async with httpx.AsyncClient(transport=transport, timeout=3.0, follow_redirects=False, trust_env=False) as client:
-            response = await client.get(backend.base_url + "/api/health", headers=headers)
+            path = "/api/health/live" if backend.name == "stocks" else "/api/health"
+            response = await client.get(backend.base_url + path, headers=headers)
+            if response.status_code == 404 and path != "/api/health":
+                response = await client.get(backend.base_url + "/api/health", headers=headers)
         content_type = response.headers.get("content-type", "")
         body = response.json() if content_type.startswith("application/json") else {}
+        if not isinstance(body, dict):
+            body = {}
         return {
             "name": backend.name,
-            "status": "available" if response.status_code == 200 else "unhealthy",
+            "status": "available" if response.status_code == 200 and body.get("status") in {"online", "ok", "healthy", "available"} else "unhealthy",
             "http_status": response.status_code,
+            "market_data_checked": body.get("market_data_checked", False),
             "app_version": body.get("app_version") or body.get("runtime", {}).get("app_version"),
             "api_contract_version": body.get("api_contract_version"),
             "frontend_contract_version": body.get("frontend_contract_version"),
@@ -381,8 +394,9 @@ async def _probe_backend(backend: Backend, *, transport: httpx.AsyncBaseTranspor
             "gateway_auth_probe": (body.get("internal_gateway_auth") or {}).get("health_probe"),
             "secrets_exposed": False,
         }
-    except (httpx.HTTPError, ValueError, TypeError):
-        return {"name": backend.name, "status": "unavailable", "url_configured": True, "secrets_exposed": False}
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        return {"name": backend.name, "status": "unavailable", "error_type": type(exc).__name__,
+                "url_configured": True, "market_data_checked": False, "secrets_exposed": False}
 
 
 def _filtered_headers(response: httpx.Response) -> dict[str, str]:
@@ -536,6 +550,7 @@ def create_gateway_app(
             "frontend_contract_version": FRONTEND_CONTRACT_VERSION,
             "modes": [
                 {"id": "stocks", "label": "Stocks", "backend": "stocks", "session": "gateway"},
+                {"id": "options", "label": "Options", "backend": "stocks", "session": "gateway"},
                 {"id": "crypto", "label": "Crypto", "backend": "crypto", "session": "gateway"},
             ],
             "session_mode": "unified_gateway_session",
@@ -581,6 +596,10 @@ def create_gateway_app(
     async def crypto_proxy(path: str, request: Request) -> Response:
         return await proxy_request("crypto", path, request)
 
+    @app.api_route("/api/options/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+    async def options_proxy(path: str, request: Request) -> Response:
+        return await proxy_request("stocks", f"options/{path}", request)
+
     @app.get("/api/alerts/stream")
     async def merged_alert_stream(request: Request) -> StreamingResponse:
         async def stream():
@@ -624,6 +643,10 @@ def create_gateway_app(
     @app.get("/crypto")
     async def crypto_redirect() -> RedirectResponse:
         return RedirectResponse("/?market=crypto", status_code=307)
+
+    @app.get("/options")
+    async def options_redirect() -> RedirectResponse:
+        return RedirectResponse("/?workspace=options", status_code=307)
 
     def frontend_file(name: str) -> Path | None:
         candidate = frontend_dir / name
