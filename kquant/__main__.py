@@ -12,6 +12,14 @@ from .database_migrations import apply_sqlite_schema_migrations, migration_readi
 from .data_coverage import api_stock_data_coverage, persist_data_coverage_run
 from .capital_rotation import latest_capital_rotation, run_capital_rotation
 from .operations import backup_local_workspace, operational_health, restore_drill, run_scheduled_task
+from .options_radar import (
+    latest_premarket_report,
+    option_data_audit,
+    option_radar_status,
+    option_research_report,
+    refresh_intraday_radar,
+    run_premarket_radar,
+)
 from .market_data_backfill import (
     backfill_quota_status,
     create_backfill_job,
@@ -225,6 +233,10 @@ def main() -> None:
     login_config = sub.add_parser("local-login-config", help="Print local email-and-password login values after a hidden password prompt.")
     push_config = sub.add_parser("web-push-config", help="Generate a local VAPID key pair for iPhone Home Screen notifications.")
     push_config.add_argument("--write-env", action="store_true", help="Update the ignored local .env without printing key values.")
+    options_radar = sub.add_parser("options-radar", help="Run or inspect the read-only US options research radar.")
+    options_radar.add_argument("--action", choices=["premarket", "intraday", "status", "audit", "report", "latest", "import-calendar", "monitor", "serve"], default="status")
+    options_radar.add_argument("--calendar-file", type=Path)
+    options_radar.add_argument("--db-path", default=str(default_db_path(Path.cwd())))
     args = parser.parse_args()
     backfill_commands = {"backfill-market-data", "queue-market-backfill", "run-market-backfill", "backfill-quota-status", "resume-quota-backfill"}
     if args.command not in backfill_commands:
@@ -279,6 +291,50 @@ def main() -> None:
             print("# Paste these values into the local .env file. Never commit the private key.")
             for name, value in values.items():
                 print(f"{name}={value}")
+        return
+    if args.command == "options-radar":
+        db = Path(args.db_path)
+        if args.action == "import-calendar":
+            from .option_event_coverage import import_coverage
+            if not args.calendar_file:
+                raise SystemExit("--calendar-file is required")
+            print(json.dumps({"coverage_id": import_coverage(db, json.loads(args.calendar_file.read_text(encoding="utf-8")))}))
+            return
+        if args.action == "serve":
+            import time
+            from .options_radar_supervisor import OptionRadarSupervisor
+            from .realtime_instructions import AlertEventHub
+            service = OptionRadarSupervisor(db, AlertEventHub())
+            if os.getenv("KQUANT_OPTION_RADAR_ENABLED", "false").lower() != "true":
+                raise SystemExit("Set KQUANT_OPTION_RADAR_ENABLED=true explicitly before starting the supervisor.")
+            service.start()
+            if not service.status()["running"]:
+                raise SystemExit("An option supervisor already owns this database.")
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                service.stop()
+            return
+        from .options_radar import monitor_option_plans
+        actions = {
+            "premarket": lambda: run_premarket_radar(db),
+            "intraday": lambda: refresh_intraday_radar(db),
+            "status": lambda: option_radar_status(db),
+            "audit": lambda: option_data_audit(db),
+            "report": lambda: option_research_report(db),
+            "latest": lambda: latest_premarket_report(db),
+            "monitor": lambda: monitor_option_plans(db),
+        }
+        from .option_runtime import OptionProcessLock
+        scan_lock = OptionProcessLock(db, "scan")
+        writing_scan = args.action in {"premarket", "intraday"}
+        if writing_scan and not scan_lock.acquire():
+            raise SystemExit("An option scan already owns this database.")
+        try:
+            print(json.dumps(actions[args.action](), indent=2, ensure_ascii=False))
+        finally:
+            scan_lock.release()
         return
     if args.command == "stock-scan":
         payload = api_stock_signals(

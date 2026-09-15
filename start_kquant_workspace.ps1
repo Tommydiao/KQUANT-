@@ -1,5 +1,6 @@
 param(
   [switch]$KillExisting,
+  [switch]$GatewayOnly,
   [switch]$NoBrowser
 )
 
@@ -29,6 +30,45 @@ $env:KQUANT_GATEWAY_WEB_DIST = Join-Path $Root "web\dist-unified"
 $env:KQUANT_CRYPTO_PORT = if ($env:KQUANT_CRYPTO_PORT) { $env:KQUANT_CRYPTO_PORT } else { "8010" }
 $env:KQUANT_GATEWAY_PORT = if ($env:KQUANT_GATEWAY_PORT) { $env:KQUANT_GATEWAY_PORT } else { "8020" }
 
+if ($GatewayOnly) {
+  $stockFallbackUrl = $null
+  foreach ($candidatePort in @(8001, 8002)) {
+    try {
+      $candidateHealth = Invoke-RestMethod -Uri "http://127.0.0.1:$candidatePort/api/health" -TimeoutSec 2
+      $candidateContract = [string]$candidateHealth.runtime.api_contract_version
+      if (-not $stockFallbackUrl -and $candidateContract -like "kquant-api-*") {
+        $stockFallbackUrl = "http://127.0.0.1:$candidatePort"
+      }
+      if ($candidateContract -eq "kquant-api-2026-09-14-options-tracking-v2") {
+        $env:KQUANT_GATEWAY_STOCKS_URL = "http://127.0.0.1:$candidatePort"
+        break
+      }
+    } catch { }
+  }
+  if (-not $env:KQUANT_GATEWAY_STOCKS_URL -and $stockFallbackUrl) {
+    $env:KQUANT_GATEWAY_STOCKS_URL = $stockFallbackUrl
+  }
+  $cryptoGatewayReady = $false
+  if ($env:KQUANT_GATEWAY_CRYPTO_URL) {
+    try {
+      $configuredHealth = Invoke-RestMethod -Uri "$($env:KQUANT_GATEWAY_CRYPTO_URL.TrimEnd('/'))/api/health" -TimeoutSec 2
+      $cryptoGatewayReady = [string]$configuredHealth.api_contract_version -like "kquant-crypto-*"
+    } catch { }
+  }
+  if (-not $cryptoGatewayReady) {
+    foreach ($candidatePort in @([int]$env:KQUANT_CRYPTO_PORT, 8010, 8011) | Select-Object -Unique) {
+      try {
+        $candidateHealth = Invoke-RestMethod -Uri "http://127.0.0.1:$candidatePort/api/health" -TimeoutSec 2
+        if ([string]$candidateHealth.api_contract_version -like "kquant-crypto-*") {
+          $env:KQUANT_GATEWAY_CRYPTO_URL = "http://127.0.0.1:$candidatePort"
+          $env:KQUANT_CRYPTO_PORT = [string]$candidatePort
+          break
+        }
+      } catch { }
+    }
+  }
+}
+
 function New-ProcessToken {
   $bytes = New-Object byte[] 32
   $generator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
@@ -44,10 +84,19 @@ function New-ProcessToken {
 # credentials between sibling processes, not user secrets; regenerating them
 # prevents stale values inherited from an earlier PowerShell session from
 # splitting the gateway and a backend into different trust domains.
-$env:KQUANT_API_AUTH_TOKEN = New-ProcessToken
-$env:KQUANT_CRYPTO_INTERNAL_API_TOKEN = New-ProcessToken
-$env:KQUANT_GATEWAY_STOCKS_API_TOKEN = $env:KQUANT_API_AUTH_TOKEN
-$env:KQUANT_GATEWAY_CRYPTO_API_TOKEN = $env:KQUANT_CRYPTO_INTERNAL_API_TOKEN
+if ($GatewayOnly) {
+  if (-not $env:KQUANT_GATEWAY_STOCKS_API_TOKEN -and $env:KQUANT_API_AUTH_TOKEN) {
+    $env:KQUANT_GATEWAY_STOCKS_API_TOKEN = $env:KQUANT_API_AUTH_TOKEN
+  }
+  if (-not $env:KQUANT_GATEWAY_CRYPTO_API_TOKEN -and $env:KQUANT_CRYPTO_INTERNAL_API_TOKEN) {
+    $env:KQUANT_GATEWAY_CRYPTO_API_TOKEN = $env:KQUANT_CRYPTO_INTERNAL_API_TOKEN
+  }
+} else {
+  $env:KQUANT_API_AUTH_TOKEN = New-ProcessToken
+  $env:KQUANT_CRYPTO_INTERNAL_API_TOKEN = New-ProcessToken
+  $env:KQUANT_GATEWAY_STOCKS_API_TOKEN = $env:KQUANT_API_AUTH_TOKEN
+  $env:KQUANT_GATEWAY_CRYPTO_API_TOKEN = $env:KQUANT_CRYPTO_INTERNAL_API_TOKEN
+}
 
 function Test-PythonExecutable {
   param([string]$Executable)
@@ -62,7 +111,9 @@ function Resolve-Python {
   param([string]$ProjectRoot)
   foreach ($candidate in @(
     (Join-Path $ProjectRoot ".venv\Scripts\python.exe"),
-    (Join-Path $ProjectRoot ".venv-win\Scripts\python.exe")
+    (Join-Path $ProjectRoot ".venv-win\Scripts\python.exe"),
+    (Join-Path $Root ".venv\Scripts\python.exe"),
+    (Join-Path $Root ".venv-win\Scripts\python.exe")
   )) {
     if ((Test-Path -LiteralPath $candidate) -and (Test-PythonExecutable $candidate)) { return $candidate }
   }
@@ -91,7 +142,7 @@ function Stop-KquantListener {
   Stop-Process -Id $Listener.ProcessId -Force -ErrorAction SilentlyContinue
 }
 
-$ports = @(8001, [int]$env:KQUANT_CRYPTO_PORT, [int]$env:KQUANT_GATEWAY_PORT) | Select-Object -Unique
+$ports = if ($GatewayOnly) { @([int]$env:KQUANT_GATEWAY_PORT) } else { @(8001, [int]$env:KQUANT_CRYPTO_PORT, [int]$env:KQUANT_GATEWAY_PORT) | Select-Object -Unique }
 foreach ($port in $ports) {
   foreach ($listener in @(Get-ListenerProcesses $port)) {
     if ($KillExisting) { Stop-KquantListener $listener }
@@ -100,8 +151,8 @@ foreach ($port in $ports) {
 }
 Start-Sleep -Milliseconds 500
 
-$StockPython = Resolve-Python $Root
 $CryptoPython = Resolve-Python $CryptoRoot
+$StockPython = if ($GatewayOnly) { $null } else { Resolve-Python $Root }
 $LogRoot = Join-Path $Root "work\logs"
 New-Item -ItemType Directory -Force -Path $LogRoot | Out-Null
 
@@ -118,8 +169,12 @@ function Start-KquantService {
   Start-Process -FilePath $Python -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr | Out-Null
 }
 
-Start-KquantService "stock" $StockPython "-m kquant.dashboard --host 127.0.0.1 --port 8001" $Root
-Start-KquantService "crypto" $CryptoPython "-m kquant_crypto serve" $CryptoRoot
+if (-not $GatewayOnly) {
+  $env:KQUANT_UNIFIED_UI_REDIRECT = "true"
+  $env:KQUANT_UNIFIED_UI_URL = "http://127.0.0.1:$($env:KQUANT_GATEWAY_PORT)"
+  Start-KquantService "stock" $StockPython "-m kquant.dashboard --host 127.0.0.1 --port 8001" $Root
+  Start-KquantService "crypto" $CryptoPython "-m kquant_crypto serve" $CryptoRoot
+}
 Start-KquantService "gateway" $CryptoPython "-m kquant_crypto gateway" $CryptoRoot
 
 function Wait-Healthy {
@@ -143,8 +198,11 @@ if (-not (Wait-Healthy "${gatewayUrl}api/workspace/health")) {
 Write-Host ""
 Write-Host "KQUANT unified workspace is running" -ForegroundColor Green
 Write-Host "Unified URL: $gatewayUrl" -ForegroundColor Green
-Write-Host "Stock fallback: http://127.0.0.1:8001/" -ForegroundColor DarkGray
-Write-Host "Crypto fallback: http://127.0.0.1:$($env:KQUANT_CRYPTO_PORT)/" -ForegroundColor DarkGray
+if ($GatewayOnly) { Write-Host "Gateway-only mode: existing stock and Crypto services were left untouched." -ForegroundColor DarkGray }
+$stockFallback = if ($env:KQUANT_GATEWAY_STOCKS_URL) { $env:KQUANT_GATEWAY_STOCKS_URL } else { "http://127.0.0.1:8001" }
+$cryptoFallback = if ($env:KQUANT_GATEWAY_CRYPTO_URL) { $env:KQUANT_GATEWAY_CRYPTO_URL } else { "http://127.0.0.1:$($env:KQUANT_CRYPTO_PORT)" }
+Write-Host "Stock backend: $stockFallback/" -ForegroundColor DarkGray
+Write-Host "Crypto backend: $cryptoFallback/" -ForegroundColor DarkGray
 Write-Host "Unified frontend: web\dist-unified" -ForegroundColor DarkGray
 Write-Host "Logs: work\logs" -ForegroundColor DarkGray
 $loginStatus = "disabled (development mode)"

@@ -15,7 +15,7 @@ from .stock_signals import LONG_BRIDGE_TIMEOUT_SECONDS, api_stock_quote, longbri
 from .stock_store import connect
 
 
-OPTION_EXPRESSION_VERSION = "option_expression_v1.0.0"
+OPTION_EXPRESSION_VERSION = "option_expression_v1.1.0"
 MIN_DTE = 14
 MAX_DTE = 45
 MIN_DELTA = 0.40
@@ -55,7 +55,8 @@ def _attr(value: Any, *names: str) -> Any:
 
 def _timestamp(value: Any) -> str | None:
     if isinstance(value, datetime):
-        return (value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)).isoformat()
+        # A timezone-less SDK value is not proof of a UTC event instant.
+        return None if value.tzinfo is None else value.astimezone(UTC).isoformat()
     number = _number(value)
     if number is not None:
         return datetime.fromtimestamp(number, tz=UTC).isoformat()
@@ -170,31 +171,50 @@ def _greek_indexes() -> list[Any]:
 def option_contract_snapshot(contract_symbol: str, db_path: Path | None = None) -> dict[str, Any]:
     contract = contract_symbol.upper()
     try:
+        quote_request_started_at = _now()
         quote_rows = list(longbridge_runtime().option_quotes([contract], LONG_BRIDGE_TIMEOUT_SECONDS) or [])
+        quote_received_at = _now()
         quote = quote_rows[0] if quote_rows else None
         if quote is None:
             raise RuntimeError("Longbridge returned no option quote.")
         calc_rows = list(longbridge_runtime().calc_indexes([contract], _greek_indexes(), LONG_BRIDGE_TIMEOUT_SECONDS) or [])
         calc = calc_rows[0] if calc_rows else None
-        extend = _attr(quote, "option_extend") or {}
+        extend = _attr(quote, "option_extend") or quote
         bid = ask = None
+        bid_size = ask_size = None
         depth_status = "unavailable"
+        bbo_request_started_at = _now()
+        bbo_received_at = None
+        depth_error = None
         try:
-            depth, _ = longbridge_runtime().depth(contract, LONG_BRIDGE_TIMEOUT_SECONDS)
+            depth, depth_mode = longbridge_runtime().pull_depth(contract, LONG_BRIDGE_TIMEOUT_SECONDS)
+            bbo_received_at = _now()
             bids = list(_attr(depth, "bids", "bid") or [])
             asks = list(_attr(depth, "asks", "ask") or [])
             bid = _number(_attr(bids[0], "price")) if bids else None
             ask = _number(_attr(asks[0], "price")) if asks else None
+            bid_size = _number(_attr(bids[0], "volume", "size", "quantity")) if bids else None
+            ask_size = _number(_attr(asks[0], "volume", "size", "quantity")) if asks else None
             depth_status = "available" if bid is not None and ask is not None and ask >= bid else "unavailable"
-        except Exception:
-            pass
+        except Exception as exc:
+            depth_mode = "unavailable"
+            depth_error = type(exc).__name__
+        bbo_request_finished_at = _now()
         mid = (bid + ask) / 2 if bid is not None and ask is not None and ask >= bid else None
         spread_pct = ((ask - bid) / mid * 100) if mid and bid is not None and ask is not None else None
         underlying_provider = str(_attr(extend, "underlying_symbol") or "").split(".")[0]
         expiry = _iso_date(_attr(extend, "expiry_date") or _attr(calc, "expiry_date"))
-        direction_raw = str(_attr(extend, "direction") or "").upper()
-        direction = "CALL" if direction_raw in {"C", "CALL"} else "PUT"
-        multiplier = _number(_attr(extend, "contract_multiplier", "contract_size")) or 100.0
+        direction_raw = str(_attr(extend, "direction") or "").rsplit(".", 1)[-1].upper()
+        direction = "CALL" if direction_raw in {"C", "CALL"} else ("PUT" if direction_raw in {"P", "PUT"} else "UNKNOWN")
+        multiplier = _number(_attr(extend, "contract_multiplier", "contract_size"))
+        raw_iv = _number(_attr(extend, "implied_volatility") or _attr(calc, "implied_volatility"))
+        raw_hv = _number(_attr(extend, "historical_volatility"))
+        # Longbridge documents percentage-point fields; never infer units from magnitude.
+        implied_volatility = raw_iv / 100 if raw_iv is not None else None
+        historical_volatility = raw_hv / 100 if raw_hv is not None else None
+        raw_theta = _number(_attr(calc, "theta"))
+        raw_vega = _number(_attr(calc, "vega"))
+        raw_rho = _number(_attr(calc, "rho"))
         payload = {
             "contract_symbol": contract,
             "underlying_symbol": underlying_provider,
@@ -205,19 +225,47 @@ def option_contract_snapshot(contract_symbol: str, db_path: Path | None = None) 
             "contract_multiplier": multiplier,
             "bid": bid,
             "ask": ask,
+            "bid_size": bid_size,
+            "ask_size": ask_size,
             "last": _number(_attr(quote, "last_done", "last")),
             "mid": round(mid, 4) if mid is not None else None,
             "spread_pct": round(spread_pct, 4) if spread_pct is not None else None,
-            "implied_volatility": _number(_attr(extend, "implied_volatility") or _attr(calc, "implied_volatility")),
-            "historical_volatility": _number(_attr(extend, "historical_volatility")),
+            "implied_volatility": implied_volatility,
+            "historical_volatility": historical_volatility,
+            "raw_volatility": {"iv": raw_iv, "hv": raw_hv},
+            "unit_policy": "longbridge_documented_percent_v1",
+            "risk_free_rate": None,
+            "dividend_yield": None,
+            "pricing_input_status": "rates_and_dividends_not_ingested",
             "open_interest": int(_number(_attr(extend, "open_interest") or _attr(calc, "open_interest")) or 0),
             "volume": int(_number(_attr(quote, "volume") or _attr(calc, "volume")) or 0),
             "delta": _number(_attr(calc, "delta")),
             "gamma": _number(_attr(calc, "gamma")),
-            "theta": _number(_attr(calc, "theta")),
-            "vega": _number(_attr(calc, "vega")),
-            "rho": _number(_attr(calc, "rho")),
+            "theta": raw_theta / 100 if raw_theta is not None else None,
+            "vega": raw_vega / 100 if raw_vega is not None else None,
+            "rho": raw_rho / 100 if raw_rho is not None else None,
+            "raw_greeks": {"theta": raw_theta, "vega": raw_vega, "rho": raw_rho},
+            "greeks_unit_contract": {
+                "delta": "option_price_per_underlying_dollar",
+                "gamma": "delta_change_per_underlying_dollar",
+                "theta": "option_price_per_share_per_day",
+                "vega": "option_price_per_share_per_one_volatility_point",
+                "rho": "option_price_per_share_per_one_rate_point",
+            },
             "quote_time": _timestamp(_attr(quote, "timestamp", "quote_time")),
+            "raw_quote_time": str(_attr(quote, "timestamp", "quote_time") or ""),
+            "quote_time_status": "verified_timezone" if _timestamp(_attr(quote, "timestamp", "quote_time")) else "timezone_unknown",
+            "quote_time_meaning": "latest_trade_time_not_bbo_time",
+            "quote_request_started_at": quote_request_started_at,
+            "quote_received_at": quote_received_at,
+            "bbo_received_at": bbo_received_at,
+            "bbo_request_started_at": bbo_request_started_at,
+            "bbo_request_finished_at": bbo_request_finished_at,
+            "depth_error_code": depth_error,
+            "bbo_event_time": None,
+            "bbo_time_source": "receipt_time_only",
+            "strict_fill_eligible": False,
+            "depth_mode": depth_mode,
             "depth_status": depth_status,
             "provider_status": "available",
             "source": "longbridge_option_quote",

@@ -1,4 +1,4 @@
-/* Hallmark - macrostructure: Workbench - tone: calm technical - anchor hue: cobalt */
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 */
 :root {
   --color-bg: oklch(16% 0.015 250);
   --color-bg-raised: oklch(19% 0.018 250);
@@ -18,8 +18,8 @@
   --color-info: oklch(76% 0.12 215);
   --color-overlay: oklch(10% 0.02 250 / 0.72);
 
-  --font-display: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+  --font-body: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
 
   --space-3xs: 4px;
@@ -48,4 +48,28 @@
   --shadow-drawer-left: -10px 0 30px oklch(8% 0.02 250 / 0.25);
   --shadow-nav-right: 10px 0 30px oklch(8% 0.02 250 / 0.3);
   --focus-ring: 0 0 0 3px oklch(72% 0.14 245 / 0.28);
+}
+
+/* The unified workspace uses the same semantic tokens in both display modes. */
+:root[data-theme="light"] {
+  --color-bg: oklch(97% 0.008 250);
+  --color-bg-raised: oklch(100% 0.004 250);
+  --color-panel: oklch(94% 0.012 250);
+  --color-panel-strong: oklch(90% 0.018 250);
+  --color-ink: oklch(22% 0.02 250);
+  --color-ink-2: oklch(36% 0.025 250);
+  --color-muted: oklch(51% 0.025 250);
+  --color-rule: oklch(84% 0.018 250);
+  --color-rule-strong: oklch(73% 0.03 250);
+  --color-accent: oklch(58% 0.15 245);
+  --color-accent-strong: oklch(48% 0.15 245);
+  --color-accent-ink: oklch(99% 0.005 250);
+  --color-positive: oklch(48% 0.14 152);
+  --color-caution: oklch(56% 0.13 87);
+  --color-negative: oklch(53% 0.16 28);
+  --color-info: oklch(52% 0.12 215);
+  --color-overlay: oklch(28% 0.02 250 / 0.32);
+  --shadow-drawer-left: -10px 0 30px oklch(30% 0.02 250 / 0.14);
+  --shadow-nav-right: 10px 0 30px oklch(30% 0.02 250 / 0.12);
+  --focus-ring: 0 0 0 3px oklch(58% 0.15 245 / 0.24);
 }

@@ -1,6 +1,6 @@
 # KQUANT Unified Workspace
 
-Locked design system for the Stocks and Crypto workbench. All market pages
+Locked design system for the Stocks, Options and Crypto workbench. All market pages
 share this system; market-specific data and rules remain isolated.
 
 ## System
@@ -24,7 +24,11 @@ introducing local colours or spacing scales.
 - Reduced motion removes spatial transitions and all auto-play effects.
 
 ## Layout
-- Shared task navigation with a persistent Stocks/Crypto market switch.
+- Shared task navigation with a persistent Stocks/Options/Crypto workspace switch.
+- Every workspace uses the same five destinations: Today, Opportunities, Chart,
+  Plans and Review; Settings remains fixed at the bottom of navigation.
+- Options uses a compact opportunity list with on-demand detail, contract comparison,
+  tracking timeline and outcomes rather than a dashboard of repeated cards.
 - Framed work surfaces use thin rules and restrained 4-8px radii.
 - Dense tables are preferred to repeated metric cards.
 - Research opens in a right drawer on desktop and a full-screen sheet on mobile.
@@ -33,4 +37,5 @@ introducing local colours or spacing scales.
 - No gradients, decorative orbs, invented performance claims or marketing
   hero sections.
 - The gateway is the only browser entry point for the unified experience.
-- The two runtimes and databases remain separate and read-only.
+- Stock and Crypto runtimes and databases remain isolated behind the gateway.
+- Option writes are limited to scans, watch state and research outcomes; no order path.

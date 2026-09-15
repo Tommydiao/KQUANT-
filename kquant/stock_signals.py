@@ -1174,7 +1174,12 @@ def longbridge_candles(symbol: str, range_value: str, interval: str) -> dict[str
         )
 
 
-def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
+def api_stock_quote(
+    symbol: str,
+    db_path: Path | None = None,
+    *,
+    isolated: bool = False,
+) -> dict[str, Any]:
     symbol = normalize_symbol(symbol)
     if preferred_market_data_provider() != "longbridge":
         return {
@@ -1198,7 +1203,12 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         import longbridge.openapi  # type: ignore  # noqa: F401
 
         lb_symbol = longbridge_symbol(symbol)
-        rows = longbridge_runtime().quote(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+        runtime = longbridge_runtime()
+        rows = (
+            runtime.pull_quote(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+            if isolated
+            else runtime.quote(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+        )
         quote = list(rows or [None])[0]
         if quote is None:
             raise RuntimeError("Longbridge returned no quote.")
@@ -1212,7 +1222,11 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
         depth_mode = "quote_fields"
         depth_errors: list[str] = []
         try:
-            depth, depth_mode = longbridge_runtime().depth(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+            depth, depth_mode = (
+                runtime.pull_depth(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+                if isolated
+                else runtime.depth(lb_symbol, LONG_BRIDGE_TIMEOUT_SECONDS)
+            )
             bids = list(_pick_attr(depth, ("bids", "bid")) or [])
             asks = list(_pick_attr(depth, ("asks", "ask")) or [])
             if bids:
@@ -1225,6 +1239,23 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             depth_errors.append(str(exc))
         spread = ask - bid if bid is not None and ask is not None and ask >= bid else None
         spread_pct = spread / ((ask + bid) / 2) * 100 if spread is not None and ask and bid else None
+        pre_market = _pick_attr(quote, ("pre_market_quote", "pre_market"))
+        post_market = _pick_attr(quote, ("post_market_quote", "post_market"))
+
+        def extended_session_payload(value: Any) -> dict[str, Any] | None:
+            if value is None:
+                return None
+            timestamp = _parse_longbridge_time(_pick_attr(value, ("timestamp", "time")))
+            return {
+                "last": _decimal_float(_pick_attr(value, ("last_done", "last", "price"))),
+                "previous_close": _decimal_float(_pick_attr(value, ("prev_close", "previous_close"))),
+                "volume": _decimal_float(_pick_attr(value, ("volume",))),
+                "turnover": _decimal_float(_pick_attr(value, ("turnover",))),
+                "high": _decimal_float(_pick_attr(value, ("high",))),
+                "low": _decimal_float(_pick_attr(value, ("low",))),
+                "event_time": timestamp.isoformat() if timestamp else None,
+            }
+
         clock = market_clock()
         return {
             "symbol": symbol,
@@ -1233,6 +1264,11 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             "source_type": "longbridge_quote",
             "provider_status": "available",
             "last": last,
+            "previous_close": _decimal_float(_pick_attr(quote, ("prev_close", "previous_close"))),
+            "volume": _decimal_float(_pick_attr(quote, ("volume",))),
+            "turnover": _decimal_float(_pick_attr(quote, ("turnover",))),
+            "pre_market": extended_session_payload(pre_market),
+            "post_market": extended_session_payload(post_market),
             "bid": bid,
             "ask": ask,
             "bid_size": bid_size,
@@ -1242,6 +1278,7 @@ def api_stock_quote(symbol: str, db_path: Path | None = None) -> dict[str, Any]:
             "depth_mode": depth_mode,
             "depth_status": "available" if bid is not None and ask is not None else "unavailable",
             "depth_errors": depth_errors,
+            "subscription_mode": "isolated_pull" if isolated else "active_symbol_cache",
             "quote_time": quote_time.isoformat() if quote_time else None,
             "session": clock.session,
             "market_clock": clock.as_dict(),

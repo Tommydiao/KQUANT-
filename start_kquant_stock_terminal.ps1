@@ -1,6 +1,7 @@
 param(
   [int]$Port = 8001,
   [string]$HostName = "127.0.0.1",
+  [switch]$ApiOnly,
   [switch]$KillExisting,
   [switch]$NoBrowser
 )
@@ -29,6 +30,10 @@ function Import-LocalEnv {
 }
 
 Import-LocalEnv (Join-Path $Root ".env")
+if ($ApiOnly) {
+  $env:KQUANT_REALTIME_SUPERVISOR_ENABLED = "false"
+  $env:KQUANT_OPTION_RADAR_ENABLED = "false"
+}
 if (-not $env:LONGBRIDGE_PRINT_QUOTE_PACKAGES) {
   $env:LONGBRIDGE_PRINT_QUOTE_PACKAGES = "false"
 }
@@ -85,7 +90,7 @@ function Resolve-KquantPython {
 }
 
 $Url = "http://$HostName`:$Port/"
-$ExpectedApiContract = "kquant-api-2026-08-22-v2-oos-shadow-v4"
+$ExpectedApiContract = "kquant-api-2026-09-14-options-tracking-v2"
 function Test-KquantDashboardOnline {
   try {
     $response = Invoke-WebRequest -UseBasicParsing "$Url/api/health" -TimeoutSec 3
@@ -172,6 +177,7 @@ Write-Host "Starting KQUANT US Stock Signal Terminal..." -ForegroundColor Cyan
 Write-Host "URL: $Url" -ForegroundColor Green
 Write-Host "Database: work/kquant_us.sqlite3" -ForegroundColor DarkGray
 Write-Host "Mode: read-only stock research" -ForegroundColor DarkGray
+if ($ApiOnly) { Write-Host "Background supervisors: disabled for compatibility API instance" -ForegroundColor DarkGray }
 Write-Host "Python: $Python" -ForegroundColor DarkGray
 if ($env:KQUANT_LOGIN_ENABLED -eq "true") {
   if ($env:KQUANT_LOGIN_EMAIL -and $env:KQUANT_LOGIN_PASSWORD_HASH -and $env:KQUANT_SESSION_SECRET) {

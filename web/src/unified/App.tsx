@@ -1,4 +1,29 @@
 import { FormEvent, KeyboardEvent, MouseEvent, useEffect, useMemo, useState } from "react";
+import CandidatePanel from "./CandidatePanel";
+import OptionsWorkspace from "./OptionsWorkspace";
+import {
+  I18nProvider,
+  actionText,
+  backendText,
+  formatUiNumber,
+  statusText,
+  translate,
+  useI18n,
+  type MessageKey,
+  type UiLanguage,
+  type UiTheme,
+} from "./i18n";
+import {
+  DEFAULT_SYMBOL,
+  canonicalWorkspaceUrl,
+  symbolFromSearch,
+  viewFromSearch,
+  workspaceFromSearch,
+  workspaceLabel,
+  workspaceSearchPlaceholder,
+  type ViewName,
+  type WorkspaceId,
+} from "./workspace";
 import {
   Activity,
   AlertTriangle,
@@ -14,9 +39,11 @@ import {
   FileText,
   LayoutDashboard,
   LineChart,
+  Languages,
   LogOut,
   Menu,
   Minus,
+  Moon,
   PanelRight,
   Radar,
   RefreshCw,
@@ -24,6 +51,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  Sun,
   Trash2,
   TrendingUp,
   Undo2,
@@ -32,7 +60,6 @@ import {
 
 type Json = Record<string, any>;
 type Market = "stocks" | "crypto";
-type ViewName = "today" | "discover" | "chart" | "plan" | "research" | "journal";
 type AuthState = "checking" | "ready" | "login" | "error";
 
 type Session = {
@@ -73,114 +100,36 @@ function emptyDomainData(): DomainData {
   return { health: {}, market: {}, opportunities: {}, context: {}, alerts: {}, detail: {}, candles: {}, journal: {}, runtime: {}, research: {}, safety: {}, validation: {}, coverage: {}, notifications: {}, discovery: {}, simulation: {}, evaluations: {}, holders: {} };
 }
 
-const VIEWS: Array<{ id: ViewName; label: string; icon: typeof LayoutDashboard }> = [
-  { id: "today", label: "今日", icon: LayoutDashboard },
-  { id: "discover", label: "发现", icon: Radar },
-  { id: "chart", label: "图表", icon: ChartCandlestick },
-  { id: "plan", label: "计划", icon: FileText },
-  { id: "research", label: "研究", icon: BookOpen },
-  { id: "journal", label: "日志", icon: Database },
+const VIEWS: Array<{ id: ViewName; label: MessageKey; icon: typeof LayoutDashboard }> = [
+  { id: "today", label: "Today", icon: LayoutDashboard },
+  { id: "opportunities", label: "Opportunities", icon: Radar },
+  { id: "chart", label: "Chart", icon: ChartCandlestick },
+  { id: "plans", label: "Plans", icon: FileText },
+  { id: "review", label: "Review", icon: BookOpen },
 ];
 
-const ACTION_LABELS: Record<string, string> = {
-  BUY: "买入复核",
-  BUY_REVIEW: "买入复核",
-  WATCH: "观察",
-  EARLY_WATCH: "早期观察",
-  ARMED: "等待触发",
-  PASS: "暂不关注",
-  AVOID: "暂不关注",
-  AI_AVOID: "暂不关注",
-  PAPER_REVIEW: "模拟复核",
-  SHADOW_ELIGIBLE: "观察记录",
-  HOLD_CORE: "继续观察",
-  ROLL_BUY: "滚仓复核",
-  ROLL_ADD: "加仓复核",
-  ROTATE_TO: "轮换复核",
-  REDUCE: "减少风险",
-  WAIT: "等待",
-  EXIT_REVIEW: "退出复核",
-  REJECTED: "已阻断",
-  WATCH_ONLY: "仅观察",
-  MONITORING: "观察中",
-  TRIGGERED: "已触发",
-  INVALIDATED: "已失效",
-  EXPIRED: "已过期",
-  INFO: "提示",
-  ACTION: "需要复核",
-  RISK: "风险",
-  CRITICAL: "紧急",
-  DATA_CAUTION: "数据需确认",
-  DATA_BLOCKED: "数据不足",
-  MARKET_CLOSED: "市场已收盘",
-  STALE: "数据已过期",
-  UNAVAILABLE: "暂不可用",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  OK: "正常",
-  AVAILABLE: "可用",
-  LIVE: "实时",
-  LIVE_QUOTE: "实时行情",
-  LONG_BRIDGE_CANDLES: "Longbridge K 线",
-  LONGBRIDGE_CANDLES: "Longbridge K 线",
-  LONGBRIDGE: "Longbridge",
-  MARKET_CLOSED: "市场已收盘",
-  CLOSED: "已收盘",
-  STALE: "数据已过期",
-  STALE_LONG_BRIDGE_CACHE: "缓存已过期",
-  STALE_LONGBRIDGE_CACHE: "缓存已过期",
-  PARTIAL: "数据不完整",
-  DATA_CAUTION: "数据需确认",
-  DATA_BLOCKED: "数据不足",
-  PROVIDER_UNAVAILABLE: "数据源不可用",
-  UNAVAILABLE: "暂不可用",
-  NOT_COLLECTED: "等待采集",
-  DISABLED: "未启用",
-  UNKNOWN: "未知",
-  LIMITED: "证据有限",
-  PASSED: "已通过",
-  FAILED: "未通过",
-  REJECTED: "未通过",
-  CEX: "CEX 行情",
-  CEX_DATA: "CEX 行情",
-  PUBLIC_CEX: "公开行情",
-  YAHOO_REFERENCE_ONLY: "参考数据",
-  YAHOO_REFERENCE: "参考数据",
-};
-
-function actionLabel(value: unknown): string {
-  const key = String(value ?? "").toUpperCase();
-  return ACTION_LABELS[key] ?? (key ? "待复核" : "等待数据");
+function workspaceUiLabel(workspace: WorkspaceId, language: UiLanguage): string {
+  return workspaceLabel(workspace, language);
 }
 
-function statusLabel(value: unknown): string {
-  const raw = String(value ?? "").trim();
-  const key = raw.toUpperCase().replace(/[\s-]+/g, "_");
-  if (STATUS_LABELS[key]) return STATUS_LABELS[key];
-  if (ACTION_LABELS[key]) return ACTION_LABELS[key];
-  if (key.includes("LONGBRIDGE")) return "Longbridge";
-  if (key.includes("YAHOO")) return "参考数据";
-  if (key.includes("CEX")) return "CEX 行情";
-  if (key.includes("STALE")) return "数据已过期";
-  if (key.includes("CAUTION")) return "数据需确认";
-  if (key.includes("UNAVAILABLE")) return "暂不可用";
-  return raw || "等待确认";
+function storedPreference<T extends string>(key: string, fallback: T): T {
+  try {
+    return (window.localStorage.getItem(key) as T | null) ?? fallback;
+  } catch {
+    return fallback;
+  }
 }
 
-function humanizeText(value: unknown): string {
-  const raw = String(value ?? "").trim();
-  if (!raw) return "等待确认";
-  return raw
-    .replace(/AI_AVOID/gi, "暂不关注")
-    .replace(/DATA_CAUTION/gi, "数据需确认")
-    .replace(/DATA_BLOCKED/gi, "数据不足")
-    .replace(/HARD[_ -]?VETO/gi, "关键条件未满足")
-    .replace(/PAPER_REVIEW/gi, "模拟复核")
-    .replace(/SHADOW_ELIGIBLE/gi, "观察记录")
-    .replace(/WATCH_ONLY/gi, "仅观察")
-    .replace(/HTTPError/gi, "研究服务暂时不可用")
-    .replace(/EVAL/gi, "最终审核");
+function useWorkspaceI18n() {
+  const { language, t } = useI18n();
+  return {
+    language,
+    t,
+    actionLabel: (value: unknown) => actionText(value, language),
+    statusLabel: (value: unknown) => statusText(value, language),
+    humanizeText: (value: unknown) => backendText(value, language),
+    localizedNumber: (value: unknown, digits = 2) => formatUiNumber(value, language, digits),
+  };
 }
 
 function isRecord(value: unknown): value is Json {
@@ -204,13 +153,16 @@ function numberValue(...values: unknown[]): number | null {
 
 function formatNumber(value: unknown, digits = 2): string {
   const number = numberValue(value);
-  return number === null ? "-" : number.toLocaleString("en-US", { maximumFractionDigits: digits });
+  const locale = typeof document !== "undefined" && document.documentElement.lang.startsWith("zh") ? "zh-CN" : "en-US";
+  return number === null ? "-" : number.toLocaleString(locale, { maximumFractionDigits: digits });
 }
 
 function formatPercent(value: unknown): string {
   const number = numberValue(value);
   if (number === null) return "-";
-  return `${(Math.abs(number) <= 1 ? number * 100 : number).toFixed(1)}%`;
+  const locale = typeof document !== "undefined" && document.documentElement.lang.startsWith("zh") ? "zh-CN" : "en-US";
+  const ratio = Math.abs(number) <= 1 ? number : number / 100;
+  return new Intl.NumberFormat(locale, { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(ratio);
 }
 
 function extractRows(payload: unknown, preferredKeys: string[] = []): Json[] {
@@ -282,27 +234,20 @@ function compactValue(value: unknown): string {
   return formatNumber(number, 2);
 }
 
-function errorText(error: unknown): string {
-  return error instanceof Error ? error.message : "服务暂时不可用";
+function errorText(error: unknown, language: UiLanguage = "zh"): string {
+  if (!(error instanceof Error)) return translate(language, "Data is temporarily unavailable");
+  return backendText(error.message, language);
 }
 
 async function getJson<T extends Json>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "same-origin", cache: "no-store", ...init });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(isRecord(body) && body.detail ? String(body.detail) : `请求失败（${response.status}）`);
+  if (!response.ok) throw new Error(isRecord(body) && body.detail ? String(body.detail) : `Request failed (${response.status})`);
   return body as T;
 }
 
-function viewFromUrl(): ViewName {
-  const raw = new URLSearchParams(window.location.search).get("view");
-  return VIEWS.some((item) => item.id === raw) ? (raw as ViewName) : "today";
-}
-
-function marketFromUrl(): Market {
-  return new URLSearchParams(window.location.search).get("market") === "crypto" ? "crypto" : "stocks";
-}
-
-function LoginScreen({ mode, onAuthenticated }: { mode: AuthState; onAuthenticated: () => Promise<void> }) {
+function LoginScreen({ mode, language, onAuthenticated }: { mode: AuthState; language: UiLanguage; onAuthenticated: () => Promise<void> }) {
+  const t = (key: MessageKey) => translate(language, key);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -320,10 +265,10 @@ function LoginScreen({ mode, onAuthenticated }: { mode: AuthState; onAuthenticat
         body: JSON.stringify({ email, password }),
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.detail || "邮箱或密码不正确");
+      if (!response.ok) throw new Error(body.detail || t("Email or password is incorrect"));
       await onAuthenticated();
     } catch (error) {
-      setMessage(errorText(error));
+      setMessage(errorText(error, language));
     } finally {
       setBusy(false);
     }
@@ -334,16 +279,16 @@ function LoginScreen({ mode, onAuthenticated }: { mode: AuthState; onAuthenticat
       <section className="auth-panel" aria-labelledby="login-title">
         <div className="brand-mark large">KQ</div>
         <p className="eyebrow">KQUANT WORKSPACE</p>
-        <h1 id="login-title">进入研究工作台</h1>
-        <p className="auth-lede">股票与 Crypto 共用一个入口，行情、研究计划和日志仍按市场独立保存。</p>
-        {mode === "error" ? <p className="form-error">统一入口暂时无法连接，请确认网关正在运行。</p> : null}
+        <h1 id="login-title">{t("Enter research workspace")}</h1>
+        <p className="auth-lede">{t("Stocks, options, and Crypto share one entrance while their data, plans, and results remain isolated.")}</p>
+        {mode === "error" ? <p className="form-error">{t("The unified gateway is unavailable. Check that it is running.")}</p> : null}
         <form className="auth-form" onSubmit={submit}>
-          <label>邮箱<input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-          <label>密码<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
+          <label>{t("Email")}<input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
+          <label>{t("Password")}<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
           {message ? <p className="form-error">{message}</p> : null}
-          <button className="primary-button" type="submit" disabled={busy}>{busy ? "正在验证" : "进入工作台"}<ChevronRight size={16} /></button>
+          <button className="primary-button" type="submit" disabled={busy}>{busy ? t("Signing in") : t("Enter workspace")}<ChevronRight size={16} /></button>
         </form>
-        <p className="auth-note"><ShieldCheck size={15} /> 仅限研究、模拟与观察，不读取账户，不提交订单。</p>
+        <p className="auth-note"><ShieldCheck size={15} /> {t("Research, simulation, and observation only. No account access or order submission.")}</p>
       </section>
     </main>
   );
@@ -355,15 +300,16 @@ function StatusChip({ label, tone = "neutral" }: { label: string; tone?: "positi
 
 function statusTone(value: unknown): "positive" | "caution" | "negative" | "info" | "neutral" {
   const raw = String(value ?? "").toLowerCase();
-  if (["available", "live", "ok", "complete", "connected", "ready", "passed"].some((item) => raw.includes(item))) return "positive";
+  if (["available", "live", "ok", "online", "healthy", "complete", "connected", "ready", "passed"].some((item) => raw.includes(item))) return "positive";
   if (["caution", "stale", "partial", "closed", "limited", "pending", "unknown", "需确认", "过期", "收盘", "有限", "等待"].some((item) => raw.includes(item))) return "caution";
   if (["unavailable", "failed", "blocked", "rejected", "error", "offline", "不可用", "不足", "未通过", "失效"].some((item) => raw.includes(item))) return "negative";
   if (["armed", "watch", "research"].some((item) => raw.includes(item))) return "info";
   return "neutral";
 }
 
-function LoadingLine({ label = "正在读取数据" }: { label?: string }) {
-  return <div className="loading-line"><RefreshCw size={15} className="spin" />{label}</div>;
+function LoadingLine({ label }: { label?: string }) {
+  const { t } = useWorkspaceI18n();
+  return <div className="loading-line"><RefreshCw size={15} className="spin" />{label ?? t("Loading data")}</div>;
 }
 
 function EmptyState({ title, detail }: { title: string; detail: string }) {
@@ -371,21 +317,24 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
 }
 
 function MetricStrip({ items }: { items: Array<{ label: string; value: string; tone?: string }> }) {
+  const { statusLabel } = useWorkspaceI18n();
   return <div className="metric-strip">{items.map((item) => <div className="metric" key={item.label}><span>{item.label}</span><strong className={item.tone ? `tone-${item.tone}` : ""}>{statusLabel(item.value)}</strong></div>)}</div>;
 }
 
 function EvidenceList({ detail, market }: { detail: Json; market: Market }) {
+  const { t, humanizeText } = useWorkspaceI18n();
   const evidence = extractRows(detail.decision_evidence ?? detail.evidence ?? detail.supporting_factors, ["items", "supporting", "opposing", "factors"]);
   const fallback = market === "stocks"
-    ? ["趋势、相对强弱和量价结构由系统按已收盘数据计算。", "实时数据和交易时段会影响人工复核资格。", "研究结论不等于下单指令。"]
-    : ["市场状态、流动性和安全快照共同决定观察资格。", "形成中的行情不会直接升级为模拟计划。", "Crypto 计划必须经过最终审核层。"];
+    ? [t("Stock structure, relative strength, and price-volume evidence use closed data."), t("Live data and market hours affect manual-review eligibility."), t("Research conclusions are not order instructions.")]
+    : [t("Market regime, liquidity, and safety snapshots jointly determine eligibility."), t("Forming market data cannot directly upgrade a simulation plan."), t("Crypto plans must pass the final evaluation layer.")];
   return <div className="evidence-list">{(evidence.length ? evidence.slice(0, 5).map((item) => humanizeText(textValue(item.message, item.reason, item.label, item.factor, item.name))) : fallback).map((item, index) => <div className="evidence-row" key={`${item}-${index}`}><span className="evidence-mark">{index < 3 ? "•" : "—"}</span><span>{item}</span></div>)}</div>;
 }
 
 function OpportunityTable({ market, rows, onSelect }: { market: Market; rows: Json[]; onSelect: (symbol: string) => void }) {
+  const { t, actionLabel, statusLabel } = useWorkspaceI18n();
   const visible = rows.slice(0, 12);
   return <div className="table-wrap">
-    {visible.length ? <table><thead><tr><th>标的</th><th>结论</th><th>分数</th><th>状态</th><th>时间</th></tr></thead><tbody>{visible.map((row, index) => {
+    {visible.length ? <table><thead><tr><th>{t("Asset")}</th><th>{t("Decision")}</th><th>{t("Score")}</th><th>{t("Status")}</th><th>{t("Time")}</th></tr></thead><tbody>{visible.map((row, index) => {
       const symbol = textValue(row.symbol, row.ticker, row.asset_id).replace(/^asset:/, "").toUpperCase();
       const action = textValue(row.action, row.decision, row.stage, row.status);
       const score = textValue(formatNumber(row.score, 1), formatNumber(row.setup_score, 1));
@@ -397,11 +346,12 @@ function OpportunityTable({ market, rows, onSelect }: { market: Market; rows: Js
         <td><StatusChip label={statusLabel(source)} tone={statusTone(source)} /></td>
         <td className="muted mono">{textValue(row.as_of_time, row.generated_at, row.updated_at).slice(0, 16)}</td>
       </tr>;
-    })}</tbody></table> : <EmptyState title="暂无可展示候选" detail={market === "stocks" ? "先运行一次股票扫描或检查 Longbridge 数据。" : "等待 CEX 数据采集完成。"} />}
+    })}</tbody></table> : <EmptyState title={t("No candidates to display")} detail={market === "stocks" ? t("Run a stock scan or check Longbridge data.") : t("Waiting for CEX data collection.")} />}
   </div>;
 }
 
 function PriceChart({ payload, market, symbol }: { payload: Json; market: Market; symbol: string }) {
+  const { t, localizedNumber } = useWorkspaceI18n();
   const candles = extractCandles(payload).slice(-220);
   const [tool, setTool] = useState<DrawingTool>("none");
   const [drawings, setDrawings] = useState<Drawing[]>([]);
@@ -415,7 +365,7 @@ function PriceChart({ payload, market, symbol }: { payload: Json; market: Market
     setTool("none");
   }, [market, symbol]);
 
-  if (!candles.length) return <EmptyState title="暂无图表数据" detail="当前市场没有可用的已收盘 K 线。" />;
+  if (!candles.length) return <EmptyState title={t("No chart data")} detail={t("No closed candles are available for this market.")} />;
   const width = 1000;
   const height = 380;
   const plotTop = 18;
@@ -466,17 +416,17 @@ function PriceChart({ payload, market, symbol }: { payload: Json; market: Market
   };
 
   return <div className="chart-block">
-    <div className="chart-head"><div><span className="eyebrow">{market === "stocks" ? "Longbridge K线" : "CEX K线"}</span><h3>{symbol}</h3></div><div className="chart-last"><strong>{formatNumber(closes[closes.length - 1], 4)}</strong><span className={up ? "positive-text" : "negative-text"}>{up ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />}{formatPercent(((closes[closes.length - 1] / closes[0]) - 1) * 100)}</span></div></div>
-    <div className="chart-tools" role="toolbar" aria-label="手动画线工具">
-      <button type="button" className={tool === "hline" ? "chart-tool active" : "chart-tool"} onClick={() => { setTool(tool === "hline" ? "none" : "hline"); setPendingPoint(null); }} title="点击图表添加水平线"><Minus size={15} />水平线</button>
-      <button type="button" className={tool === "trend" ? "chart-tool active" : "chart-tool"} onClick={() => { setTool(tool === "trend" ? "none" : "trend"); setPendingPoint(null); }} title="点击图表两点添加趋势线"><TrendingUp size={15} />趋势线</button>
-      <select value={label} onChange={(event) => setLabel(event.target.value)} aria-label="线条标签"><option>Line</option><option>Entry</option><option>Stop</option><option>Target</option><option>Alert</option></select>
-      <label className="color-picker" title="选择线条颜色"><input type="color" value={color} onChange={(event) => setColor(event.target.value)} aria-label="线条颜色" /></label>
-      <button type="button" className="chart-tool" onClick={() => { setDrawings((current) => current.slice(0, -1)); setPendingPoint(null); }} disabled={!drawings.length} title="撤销最后一条线"><Undo2 size={15} />撤销</button>
-      <button type="button" className="chart-tool" onClick={() => { setDrawings([]); setPendingPoint(null); setTool("none"); }} disabled={!drawings.length && !pendingPoint} title="清除当前图表的所有标注"><Trash2 size={15} />清除</button>
-      <span className="chart-tool-hint">{tool === "hline" ? "点击一次放置水平线" : tool === "trend" ? (pendingPoint ? "再点击一次完成趋势线" : "点击两个点连接趋势线") : "线条只在你点击工具后绘制"}</span>
+    <div className="chart-head"><div><span className="eyebrow">{market === "stocks" ? "Longbridge" : "CEX"} {t("Chart")}</span><h3>{symbol}</h3></div><div className="chart-last"><strong>{localizedNumber(closes[closes.length - 1], 4)}</strong><span className={up ? "positive-text" : "negative-text"}>{up ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />}{formatPercent(((closes[closes.length - 1] / closes[0]) - 1) * 100)}</span></div></div>
+    <div className="chart-tools" role="toolbar" aria-label={t("Manual drawing tools")}>
+      <button type="button" className={tool === "hline" ? "chart-tool active" : "chart-tool"} onClick={() => { setTool(tool === "hline" ? "none" : "hline"); setPendingPoint(null); }} title={t("Click the chart to add a horizontal line")}><Minus size={15} />{t("Horizontal line")}</button>
+      <button type="button" className={tool === "trend" ? "chart-tool active" : "chart-tool"} onClick={() => { setTool(tool === "trend" ? "none" : "trend"); setPendingPoint(null); }} title={t("Click two chart points to add a trend line")}><TrendingUp size={15} />{t("Trend line")}</button>
+      <select value={label} onChange={(event) => setLabel(event.target.value)} aria-label={t("Line label")}><option>Line</option><option>Entry</option><option>Stop</option><option>Target</option><option>Alert</option></select>
+      <label className="color-picker" title={t("Choose line color")}><input type="color" value={color} onChange={(event) => setColor(event.target.value)} aria-label={t("Line color")} /></label>
+      <button type="button" className="chart-tool" onClick={() => { setDrawings((current) => current.slice(0, -1)); setPendingPoint(null); }} disabled={!drawings.length} title={t("Undo last line")}><Undo2 size={15} />{t("Undo")}</button>
+      <button type="button" className="chart-tool" onClick={() => { setDrawings([]); setPendingPoint(null); setTool("none"); }} disabled={!drawings.length && !pendingPoint} title={t("Clear all chart annotations")}><Trash2 size={15} />{t("Clear")}</button>
+      <span className="chart-tool-hint">{tool === "hline" ? t("Click once to place a horizontal line") : tool === "trend" ? (pendingPoint ? t("Click once more to finish the trend line") : t("Click two points to connect a trend line")) : t("Lines are drawn only after selecting a tool")}</span>
     </div>
-    <svg className="price-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${symbol} 价格走势与手动画线`} preserveAspectRatio="none" onClick={handleChartClick}>
+    <svg className="price-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${symbol} ${t("Price chart and manual drawings")}`} preserveAspectRatio="none" onClick={handleChartClick}>
       {[plotTop, 80, 145, 210, plotBottom].map((line) => <line key={line} x1="0" x2={width} y1={line} y2={line} className="chart-grid-line" />)}
       <line x1="0" x2={width} y1={volumeTop - 8} y2={volumeTop - 8} className="chart-volume-divider" />
       <polyline points={pointsFor(ema20)} className="chart-ema ema20" />
@@ -510,11 +460,12 @@ function PriceChart({ payload, market, symbol }: { payload: Json; market: Market
       })}
       {pendingPoint ? <circle cx={pendingPoint.x} cy={pendingPoint.y} r="5" className="drawing-pending" /> : null}
     </svg>
-    <div className="chart-foot"><span>{candles.length} 根已收盘 K 线 · EMA20 / EMA50 / EMA200</span><span>{textValue(candles[0].time).slice(0, 16)} → {textValue(candles[candles.length - 1].time).slice(0, 16)}</span></div>
+    <div className="chart-foot"><span>{candles.length} {t("closed candles")} · EMA20 / EMA50 / EMA200</span><span>{textValue(candles[0].time).slice(0, 16)} → {textValue(candles[candles.length - 1].time).slice(0, 16)}</span></div>
   </div>;
 }
 
 function ResearchDrawer({ market, symbol, messages, onMessagesChange, onClose, onSubmit }: { market: Market; symbol: string; messages: ResearchMessage[]; onMessagesChange: (update: (current: ResearchMessage[]) => ResearchMessage[]) => void; onClose: () => void; onSubmit: (question: string) => Promise<string> }) {
+  const { t, language } = useWorkspaceI18n();
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async (event: FormEvent) => {
@@ -528,25 +479,26 @@ function ResearchDrawer({ market, symbol, messages, onMessagesChange, onClose, o
       const answer = await onSubmit(current);
       onMessagesChange((items) => [...items, { role: "system", text: answer }]);
     } catch (error) {
-      onMessagesChange((items) => [...items, { role: "system", text: errorText(error) }]);
+      onMessagesChange((items) => [...items, { role: "system", text: errorText(error, language) }]);
     } finally {
       setBusy(false);
     }
   };
-  const prompts = market === "stocks" ? ["这只股票的主要风险是什么？", "哪些条件会让结论转强？", "帮我复核入场区和失效条件。"] : ["当前市场状态如何影响这个币？", "有哪些流动性和安全风险？", "什么条件下才值得进入模拟观察？"];
-  return <aside className="research-drawer" aria-label="深度研究">
-    <div className="drawer-head"><div><span className="eyebrow">深度研究</span><h2>{symbol}</h2></div><button className="icon-button" onClick={onClose} title="关闭研究栏"><X size={18} /></button></div>
-    <div className="drawer-context"><StatusChip label={market === "stocks" ? "股票研究" : "Crypto 研究"} tone="info" /><span>当前标的：{symbol}</span></div>
-    <div className="drawer-messages">{messages.length ? messages.map((message, index) => <div className={`drawer-message ${message.role}`} key={`${message.role}-${index}`}>{message.text}</div>) : <div className="drawer-empty"><PanelRight size={22} /><strong>把问题放在这里</strong><span>研究栏会随当前标的切换，回答与结论分开保存。</span></div>}</div>
+  const prompts = market === "stocks" ? [t("What are the main risks for this stock?"), t("What would strengthen the current decision?"), t("Review the entry zone and invalidation conditions.")] : [t("How does the current market regime affect this asset?"), t("What are the liquidity and safety risks?"), t("When would this be eligible for simulation observation?")];
+  return <aside className="research-drawer" aria-label={t("Research drawer")}>
+    <div className="drawer-head"><div><span className="eyebrow">{t("Research drawer")}</span><h2>{symbol}</h2></div><button className="icon-button" onClick={onClose} title={t("Close research")}><X size={18} /></button></div>
+    <div className="drawer-context"><StatusChip label={market === "stocks" ? t("Stock research") : t("Crypto research")} tone="info" /><span>{t("Current asset")}: {symbol}</span></div>
+    <div className="drawer-messages">{messages.length ? messages.map((message, index) => <div className={`drawer-message ${message.role}`} key={`${message.role}-${index}`}>{message.text}</div>) : <div className="drawer-empty"><PanelRight size={22} /><strong>{t("Put your question here")}</strong><span>{t("The research drawer follows the selected asset; answers are stored separately from decisions.")}</span></div>}</div>
     <div className="quick-prompts">{prompts.map((prompt) => <button key={prompt} className="text-button" onClick={() => setQuestion(prompt)}>{prompt}</button>)}</div>
-    <form className="research-form" onSubmit={submit}><textarea value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="询问风险、走势、入场条件或需要复核的证据…" rows={3} /><button className="primary-button" disabled={busy || !question.trim()}>{busy ? "整理中" : "开始研究"}<ChevronRight size={16} /></button></form>
+    <form className="research-form" onSubmit={submit}><textarea value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={t("Ask about risks, price action, entry conditions, or evidence to review...")} rows={3} /><button className="primary-button" disabled={busy || !question.trim()}>{busy ? t("Thinking") : t("Start research")}<ChevronRight size={16} /></button></form>
   </aside>;
 }
 
 function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
-  const [market, setMarket] = useState<Market>(marketFromUrl);
-  const [view, setView] = useState<ViewName>(viewFromUrl);
-  const [symbol, setSymbol] = useState(() => marketFromUrl() === "crypto" ? "BTCUSDT" : "NVDA");
+  const initialWorkspace = workspaceFromSearch(window.location.search);
+  const [workspace, setWorkspace] = useState<WorkspaceId>(initialWorkspace);
+  const [view, setView] = useState<ViewName>(() => viewFromSearch(window.location.search, initialWorkspace));
+  const [symbol, setSymbol] = useState(() => symbolFromSearch(window.location.search, initialWorkspace));
   const [search, setSearch] = useState("");
   const [data, setData] = useState<DomainData>(emptyDomainData);
   const [loading, setLoading] = useState(true);
@@ -556,13 +508,30 @@ function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState<Json[]>([]);
   const [streamStatus, setStreamStatus] = useState<"connecting" | "connected" | "offline">("connecting");
+  const [refreshNonce, setRefreshNonce] = useState(0);
+  const [language, setLanguage] = useState<UiLanguage>(() => storedPreference<UiLanguage>("kquant-unified:language", "zh"));
+  const [theme, setTheme] = useState<UiTheme>(() => storedPreference<UiTheme>("kquant-unified:theme", "dark"));
+  const market: Market = workspace === "crypto" ? "crypto" : "stocks";
+  const t = (key: MessageKey) => translate(language, key);
+  const actionLabel = (value: unknown) => actionText(value, language);
+  const statusLabel = (value: unknown) => statusText(value, language);
 
-  const loadMarket = async (nextMarket: Market, nextSymbol: string) => {
+  useEffect(() => {
+    document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+    document.documentElement.dataset.theme = theme;
+    try {
+      window.localStorage.setItem("kquant-unified:language", language);
+      window.localStorage.setItem("kquant-unified:theme", theme);
+    } catch {
+      // Preference persistence is optional in strict browser privacy contexts.
+    }
+  }, [language, theme]);
+
+  const loadWorkspace = async (nextWorkspace: WorkspaceId, nextSymbol: string, nextView: ViewName, signal: AbortSignal) => {
     setLoading(true);
     setMessage("");
     const encoded = encodeURIComponent(nextSymbol);
-    setData(emptyDomainData());
-    const calls: Record<keyof DomainData, string> = nextMarket === "stocks" ? {
+    const stockCalls: Record<keyof DomainData, string> = {
       health: "/api/stocks/health",
       market: "/api/stocks/market-data/status",
       opportunities: "/api/stocks/signals/latest?source=live&universe=default&profile=swing_long_v1",
@@ -581,7 +550,8 @@ function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
       simulation: "/api/stocks/quant/stocks/validation/latest",
       evaluations: "/api/stocks/ai-review/status",
       holders: "/api/stocks/health",
-    } : {
+    };
+    const cryptoCalls: Record<keyof DomainData, string> = {
       health: "/api/crypto/health",
       market: "/api/crypto/providers/status",
       opportunities: "/api/crypto/instructions/current",
@@ -601,17 +571,45 @@ function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
       evaluations: "/api/crypto/evaluations/latest",
       holders: `/api/crypto/assets/${cryptoAssetPath(nextSymbol)}/holders/latest`,
     };
+    const keysByView: Record<ViewName, Array<keyof DomainData>> = {
+      today: ["health", "market", "opportunities", "context", "alerts", "detail", "runtime"],
+      opportunities: ["health", "market", "opportunities", "context", "discovery", "coverage"],
+      chart: ["health", "market", "detail", "candles", "runtime"],
+      plans: ["health", "market", "opportunities", "detail", "runtime", "safety", "validation", "notifications", "simulation", "evaluations"],
+      review: ["health", "market", "alerts", "detail", "journal", "research", "safety", "validation", "simulation", "notifications", "evaluations", "holders", "coverage"],
+      settings: ["health", "market", "runtime", "safety", "coverage", "notifications"],
+    };
+    let calls: Partial<Record<keyof DomainData, string>>;
+    if (nextWorkspace === "options") {
+      calls = {
+        health: "/api/stocks/health",
+        market: "/api/options/status",
+        alerts: "/api/stocks/alerts",
+        runtime: "/api/options/radar/status",
+        notifications: "/api/stocks/notifications/status",
+        ...(nextView === "chart" ? { candles: stockCalls.candles, detail: stockCalls.detail } : {}),
+      };
+    } else {
+      const source = nextWorkspace === "crypto" ? cryptoCalls : stockCalls;
+      calls = Object.fromEntries(keysByView[nextView].map((key) => [key, source[key]]));
+    }
     const entries = await Promise.all(Object.entries(calls).map(async ([key, path]) => {
-      try { return [key, await getJson<Json>(path)] as const; } catch (error) { return [key, { status: "unavailable", error: errorText(error) }] as const; }
+      try { return [key, await getJson<Json>(String(path), { signal })] as const; }
+      catch (error) { return [key, { status: "unavailable", error: errorText(error) }] as const; }
     }));
-    const next = Object.fromEntries(entries) as DomainData;
-    setData(next);
+    if (signal.aborted) return;
+    setData({ ...emptyDomainData(), ...Object.fromEntries(entries) });
     const failures = entries.filter(([, value]) => value.status === "unavailable");
-    if (failures.length === entries.length) setMessage("当前市场暂时没有可用数据，请检查对应后端。");
+    if (entries.length && failures.length === entries.length) setMessage(t("The current workspace has no usable data. Check its backend service."));
     setLoading(false);
   };
 
-  useEffect(() => { void loadMarket(market, symbol); }, [market, symbol]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadWorkspace(workspace, symbol, view, controller.signal);
+    return () => controller.abort();
+  }, [workspace, symbol, view, refreshNonce, language]);
+
   useEffect(() => {
     const source = new EventSource("/api/alerts/stream");
     const handleReady = () => setStreamStatus("connected");
@@ -620,11 +618,13 @@ function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
         const outer = JSON.parse((event as MessageEvent).data) as Json;
         const payload = typeof outer.payload === "string" ? JSON.parse(outer.payload) as Json : (outer.payload ?? outer);
         const domain = textValue(outer.domain, payload.market, payload.domain);
-        const row = { ...payload, market: domain };
+        const alertWorkspace = String(payload.event_type ?? payload.type ?? "").includes("option") || payload.opportunity_id ? "options" : domain;
+        const row = { ...payload, market: domain, workspace: alertWorkspace };
         const key = textValue(row.id, row.alert_id, row.notification_id, row.event_id, JSON.stringify(row).slice(0, 80));
         setLiveAlerts((current) => [row, ...current.filter((item) => textValue(item.id, item.alert_id, item.notification_id, item.event_id, JSON.stringify(item).slice(0, 80)) !== key)].slice(0, 50));
+        if (alertWorkspace === workspace) setRefreshNonce((value) => value + 1);
       } catch {
-        // A malformed upstream event must not break the unified workspace stream.
+        // One malformed upstream event must not break the unified alert stream.
       }
     };
     const handleError = () => setStreamStatus("offline");
@@ -637,56 +637,75 @@ function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
       source.removeEventListener("error", handleError);
       source.close();
     };
-  }, []);
+  }, [workspace]);
+
   useEffect(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("market", market);
-    url.searchParams.set("view", view);
-    window.history.replaceState({}, "", url);
-  }, [market, view]);
+    window.history.replaceState({}, "", canonicalWorkspaceUrl(window.location.href, workspace, view, symbol));
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const nextWorkspace = workspaceFromSearch(window.location.search);
+      setWorkspace(nextWorkspace);
+      setView(viewFromSearch(window.location.search, nextWorkspace));
+      setSymbol(symbolFromSearch(window.location.search, nextWorkspace));
+      setMobileNavOpen(false);
+      setResearchOpen(false);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const rows = useMemo(() => {
     const keys = market === "stocks" ? ["signals", "items", "daily_candidates", "buy_setups", "watch", "rows"] : ["items", "instructions", "evaluations", "rolls"];
     return extractRows(data.opportunities, keys);
   }, [data.opportunities, market]);
   const alertRows = useMemo(() => {
-    const stored: Json[] = extractRows(data.alerts, ["items", "alerts", "events"]).map((row): Json => ({ ...row, market }));
-    const current: Json[] = liveAlerts.filter((row): row is Json => !row.market || String(row.market).toLowerCase() === market);
+    const stored: Json[] = extractRows(data.alerts, ["items", "alerts", "events"]).map((row): Json => ({ ...row, market, workspace: String(row.event_type ?? "").includes("option") ? "options" : market }));
+    const current = liveAlerts.filter((row) => String(row.workspace ?? row.market).toLowerCase() === workspace);
+    const relevantStored = stored.filter((row) => workspace === "options" ? row.workspace === "options" : row.workspace !== "options");
     const unique = new Map<string, Json>();
-    const merged: Json[] = [...current, ...stored];
-    for (const row of merged) {
+    for (const row of [...current, ...relevantStored]) {
       const key = textValue(row.id, row.alert_id, row.notification_id, row.event_id, JSON.stringify(row).slice(0, 80));
       if (!unique.has(key)) unique.set(key, row);
     }
     return [...unique.values()];
-  }, [data.alerts, liveAlerts, market]);
+  }, [data.alerts, liveAlerts, market, workspace]);
   const healthStatus = textValue(data.health.status, data.health.providers ? "available" : "unavailable");
-  const marketStatus = market === "stocks" ? statusLabel(textValue(data.market.status, data.market.source, data.market.freshness)) : statusLabel(textValue(data.context.regime, data.market.status));
+  const healthReady = ["available", "ok", "online", "healthy", "ready"].some((item) => healthStatus.toLowerCase().includes(item));
+  const marketStatus = workspace === "options"
+    ? statusLabel(textValue(data.runtime.opra_status, data.market.status, "PENDING"))
+    : market === "stocks"
+      ? statusLabel(textValue(data.market.status, data.market.source, data.market.freshness))
+      : statusLabel(textValue(data.context.regime, data.market.status));
 
-  const changeView = (nextView: ViewName) => { setView(nextView); setMobileNavOpen(false); };
-  const changeMarket = (nextMarket: Market) => {
-    if (nextMarket === market) return;
-    setMarket(nextMarket);
-    setSymbol(nextMarket === "stocks" ? "NVDA" : "BTCUSDT");
-    setView("today");
-    setLiveAlerts((current) => current.filter((row) => String(row.market).toLowerCase() === nextMarket));
+  const navigate = (nextWorkspace: WorkspaceId, nextView: ViewName, nextSymbol: string) => {
+    window.history.pushState({}, "", canonicalWorkspaceUrl(window.location.href, nextWorkspace, nextView, nextSymbol));
+    setWorkspace(nextWorkspace);
+    setView(nextView);
+    setSymbol(nextSymbol);
+  };
+  const changeView = (nextView: ViewName) => { navigate(workspace, nextView, symbol); setMobileNavOpen(false); };
+  const changeWorkspace = (nextWorkspace: WorkspaceId) => {
+    if (nextWorkspace === workspace) return;
+    setResearchOpen(false);
+    navigate(nextWorkspace, nextWorkspace === "options" ? "opportunities" : "today", DEFAULT_SYMBOL[nextWorkspace]);
   };
   const selectSymbol = (next: string) => {
     const normalized = next.trim().toUpperCase();
     if (!normalized) return;
-    setSymbol(normalized);
-    setView("chart");
+    navigate(workspace, "chart", normalized);
   };
+  const changeSymbolOnly = (next: string) => navigate(workspace, view, next.trim().toUpperCase());
   const submitSearch = (event: FormEvent) => { event.preventDefault(); selectSymbol(search); setSearch(""); };
   const onSearchKey = (event: KeyboardEvent<HTMLInputElement>) => { if (event.key === "Enter") { event.preventDefault(); selectSymbol(search); setSearch(""); } };
   const submitResearch = async (question: string) => {
-    if (market === "crypto") return "Crypto 研究栏当前使用市场状态、流动性、安全和最终审核结果作为上下文；请在计划页查看完整证据。";
-    const response = await getJson<Json>("/api/stocks/research-chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, profile: "tactical_1w_v1", question, language: "zh" }) });
-    return textValue(response.answer, response.message, response.summary, "研究服务暂时没有返回内容。");
+    if (market === "crypto") return language === "zh" ? "Crypto 研究栏使用市场状态、流动性、安全和最终审核结果作为上下文；完整证据位于复盘页。" : "Crypto research uses market regime, liquidity, safety, and final evaluation as context. Full evidence is available in Review.";
+    const response = await getJson<Json>("/api/stocks/research-chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, profile: "tactical_1w_v1", question, language: language === "zh" ? "zh" : "en" }) });
+    return textValue(response.answer, response.message, response.summary, language === "zh" ? "研究服务暂时没有返回内容。" : "The research service returned no content.");
   };
 
   const researchKey = `${market}:${symbol}`;
-
   const acknowledgeAlert = async (row: Json) => {
     const id = textValue(row.id, row.alert_id, row.notification_id, row.event_id);
     if (id === "-") return;
@@ -694,120 +713,162 @@ function Workspace({ onLogout }: { onLogout: () => Promise<void> }) {
     try {
       await getJson<Json>(path, { method: "POST" });
       setLiveAlerts((current) => current.map((item) => textValue(item.id, item.alert_id, item.notification_id, item.event_id) === id ? { ...item, acknowledged_at: new Date().toISOString(), status: "acknowledged" } : item));
-      setData((current) => ({ ...current, alerts: { ...current.alerts, items: extractRows(current.alerts, ["items", "alerts", "events"]).map((item) => textValue(item.id, item.alert_id, item.notification_id, item.event_id) === id ? { ...item, acknowledged_at: new Date().toISOString(), status: "acknowledged" } : item) } }));
     } catch (error) {
-      setMessage(errorText(error));
+      setMessage(errorText(error, language));
     }
   };
 
-  return <div className={`workspace-shell ${researchOpen ? "research-open" : ""}`}>
+  const optionChart = <section className="work-surface chart-surface"><PriceChart payload={data.candles} market="stocks" symbol={symbol} /></section>;
+  const viewTitle = view === "settings" ? t("Settings") : t((VIEWS.find((item) => item.id === view) ?? VIEWS[0]).label);
+  const optionRealtimeReady = String(data.runtime.opra_status ?? data.market.opra_status).toLowerCase() === "available";
+  const serviceLabel = workspace === "options" && !optionRealtimeReady ? t("Option data limited") : healthReady ? t("Service ready") : t("Connecting");
+  const serviceTone = workspace === "options" && !optionRealtimeReady ? "caution" : statusTone(healthStatus);
+  return <I18nProvider language={language}><div className={`workspace-shell ${researchOpen ? "research-open" : ""}`}>
     <header className="workspace-topbar">
-      <div className="brand-lockup"><div className="brand-mark">KQ</div><div><strong>KQUANT</strong><span>统一研究工作台</span></div></div>
-      <form className="global-search" onSubmit={submitSearch}><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={onSearchKey} placeholder={market === "stocks" ? "搜索股票、主题或代码" : "搜索 BTC、ETH、SOL 或代币"} aria-label="搜索标的" /><kbd>Enter</kbd></form>
-      <div className="topbar-actions"><div className="market-switch" role="tablist" aria-label="市场切换"><button className={market === "stocks" ? "active" : ""} onClick={() => changeMarket("stocks")} type="button">股票</button><button className={market === "crypto" ? "active" : ""} onClick={() => changeMarket("crypto")} type="button">Crypto</button></div><StatusChip label={healthStatus === "available" || healthStatus === "ok" ? "服务正常" : "待连接"} tone={statusTone(healthStatus)} /><button className="icon-button alert-button" onClick={() => changeView("journal")} title="打开预警与日志"><Bell size={17} />{alertRows.length ? <b>{Math.min(alertRows.length, 99)}</b> : null}</button><button className="icon-button" onClick={() => setResearchOpen((value) => !value)} title="打开深度研究"><PanelRight size={17} /></button><button className="icon-button desktop-only" onClick={() => void onLogout()} title="退出登录"><LogOut size={17} /></button><button className="icon-button mobile-menu" onClick={() => setMobileNavOpen((value) => !value)} title="打开导航"><Menu size={18} /></button></div>
+      <div className="brand-lockup"><div className="brand-mark">KQ</div><div><strong>KQUANT</strong><span>{t("Unified research workspace")}</span></div></div>
+      <form className="global-search" onSubmit={submitSearch}><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={onSearchKey} placeholder={workspaceSearchPlaceholder(workspace, language)} aria-label={t("Search this workspace")} /><kbd>Enter</kbd></form>
+      <div className="topbar-actions"><div className="market-switch" role="tablist" aria-label={t("Switch workspace")}>{(["stocks", "options", "crypto"] as WorkspaceId[]).map((item) => <button className={workspace === item ? "active" : ""} onClick={() => changeWorkspace(item)} type="button" key={item}>{workspaceUiLabel(item, language)}</button>)}</div><StatusChip label={serviceLabel} tone={serviceTone} /><button className="icon-button alert-button" onClick={() => changeView("review")} title={t("Open alerts and review")}><Bell size={17} />{alertRows.length ? <b>{Math.min(alertRows.length, 99)}</b> : null}</button>{workspace !== "options" ? <button className="icon-button research-toggle" onClick={() => setResearchOpen((value) => !value)} title={t("Open research")}><PanelRight size={17} /></button> : null}<button className="icon-button desktop-only" onClick={() => void onLogout()} title={t("Sign out")}><LogOut size={17} /></button><button className="icon-button mobile-menu" onClick={() => setMobileNavOpen((value) => !value)} title={t("Open navigation")}><Menu size={18} /></button></div>
     </header>
     <div className="workspace-layout">
-      <aside className={`workspace-nav ${mobileNavOpen ? "open" : ""}`}><div className="nav-market-label"><span>{market === "stocks" ? "美股" : "Crypto"}</span><StatusChip label={marketStatus} tone={statusTone(marketStatus)} /></div><nav>{VIEWS.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => changeView(item.id)}><Icon size={17} /><span>{item.label}</span>{item.id === "journal" && alertRows.length ? <b>{alertRows.length}</b> : null}</button>; })}</nav><div className="nav-footer"><button onClick={() => setResearchOpen(true)}><Sparkles size={16} /><span>深度研究</span></button><button onClick={() => changeView("journal")}><Settings size={16} /><span>系统状态</span></button><div className="boundary-note"><ShieldCheck size={15} /><span>只读研究</span></div></div></aside>
-      <main className="workspace-content"><div className="content-head"><div><span className="eyebrow">{market === "stocks" ? "US EQUITIES" : "DIGITAL ASSETS"}</span><h1>{VIEWS.find((item) => item.id === view)?.label}</h1></div><div className="content-head-right"><span className={`stream-indicator ${streamStatus}`} title="统一预警流状态"><span className="status-dot" />{streamStatus === "connected" ? "预警在线" : streamStatus === "connecting" ? "连接预警" : "预警离线"}</span><span className="selected-symbol">{symbol}</span><button className="refresh-button" onClick={() => void loadMarket(market, symbol)}><RefreshCw size={15} />刷新</button></div></div>{message ? <div className="inline-notice"><AlertTriangle size={16} /><span>{message}</span></div> : null}{loading ? <LoadingLine /> : null}{view === "today" ? <TodayView market={market} data={data} rows={rows} alerts={alertRows} symbol={symbol} onSelect={selectSymbol} /> : null}{view === "discover" ? <DiscoverView market={market} data={data} rows={rows} onSelect={selectSymbol} /> : null}{view === "chart" ? <ChartView market={market} data={data} symbol={symbol} /> : null}{view === "plan" ? <PlanView market={market} data={data} rows={rows} symbol={symbol} /> : null}{view === "research" ? <ResearchView market={market} data={data} symbol={symbol} onOpen={() => setResearchOpen(true)} /> : null}{view === "journal" ? <JournalView market={market} data={data} alerts={alertRows} onAcknowledge={acknowledgeAlert} /> : null}</main>
+      <aside className={`workspace-nav ${mobileNavOpen ? "open" : ""}`}><div className="nav-market-label"><span>{workspaceUiLabel(workspace, language)}</span><StatusChip label={marketStatus} tone={statusTone(marketStatus)} /></div><nav>{VIEWS.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => changeView(item.id)}><Icon size={17} /><span>{t(item.label)}</span>{item.id === "review" && alertRows.length ? <b>{alertRows.length}</b> : null}</button>; })}</nav><div className="nav-footer">{workspace !== "options" ? <button onClick={() => setResearchOpen(true)}><Sparkles size={16} /><span>{t("Research")}</span></button> : null}<button className={view === "settings" ? "active" : ""} onClick={() => changeView("settings")}><Settings size={16} /><span>{t("Settings")}</span></button><div className="boundary-note"><ShieldCheck size={15} /><span>{t("Research and manual review")}</span></div></div></aside>
+      <main className="workspace-content"><div className="content-head"><div><span className="content-context">{workspaceUiLabel(workspace, language)} · {symbol}</span><h1>{viewTitle}</h1></div><div className="content-head-right"><span className={`stream-indicator ${streamStatus}`} title={t("Unified alert stream")}><span className="status-dot" />{streamStatus === "connected" ? t("Alerts online") : streamStatus === "connecting" ? t("Connecting alerts") : t("Alerts offline")}</span><button className="refresh-button" onClick={() => setRefreshNonce((value) => value + 1)}><RefreshCw size={15} />{t("Refresh")}</button></div></div>{message ? <div className="inline-notice"><AlertTriangle size={16} /><span>{message}</span></div> : null}{loading && workspace !== "options" ? <LoadingLine /> : null}{workspace === "options" ? <OptionsWorkspace view={view} symbol={symbol} refreshNonce={refreshNonce} chart={optionChart} onSymbolChange={changeSymbolOnly} language={language} theme={theme} onLanguageChange={setLanguage} onThemeChange={setTheme} /> : <>{view === "today" ? <TodayView market={market} data={data} rows={rows} alerts={alertRows} symbol={symbol} onSelect={selectSymbol} /> : null}{view === "opportunities" ? <DiscoverView market={market} data={data} rows={rows} onSelect={selectSymbol} /> : null}{view === "chart" ? <ChartView market={market} data={data} symbol={symbol} /> : null}{view === "plans" ? <PlanView market={market} data={data} rows={rows} symbol={symbol} /> : null}{view === "review" ? <ReviewView market={market} data={data} symbol={symbol} alerts={alertRows} onOpen={() => setResearchOpen(true)} onAcknowledge={acknowledgeAlert} /> : null}{view === "settings" ? <SettingsView market={market} data={data} language={language} theme={theme} onLanguageChange={setLanguage} onThemeChange={setTheme} /> : null}</>}</main>
     </div>
-    {researchOpen ? <ResearchDrawer key={researchKey} market={market} symbol={symbol} messages={researchMessagesByKey[researchKey] ?? []} onMessagesChange={(update) => setResearchMessagesByKey((current) => ({ ...current, [researchKey]: update(current[researchKey] ?? []) }))} onClose={() => setResearchOpen(false)} onSubmit={submitResearch} /> : null}
-  </div>;
+    {researchOpen && workspace !== "options" ? <ResearchDrawer key={researchKey} market={market} symbol={symbol} messages={researchMessagesByKey[researchKey] ?? []} onMessagesChange={(update) => setResearchMessagesByKey((current) => ({ ...current, [researchKey]: update(current[researchKey] ?? []) }))} onClose={() => setResearchOpen(false)} onSubmit={submitResearch} /> : null}
+  </div></I18nProvider>;
 }
 
 function TodayView({ market, data, rows, alerts, symbol, onSelect }: { market: Market; data: DomainData; rows: Json[]; alerts: Json[]; symbol: string; onSelect: (symbol: string) => void }) {
+  const { t, actionLabel, statusLabel, localizedNumber } = useWorkspaceI18n();
   const detail = data.detail;
   const decision = textValue(detail.action, detail.decision, detail.stage, detail.strategy_stage);
   const price = numberValue(detail.price, detail.last, detail.features?.close, detail.quote?.last, detail.last_price);
    return <>
-     <section className="decision-band"><div className="decision-copy"><span className="eyebrow">当前标的 · {symbol}</span><h2>{textValue(detail.company_name, detail.name, symbol)}</h2><p>{market === "stocks" ? "先看结构，再看数据是否允许人工复核。" : "先看市场状态、流动性和安全，再看是否进入模拟观察。"}</p><div className="decision-tags"><StatusChip label={actionLabel(decision)} tone={statusTone(decision)} /><StatusChip label={statusLabel(textValue(detail.data_status?.source, detail.source_status, market === "stocks" ? "Longbridge" : "CEX 数据"))} tone="info" /><StatusChip label={statusLabel(textValue(detail.data_status?.freshness, detail.trust, "等待更新"))} tone={statusTone(detail.data_status?.freshness ?? detail.trust)} /></div></div><div className="decision-number"><span>当前结论</span><strong>{actionLabel(decision)}</strong><small>{price === null ? "价格待更新" : formatNumber(price, 4)}</small></div></section>
-     <MetricStrip items={market === "stocks" ? [{ label: "价格", value: price === null ? "-" : formatNumber(price) }, { label: "评分", value: formatNumber(detail.score, 1) }, { label: "数据状态", value: textValue(detail.data_status?.freshness, "待确认") }, { label: "入场条件", value: textValue(detail.entry_zone, detail.entry, "待复核") }] : [{ label: "价格", value: price === null ? "-" : formatNumber(price, 4) }, { label: "市场状态", value: statusLabel(textValue(data.context.regime, "待确认")) }, { label: "审核结果", value: actionLabel(textValue(detail.evaluation_status, detail.decision, "等待数据")) }, { label: "预警", value: String(alerts.length) }]} />
-    <div className="two-column"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">优先查看</span><h3>{market === "stocks" ? "今天的股票机会" : "当前 Crypto 机会"}</h3></div><button className="text-button" onClick={() => onSelect(symbol)}>打开图表 <ChevronRight size={14} /></button></div><OpportunityTable market={market} rows={rows} onSelect={onSelect} /></section><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">判断依据</span><h3>为什么是这个结论</h3></div><LineChart size={18} className="surface-icon" /></div><EvidenceList detail={detail} market={market} /><div className="next-step"><span>下一步</span><strong>{market === "stocks" ? "确认 Longbridge 行情和入场失效条件" : "确认流动性、安全快照和最终审核状态"}</strong></div></section></div>
+     <section className="decision-band"><div className="decision-copy"><span className="eyebrow">{t("Current asset")} · {symbol}</span><h2>{textValue(detail.company_name, detail.name, symbol)}</h2><p>{market === "stocks" ? t("Review structure first, then confirm whether the data permits manual review.") : t("Review market regime, liquidity, and safety before simulation observation.")}</p><div className="decision-tags"><StatusChip label={actionLabel(decision)} tone={statusTone(decision)} /><StatusChip label={statusLabel(textValue(detail.data_status?.source, detail.source_status, market === "stocks" ? "Longbridge" : "CEX_DATA"))} tone="info" /><StatusChip label={statusLabel(textValue(detail.data_status?.freshness, detail.trust, "PENDING"))} tone={statusTone(detail.data_status?.freshness ?? detail.trust)} /></div></div><div className="decision-number"><span>{t("Current decision")}</span><strong>{actionLabel(decision)}</strong><small>{price === null ? t("Price pending") : localizedNumber(price, 4)}</small></div></section>
+     <MetricStrip items={market === "stocks" ? [{ label: t("Price"), value: price === null ? "-" : localizedNumber(price) }, { label: t("Score"), value: localizedNumber(detail.score, 1) }, { label: t("Data status"), value: statusLabel(textValue(detail.data_status?.freshness, "PENDING")) }, { label: t("Entry condition"), value: textValue(detail.entry_zone, detail.entry, actionLabel("WAIT")) }] : [{ label: t("Price"), value: price === null ? "-" : localizedNumber(price, 4) }, { label: t("Market regime"), value: statusLabel(textValue(data.context.regime, "PENDING")) }, { label: t("Evaluation"), value: actionLabel(textValue(detail.evaluation_status, detail.decision, "WAIT")) }, { label: t("Alerts"), value: String(alerts.length) }]} />
+    <div className="two-column"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Priority")}</span><h3>{market === "stocks" ? t("Today's stock opportunities") : t("Current Crypto opportunities")}</h3></div><button className="text-button" onClick={() => onSelect(symbol)}>{t("Open chart")} <ChevronRight size={14} /></button></div><OpportunityTable market={market} rows={rows} onSelect={onSelect} /></section><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Rationale")}</span><h3>{t("Why this decision")}</h3></div><LineChart size={18} className="surface-icon" /></div><EvidenceList detail={detail} market={market} /><div className="next-step"><span>{t("Next step")}</span><strong>{market === "stocks" ? t("Confirm Longbridge data and entry invalidation conditions") : t("Confirm liquidity, safety snapshot, and final evaluation")}</strong></div></section></div>
   </>;
 }
 
 function DiscoverView({ market, data, rows, onSelect }: { market: Market; data: DomainData; rows: Json[]; onSelect: (symbol: string) => void }) {
+  const { t, actionLabel } = useWorkspaceI18n();
   const contextRows = extractRows(data.context, ["items", "themes", "ranking", "members", "providers"]);
-  return <div className="stack"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">发现</span><h2>{market === "stocks" ? "股票池与主题" : "CEX、DEX 与 MEME"}</h2><p className="surface-lede">按结论、数据质量和更新时间筛选，候选不会绕过最终审核。</p></div><StatusChip label={market === "stocks" ? "Longbridge" : "公开行情"} tone="info" /></div><OpportunityTable market={market} rows={rows} onSelect={onSelect} /></section><section className="work-surface compact-surface"><div className="surface-head"><div><span className="eyebrow">环境</span><h3>{market === "stocks" ? "主题轮动" : "市场状态"}</h3></div><BarChart3 size={18} className="surface-icon" /></div>{contextRows.length ? <div className="rank-list">{contextRows.slice(0, 8).map((row, index) => <div className="rank-row" key={`${textValue(row.symbol, row.name, row.id)}-${index}`}><span className="rank-number">{String(index + 1).padStart(2, "0")}</span><strong>{textValue(row.name, row.symbol, row.theme, row.regime)}</strong><span>{actionLabel(textValue(row.status, row.action, row.direction))}</span><b>{formatNumber(row.score, 1)}</b></div>)}</div> : <EmptyState title="暂无环境快照" detail="运行一次数据采集后，这里会显示市场背景。" />}<ExtendedDataPanel market={market} data={data} /></section><DiscoveryDetailPanel market={market} data={data} /></div>;
+  return <div className="stack"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Discovery")}</span><h2>{market === "stocks" ? t("Stock universe and themes") : t("CEX, DEX, and MEME")}</h2><p className="surface-lede">{t("Filter by decision, data quality, and update time. Candidates cannot bypass final evaluation.")}</p></div><StatusChip label={market === "stocks" ? "Longbridge" : t("Public market data")} tone="info" /></div><OpportunityTable market={market} rows={rows} onSelect={onSelect} /></section><section className="work-surface compact-surface"><div className="surface-head"><div><span className="eyebrow">{t("Environment")}</span><h3>{market === "stocks" ? t("Theme rotation") : t("Market regime")}</h3></div><BarChart3 size={18} className="surface-icon" /></div>{contextRows.length ? <div className="rank-list">{contextRows.slice(0, 8).map((row, index) => <div className="rank-row" key={`${textValue(row.symbol, row.name, row.id)}-${index}`}><span className="rank-number">{String(index + 1).padStart(2, "0")}</span><strong>{textValue(row.name, row.symbol, row.theme, row.regime)}</strong><span>{actionLabel(textValue(row.status, row.action, row.direction))}</span><b>{formatNumber(row.score, 1)}</b></div>)}</div> : <EmptyState title={t("No environment snapshot")} detail={t("Run data collection to populate the market context.")} />}<ExtendedDataPanel market={market} data={data} /></section><DiscoveryDetailPanel market={market} data={data} /></div>;
 }
 
 function ChartView({ market, data, symbol }: { market: Market; data: DomainData; symbol: string }) {
-  return <div className="stack"><section className="work-surface chart-surface"><div className="surface-head"><div><span className="eyebrow">图表</span><h2>{symbol} 价格走势</h2><p className="surface-lede">只显示已收盘数据；形成中的行情不会直接改变研究结论。</p></div><div className="chart-legend"><span><i className="legend-line blue" />EMA20</span><span><i className="legend-line amber" />EMA50</span><span><i className="legend-line teal" />EMA200</span></div></div><PriceChart payload={data.candles} market={market} symbol={symbol} /></section><section className="work-surface compact-surface"><div className="surface-head"><div><span className="eyebrow">数据来源</span><h3>当前数据状态</h3></div><Activity size={18} className="surface-icon" /></div><MetricStrip items={[{ label: "来源", value: textValue(data.detail.source, data.detail.data_status?.source, market === "stocks" ? "Longbridge" : "CEX") }, { label: "状态", value: textValue(data.detail.status, data.market.status, "待确认") }, { label: "更新时间", value: textValue(data.detail.as_of_time, data.detail.updated_at, "-") }, { label: "可信度", value: textValue(data.detail.trust, data.detail.data_status?.freshness, "待确认") }]} /><ExtendedDataPanel market={market} data={data} /></section></div>;
+  const { t, statusLabel } = useWorkspaceI18n();
+  return <div className="stack"><section className="work-surface chart-surface"><div className="surface-head"><div><span className="eyebrow">{t("Chart")}</span><h2>{symbol} {t("Price action")}</h2><p className="surface-lede">{t("Only closed data is shown; forming bars do not directly change research decisions.")}</p></div><div className="chart-legend"><span><i className="legend-line blue" />EMA20</span><span><i className="legend-line amber" />EMA50</span><span><i className="legend-line teal" />EMA200</span></div></div><PriceChart payload={data.candles} market={market} symbol={symbol} /></section><section className="work-surface compact-surface"><div className="surface-head"><div><span className="eyebrow">{t("Data source")}</span><h3>{t("Current data status")}</h3></div><Activity size={18} className="surface-icon" /></div><MetricStrip items={[{ label: t("Source status"), value: statusLabel(textValue(data.detail.source, data.detail.data_status?.source, market === "stocks" ? "Longbridge" : "CEX")) }, { label: t("Status"), value: statusLabel(textValue(data.detail.status, data.market.status, "PENDING")) }, { label: t("Updated"), value: textValue(data.detail.as_of_time, data.detail.updated_at, "-") }, { label: t("Trust"), value: statusLabel(textValue(data.detail.trust, data.detail.data_status?.freshness, "PENDING")) }]} /><ExtendedDataPanel market={market} data={data} /></section></div>;
 }
 
-function factorLabel(value: unknown): string {
+function factorLabel(value: unknown, language: UiLanguage): string {
   const raw = String(value ?? "").trim();
-  const labels: Record<string, string> = {
-    ema8_9_reclaim: "EMA8/9 转强",
-    ema20_slope: "EMA20 斜率",
-    relative_strength: "相对强弱",
-    relative_strength_acceleration: "相对强弱加速度",
-    relative_volume: "相对成交量",
-    atr_compression: "波动收缩",
-    breakout_distance: "突破距离",
-    price_above_ema20: "价格站上 EMA20",
-    price_above_ema50: "价格站上 EMA50",
-    price_above_ema200: "价格站上 EMA200",
+  const labels: Record<string, [string, string]> = {
+    ema8_9_reclaim: ["EMA8/9 转强", "EMA8/9 reclaim"],
+    ema20_slope: ["EMA20 斜率", "EMA20 slope"],
+    relative_strength: ["相对强弱", "Relative strength"],
+    relative_strength_acceleration: ["相对强弱加速度", "Relative-strength acceleration"],
+    relative_volume: ["相对成交量", "Relative volume"],
+    atr_compression: ["波动收缩", "ATR compression"],
+    breakout_distance: ["突破距离", "Breakout distance"],
+    price_above_ema20: ["价格站上 EMA20", "Price above EMA20"],
+    price_above_ema50: ["价格站上 EMA50", "Price above EMA50"],
+    price_above_ema200: ["价格站上 EMA200", "Price above EMA200"],
   };
-  if (labels[raw]) return labels[raw];
-  return humanizeText(raw.replace(/[_-]+/g, " ")) || "已注册因素";
+  if (labels[raw]) return labels[raw][language === "zh" ? 0 : 1];
+  return backendText(raw.replace(/[_-]+/g, " "), language) || (language === "zh" ? "已注册因素" : "Registered factor");
 }
 
 function ExtendedDataPanel({ market, data }: { market: Market; data: DomainData }) {
+  const { language, t, statusLabel, humanizeText } = useWorkspaceI18n();
   if (market === "stocks") {
     const factorRows = extractRows(data.research, ["factors", "items", "contributions", "factor_snapshot"]).slice(0, 8);
     const early = data.validation;
     const runtime = data.runtime;
-    return <div className="extended-data"><div className="subsection-head"><span className="eyebrow">研究依据</span><span className="muted">已注册因素</span></div><div className="data-summary-grid"><div><span>结构阶段</span><strong>{statusLabel(textValue(early.strategy_stage, early.stage, early.status, "待确认"))}</strong></div><div><span>实时状态</span><strong>{statusLabel(textValue(runtime.trust, runtime.data_quality, runtime.provider_status, "待确认"))}</strong></div><div><span>数据时间</span><strong className="mono">{textValue(runtime.quote?.time, runtime.as_of_time, data.detail.as_of_time, "-").slice(0, 19)}</strong></div></div>{factorRows.length ? <div className="factor-list">{factorRows.map((row, index) => <div className="factor-row" key={`${textValue(row.id, row.factor_id, row.name, index)}`}><span>{factorLabel(textValue(row.label, row.factor_id, row.id, row.name))}</span><b>{formatNumber(row.contribution, 2)}</b><small>{statusLabel(textValue(row.status, row.missing, row.source, "已记录"))}</small></div>)}</div> : <EmptyState title="暂无因素快照" detail="分析完成后，这里会列出每个已注册因素及其贡献。" />}</div>;
+    return <div className="extended-data"><div className="subsection-head"><span className="eyebrow">{t("Research evidence")}</span><span className="muted">{t("Registered factors")}</span></div><div className="data-summary-grid"><div><span>{t("Structure stage")}</span><strong>{statusLabel(textValue(early.strategy_stage, early.stage, early.status, "PENDING"))}</strong></div><div><span>{t("Live status")}</span><strong>{statusLabel(textValue(runtime.trust, runtime.data_quality, runtime.provider_status, "PENDING"))}</strong></div><div><span>{t("Data time")}</span><strong className="mono">{textValue(runtime.quote?.time, runtime.as_of_time, data.detail.as_of_time, "-").slice(0, 19)}</strong></div></div>{factorRows.length ? <div className="factor-list">{factorRows.map((row, index) => <div className="factor-row" key={`${textValue(row.id, row.factor_id, row.name, index)}`}><span>{factorLabel(textValue(row.label, row.factor_id, row.id, row.name), language)}</span><b>{formatNumber(row.contribution, 2)}</b><small>{statusLabel(textValue(row.status, row.missing, row.source, "RECORDED"))}</small></div>)}</div> : <EmptyState title={t("No factor snapshot")} detail={t("Registered factors and their contributions appear after analysis.")} />}</div>;
   }
   const posterior = isRecord(data.research.item) && isRecord(data.research.item.posterior) ? data.research.item.posterior : {};
   const safetyRows = extractRows(data.safety, ["items", "snapshots"]).slice(0, 6);
   const holder = isRecord(data.holders.item) ? data.holders.item : data.holders;
   const coverage = data.coverage;
   const holderCount = numberValue(holder.holder_count, holder.holders, holder.count);
-  return <div className="extended-data"><div className="subsection-head"><span className="eyebrow">证据摘要</span><span className="muted">只读数据</span></div><div className="data-summary-grid"><div><span>市场状态</span><strong>{statusLabel(textValue(data.context.regime, data.context.status, "待确认"))}</strong></div><div><span>状态判断</span><strong>{statusLabel(textValue(posterior.most_likely_state, posterior.evidence_status, "等待采集"))}</strong></div><div><span>数据覆盖</span><strong>{textValue(coverage.asset_count, coverage.status, "待确认")}</strong></div><div><span>上涨概率</span><strong>{posterior.positive_return_probability == null ? "暂无" : formatPercent(posterior.positive_return_probability)}</strong></div><div><span>持有人结构</span><strong>{holderCount === null ? statusLabel(textValue(holder.status, "等待采集")) : compactValue(holderCount)}</strong></div></div>{safetyRows.length ? <div className="factor-list">{safetyRows.map((row, index) => <div className="factor-row" key={`${textValue(row.security_snapshot_id, row.asset_id, index)}`}><span>{textValue(row.asset_id, row.symbol, "代币")}</span><b>{statusLabel(textValue(row.status, row.risk_level, "待确认"))}</b><small>{humanizeText(textValue(row.reason, row.message, row.eval_allowed === false ? "安全条件未满足" : "安全快照已记录"))}</small></div>)}</div> : <EmptyState title="暂无安全快照" detail="安全数据未确认前，Crypto 只保留观察状态。" />}</div>;
+  return <div className="extended-data"><div className="subsection-head"><span className="eyebrow">{t("Evidence summary")}</span><span className="muted">{t("Read-only data")}</span></div><div className="data-summary-grid"><div><span>{t("Market regime")}</span><strong>{statusLabel(textValue(data.context.regime, data.context.status, "PENDING"))}</strong></div><div><span>{t("Regime estimate")}</span><strong>{statusLabel(textValue(posterior.most_likely_state, posterior.evidence_status, "NOT_COLLECTED"))}</strong></div><div><span>{t("Coverage")}</span><strong>{textValue(coverage.asset_count, coverage.status, t("Pending"))}</strong></div><div><span>{t("Positive return probability")}</span><strong>{posterior.positive_return_probability == null ? t("No data") : formatPercent(posterior.positive_return_probability)}</strong></div><div><span>{t("Holder structure")}</span><strong>{holderCount === null ? statusLabel(textValue(holder.status, "NOT_COLLECTED")) : compactValue(holderCount)}</strong></div></div>{safetyRows.length ? <div className="factor-list">{safetyRows.map((row, index) => <div className="factor-row" key={`${textValue(row.security_snapshot_id, row.asset_id, index)}`}><span>{textValue(row.asset_id, row.symbol, t("Token"))}</span><b>{statusLabel(textValue(row.status, row.risk_level, "PENDING"))}</b><small>{humanizeText(textValue(row.reason, row.message, row.eval_allowed === false ? t("Safety conditions are not met") : t("Safety snapshot recorded")))}</small></div>)}</div> : <EmptyState title={t("No safety snapshot")} detail={t("Crypto remains observation-only until safety data is confirmed.")} />}</div>;
 }
 
 function DiscoveryDetailPanel({ market, data }: { market: Market; data: DomainData }) {
+  const { t, statusLabel } = useWorkspaceI18n();
   if (market === "stocks") {
     const themes = extractRows(data.discovery, ["items", "themes", "ranking"]).slice(0, 8);
-    return <section className="work-surface"><div className="surface-head"><div><span className="eyebrow">主题与覆盖</span><h3>研究范围</h3></div><BarChart3 size={18} className="surface-icon" /></div>{themes.length ? <div className="rank-list">{themes.map((row, index) => <div className="rank-row" key={`${textValue(row.id, row.theme, row.name, index)}`}><span className="rank-number">{String(index + 1).padStart(2, "0")}</span><strong>{textValue(row.name, row.theme, row.symbol, "主题")}</strong><span>{statusLabel(textValue(row.status, row.data_status, "已记录"))}</span><b>{formatNumber(row.score, 1)}</b></div>)}</div> : <EmptyState title="暂无主题快照" detail="主题排名将在数据更新后显示。" />}</section>;
+    return <section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Themes and coverage")}</span><h3>{t("Research scope")}</h3></div><BarChart3 size={18} className="surface-icon" /></div>{themes.length ? <div className="rank-list">{themes.map((row, index) => <div className="rank-row" key={`${textValue(row.id, row.theme, row.name, index)}`}><span className="rank-number">{String(index + 1).padStart(2, "0")}</span><strong>{textValue(row.name, row.theme, row.symbol, t("Theme"))}</strong><span>{statusLabel(textValue(row.status, row.data_status, "RECORDED"))}</span><b>{formatNumber(row.score, 1)}</b></div>)}</div> : <EmptyState title={t("No theme snapshot")} detail={t("Theme ranking appears after data refresh.")} />}</section>;
   }
   const pools = extractRows(data.discovery, ["items", "pairs", "snapshots"]).slice(0, 8);
-  return <section className="work-surface"><div className="surface-head"><div><span className="eyebrow">池发现</span><h3>DEX / MEME 新池</h3></div><Radar size={18} className="surface-icon" /></div>{pools.length ? <div className="discovery-list">{pools.map((row, index) => <div className="discovery-row" key={`${textValue(row.snapshot_id, row.pair_address, row.asset_id, index)}`}><div><strong>{textValue(row.base_symbol, row.symbol, row.asset_id, "未知代币")}/{textValue(row.quote_symbol, "USDC")}</strong><small>{textValue(row.chain_id, row.chain, "未知链")} · {textValue(row.dex_id, row.dex, "未知平台")}</small></div><span>流动性 {compactValue(row.liquidity_usd)}</span><span>5m {compactValue(row.volume_5m_usd)}</span><StatusChip label={statusLabel(textValue(row.trust_status, row.status, "待确认"))} tone={statusTone(row.trust_status ?? row.status)} /></div>)}</div> : <EmptyState title="暂无新池快照" detail="启用公开 DEX 数据源后，这里会显示发现结果。" />}</section>;
+  return <section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Pool discovery")}</span><h3>{t("New DEX / MEME pools")}</h3></div><Radar size={18} className="surface-icon" /></div>{pools.length ? <div className="discovery-list">{pools.map((row, index) => <div className="discovery-row" key={`${textValue(row.snapshot_id, row.pair_address, row.asset_id, index)}`}><div><strong>{textValue(row.base_symbol, row.symbol, row.asset_id, t("Unknown token"))}/{textValue(row.quote_symbol, "USDC")}</strong><small>{textValue(row.chain_id, row.chain, t("Unknown chain"))} · {textValue(row.dex_id, row.dex, t("Unknown venue"))}</small></div><span>{t("Liquidity")} {compactValue(row.liquidity_usd)}</span><span>5m {compactValue(row.volume_5m_usd)}</span><StatusChip label={statusLabel(textValue(row.trust_status, row.status, "PENDING"))} tone={statusTone(row.trust_status ?? row.status)} /></div>)}</div> : <EmptyState title={t("No new pool snapshot")} detail={t("Enable a public DEX provider to display discoveries.")} />}</section>;
 }
 
 function PlanEvidencePanel({ market, data }: { market: Market; data: DomainData }) {
+  const { t, statusLabel } = useWorkspaceI18n();
   if (market === "stocks") {
     const readiness = data.safety;
     const validation = data.simulation;
-    return <div className="plan-audit"><MetricStrip items={[{ label: "交易资格", value: statusLabel(textValue(readiness.decision, readiness.status, "待确认")) }, { label: "历史验证", value: statusLabel(textValue(validation.status, validation.gate_status, "待确认")) }, { label: "实时状态", value: statusLabel(textValue(data.runtime.trust, data.runtime.data_quality, "待确认")) }, { label: "通知", value: statusLabel(textValue(data.notifications.status, data.notifications.enabled ? "available" : "disabled", "待确认")) }]} /></div>;
+    return <div className="plan-audit"><MetricStrip items={[{ label: t("Trade eligibility"), value: statusLabel(textValue(readiness.decision, readiness.status, "PENDING")) }, { label: t("Historical validation"), value: statusLabel(textValue(validation.status, validation.gate_status, "PENDING")) }, { label: t("Live status"), value: statusLabel(textValue(data.runtime.trust, data.runtime.data_quality, "PENDING")) }, { label: t("Notifications"), value: statusLabel(textValue(data.notifications.status, data.notifications.enabled ? "available" : "disabled", "PENDING")) }]} /></div>;
   }
   const posterior = isRecord(data.research.item) && isRecord(data.research.item.posterior) ? data.research.item.posterior : {};
   const horizons = isRecord(data.simulation.item) && isRecord(data.simulation.item.horizons) ? data.simulation.item.horizons : {};
   const horizon = isRecord(horizons["24h"]) ? horizons["24h"] : (isRecord(horizons["24H"]) ? horizons["24H"] : {});
   const evaluations = extractRows(data.evaluations, ["items", "evaluations"]).slice(0, 4);
-  return <div className="plan-audit"><MetricStrip items={[{ label: "最终审核", value: statusLabel(textValue(evaluations[0]?.decision, evaluations[0]?.evaluation_status, "等待审核")) }, { label: "市场状态", value: statusLabel(textValue(posterior.most_likely_state, data.context.regime, "待确认")) }, { label: "目标概率", value: horizon.p_target_before_stop == null ? "暂无" : formatPercent(horizon.p_target_before_stop) }, { label: "模拟状态", value: statusLabel(textValue(data.simulation.item?.status, data.simulation.status, "等待采集")) }]} /><div className="audit-note">Crypto 结果必须同时具备市场、流动性、安全和审核证据；证据缺失时只保留观察。</div></div>;
+  return <div className="plan-audit"><MetricStrip items={[{ label: t("Final evaluation"), value: statusLabel(textValue(evaluations[0]?.decision, evaluations[0]?.evaluation_status, "PENDING")) }, { label: t("Market regime"), value: statusLabel(textValue(posterior.most_likely_state, data.context.regime, "PENDING")) }, { label: t("Target probability"), value: horizon.p_target_before_stop == null ? t("No data") : formatPercent(horizon.p_target_before_stop) }, { label: t("Simulation status"), value: statusLabel(textValue(data.simulation.item?.status, data.simulation.status, "NOT_COLLECTED")) }]} /><div className="audit-note">{t("Crypto results require market, liquidity, safety, and evaluation evidence. Missing evidence remains observation-only.")}</div></div>;
 }
 
 function PlanView({ market, data, rows, symbol }: { market: Market; data: DomainData; rows: Json[]; symbol: string }) {
+  const { t, actionLabel, statusLabel, humanizeText } = useWorkspaceI18n();
   const selected = rows.find((row) => textValue(row.symbol, row.ticker, row.asset_id).toUpperCase().includes(symbol.replace("USDT", ""))) ?? data.detail;
   const blockers = extractRows(selected, ["blockers", "warnings", "reasons", "conditions"]);
-  return <div className="stack"><section className="decision-band plan-band"><div className="decision-copy"><span className="eyebrow">计划 · {symbol}</span><h2>{market === "stocks" ? "人工复核计划" : "模拟与观察计划"}</h2><p>{market === "stocks" ? "研究结论、价格区间和失效条件分开确认。" : "Crypto 计划必须经过最终审核；未通过时只保留观察。"}</p></div><StatusChip label={actionLabel(textValue(selected.action, selected.decision, selected.status))} tone={statusTone(selected.action ?? selected.decision ?? selected.status)} /></section><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">计划内容</span><h3>先确认这几项</h3></div><ShieldCheck size={18} className="surface-icon" /></div><div className="plan-grid">{[["结论", actionLabel(textValue(selected.action, selected.decision, selected.status))], ["入场", textValue(selected.entry_zone, selected.entry, "待补充")], ["止损", textValue(selected.stop_zone, selected.stop, "待补充")], ["目标", textValue(selected.target_zone, selected.target, "待补充")], ["有效期", textValue(selected.expires_at, selected.valid_until, "待补充")], ["审核", statusLabel(textValue(selected.evaluation_status, selected.evidence_grade, market === "stocks" ? "人工复核" : "等待最终审核"))]].map(([label, value]) => <div className="plan-field" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div><div className="plan-evidence"><span className="eyebrow">阻断与提醒</span>{blockers.length ? blockers.slice(0, 6).map((item, index) => <div className="evidence-row" key={index}><AlertTriangle size={14} /><span>{humanizeText(textValue(item.message, item.reason, item.code, item.label))}</span></div>) : <div className="evidence-row"><ShieldCheck size={14} /><span>暂无额外阻断；仍需结合当前数据状态人工确认。</span></div>}</div><PlanEvidencePanel market={market} data={data} /></section></div>;
+  const planFields = [
+    [t("Decision"), actionLabel(textValue(selected.action, selected.decision, selected.status))],
+    [t("Entry"), textValue(selected.entry_zone, selected.entry, t("To be completed"))],
+    [t("Stop"), textValue(selected.stop_zone, selected.stop, t("To be completed"))],
+    [t("Target"), textValue(selected.target_zone, selected.target, t("To be completed"))],
+    [t("Valid until"), textValue(selected.expires_at, selected.valid_until, t("To be completed"))],
+    [t("Review status"), statusLabel(textValue(selected.evaluation_status, selected.evidence_grade, market === "stocks" ? t("Manual review") : t("Awaiting final evaluation")))],
+  ];
+  return <div className="stack">
+    <section className="decision-band plan-band"><div className="decision-copy"><span className="eyebrow">{t("Plan")} · {symbol}</span><h2>{market === "stocks" ? t("Manual review plan") : t("Simulation and observation plan")}</h2><p>{market === "stocks" ? t("Review the conclusion, price levels, and invalidation conditions separately.") : t("Crypto plans require final evaluation; failed plans remain observation-only.")}</p></div><StatusChip label={actionLabel(textValue(selected.action, selected.decision, selected.status))} tone={statusTone(selected.action ?? selected.decision ?? selected.status)} /></section>
+    {market === "crypto" ? <CandidatePanel /> : null}
+    <section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Plan details")}</span><h3>{t("Confirm these items first")}</h3></div><ShieldCheck size={18} className="surface-icon" /></div><div className="plan-grid">{planFields.map(([label, value]) => <div className="plan-field" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div><div className="plan-evidence"><span className="eyebrow">{t("Blocks and reminders")}</span>{blockers.length ? blockers.slice(0, 6).map((item, index) => <div className="evidence-row" key={index}><AlertTriangle size={14} /><span>{humanizeText(textValue(item.message, item.reason, item.code, item.label))}</span></div>) : <div className="evidence-row"><ShieldCheck size={14} /><span>{t("No additional blockers; manually confirm the current data status.")}</span></div>}</div><PlanEvidencePanel market={market} data={data} /></section>
+  </div>;
 }
 
 function ResearchView({ market, data, symbol, onOpen }: { market: Market; data: DomainData; symbol: string; onOpen: () => void }) {
-  return <div className="stack"><section className="research-intro"><div><span className="eyebrow">研究</span><h2>{symbol} 的证据工作台</h2><p>{market === "stocks" ? "把趋势、量价、相对强弱和数据状态放在同一个复核上下文里。" : "把市场状态、流动性、安全和历史证据放在同一个复核上下文里。"}</p></div><button className="primary-button" onClick={onOpen}><PanelRight size={16} />打开深度研究</button></section><div className="two-column"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">确定性依据</span><h3>当前可解释因素</h3></div><LineChart size={18} className="surface-icon" /></div><EvidenceList detail={data.detail} market={market} /><ExtendedDataPanel market={market} data={data} /></section><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">数据与版本</span><h3>研究上下文</h3></div><FileText size={18} className="surface-icon" /></div><div className="context-list"><div><span>数据来源</span><strong>{statusLabel(textValue(data.detail.source, data.detail.data_status?.source, market === "stocks" ? "Longbridge" : "公开 CEX"))}</strong></div><div><span>市场状态</span><strong>{statusLabel(textValue(data.context.regime, data.market.status, "待确认"))}</strong></div><div><span>快照时间</span><strong className="mono">{textValue(data.detail.as_of_time, data.detail.generated_at, "-")}</strong></div><div><span>研究边界</span><strong>只读研究</strong></div></div><PlanEvidencePanel market={market} data={data} /></section></div></div>;
+  const { t, statusLabel } = useWorkspaceI18n();
+  return <div className="stack"><section className="research-intro"><div><span className="eyebrow">{t("Research")}</span><h2>{symbol} {t("Evidence workspace")}</h2><p>{market === "stocks" ? t("Review trend, volume, relative strength, and data status together.") : t("Review market regime, liquidity, safety, and historical evidence together.")}</p></div><button className="primary-button" onClick={onOpen}><PanelRight size={16} />{t("Open research")}</button></section><div className="two-column"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Deterministic evidence")}</span><h3>{t("Current explainable factors")}</h3></div><LineChart size={18} className="surface-icon" /></div><EvidenceList detail={data.detail} market={market} /><ExtendedDataPanel market={market} data={data} /></section><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Data and versions")}</span><h3>{t("Research context")}</h3></div><FileText size={18} className="surface-icon" /></div><div className="context-list"><div><span>{t("Data source")}</span><strong>{statusLabel(textValue(data.detail.source, data.detail.data_status?.source, market === "stocks" ? "Longbridge" : "PUBLIC_CEX"))}</strong></div><div><span>{t("Market regime")}</span><strong>{statusLabel(textValue(data.context.regime, data.market.status, "PENDING"))}</strong></div><div><span>{t("Snapshot time")}</span><strong className="mono">{textValue(data.detail.as_of_time, data.detail.generated_at, "-")}</strong></div><div><span>{t("Research boundary")}</span><strong>{t("Read-only research")}</strong></div></div><PlanEvidencePanel market={market} data={data} /></section></div></div>;
 }
 
 function JournalView({ market, data, alerts, onAcknowledge }: { market: Market; data: DomainData; alerts: Json[]; onAcknowledge: (row: Json) => Promise<void> }) {
+  const { t, statusLabel, humanizeText } = useWorkspaceI18n();
   const journalRows = extractRows(data.journal, ["items", "entries", "events", "ledger"]);
   const rows = journalRows.length ? journalRows : alerts;
-  return <div className="stack"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">日志与预警</span><h2>{market === "stocks" ? "股票复核记录" : "Crypto 审核与观察记录"}</h2><p className="surface-lede">这里保存状态变化和人工复核上下文，不把观察结果命名为实盘业绩。</p></div><Bell size={18} className="surface-icon" /></div>{rows.length ? <div className="event-list">{rows.slice(0, 20).map((row, index) => { const id = textValue(row.id, row.alert_id, row.notification_id, row.event_id); const alertId = textValue(row.alert_id, row.notification_id); const acknowledged = Boolean(row.acknowledged_at) || ["acknowledged", "read"].includes(String(row.status ?? "").toLowerCase()); return <div className="event-row" key={`${id}-${index}`}><div className="event-icon"><Bell size={14} /></div><div className="event-copy"><strong>{textValue(row.title, row.symbol, row.event_type, row.action)}</strong><span>{humanizeText(textValue(row.message, row.body, row.reason, row.note, "状态已记录"))}</span></div><time>{textValue(row.created_at, row.occurred_at, row.as_of_time).slice(0, 19)}</time><div className="event-actions"><StatusChip label={acknowledged ? "已确认" : statusLabel(textValue(row.severity, row.status, row.delivery_status))} tone={acknowledged ? "positive" : statusTone(row.severity ?? row.status)} />{!acknowledged && alertId !== "-" ? <button className="event-ack" type="button" onClick={() => void onAcknowledge(row)} title="确认这条预警">确认</button> : null}</div></div>; })}</div> : <EmptyState title="暂无日志记录" detail="新的预警、观察和人工复核会出现在这里。" />}</section><section className="work-surface compact-surface"><div className="surface-head"><div><span className="eyebrow">运行边界</span><h3>当前权限</h3></div><ShieldCheck size={18} className="surface-icon" /></div><MetricStrip items={[{ label: "行情读取", value: "允许" }, { label: "研究与模拟", value: "允许" }, { label: "预警流", value: statusLabel(textValue(data.runtime.status, data.notifications.status, "待确认")) }, { label: "账户、钱包、订单", value: "禁止", tone: "negative" }]} /></section></div>;
+  return <div className="stack"><section className="work-surface"><div className="surface-head"><div><span className="eyebrow">{t("Logs and alerts")}</span><h2>{market === "stocks" ? t("Stock review records") : t("Crypto evaluation and observation records")}</h2><p className="surface-lede">{t("Status changes and manual-review context are stored here; observations are not live performance.")}</p></div><Bell size={18} className="surface-icon" /></div>{rows.length ? <div className="event-list">{rows.slice(0, 20).map((row, index) => { const id = textValue(row.id, row.alert_id, row.notification_id, row.event_id); const alertId = textValue(row.alert_id, row.notification_id); const acknowledged = Boolean(row.acknowledged_at) || ["acknowledged", "read"].includes(String(row.status ?? "").toLowerCase()); return <div className="event-row" key={`${id}-${index}`}><div className="event-icon"><Bell size={14} /></div><div className="event-copy"><strong>{textValue(row.title, row.symbol, row.event_type, row.action)}</strong><span>{humanizeText(textValue(row.message, row.body, row.reason, row.note, "RECORDED"))}</span></div><time>{textValue(row.created_at, row.occurred_at, row.as_of_time).slice(0, 19)}</time><div className="event-actions"><StatusChip label={acknowledged ? t("Acknowledged") : statusLabel(textValue(row.severity, row.status, row.delivery_status))} tone={acknowledged ? "positive" : statusTone(row.severity ?? row.status)} />{!acknowledged && alertId !== "-" ? <button className="event-ack" type="button" onClick={() => void onAcknowledge(row)} title={t("Acknowledge this alert")}>{t("Acknowledge")}</button> : null}</div></div>; })}</div> : <EmptyState title={t("No log entries")} detail={t("New alerts, observations, and manual reviews appear here.")} />}</section><section className="work-surface compact-surface"><div className="surface-head"><div><span className="eyebrow">{t("Operating boundary")}</span><h3>{t("Current permissions")}</h3></div><ShieldCheck size={18} className="surface-icon" /></div><MetricStrip items={[{ label: t("Market data access"), value: t("Allowed") }, { label: t("Research and simulation"), value: t("Allowed") }, { label: t("Alert stream"), value: statusLabel(textValue(data.runtime.status, data.notifications.status, "PENDING")) }, { label: t("Accounts, wallets, and orders"), value: t("Blocked"), tone: "negative" }]} /></section></div>;
+}
+
+function ReviewView({ market, data, symbol, alerts, onOpen, onAcknowledge }: { market: Market; data: DomainData; symbol: string; alerts: Json[]; onOpen: () => void; onAcknowledge: (row: Json) => Promise<void> }) {
+  const { t } = useWorkspaceI18n();
+  const [section, setSection] = useState<"evidence" | "journal">("evidence");
+  return <div className="stack"><div className="section-switch" role="tablist" aria-label={t("Review content")}><button type="button" role="tab" aria-selected={section === "evidence"} className={section === "evidence" ? "active" : ""} onClick={() => setSection("evidence")}><LineChart size={15} />{t("Evidence")}</button><button type="button" role="tab" aria-selected={section === "journal"} className={section === "journal" ? "active" : ""} onClick={() => setSection("journal")}><BookOpen size={15} />{t("Logs and alerts")}{alerts.length ? <b>{alerts.length}</b> : null}</button></div>{section === "evidence" ? <ResearchView market={market} data={data} symbol={symbol} onOpen={onOpen} /> : <JournalView market={market} data={data} alerts={alerts} onAcknowledge={onAcknowledge} />}</div>;
+}
+
+function SettingsView({ market, data, language, theme, onLanguageChange, onThemeChange }: { market: Market; data: DomainData; language: UiLanguage; theme: UiTheme; onLanguageChange: (language: UiLanguage) => void; onThemeChange: (theme: UiTheme) => void }) {
+  const { t, statusLabel } = useWorkspaceI18n();
+  const providerRows = extractRows(data.market, ["providers", "items", "sources"]);
+  const providerStatus = textValue(data.market.status, data.health.status, "PENDING");
+  const coverageStatus = textValue(data.coverage.status, data.coverage.coverage_status, data.coverage.asset_count, "PENDING");
+  const notificationStatus = textValue(data.notifications.status, data.notifications.enabled ? "available" : "disabled", "PENDING");
+  return <div className="settings-layout"><section className="settings-section"><div className="surface-head"><div><span className="eyebrow">{t("Display preferences")}</span><h2>{t("Appearance")}</h2><p className="surface-lede">{t("Preferences stay in this browser and do not affect data, strategies, or risk controls.")}</p></div><Settings size={18} className="surface-icon" /></div><div className="settings-lines preference-lines"><div><div><span>{t("Language")}</span><small>{t("Navigation and unified workspace")}</small></div><div className="preference-control" role="group" aria-label={t("Language")}><button type="button" className={language === "zh" ? "active" : ""} onClick={() => onLanguageChange("zh")}><Languages size={14} />中文</button><button type="button" className={language === "en" ? "active" : ""} onClick={() => onLanguageChange("en")}>English</button></div></div><div><div><span>{t("Appearance")}</span><small>{t("Dark and light themes")}</small></div><div className="preference-control" role="group" aria-label={t("Appearance")}><button type="button" className={theme === "dark" ? "active" : ""} onClick={() => onThemeChange("dark")}><Moon size={14} />{t("Dark")}</button><button type="button" className={theme === "light" ? "active" : ""} onClick={() => onThemeChange("light")}><Sun size={14} />{t("Light")}</button></div></div></div><div className="surface-head settings-subhead"><div><span className="eyebrow">{t("Runtime")}</span><h3>{t("Data and notifications")}</h3><p className="surface-lede">{t("Daily pages show decisions; operational diagnostics stay here.")}</p></div></div><div className="settings-lines"><div><span>{t("Workspace")}</span><strong>{market === "stocks" ? t("US stock research") : t("Crypto research")}</strong></div><div><span>{t("Market data")}</span><StatusChip label={statusLabel(providerStatus)} tone={statusTone(providerStatus)} /></div><div><span>{t("Coverage")}</span><strong>{statusLabel(coverageStatus)}</strong></div><div><span>{t("Notifications")}</span><StatusChip label={statusLabel(notificationStatus)} tone={statusTone(notificationStatus)} /></div><div><span>{t("Operating boundary")}</span><strong>{t("Research, simulation, and manual review")}</strong></div><div><span>{t("Accounts and orders")}</span><strong className="danger-text">{t("Not available")}</strong></div></div></section><section className="settings-section"><div className="surface-head"><div><span className="eyebrow">{t("Service status")}</span><h3>{t("Providers and versions")}</h3></div><Database size={18} className="surface-icon" /></div>{providerRows.length ? <div className="provider-list">{providerRows.slice(0, 12).map((row, index) => <div className="provider-row" key={`${textValue(row.name, row.provider, row.source, index)}`}><div><strong>{textValue(row.name, row.provider, row.source, t("Source"))}</strong><small>{textValue(row.last_success_at, row.updated_at, row.as_of, t("No update time"))}</small></div><StatusChip label={statusLabel(textValue(row.status, row.health, row.freshness, "PENDING"))} tone={statusTone(row.status ?? row.health ?? row.freshness)} /></div>)}</div> : <div className="settings-lines"><div><span>{t("Application version")}</span><strong className="mono">{textValue(data.health.app_version, data.health.version, "-")}</strong></div><div><span>{t("Schema version")}</span><strong className="mono">{textValue(data.health.schema_version, data.health.database?.schema_version, "-")}</strong></div><div><span>{t("Runtime status")}</span><strong>{statusLabel(textValue(data.runtime.status, data.runtime.supervisor_status, "PENDING"))}</strong></div></div>}<details className="diagnostic-details"><summary>{t("Full diagnostics")}</summary><pre>{JSON.stringify({ health: data.health, market: data.market, runtime: data.runtime, coverage: data.coverage, notifications: data.notifications }, null, 2)}</pre></details></section></div>;
 }
 
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>("checking");
   const [session, setSession] = useState<Session | null>(null);
+  const [initialLanguage] = useState<UiLanguage>(() => storedPreference<UiLanguage>("kquant-unified:language", "zh"));
+  useEffect(() => { document.documentElement.lang = initialLanguage === "zh" ? "zh-CN" : "en"; }, [initialLanguage]);
   const refreshSession = async () => {
     try {
       const payload = await getJson<Session>("/api/auth/session");
@@ -824,7 +885,7 @@ export default function App() {
     setSession(null);
     setAuthState("login");
   };
-  if (authState === "checking") return <div className="auth-loading"><div className="brand-mark">KQ</div><span>正在打开 KQUANT</span></div>;
-  if (authState !== "ready") return <LoginScreen mode={authState} onAuthenticated={refreshSession} />;
+  if (authState === "checking") return <div className="auth-loading"><div className="brand-mark">KQ</div><span>{translate(initialLanguage, "Opening KQUANT")}</span></div>;
+  if (authState !== "ready") return <LoginScreen mode={authState} language={initialLanguage} onAuthenticated={refreshSession} />;
   return <Workspace onLogout={logout} />;
 }

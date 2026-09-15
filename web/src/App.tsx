@@ -35,6 +35,7 @@ import { ReadinessPanel as ReadinessPanelView } from "./features/operations/Read
 import { SettingsPanel as SettingsPanelView } from "./features/operations/SettingsPanel";
 import { StockJournalPanel as StockJournalPanelView } from "./features/operations/StockJournalPanel";
 import { ThemeRadarPanel as ThemeRadarPanelView } from "./features/theme/ThemeRadarPanel";
+import { OptionRadarPanel as OptionRadarPanelView } from "./features/options/OptionRadarPanel";
 
 type Lang = "en" | "zh";
 type Theme = "light" | "dark";
@@ -60,6 +61,7 @@ type WorkspaceName =
   | "watchlist"
   | "stock"
   | "charts"
+  | "options"
   | "aiPlan"
   | "chat"
   | "journal"
@@ -74,7 +76,7 @@ type RangeValue = "1d" | "5d" | "1y" | "5y" | "10y";
 type IntervalValue = "1m" | "5m" | "15m" | "1h" | "1d" | "1wk" | "1mo";
 type ChartPresetKey = "today1m" | "today5m" | "5d15m" | "1h" | "1d" | "1w" | "1m";
 type ApiConnectionState = "checking" | "connected" | "offline";
-const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v4";
+const FRONTEND_API_CONTRACT_VERSION = "kquant-api-2026-09-14-options-tracking-v2";
 type AuthSession = {
   authentication_required: boolean;
   authenticated: boolean;
@@ -2952,6 +2954,7 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
               ["today", lang === "zh" ? "今日" : "Today", lang === "zh" ? "机会" : "Opportunities"],
               ["stock", lang === "zh" ? "股票" : "Stock", lang === "zh" ? "结论" : "Conclusion"],
               ["charts", lang === "zh" ? "图表" : "Charts", "K 线"],
+              ["options", lang === "zh" ? "期权机会" : "Options", lang === "zh" ? "雷达" : "Radar"],
               ["aiPlan", lang === "zh" ? "交易计划" : "Trade Plan", lang === "zh" ? "计划" : "Plan"],
               ["chat", lang === "zh" ? "深度研究" : "Research", lang === "zh" ? "问答" : "Ask"],
               ["journal", lang === "zh" ? "日志" : "Journal", lang === "zh" ? "复盘" : "Review"],
@@ -3237,6 +3240,13 @@ function TerminalApp({ onLogout, loginEnabled }: { onLogout: () => void; loginEn
         apiBaseUrl={API_BASE_URL}
       />
       <RiskControlPanelView report={productionReadiness} onRefresh={() => void loadProductionReadiness()} />
+      </div>
+      <div className={activeWorkspace === "options" ? "" : "workspace-hidden"}>
+        <OptionRadarPanelView
+          lang={lang}
+          fetcher={apiFetch}
+          onPickSymbol={(symbol) => void analyzeSymbol(symbol, { preserveWorkspace: true })}
+        />
       </div>
       {showStockWorkspace ? (
       <section className={`main-grid ${activeWorkspace === "watchlist" ? "watchlist-only" : "single-main"}`}>
@@ -4097,7 +4107,7 @@ function initialUrlSymbol(): string | null {
 function initialUrlWorkspace(): WorkspaceName {
   try {
     const value = new URLSearchParams(window.location.search).get("workspace") as WorkspaceName | null;
-    return value && ["today", "search", "watchlist", "stock", "charts", "aiPlan", "chat", "journal", "settings"].includes(value) ? value : "today";
+    return value && ["today", "search", "watchlist", "stock", "charts", "options", "aiPlan", "chat", "journal", "settings"].includes(value) ? value : "today";
   } catch {
     return "today";
   }

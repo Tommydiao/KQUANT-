@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import json
 import queue
+from urllib.parse import urlencode
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,7 +11,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -69,6 +70,24 @@ from kquant.options_expression import (
     list_option_paper_observations,
     record_option_paper_observation,
 )
+from kquant.options_radar import (
+    OPTION_RADAR_POLICY_VERSION,
+    latest_premarket_report,
+    list_option_manual_outcomes,
+    list_option_signals,
+    list_option_simulations,
+    list_option_watchlist,
+    option_data_audit,
+    option_plan_timeline,
+    option_radar_status,
+    option_research_report,
+    option_signal_detail,
+    record_option_manual_outcome,
+    record_option_simulation,
+    remove_option_watch,
+    set_option_watch,
+)
+from kquant.options_radar_supervisor import OptionRadarSupervisor
 from kquant.realtime_instructions import (
     TRIGGER_POLICY_VERSION,
     AlertEventHub,
@@ -125,7 +144,7 @@ from kquant.web_push import (
 )
 
 
-API_CONTRACT_VERSION = "kquant-api-2026-08-22-v2-oos-shadow-v4"
+API_CONTRACT_VERSION = "kquant-api-2026-09-14-options-tracking-v2"
 
 
 FORBIDDEN_ROUTE_TOKENS = (
@@ -340,6 +359,32 @@ class OptionPaperObservationRequest(BaseModel):
     notes: str = ""
 
 
+class OptionRadarSimulationRequest(BaseModel):
+    action: str = Field(default="observe", pattern="^(observe|open|close)$")
+    plan_id: str = Field(min_length=1, max_length=160)
+    fees: float | None = Field(default=None, ge=0)
+    reason: str = ""
+
+
+class OptionWatchRequest(BaseModel):
+    plan_id: str = Field(min_length=1, max_length=160)
+    notes: str = Field(default="", max_length=1000)
+
+
+class OptionManualOutcomeRequest(BaseModel):
+    plan_id: str = Field(min_length=1, max_length=160)
+    status: str = Field(default="observing", pattern="^(not_entered|observing|open|completed|censored)$")
+    entry_time: str | None = None
+    entry_price: float | None = Field(default=None, gt=0)
+    exit_time: str | None = None
+    exit_price: float | None = Field(default=None, ge=0)
+    contracts: int | None = Field(default=None, ge=1)
+    multiplier: float = Field(default=100, gt=0)
+    fees: float | None = Field(default=None, ge=0)
+    reason: str = Field(default="", max_length=160)
+    notes: str = Field(default="", max_length=2000)
+
+
 def _live_only(source: str) -> str:
     if source != "live":
         raise HTTPException(status_code=400, detail="The stock terminal accepts live/reference data only.")
@@ -383,21 +428,25 @@ def create_app(
     started_at_utc = datetime.now(timezone.utc).isoformat()
     alert_hub = AlertEventHub()
     supervisor = RealtimeSupervisor(settings.db_path, settings.outputs_dir, alert_hub)
+    option_radar_supervisor = OptionRadarSupervisor(settings.db_path, alert_hub)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         supervisor.start()
+        option_radar_supervisor.start()
         try:
             yield
         finally:
+            option_radar_supervisor.stop()
             supervisor.stop()
 
-    app = FastAPI(title=settings.product, version="0.11.0-early-trend-push", lifespan=lifespan)
+    app = FastAPI(title=settings.product, version="0.13.0-options-tracking", lifespan=lifespan)
     app.state.settings = settings
     app.state.security = security
     app.state.session_auth = session_auth
     app.state.alert_hub = alert_hub
     app.state.realtime_supervisor = supervisor
+    app.state.option_radar_supervisor = option_radar_supervisor
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(security.cors_origins),
@@ -444,6 +493,16 @@ def create_app(
         session_auth.clear_session_cookie(response)
         return response
 
+    @app.get("/api/health/live")
+    def health_live() -> dict[str, Any]:
+        # Liveness must not depend on a remote quote request or a full schema audit.
+        return {
+            "status": "online", "backend": "kquant.dashboard.fastapi",
+            "api_contract_version": API_CONTRACT_VERSION,
+            "started_at_utc": started_at_utc, "read_only_research": True,
+            "market_data_checked": False, "order_submission_enabled": False,
+        }
+
     @app.get("/api/health")
     def health() -> dict[str, Any]:
         market_data = api_stock_market_data_status(db_path=settings.db_path)
@@ -464,6 +523,7 @@ def create_app(
                 "early_trend_strategy_version": "early_trend_3_15d_v1.0.0",
                 "trigger_policy_version": TRIGGER_POLICY_VERSION,
                 "options_expression_version": OPTION_EXPRESSION_VERSION,
+                "options_radar_policy_version": OPTION_RADAR_POLICY_VERSION,
                 "stock_quant_model_version": MODEL_0_VERSION,
             },
             "stock_database": str(settings.db_path),
@@ -473,6 +533,7 @@ def create_app(
             "security": security.report(),
             "safety": safety,
             "supervisor": supervisor.status(),
+            "option_radar_supervisor": option_radar_supervisor.status(),
             "read_only_research": True,
         }
 
@@ -571,6 +632,91 @@ def create_app(
     @app.get("/api/options/status")
     def options_status() -> dict[str, Any]:
         return option_market_status()
+
+    @app.get("/api/options/radar/status")
+    def options_radar_status() -> dict[str, Any]:
+        return {**option_radar_status(settings.db_path), "supervisor": option_radar_supervisor.status()}
+
+    @app.get("/api/options/radar/premarket")
+    def options_radar_premarket(market_date: str = "") -> dict[str, Any]:
+        return latest_premarket_report(settings.db_path, market_date)
+
+    @app.post("/api/options/radar/runs")
+    def options_radar_run() -> dict[str, Any]:
+        return option_radar_supervisor.request_scan()
+
+    @app.get("/api/options/radar/jobs/{job_id}")
+    def options_radar_job(job_id: str) -> dict[str, Any]:
+        try:
+            return option_radar_supervisor.scan_job(job_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/options/signals/current")
+    def options_signals_current(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+        return list_option_signals(settings.db_path, current_only=True, limit=limit)
+
+    @app.get("/api/options/signals/{opportunity_id}")
+    def options_signal(opportunity_id: str) -> dict[str, Any]:
+        try:
+            return option_signal_detail(settings.db_path, opportunity_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/options/watchlist")
+    def options_watchlist(active_only: bool = True, limit: int = Query(default=200, ge=1, le=500)) -> dict[str, Any]:
+        return list_option_watchlist(settings.db_path, active_only=active_only, limit=limit)
+
+    @app.post("/api/options/watchlist")
+    def options_watchlist_add(payload: OptionWatchRequest) -> dict[str, Any]:
+        try:
+            return set_option_watch(settings.db_path, payload.plan_id, notes=payload.notes)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.delete("/api/options/watchlist/{plan_id}")
+    def options_watchlist_remove(plan_id: str) -> dict[str, Any]:
+        try:
+            return remove_option_watch(settings.db_path, plan_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/options/plans/{plan_id}/timeline")
+    def options_plan_timeline_route(plan_id: str) -> dict[str, Any]:
+        try:
+            return option_plan_timeline(settings.db_path, plan_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/options/manual-outcomes")
+    def options_manual_outcomes(limit: int = Query(default=200, ge=1, le=500)) -> dict[str, Any]:
+        return list_option_manual_outcomes(settings.db_path, limit=limit)
+
+    @app.post("/api/options/manual-outcomes")
+    def options_manual_outcome(payload: OptionManualOutcomeRequest) -> dict[str, Any]:
+        try:
+            return record_option_manual_outcome(settings.db_path, payload.model_dump())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/options/research-report")
+    def options_research_report() -> dict[str, Any]:
+        return option_research_report(settings.db_path)
+
+    @app.get("/api/options/data-audit")
+    def options_data_audit() -> dict[str, Any]:
+        return option_data_audit(settings.db_path)
+
+    @app.get("/api/options/simulations")
+    def options_simulations(limit: int = Query(default=200, ge=1, le=500)) -> dict[str, Any]:
+        return list_option_simulations(settings.db_path, limit=limit)
+
+    @app.post("/api/options/simulations")
+    def options_simulation(payload: OptionRadarSimulationRequest) -> dict[str, Any]:
+        try:
+            return record_option_simulation(settings.db_path, payload.model_dump())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.get("/api/options/expiries")
     def options_expiries(symbol: str = "NVDA") -> dict[str, Any]:
@@ -1063,8 +1209,23 @@ def mount_frontend(app: FastAPI) -> None:
     if assets.exists():
         app.mount("/assets", StaticFiles(directory=assets), name="assets")
 
+    def unified_redirect(request: Request) -> RedirectResponse | None:
+        if os.getenv("KQUANT_UNIFIED_UI_REDIRECT", "false").strip().lower() != "true":
+            return None
+        base_url = os.getenv("KQUANT_UNIFIED_UI_URL", "http://127.0.0.1:8020").rstrip("/")
+        params = dict(request.query_params)
+        legacy = str(params.get("workspace") or params.get("view") or "today").lower()
+        view_map = {"today": "today", "stock": "today", "charts": "chart", "chart": "chart", "options": "opportunities", "plan": "plans", "research": "review", "journal": "review", "settings": "settings", "status": "settings"}
+        params["workspace"] = "options" if legacy == "options" else "stocks"
+        params["view"] = view_map.get(str(params.get("view") or legacy).lower(), "today")
+        params.pop("market", None)
+        return RedirectResponse(f"{base_url}/?{urlencode(params)}", status_code=307)
+
     @app.get("/")
-    def frontend_index() -> FileResponse:
+    def frontend_index(request: Request):
+        redirect = unified_redirect(request)
+        if redirect is not None:
+            return redirect
         return FileResponse(index)
 
     @app.get("/{path:path}")

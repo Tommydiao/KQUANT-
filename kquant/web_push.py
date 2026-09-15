@@ -197,7 +197,17 @@ def deliver_web_push(
     for subscription in subscriptions:
         delivered = False
         expired = False
-        for attempt in range(1, 4):
+        prior = []
+        if alert_id:
+            with connect(db_path) as conn:
+                prior = conn.execute("""SELECT status, attempt FROM alert_delivery_attempts
+                    WHERE alert_id=? AND subscription_id=? AND channel='web_push'""",
+                    (alert_id, subscription["subscription_id"])).fetchall()
+        if any(row["status"] == "sent" for row in prior):
+            sent += 1
+            continue
+        first_attempt = max((int(row["attempt"]) for row in prior), default=0) + 1
+        for attempt in range(first_attempt, 4):
             status = "failed"
             reason = "delivery_failed"
             try:
@@ -210,6 +220,7 @@ def deliver_web_push(
                     vapid_private_key=os.environ["KQUANT_WEB_PUSH_PRIVATE_KEY"],
                     vapid_claims={"sub": os.getenv("KQUANT_WEB_PUSH_SUBJECT", "mailto:local@kquant.invalid")},
                     ttl=300 if severity in RISK_SEVERITIES else 1800,
+                    timeout=10,
                 )
                 status, reason, delivered = "sent", "delivered", True
             except WebPushException as exc:
@@ -221,6 +232,9 @@ def deliver_web_push(
                         conn.execute("UPDATE web_push_subscriptions SET enabled=0, last_failure_at=?, updated_at=? WHERE subscription_id=?", (_now(), _now(), subscription["subscription_id"]))
                         conn.commit()
                     expired = True
+            except Exception as exc:
+                # Request/encoding failures must also consume the bounded retry budget.
+                reason = f"push_{type(exc).__name__}"
             _record_attempt(db_path, alert_id, subscription["subscription_id"], severity, attempt, status, reason)
             if delivered:
                 with connect(db_path) as conn:

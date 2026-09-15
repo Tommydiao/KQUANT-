@@ -113,6 +113,15 @@ class LongbridgeReadOnlyRuntime:
 
         return self.call("quote", operation, timeout_seconds)
 
+    def pull_quote(self, symbol: str, timeout_seconds: int) -> Any:
+        """Pull a quote without changing the websocket subscription owner.
+
+        Background research jobs use this path so a multi-symbol scan cannot
+        evict the symbol currently shown by the chart or realtime supervisor.
+        """
+
+        return self.call("pull_quote", lambda context: context.quote([symbol]), timeout_seconds)
+
     def depth(self, symbol: str, timeout_seconds: int) -> tuple[Any, str]:
         def operation(context: Any) -> tuple[Any, str]:
             self._activate_symbol(context, symbol)
@@ -133,6 +142,11 @@ class LongbridgeReadOnlyRuntime:
             return context.depth(symbol), "pull"
 
         return self.call("depth", operation, timeout_seconds)
+
+    def pull_depth(self, symbol: str, timeout_seconds: int) -> tuple[Any, str]:
+        """Pull one depth snapshot without subscribing or changing active symbol."""
+
+        return self.call("pull_depth", lambda context: (context.depth(symbol), "isolated_pull"), timeout_seconds)
 
     def candlesticks(
         self,

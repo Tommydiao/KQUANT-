@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from kquant.dashboard.app import create_app, route_safety_report
+from kquant.config import KquantConfig
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,8 +26,10 @@ SECRET_PATTERNS = (
 
 
 def main() -> None:
-    app = create_app()
-    report = route_safety_report(app)
+    with TemporaryDirectory(prefix="kquant-boundary-") as directory:
+        root = Path(directory)
+        app = create_app(config=KquantConfig(db_path=root / "audit.sqlite3", outputs_dir=root / "outputs"))
+        report = route_safety_report(app)
     failures: list[str] = []
     if report["status"] != "pass":
         failures.append(f"forbidden routes: {report['forbidden_routes']}")
@@ -33,8 +37,9 @@ def main() -> None:
     for token in FORBIDDEN_RUNTIME_TEXT:
         if token in runtime_source:
             failures.append(f"forbidden runtime token: {token}")
-    bundle_dir = ROOT / "web" / "dist" / "assets"
-    if bundle_dir.exists():
+    for bundle_dir in (ROOT / "web" / "dist" / "assets", ROOT / "web" / "dist-unified" / "assets"):
+        if not bundle_dir.exists():
+            continue
         bundle = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in bundle_dir.rglob("*.js"))
         for pattern in SECRET_PATTERNS:
             if pattern in bundle:

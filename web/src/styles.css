@@ -67,6 +67,300 @@ body {
   background: var(--bg);
 }
 
+.option-radar-workspace {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.option-radar-heading,
+.option-opportunity-summary,
+.option-evidence-line,
+.option-radar-footer {
+  display: flex;
+  align-items: center;
+}
+
+.option-radar-heading {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.option-radar-heading > div {
+  display: grid;
+  gap: 5px;
+}
+
+.option-radar-heading h2 {
+  color: var(--strong);
+  font-size: 21px;
+}
+
+.option-radar-heading p,
+.option-radar-footer,
+.option-evidence-line {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.option-radar-heading .icon-action {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.option-radar-heading .spin {
+  animation: option-radar-spin 900ms linear infinite;
+}
+
+@keyframes option-radar-spin {
+  to { transform: rotate(360deg); }
+}
+
+.option-radar-status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--border);
+}
+
+.option-radar-status-strip > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 12px;
+  border-right: 1px solid var(--border);
+}
+
+.option-radar-status-strip > div:last-child {
+  border-right: 0;
+}
+
+.option-radar-status-strip span,
+.option-contract-row span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.option-radar-status-strip strong,
+.option-contract-row strong {
+  overflow-wrap: anywhere;
+  color: var(--strong);
+  font-size: 13px;
+}
+
+.tone-good-text {
+  color: var(--good) !important;
+}
+
+.tone-warn-text {
+  color: var(--watch) !important;
+}
+
+.option-radar-blocker,
+.option-radar-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-left: 3px solid var(--watch);
+  background: var(--watch-soft);
+  color: var(--watch);
+}
+
+.option-radar-blocker > div,
+.option-radar-empty {
+  gap: 3px;
+}
+
+.option-radar-blocker > div {
+  display: grid;
+}
+
+.option-radar-blocker span,
+.option-radar-empty span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.option-radar-empty {
+  justify-content: center;
+  min-height: 110px;
+  border-left: 0;
+  background: var(--surface-soft);
+}
+
+.option-opportunity-list {
+  display: grid;
+}
+
+.option-opportunity-row {
+  display: grid;
+  gap: 11px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.option-opportunity-row:last-child {
+  border-bottom: 0;
+}
+
+.option-opportunity-summary {
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 30px;
+}
+
+.option-symbol {
+  padding: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.option-direction,
+.option-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.option-direction.call {
+  color: var(--good);
+}
+
+.option-direction.put,
+.state-cancelled,
+.state-invalidated {
+  color: var(--bad);
+}
+
+.state-confirmed {
+  color: var(--good);
+  border-color: var(--good);
+}
+
+.state-quote_blocked,
+.state-premarket_watch,
+.state-wait_open_confirmation {
+  color: var(--watch);
+}
+
+.option-contract-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.option-contract-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(190px, 1.4fr) minmax(130px, 1fr) minmax(135px, 1fr) minmax(90px, 0.7fr) minmax(100px, 0.7fr);
+  background: var(--surface-soft);
+}
+
+.option-contract-row > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 10px;
+  border-right: 1px solid var(--border);
+}
+
+.option-contract-row > div:last-child {
+  border-right: 0;
+}
+
+.option-evidence-line {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.option-blocker-details {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.option-blocker-details summary {
+  cursor: pointer;
+  color: var(--watch);
+  font-weight: 750;
+}
+
+.option-blocker-details ul {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.option-radar-footer {
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 980px) {
+  .option-radar-status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .option-radar-status-strip > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .option-contract-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .option-contract-row > div:nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .option-radar-workspace {
+    padding: 12px;
+  }
+
+  .option-radar-status-strip,
+  .option-contract-row {
+    grid-template-columns: 1fr;
+  }
+
+  .option-radar-status-strip > div,
+  .option-contract-row > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .option-radar-status-strip > div:last-child,
+  .option-contract-row > div:last-child {
+    border-bottom: 0;
+  }
+
+  .option-radar-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 button {
   border: 0;
   font: inherit;

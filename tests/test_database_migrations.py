@@ -26,7 +26,23 @@ def test_migrations_create_auditable_idempotent_schema(tmp_path: Path) -> None:
         assert conn.execute("SELECT COUNT(*) FROM schema_migration_audit").fetchone()[0] >= 2
         assert conn.execute("SELECT COUNT(*) FROM schema_fingerprints").fetchone()[0] >= 1
         tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
-        assert {"stock_quant_runs", "stock_quant_feature_snapshots", "stock_quant_labels"} <= tables
+        assert {
+            "stock_quant_runs",
+            "stock_quant_feature_snapshots",
+            "stock_quant_labels",
+            "option_radar_runs",
+            "option_opportunities",
+            "option_plans",
+            "option_quote_evidence",
+            "option_outcomes",
+            "option_underlying_evidence",
+            "option_event_evidence",
+            "option_event_coverage",
+            "option_runtime_tasks",
+            "option_runtime_events",
+            "option_runtime_heartbeat",
+            "option_delivery_outbox",
+        } <= tables
 
 
 def test_existing_legacy_database_is_upgraded_without_removing_legacy_tables(tmp_path: Path) -> None:

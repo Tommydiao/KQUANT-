@@ -207,7 +207,7 @@ def dispatch_personal_notification(db_path: Path, *, event_id: str) -> dict[str,
         elif channel not in {"email", "telegram", "web"}:
             reason = "Unsupported notification channel."
     except Exception as exc:  # noqa: BLE001 - delivery failures should be inspectable locally.
-        status, reason = "failed", str(exc)
+        status, reason = "failed", type(exc).__name__
         record_operational_event(db_path, event_type="notification_error", severity="error", component="notifications", message=reason, payload={"event_id": event_id, "channel": channel})
     with connect(db_path) as conn:
         conn.execute("UPDATE notification_events SET status = ? WHERE event_id = ?", (status, event_id))

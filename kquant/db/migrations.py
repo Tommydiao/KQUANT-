@@ -11,7 +11,7 @@ from typing import Callable
 
 
 LEGACY_SCHEMA_VERSION = 1
-LATEST_SCHEMA_VERSION = 11
+LATEST_SCHEMA_VERSION = 15
 LEGACY_MIGRATION_NAME = "initial_stock_research_schema"
 
 QUARANTINED_LEGACY_TABLES: dict[str, str] = {
@@ -789,6 +789,322 @@ def _stock_quant_validation_checksum() -> str:
     )
 
 
+def _apply_option_radar_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS option_radar_runs (
+          run_id TEXT PRIMARY KEY,
+          market_date TEXT NOT NULL,
+          run_type TEXT NOT NULL,
+          policy_version TEXT NOT NULL,
+          universe_json TEXT NOT NULL,
+          data_hash TEXT NOT NULL,
+          status TEXT NOT NULL,
+          data_status TEXT NOT NULL,
+          generated_at TEXT NOT NULL,
+          summary_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          UNIQUE(market_date, run_type, policy_version, data_hash)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_radar_runs_date
+        ON option_radar_runs(market_date DESC, generated_at DESC);
+
+        CREATE TABLE IF NOT EXISTS option_opportunities (
+          opportunity_id TEXT PRIMARY KEY,
+          run_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          hypothesis TEXT NOT NULL,
+          direction TEXT NOT NULL,
+          horizon_class TEXT NOT NULL,
+          rank_value INTEGER NOT NULL,
+          evidence_score REAL NOT NULL,
+          status TEXT NOT NULL,
+          signal_time TEXT NOT NULL,
+          market_data_time TEXT,
+          decision_committed_at TEXT NOT NULL,
+          event_status TEXT NOT NULL,
+          evidence_grade TEXT NOT NULL,
+          policy_version TEXT NOT NULL,
+          material_state_hash TEXT NOT NULL,
+          evidence_json TEXT NOT NULL,
+          blockers_json TEXT NOT NULL,
+          warnings_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (run_id) REFERENCES option_radar_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_opportunities_current
+        ON option_opportunities(status, market_data_time DESC, rank_value);
+        CREATE INDEX IF NOT EXISTS idx_option_opportunities_symbol
+        ON option_opportunities(symbol, signal_time DESC);
+
+        CREATE TABLE IF NOT EXISTS option_plans (
+          plan_id TEXT PRIMARY KEY,
+          opportunity_id TEXT NOT NULL,
+          horizon_group TEXT NOT NULL,
+          contract_symbol TEXT NOT NULL,
+          expiry_date TEXT NOT NULL,
+          dte INTEGER NOT NULL,
+          strike_price REAL NOT NULL,
+          direction TEXT NOT NULL,
+          state TEXT NOT NULL,
+          contract_status TEXT NOT NULL,
+          decision_committed_at TEXT NOT NULL,
+          earliest_confirm_at TEXT,
+          entry_cutoff_at TEXT,
+          exit_reminder_at TEXT,
+          expires_at TEXT NOT NULL,
+          max_holding_trading_days INTEGER NOT NULL,
+          max_holding_calendar_days INTEGER NOT NULL,
+          reference_quote_json TEXT NOT NULL,
+          scenario_json TEXT NOT NULL,
+          blockers_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (opportunity_id) REFERENCES option_opportunities(opportunity_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_plans_current
+        ON option_plans(state, expires_at, updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_option_plans_opportunity
+        ON option_plans(opportunity_id, horizon_group);
+
+        CREATE TABLE IF NOT EXISTS option_quote_evidence (
+          quote_evidence_id TEXT PRIMARY KEY,
+          plan_id TEXT NOT NULL,
+          contract_symbol TEXT NOT NULL,
+          purpose TEXT NOT NULL,
+          source TEXT NOT NULL,
+          received_at TEXT NOT NULL,
+          latest_trade_time TEXT,
+          bbo_event_time TEXT,
+          bbo_time_source TEXT NOT NULL,
+          bid REAL,
+          ask REAL,
+          bid_size REAL,
+          ask_size REAL,
+          strict_fill_eligible INTEGER NOT NULL,
+          execution_quality TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          snapshot_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (plan_id) REFERENCES option_plans(plan_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_quote_evidence_plan
+        ON option_quote_evidence(plan_id, received_at DESC);
+
+        CREATE TABLE IF NOT EXISTS option_outcomes (
+          outcome_id TEXT PRIMARY KEY,
+          plan_id TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          entry_quote_evidence_id TEXT,
+          exit_quote_evidence_id TEXT,
+          entry_time TEXT,
+          entry_price REAL,
+          exit_time TEXT,
+          exit_price REAL,
+          contracts INTEGER NOT NULL DEFAULT 1,
+          multiplier REAL NOT NULL DEFAULT 100,
+          fees REAL,
+          gross_pnl REAL,
+          net_pnl REAL,
+          return_pct REAL,
+          outcome_reason TEXT NOT NULL,
+          censor_reason TEXT NOT NULL,
+          execution_policy_id TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (plan_id) REFERENCES option_plans(plan_id),
+          FOREIGN KEY (entry_quote_evidence_id) REFERENCES option_quote_evidence(quote_evidence_id),
+          FOREIGN KEY (exit_quote_evidence_id) REFERENCES option_quote_evidence(quote_evidence_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_outcomes_status
+        ON option_outcomes(status, updated_at DESC);
+        """
+    )
+
+
+def _option_radar_checksum() -> str:
+    return _checksum(
+        "option_radar_v1.0.0|option_radar_runs|option_opportunities|option_plans|"
+        "option_quote_evidence|option_outcomes|decision_before_quote|strict_bbo_event_time|"
+        "manual_execution_only|legacy_option_paper_excluded"
+    )
+
+
+def _apply_option_radar_source_evidence(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS option_underlying_evidence (
+          evidence_id TEXT PRIMARY KEY,
+          run_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          market_date TEXT NOT NULL,
+          market_minute INTEGER NOT NULL,
+          session TEXT NOT NULL,
+          source TEXT NOT NULL,
+          provider_status TEXT NOT NULL,
+          event_time TEXT,
+          received_at TEXT NOT NULL,
+          last_price REAL,
+          previous_close REAL,
+          volume REAL,
+          turnover REAL,
+          strict_time_eligible INTEGER NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          payload_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (run_id) REFERENCES option_radar_runs(run_id),
+          UNIQUE(run_id, symbol, session)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_underlying_same_clock
+        ON option_underlying_evidence(symbol, session, market_minute, market_date);
+
+        CREATE TABLE IF NOT EXISTS option_event_evidence (
+          event_evidence_id TEXT PRIMARY KEY,
+          run_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          as_of TEXT NOT NULL,
+          status TEXT NOT NULL,
+          trade_eligible INTEGER NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          payload_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (run_id) REFERENCES option_radar_runs(run_id),
+          UNIQUE(run_id, symbol)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_event_evidence_symbol
+        ON option_event_evidence(symbol, as_of DESC);
+        """
+    )
+
+
+def _option_radar_source_evidence_checksum() -> str:
+    return _checksum(
+        "option_radar_source_evidence_v1.0.0|option_underlying_evidence|"
+        "option_event_evidence|same_clock_premarket_baseline|native_time_preserved"
+    )
+
+
+def _apply_option_tracking_contract(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS option_state_events (
+          event_id TEXT PRIMARY KEY,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT NOT NULL,
+          opportunity_id TEXT,
+          plan_id TEXT,
+          event_type TEXT NOT NULL,
+          previous_state TEXT NOT NULL,
+          next_state TEXT NOT NULL,
+          reason_json TEXT NOT NULL,
+          material_state_hash TEXT NOT NULL,
+          content_hash TEXT NOT NULL UNIQUE,
+          recorded_at TEXT NOT NULL,
+          actor TEXT NOT NULL,
+          FOREIGN KEY (opportunity_id) REFERENCES option_opportunities(opportunity_id),
+          FOREIGN KEY (plan_id) REFERENCES option_plans(plan_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_state_events_entity
+        ON option_state_events(entity_type, entity_id, recorded_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_option_state_events_plan
+        ON option_state_events(plan_id, recorded_at DESC);
+
+        CREATE TABLE IF NOT EXISTS option_watchlist (
+          watch_id TEXT PRIMARY KEY,
+          plan_id TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          notes TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (plan_id) REFERENCES option_plans(plan_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_watchlist_status
+        ON option_watchlist(status, updated_at DESC);
+
+        CREATE TABLE IF NOT EXISTS option_manual_outcomes (
+          manual_outcome_id TEXT PRIMARY KEY,
+          plan_id TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL,
+          entry_time TEXT,
+          entry_price REAL,
+          exit_time TEXT,
+          exit_price REAL,
+          contracts INTEGER,
+          multiplier REAL NOT NULL DEFAULT 100,
+          fees REAL,
+          gross_pnl REAL,
+          net_pnl REAL,
+          return_pct REAL,
+          outcome_reason TEXT NOT NULL,
+          notes TEXT NOT NULL,
+          source TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (plan_id) REFERENCES option_plans(plan_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_manual_outcomes_status
+        ON option_manual_outcomes(status, updated_at DESC);
+
+        CREATE TABLE IF NOT EXISTS option_scan_jobs (
+          job_id TEXT PRIMARY KEY,
+          job_type TEXT NOT NULL,
+          status TEXT NOT NULL,
+          requested_at TEXT NOT NULL,
+          started_at TEXT,
+          finished_at TEXT,
+          run_id TEXT,
+          detail_json TEXT NOT NULL,
+          error_message TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (run_id) REFERENCES option_radar_runs(run_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_option_scan_jobs_status
+        ON option_scan_jobs(status, requested_at DESC);
+        """
+    )
+
+
+def _option_tracking_checksum() -> str:
+    return _checksum(
+        "option_tracking_v1.0.0|option_state_events|option_watchlist|"
+        "option_manual_outcomes|option_scan_jobs|append_only_timeline|"
+        "simulation_manual_results_separated|async_scan_jobs"
+    )
+
+
+def _apply_option_daily_runtime(conn: sqlite3.Connection) -> None:
+    conn.executescript("""
+        CREATE TABLE option_event_coverage (
+          coverage_id TEXT PRIMARY KEY, symbol TEXT NOT NULL, category TEXT NOT NULL,
+          coverage_start TEXT NOT NULL, coverage_end TEXT NOT NULL,
+          available_at TEXT NOT NULL, reviewed_at TEXT NOT NULL, valid_until TEXT NOT NULL,
+          reviewer TEXT NOT NULL, source_url TEXT NOT NULL, source_hash TEXT NOT NULL,
+          payload_json TEXT NOT NULL, recorded_at TEXT NOT NULL
+        );
+        CREATE INDEX idx_option_event_coverage_lookup
+          ON option_event_coverage(symbol, category, recorded_at);
+        CREATE TABLE option_runtime_tasks (
+          task_key TEXT PRIMARY KEY, kind TEXT NOT NULL, market_date TEXT NOT NULL,
+          status TEXT NOT NULL, attempts INTEGER NOT NULL, started_at TEXT,
+          finished_at TEXT, detail_json TEXT NOT NULL
+        );
+        CREATE TABLE option_runtime_events (
+          event_id TEXT PRIMARY KEY, task_key TEXT NOT NULL, status TEXT NOT NULL,
+          recorded_at TEXT NOT NULL, detail_json TEXT NOT NULL
+        );
+        CREATE TABLE option_runtime_heartbeat (
+          worker TEXT PRIMARY KEY, owner TEXT NOT NULL, updated_at TEXT NOT NULL,
+          status TEXT NOT NULL, detail_json TEXT NOT NULL
+        );
+        CREATE TABLE option_delivery_outbox (
+          alert_id TEXT PRIMARY KEY, status TEXT NOT NULL, payload_json TEXT NOT NULL,
+          created_at TEXT NOT NULL, updated_at TEXT NOT NULL, result_json TEXT NOT NULL
+        );
+    """)
+
+
 def _migrations() -> tuple[Migration, ...]:
     return (
         Migration(LEGACY_SCHEMA_VERSION, LEGACY_MIGRATION_NAME, _legacy_checksum(), _apply_legacy_schema),
@@ -802,6 +1118,10 @@ def _migrations() -> tuple[Migration, ...]:
         Migration(9, "leadership_engine_contract", _leadership_checksum(), _apply_leadership_contract),
         Migration(10, "stock_quant_model_0_contract", _stock_quant_checksum(), _apply_stock_quant_contract),
         Migration(11, "stock_quant_validation_contract", _stock_quant_validation_checksum(), _apply_stock_quant_validation_contract),
+        Migration(12, "option_radar_research_contract", _option_radar_checksum(), _apply_option_radar_contract),
+        Migration(13, "option_radar_source_evidence_contract", _option_radar_source_evidence_checksum(), _apply_option_radar_source_evidence),
+        Migration(14, "option_tracking_contract", _option_tracking_checksum(), _apply_option_tracking_contract),
+        Migration(15, "option_daily_runtime", _checksum("option_daily_runtime_v1|coverage|tasks|events|heartbeat|outbox"), _apply_option_daily_runtime),
     )
 
 

@@ -21,6 +21,16 @@ def _app(tmp_path: Path):
     )
 
 
+def test_liveness_does_not_depend_on_market_provider(tmp_path, monkeypatch):
+    def unavailable(*args, **kwargs):
+        raise AssertionError('liveness must not call the market provider')
+    monkeypatch.setattr('kquant.dashboard.app.api_stock_market_data_status', unavailable)
+    response = TestClient(_app(tmp_path)).get('/api/health/live')
+    assert response.status_code == 200
+    assert response.json()['market_data_checked'] is False
+    assert response.json()['order_submission_enabled'] is False
+
+
 def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         "kquant.dashboard.app.api_stock_market_data_status",
@@ -41,7 +51,7 @@ def test_stock_dashboard_has_no_executable_trade_routes(tmp_path: Path, monkeypa
     assert health.status_code == 200
     assert health.json()["status"] == "online"
     assert health.json()["safety"]["order_submission_enabled"] is False
-    assert health.json()["runtime"]["api_contract_version"] == "kquant-api-2026-08-22-v2-oos-shadow-v4"
+    assert health.json()["runtime"]["api_contract_version"] == API_CONTRACT_VERSION
     assert health.json()["runtime"]["auth_routes_version"] == "local_email_password_v1"
     assert health.json()["runtime"]["database_schema_version"] == LATEST_SCHEMA_VERSION
     assert health.json()["database_migration"]["status"] == "up_to_date"
