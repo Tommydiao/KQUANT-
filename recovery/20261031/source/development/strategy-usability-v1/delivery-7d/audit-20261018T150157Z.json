@@ -1,0 +1,187 @@
+{
+  "captured_at": "2026-10-18T15:01:57.625890+00:00",
+  "session": "2026-10-18",
+  "constraint": {
+    "schema": "KQUANT_FIXED_SEVEN_CALENDAR_DAY_DELIVERY_V1",
+    "t0_utc": "2026-10-16T14:30:22Z",
+    "deadline_utc": "2026-10-23T14:30:22Z",
+    "t0_local": "2026-10-16T22:30:22+08:00",
+    "deadline_local": "2026-10-23T22:30:22+08:00",
+    "initial_blockers_due_local": "2026-10-17T04:30:22+08:00",
+    "deadline_reset_allowed": false,
+    "source": "DIRECT_USER_SEVEN_DAY_CONSTRAINT_20261016",
+    "existing_protocol": "KQ-S0-S1-RESEARCH-20261015-V1",
+    "existing_candidate_at_t0": "local-candidate-6ac8a5653d14a392",
+    "deliverable": "Runnable opening research workbench with fixed S0/S1 comparison and option cost diagnostics",
+    "minimum_real_opening_windows": 3,
+    "minimum_completion_ratio_per_variant": 0.9,
+    "denominator_policy": "Freeze applicable identities before new windows; retain all registered objects and failures; never exclude after outcomes",
+    "completion_units": [
+      "instrument_complete_at_all_five_checkpoints_both_directions",
+      "direction_checkpoint"
+    ],
+    "first_pass_and_revised_results_separate": true,
+    "late_computation_not_timely_completion": true,
+    "no_progress_work_periods_before_alternative": 2,
+    "work_period_definition": "A bounded active execution with measured attempts and evidence, not passive overnight waiting",
+    "replacement_scope": "Smallest local module within existing authorization; no changed strategy/source method/release/fee without required exact choice",
+    "unavailable_counts": null,
+    "background_coding_guaranteed": false,
+    "existing_heartbeat": "kquant-2",
+    "new_orders_paper_llm_models_fees": false
+  },
+  "scope_sha256": "964aaa5ada2f53f17844284d5c873c7cb73c755bfe144b4b483545dc5dc84cab",
+  "scope_registered": 111,
+  "scope_applicable": 100,
+  "scope_identity_unconfirmed": [
+    "$COMP",
+    "$DJI",
+    "/ES[Z26]",
+    "/NQ[Z26]",
+    "/RTY[Z26]",
+    "/YM[Z26]",
+    "DAXAUD:DBI",
+    "HBM:XETA",
+    "SOX",
+    "SPX",
+    "VIX"
+  ],
+  "runtime": {
+    "launcher_pid": 29956,
+    "launcher_identity": {
+      "pid": 29956,
+      "created_at": "2026-10-18T11:27:33.8155770Z",
+      "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    "run_session_id": "8919c1cd-1acf-499c-b849-daef2396c259",
+    "system_boot": {
+      "state": "VERIFIED",
+      "started_at": "2026-10-14T13:15:47.9306040Z",
+      "source": "WIN32_OPERATING_SYSTEM"
+    },
+    "stage": "MAIN_LOOP",
+    "started_at": "20261018T112738448Z",
+    "checked_at": "2026-10-18T12:41:24.4661304+00:00",
+    "mode": "options_foundation",
+    "launches": [
+      {
+        "name": "stock-options-foundation",
+        "pid": 14292,
+        "identity": {
+          "pid": 14292,
+          "created_at": "2026-10-18T11:27:44.0625700Z",
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+        },
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "arguments": "-m kquant.dashboard --host 127.0.0.1 --port 8001",
+        "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+        "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261018T112738448Z.out.log",
+        "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261018T112738448Z.err.log"
+      },
+      {
+        "name": "gateway-options-foundation",
+        "pid": 33212,
+        "identity": {
+          "pid": 33212,
+          "created_at": "2026-10-18T11:27:44.2862760Z",
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+        },
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "arguments": "-m kquant_crypto gateway",
+        "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto",
+        "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261018T112738448Z.out.log",
+        "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261018T112738448Z.err.log"
+      }
+    ],
+    "listeners": [],
+    "health_verified": false,
+    "state": "STOPPED",
+    "exit_reason": "EXPLICIT_USER_STOP",
+    "recovery_count": 0,
+    "backend_release": "local-candidate-d4f4aad4be84d143",
+    "backend_manifest_sha256": "41825a80ae493a3154533cff6c99920f91d3f059928acc159867beede30ae808",
+    "research_health_is_separate": true
+  },
+  "worker": {
+    "state": "WAIT_MARKET",
+    "stage": "WAIT_MARKET",
+    "loop_count": 880,
+    "first_loop_at": "2026-10-18T11:27:45.553828+00:00",
+    "last_cycle_at": "2026-10-18T12:41:17.067774+00:00",
+    "thread_alive": true,
+    "runtime_health": "RESPONSIVE",
+    "subscribed_symbols": null,
+    "last_bar_age_seconds": null,
+    "research_progress": "NOT_EXPECTED_IN_CURRENT_PHASE"
+  },
+  "live_entry_candidate": "local-candidate-b6cf37cc4955061a",
+  "entry_sha256": "16f27854a4d7f491aad0179c96e39b5898f8fe6969be9f119dd501235d0bb261",
+  "production_writes": 0,
+  "sdk_requests": 0,
+  "metrics": {},
+  "errors": [],
+  "remaining_project_calendar_windows": [
+    {
+      "session": "2026-10-19",
+      "open_utc": "2026-10-19T13:30:00+00:00",
+      "close_utc": "2026-10-19T20:00:00+00:00",
+      "checkpoints_utc": [
+        "2026-10-19T13:35:00+00:00",
+        "2026-10-19T13:40:00+00:00",
+        "2026-10-19T13:45:00+00:00",
+        "2026-10-19T13:50:00+00:00",
+        "2026-10-19T13:55:00+00:00"
+      ]
+    },
+    {
+      "session": "2026-10-20",
+      "open_utc": "2026-10-20T13:30:00+00:00",
+      "close_utc": "2026-10-20T20:00:00+00:00",
+      "checkpoints_utc": [
+        "2026-10-20T13:35:00+00:00",
+        "2026-10-20T13:40:00+00:00",
+        "2026-10-20T13:45:00+00:00",
+        "2026-10-20T13:50:00+00:00",
+        "2026-10-20T13:55:00+00:00"
+      ]
+    },
+    {
+      "session": "2026-10-21",
+      "open_utc": "2026-10-21T13:30:00+00:00",
+      "close_utc": "2026-10-21T20:00:00+00:00",
+      "checkpoints_utc": [
+        "2026-10-21T13:35:00+00:00",
+        "2026-10-21T13:40:00+00:00",
+        "2026-10-21T13:45:00+00:00",
+        "2026-10-21T13:50:00+00:00",
+        "2026-10-21T13:55:00+00:00"
+      ]
+    },
+    {
+      "session": "2026-10-22",
+      "open_utc": "2026-10-22T13:30:00+00:00",
+      "close_utc": "2026-10-22T20:00:00+00:00",
+      "checkpoints_utc": [
+        "2026-10-22T13:35:00+00:00",
+        "2026-10-22T13:40:00+00:00",
+        "2026-10-22T13:45:00+00:00",
+        "2026-10-22T13:50:00+00:00",
+        "2026-10-22T13:55:00+00:00"
+      ]
+    },
+    {
+      "session": "2026-10-23",
+      "open_utc": "2026-10-23T13:30:00+00:00",
+      "close_utc": "2026-10-23T20:00:00+00:00",
+      "checkpoints_utc": [
+        "2026-10-23T13:35:00+00:00",
+        "2026-10-23T13:40:00+00:00",
+        "2026-10-23T13:45:00+00:00",
+        "2026-10-23T13:50:00+00:00",
+        "2026-10-23T13:55:00+00:00"
+      ]
+    }
+  ],
+  "live_http_error": "URLError",
+  "market_state": "NOT_A_TRADING_DAY"
+}

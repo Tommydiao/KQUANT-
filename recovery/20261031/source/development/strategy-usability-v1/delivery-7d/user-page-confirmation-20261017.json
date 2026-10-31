@@ -1,0 +1,15 @@
+{
+  "observation_type": "USER_REPORTED",
+  "first_recorded_at": "2026-10-17T02:53:03Z",
+  "message_timestamp_known": false,
+  "question_item_id": "[\"request_user_input_async\",\"call_65f1d1330a2843cdb3299d8bd44ac2dd\",0]",
+  "answer": "能看到Signals页及研究记录/休市状态",
+  "reported_url": "http://127.0.0.1:8020/?workspace=options&view=signals",
+  "active_candidate": "local-candidate-d4f4aad4be84d143",
+  "signals_page_visible": true,
+  "research_or_closed_state_visible": true,
+  "independently_verified_sse": false,
+  "measured_page_delivery_latency": null,
+  "natural_signal_delivery_verified": false,
+  "credentials_recorded": false
+}

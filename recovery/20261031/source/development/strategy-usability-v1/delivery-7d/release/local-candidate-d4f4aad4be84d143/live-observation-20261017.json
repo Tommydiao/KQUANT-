@@ -1,0 +1,2195 @@
+{
+  "candidate": "local-candidate-d4f4aad4be84d143",
+  "observed_at": "2026-10-17T02:22:01.814005+00:00",
+  "elapsed_seconds": 600.0310000000172,
+  "complete": true,
+  "samples": [
+    {
+      "at": "2026-10-17T02:12:01.774632+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3287,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.046999999991385266
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 612,
+          "mtime_ns": 1792203112859503000
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 24121,
+          "mtime_ns": 1792203119120532000
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 557,
+          "mtime_ns": 1792203112899016200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 8.839469,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 101,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:11:58.209578+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.565054,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:12:31.855139+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3287,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.014999999984866008
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 816,
+          "mtime_ns": 1792203139507866900
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 31539,
+          "mtime_ns": 1792203150047456800
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1018,
+          "mtime_ns": 1792203139546831700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 12.272986,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 130,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:12:27.794057+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.061082,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:13:01.907913+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3289,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.031000000017229468
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1088,
+          "mtime_ns": 1792203179718862900
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 37472,
+          "mtime_ns": 1792203181013180700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1532,
+          "mtime_ns": 1792203179757781600
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 2.113184,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 160,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:12:58.310678+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.597235,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:13:31.994106+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3289,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1292,
+          "mtime_ns": 1792203206496046400
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 44890,
+          "mtime_ns": 1792203211949513200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1993,
+          "mtime_ns": 1792203206535498200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 5.419878,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 189,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:13:27.860705+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.133401,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:14:02.037100+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3287,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1496,
+          "mtime_ns": 1792203232805650600
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 49997,
+          "mtime_ns": 1792203238067010200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 2454,
+          "mtime_ns": 1792203232847500700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 9.153112,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 219,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:13:58.451658+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.585442,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:14:32.086135+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3288,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.031000000017229468
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.014999999984866008
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1700,
+          "mtime_ns": 1792203259680765800
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 55813,
+          "mtime_ns": 1792203269157277700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 2915,
+          "mtime_ns": 1792203259723008800
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 12.334348,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 248,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:14:28.058105+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.02803,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:15:02.140904+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3308,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.03200000000651926
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 1972,
+          "mtime_ns": 1792203298951086600
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 63538,
+          "mtime_ns": 1792203300321648600
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3429,
+          "mtime_ns": 1792203298989072600
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 3.117211,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 278,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:14:58.605095+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.535809,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:15:32.228377+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3283,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.03200000000651926
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.014999999984866008
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 2176,
+          "mtime_ns": 1792203325718597600
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 69792,
+          "mtime_ns": 1792203330967802400
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3890,
+          "mtime_ns": 1792203325760586600
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 6.427363,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 307,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:15:28.177040+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.051337,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:16:02.321587+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3270,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0159999999741558
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.031000000017229468
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 2380,
+          "mtime_ns": 1792203352305430900
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 77416,
+          "mtime_ns": 1792203362293223600
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4351,
+          "mtime_ns": 1792203352343344800
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 9.94156,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 337,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:15:58.677636+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.643951,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:16:32.383182+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3273,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.014999999984866008
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 2652,
+          "mtime_ns": 1792203392314690700
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 82630,
+          "mtime_ns": 1792203388167758500
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4865,
+          "mtime_ns": 1792203392353479500
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 13.574491,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 366,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:16:28.277324+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.105858,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:17:02.446457+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3295,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0159999999741558
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 2856,
+          "mtime_ns": 1792203418951875600
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 90334,
+          "mtime_ns": 1792203419214860100
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 5326,
+          "mtime_ns": 1792203418993625700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 3.415539,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 396,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:16:58.812653+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.633804,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:17:32.494472+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3308,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.030999999988125637
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3060,
+          "mtime_ns": 1792203445339566000
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 96581,
+          "mtime_ns": 1792203450589411900
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 5787,
+          "mtime_ns": 1792203445380042700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 7.076327,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 425,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:17:28.407640+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.086832,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:18:02.599180+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3269,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.015000000013969839
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.014999999984866008
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3264,
+          "mtime_ns": 1792203471740012300
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 104291,
+          "mtime_ns": 1792203481786744700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 6248,
+          "mtime_ns": 1792203471778346100
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 10.784283,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 455,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:17:58.984984+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.614196,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:18:32.657849+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3271,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3536,
+          "mtime_ns": 1792203512641036300
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 109492,
+          "mtime_ns": 1792203507626603100
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 6709,
+          "mtime_ns": 1792203499354581000
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 13.264877,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 484,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:18:28.488223+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.169626,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:19:02.703319+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3306,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0159999999741558
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3740,
+          "mtime_ns": 1792203539768770300
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 117109,
+          "mtime_ns": 1792203538704682800
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 7223,
+          "mtime_ns": 1792203539808552900
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 2.866388,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 514,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:18:59.103418+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.599901,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:19:32.763843+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3289,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 3944,
+          "mtime_ns": 1792203570550014800
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 123369,
+          "mtime_ns": 1792203569931686200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 7684,
+          "mtime_ns": 1792203570590462700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 2.134523,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 543,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:19:28.764617+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.999226,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:20:02.836411+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3289,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0159999999741558
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4148,
+          "mtime_ns": 1792203600154695100
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 130996,
+          "mtime_ns": 1792203600944821900
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 8145,
+          "mtime_ns": 1792203600202761200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 2.589388,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 573,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:19:59.343588+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.492823,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:20:32.900202+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3269,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.014999999984866008
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4352,
+          "mtime_ns": 1792203629864463200
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 137248,
+          "mtime_ns": 1792203632069686700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 8606,
+          "mtime_ns": 1792203629928468800
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 2.91573,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 602,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:20:28.853679+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 4.046523,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:21:02.976820+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3286,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.015000000013969839
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.014999999984866008
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4556,
+          "mtime_ns": 1792203659125628700
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 143832,
+          "mtime_ns": 1792203658210815300
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 9067,
+          "mtime_ns": 1792203659166611600
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 3.772074,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 632,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:20:59.528020+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.4488,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:21:33.055093+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3287,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4760,
+          "mtime_ns": 1792203688849859900
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 150089,
+          "mtime_ns": 1792203689074552700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 9528,
+          "mtime_ns": 1792203688897863300
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 4.113918,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 661,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:21:29.210271+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.844822,
+      "clock_state": "VERIFIED_BOUND"
+    },
+    {
+      "at": "2026-10-17T02:22:01.814005+00:00",
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3288,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current_unauthenticated": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        },
+        "compact_unauthenticated": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 4964,
+          "mtime_ns": 1792203717823126600
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 157737,
+          "mtime_ns": 1792203720151963200
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+          "bytes": 9989,
+          "mtime_ns": 1792203717862754700
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+          "bytes": 202,
+          "mtime_ns": 1792203013117872000
+        }
+      ],
+      "candidate": "local-candidate-d4f4aad4be84d143",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "294513cf-a49f-4fcc-8806-d22966928030",
+      "launcher": {
+        "pid": 32524,
+        "created_at": "2026-10-17T02:10:03.4769840Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 13792,
+          "identity": {
+            "pid": 13792,
+            "created_at": "2026-10-17T02:10:12.0827710Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 31476,
+          "identity": {
+            "pid": 31476,
+            "created_at": "2026-10-17T02:10:12.2514580Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "heartbeat_age_seconds": 3.912337,
+      "worker": {
+        "state": "MARKET_CLOSED",
+        "stage": "WAIT_NEXT_CYCLE",
+        "loop_count": 690,
+        "first_loop_at": "2026-10-17T02:10:13.606210+00:00",
+        "last_cycle_at": "2026-10-17T02:21:58.766853+00:00",
+        "thread_alive": true,
+        "research_ready": true,
+        "runtime_health": "RESPONSIVE",
+        "session": "2026-10-16",
+        "qualified_alerts_enabled": false,
+        "paper_enabled": false,
+        "real_orders_enabled": false
+      },
+      "worker_age_seconds": 3.047152,
+      "clock_state": "VERIFIED_BOUND"
+    }
+  ],
+  "read_only": true,
+  "sdk_connections": 0,
+  "business_writes": 0
+}

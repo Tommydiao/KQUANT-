@@ -1,0 +1,19 @@
+{
+  "schema": "KQUANT_LOCAL_WORKSPACE_ENTRY_V1",
+  "candidate_id": "local-candidate-b6cf37cc4955061a",
+  "code_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "python_executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+  "python_base_root": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312",
+  "frontend": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified",
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-b6cf37cc4955061a\\recovery-manifest.json",
+    "sha256": "5e46ecc27a9e1fe89464f15ce40ec362548cd55447a4c6fbad5867c0c5494ee0"
+  },
+  "runtime_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-b6cf37cc4955061a\\release-manifest.json",
+    "sha256": "b21b25cedc2e5d31db7dd1fed28f13afe47266bde62883c5bee3499829b58bd9"
+  },
+  "production_accepted": false,
+  "shadow_runtime_accepted": false
+}

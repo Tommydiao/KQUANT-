@@ -1,0 +1,32 @@
+{
+  "schema": "KQUANT_ISOLATED_RECOVERY_NULL_TIME_FIX_V1",
+  "parent_candidate": "local-candidate-198444f784fb3ada",
+  "parent_payload_sha256": "161d16456720f0f9f406766278ff02c4ae999629fdee00641e45db76aa1e5891",
+  "production_helper_sha256": "983a730fc5b8f617cfb7a38d591bbc4c639ea50fa7611d25e2afb543d6ba07d1",
+  "unpublished_helper_sha256": "a206bd80cdc4339053dad96535e3df217be70d42ae26f3da13f0365d4f28923c",
+  "production_source_unchanged": true,
+  "production_database_changes": 0,
+  "sdk_requests": 0,
+  "model_requests": 0,
+  "affected_file": "kquant/options_minute_decisions.py",
+  "before": {
+    "report": "before.xml",
+    "failed": 7,
+    "passed": 1
+  },
+  "after": {
+    "report": "worker-chain-regressions.xml",
+    "passed": 17,
+    "failed": 0,
+    "real_worker_constructor_and_recovery_pipeline": true,
+    "synthetic_external_input_and_transport": true
+  },
+  "minute_adoption_method_unchanged": true,
+  "source_and_clock_requirements_unchanged": true,
+  "original_deadlines_unchanged": true,
+  "release_accepted": false,
+  "matching_hour_complete": false,
+  "scope": "INDEPENDENT_DEVELOPMENT_ONLY_NOT_INSTALLED",
+  "next_action": "Freeze one-file follow-up, affected real assembly/short and matching hour, then one exact O-LAUNCH; do not hot-edit accepted1984.",
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z"
+}

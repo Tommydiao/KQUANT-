@@ -1,0 +1,36 @@
+{
+  "at": "2026-10-19T13:50:12.702Z",
+  "status": 200,
+  "candidates_count": 0,
+  "evaluations_count": 0,
+  "first_evaluation_keys": [],
+  "first_candidate_keys": [],
+  "asts": [],
+  "projection": {
+    "source_watermark": {
+      "evaluation_rowid": 14316,
+      "revision_id": 124
+    },
+    "as_of": "2026-10-19T13:50:11.966317+00:00",
+    "window_seconds": 300,
+    "original_deadlines_preserved": true,
+    "input_generations": [],
+    "sql_seconds": 0.01600000000325963,
+    "json_projection_seconds": 0,
+    "sql_returned_rows": 0,
+    "lock_wait_seconds": null,
+    "ai_summary_seconds": 0.01600000000325963
+  },
+  "snapshot": {
+    "state": "STALE",
+    "as_of": "2026-10-19T13:50:11.832006+00:00",
+    "refresh_pending": false,
+    "generation_requested": 177,
+    "generation_computed": 177,
+    "error_type": "RESEARCH_WORKER_NOT_READY",
+    "error_detail": null
+  },
+  "summary": {
+    "s1_numeric_pass": 0
+  }
+}

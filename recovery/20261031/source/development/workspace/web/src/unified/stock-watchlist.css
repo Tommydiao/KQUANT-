@@ -1,0 +1,62 @@
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 */
+/* Hallmark · component: grouped market table · genre: modern-minimal · theme: Graphite Signal
+ * states: default · hover · focus · active · disabled · loading · error · success
+ * contrast: pass
+ */
+.watchlist-workbench { min-width: 0; border-top: 1px solid var(--color-rule-strong); }
+.watchlist-toolbar { display: flex; align-items: end; justify-content: space-between; gap: var(--space-sm); padding: var(--space-sm) 0; }
+.watchlist-controls, .watchlist-actions, .watchlist-actions form { display: flex; align-items: end; gap: var(--space-2xs); min-width: 0; }
+.watchlist-controls label { display: grid; gap: 4px; color: var(--color-muted); font-size: 11px; }
+.watchlist-controls select, .watchlist-controls input, .watchlist-actions input { min-height: 34px; border: 1px solid var(--color-rule); border-radius: var(--radius-control); background: var(--color-panel); color: var(--color-ink); padding: 0 10px; }
+.watchlist-controls select:hover, .watchlist-controls input:hover, .watchlist-actions input:hover { border-color: var(--color-rule-strong); }
+.watchlist-controls select:focus-visible, .watchlist-controls input:focus-visible, .watchlist-actions input:focus-visible, .watchlist-actions button:focus-visible, .row-actions button:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.watchlist-search { position: relative; }
+.watchlist-search svg { position: absolute; left: 9px; bottom: 9px; color: var(--color-muted); }
+.watchlist-search input { padding-left: 30px; min-width: 220px; }
+.watchlist-actions button, .row-actions button { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--color-rule); border-radius: var(--radius-control); background: var(--color-panel); color: var(--color-ink-2); }
+.watchlist-actions button:hover, .row-actions button:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.watchlist-actions button:active, .row-actions button:active { transform: translateY(1px); }
+.watchlist-actions button:disabled, .row-actions button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.watchlist-meta { display: flex; flex-wrap: wrap; gap: var(--space-xs); padding: 0 0 var(--space-xs); color: var(--color-muted); font-size: 12px; }
+.watchlist-meta span + span::before { content: "·"; margin-right: var(--space-xs); }
+.watchlist-message { padding: 9px 11px; border-left: 2px solid var(--color-rule-strong); background: var(--color-panel); font-size: 13px; }
+.watchlist-message.error, .watchlist-workbench.is-error .watchlist-message { border-left-color: var(--color-negative); color: var(--color-negative); }
+.watchlist-message.success, .watchlist-workbench.is-success .watchlist-message { border-left-color: var(--color-positive); color: var(--color-positive); }
+.watchlist-table { min-width: 0; border-top: 1px solid var(--color-rule); }
+.watchlist-row { display: grid; grid-template-columns: minmax(145px, 1.15fr) minmax(82px, .7fr) minmax(90px, .75fr) minmax(78px, .65fr) minmax(82px, .65fr) minmax(118px, .9fr) minmax(175px, 1.2fr) 114px; align-items: center; min-height: 54px; border-bottom: 1px solid var(--color-rule); cursor: pointer; }
+.watchlist-row > span { min-width: 0; padding: 8px 10px; overflow: hidden; text-overflow: ellipsis; }
+.watchlist-row:not(.watchlist-head):hover { background: var(--color-panel-strong); }
+.watchlist-row:not(.watchlist-head):active { background: var(--color-panel); }
+.watchlist-row.selected { box-shadow: inset 2px 0 0 var(--color-accent); background: var(--color-panel); }
+.watchlist-head { min-height: 34px; color: var(--color-muted); font-size: 11px; cursor: default; }
+.watchlist-symbol, .watchlist-price, .bbo-cell, .status-cell { display: grid; gap: 3px; }
+.watchlist-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watchlist-row small { overflow: hidden; color: var(--color-muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.watchlist-row .positive { color: var(--color-positive); }
+.watchlist-row .negative { color: var(--color-negative); }
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.row-actions button { width: 30px; height: 30px; }
+.watchlist-workbench.is-loading .watchlist-table { opacity: .72; }
+.watchlist-empty { padding: var(--space-lg); text-align: center; color: var(--color-muted); }
+
+@media (max-width: 900px) {
+  .watchlist-toolbar { align-items: stretch; flex-direction: column; }
+  .watchlist-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .watchlist-search { grid-column: 1 / -1; }
+  .watchlist-search input, .watchlist-controls select { width: 100%; min-width: 0; }
+  .watchlist-actions { justify-content: space-between; }
+  .watchlist-row { grid-template-columns: minmax(120px, 1.2fr) minmax(78px, .8fr) minmax(80px, .8fr) minmax(108px, 1fr) 104px; }
+  .watchlist-head span:nth-child(4), .watchlist-head span:nth-child(5), .watchlist-head span:nth-child(7), .watchlist-row .secondary-cell, .watchlist-row .status-cell { display: none; }
+}
+
+@media (max-width: 540px) {
+  .watchlist-controls { grid-template-columns: 1fr; }
+  .watchlist-search { grid-column: auto; }
+  .watchlist-actions form { flex: 1; }
+  .watchlist-actions input { width: 100%; min-width: 0; }
+  .watchlist-row { grid-template-columns: minmax(105px, 1.1fr) minmax(70px, .75fr) minmax(75px, .8fr) 98px; }
+  .watchlist-head span:nth-child(6), .watchlist-row .bbo-cell { display: none; }
+  .watchlist-row > span { padding: 7px 6px; }
+  .row-actions button { width: 28px; height: 28px; }
+  .row-actions button:last-child { display: none; }
+}

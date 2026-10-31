@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="25" time="2.838" timestamp="2026-10-16T23:38:44.010599+08:00" hostname="PC-20260215FHYW"><testcase classname="" name="test_complete_pushes_enqueue_and_cannot_short_circuit_pull" time="1.173" /><testcase classname="" name="test_existing_qualified_pull_is_reused_without_provider_call" time="0.041" /><testcase classname="" name="test_durable_completion_does_not_mark_unverified_push_done" time="0.060" /><testcase classname="" name="test_early_request_recheck_and_expiry_do_not_become_ready" time="0.040" /><testcase classname="" name="test_late_full_is_not_timely_and_missing_direction_remains" time="0.001" /><testcase classname="" name="test_revision_conflict_cannot_leave_full_credit" time="0.001" /><testcase classname="" name="test_unknown_fee_and_page_counts_not_invented_by_factor_count" time="0.001" /><testcase classname="" name="test_partial_factor_is_not_full" time="0.001" /><testcase classname="" name="test_no_matching_expiry_finishes_without_repeated_market_calls" time="0.001" /><testcase classname="" name="test_unknown_response_is_not_no_matching_contract[response0]" time="0.001" /><testcase classname="" name="test_unknown_response_is_not_no_matching_contract[response1]" time="0.001" /><testcase classname="" name="test_matching_expiry_keeps_existing_chain_path" time="0.001" /><testcase classname="" name="test_pending_binding_only_changes_canonical_field_and_binds_actual_reply" time="0.007" /><testcase classname="" name="test_acceptance_has_fixed_effective_boundary_no_retroactive_adoption" time="0.005" /><testcase classname="" name="test_accepted_choice_cannot_hide_a_changed_contract[hash]" time="0.003" /><testcase classname="" name="test_accepted_choice_cannot_hide_a_changed_contract[method]" time="0.004" /><testcase classname="" name="test_accepted_choice_cannot_hide_a_changed_contract[status]" time="0.003" /><testcase classname="" name="test_accepted_choice_cannot_hide_a_changed_contract[outside_root]" time="0.003" /><testcase classname="" name="test_real_resolver_pair_and_cas_with_pending_method" time="0.188"><failure message="AssertionError: assert [{'adoption_m...89471c', ...}] == []&#10;  &#10;  Left contains one more item: {'adoption_method': 'CLOSED_SNAPSHOT_ADOPTION', 'adoption_method_hash': '37b7b37759b2ae8a1021f85fa5d9dce3286999a646ce9...315485b06578feb35', 'eligibility_policy_hash': '7f48167e7a534524e75e0608cd4fd1852a2c56281def3a289e88323f6f89471c', ...}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1833/test_real_resolver_pair_and_ca0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001555BC733E0&gt;
+
+    def test_real_resolver_pair_and_cas_with_pending_method(tmp_path, monkeypatch):
+        args = synthetic_inputs()
+        path = tmp_path / 'TEST_ONLY-research.sqlite3'
+        store.initialize(path)
+        journal.initialize(path)
+        monkeypatch.setattr(decisions, 'ROOT', PATCH)
+        before = comparison.evaluate_comparison_pair(**args)
+        assert all(row['state'] == 'INCOMPLETE' for row in before)
+        assert before[0]['strategy_comparison']['s1']['reasons'] == ['SOURCE_CONFLICT']
+        key = 'opening_momentum', '2026-10-19', 'TEST_ONLY', 1
+        job = 'TEST_ONLY', args['opening'].date(), args['bars'], args['scope_hash'], args['reference']
+        old = journal.begin(path, key, job, args['now'])
+        selected = decisions.resolve(path, args['bars'], symbol=args['symbol'], session='2026-10-19',
+            now=args['now'], proof=proof(), root=PATCH)
+        first = next(item for item in selected if item['open_at'] == args['opening'].isoformat())
+        assert len(first['observed_raw_ids']) == 3
+        assert len(first['eligible_version_ids']) == 2
+        assert len(first['rejected_versions']) == 1
+        assert first['selected_version_id'] == common.digest(args['bars'][2])
+        after = comparison.evaluate_comparison_pair(**args, source_decisions=selected)
+        assert after[0]['state'] == 'INCOMPLETE'
+        assert 'PRICE_REFERENCE_UNVERIFIED' in after[0]['reasons']
+        assert after[0]['strategy_comparison']['s1']['state'] == 'NUMERIC_PASS'
+        assert after[1]['strategy_comparison']['s1']['state'] == 'NO_TRIGGER'
+        for row in after:
+            assert row['strategy_comparison']['cohort'] == 'S1_INTRADAY_ONLY_DATA'
+            assert not row['qualified_signal']
+            assert not row['strategy_comparison']['s1']['qualified_signal']
+        fixed_deadline = after[0]['strategy_comparison']['s1']['deadline_at']
+        assert fixed_deadline == '2026-10-19T13:40:00+00:00'
+        fingerprint = journal.input_fingerprint(job, selected)
+        assert journal.ready(path, key, job, args['now'], fingerprint=fingerprint)
+        assert not journal.finish(path, old, rows=after)
+        fresh = journal.begin(path, key, job, args['now'], fingerprint=fingerprint)
+        assert fresh.generation == old.generation + 1
+        assert journal.finish(path, fresh, rows=after)
+        assert not journal.ready(path, key, job, args['now'], fingerprint=fingerprint)
+        assert decisions.resolve(path, args['bars'], symbol=args['symbol'], session='2026-10-19',
+            now=args['now'], proof=proof(), root=PATCH) == []
+        later = deepcopy(args['bars'][1])
+        later['received_at'] = (args['now'] + timedelta(seconds=1)).isoformat()
+        assert decisions.accepted(first, [*args['bars'], later], symbol=args['symbol'], start=args['opening'],
+            now=args['now']+timedelta(seconds=2), root=PATCH) is None
+&gt;       assert decisions.resolve(path, [*args['bars'], later], symbol=args['symbol'], session='2026-10-19',
+            now=args['now']+timedelta(seconds=2), proof=proof(), root=PATCH) == []
+E       AssertionError: assert [{'adoption_m...89471c', ...}] == []
+E         
+E         Left contains one more item: {'adoption_method': 'CLOSED_SNAPSHOT_ADOPTION', 'adoption_method_hash': '37b7b37759b2ae8a1021f85fa5d9dce3286999a646ce9...315485b06578feb35', 'eligibility_policy_hash': '7f48167e7a534524e75e0608cd4fd1852a2c56281def3a289e88323f6f89471c', ...}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\test_method_binding.py:143: AssertionError</failure></testcase><testcase classname="" name="test_owner_choice_does_not_prove_synthetic_clock_or_price_facts[clock_missing]" time="0.023" /><testcase classname="" name="test_owner_choice_does_not_prove_synthetic_clock_or_price_facts[clock_stale]" time="0.022" /><testcase classname="" name="test_owner_choice_does_not_prove_synthetic_clock_or_price_facts[clock_wide]" time="0.023" /><testcase classname="" name="test_owner_choice_does_not_prove_synthetic_clock_or_price_facts[request_early]" time="0.020" /><testcase classname="" name="test_owner_choice_does_not_prove_synthetic_clock_or_price_facts[wrong_adjustment]" time="0.045" /><testcase classname="" name="test_push_cache_through_worker_pull_durable_wakeup_and_s1" time="0.617" /></testsuite></testsuites>

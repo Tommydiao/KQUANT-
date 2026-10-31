@@ -1,0 +1,244 @@
+{
+  "observed_at": "2026-10-16T16:17:32.575444+00:00",
+  "test_only": true,
+  "candidate_id": "local-candidate-9dc4f06160f48b0f",
+  "candidate_payload_sha256": "6d01a0b86da0ace804517c0614c91057d1194abd091425cb58309d387e33fe48",
+  "report": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-short-9dc4f061-20261017\\topology_report.json",
+    "sha256": "9cf322eab9bcfa232efed2adb9cffe6df64994b2ed4d256e67fb7b8dd203fcba"
+  },
+  "projection": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-9dc4f06160f48b0f\\deployment-projection.json",
+    "sha256": "0bc0acbc48d77ba360887a8f6cd8e2e03dd82c14f9195d2c53473bc672c343e3"
+  },
+  "exact_candidate_binding": true,
+  "mapped_files": {
+    "config/review_acceptances/local_closed_snapshot_owner_20261016.json": true,
+    "config/review_acceptances/options_opening_trend_reference_sources.json": true,
+    "kquant/options_intraday_reference.py": true,
+    "kquant/options_minute_decisions.py": true,
+    "kquant/options_one_minute_recovery.py": true,
+    "kquant/options_opening_momentum_journal.py": true,
+    "kquant/options_opening_trend_pipeline.py": true,
+    "kquant/options_opening_trend_recovery.py": true,
+    "kquant/options_source_updates.py": true,
+    "kquant/recovery_preflight.py": true,
+    "kquant/recovery_runtime_probe.py": true
+  },
+  "duration_seconds": 120.40600000001723,
+  "continuous_60_minutes": false,
+  "five_minute_cadence": false,
+  "source_unchanged": true,
+  "frontend_unchanged": true,
+  "observation_assembly_pass": false,
+  "enqueue_to_commit_performance_pass": false,
+  "errors": [],
+  "child_processes_alive": [],
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-19T13:35:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 176,
+        "NUMERIC_PASS": 96,
+        "NO_TRIGGER": 96
+      },
+      "raw_revision_count": 368,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 6.780999999988126
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.046999999991385266
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.01600000000325963
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:40:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "NUMERIC_PASS": 100,
+        "NO_TRIGGER": 100
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 8.26500000001397
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.07899999999790452
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.046999999991385266
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:45:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 2,
+        "NUMERIC_PASS": 99,
+        "NO_TRIGGER": 99
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 7.530999999988126
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.07800000000861473
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.03200000000651926
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:50:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 2,
+        "NUMERIC_PASS": 99,
+        "NO_TRIGGER": 99
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 11.71899999998277
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.15599999998812564
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.0629999999946449
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:55:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 2,
+        "NUMERIC_PASS": 99,
+        "NO_TRIGGER": 99
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 9.344000000011874
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.125
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.03200000000651926
+      }
+    }
+  ],
+  "recovery": [
+    {
+      "pending_before": 100,
+      "restored": 100,
+      "original_deadlines_preserved": true,
+      "snapshot_ready_seconds": 4.844000000011874
+    }
+  ],
+  "http": {
+    "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true": {
+      "n": 69,
+      "p95_seconds": 0.15700000000651926,
+      "statuses": {
+        "503": 3,
+        "200": 66
+      }
+    },
+    "/api/options/opening-trend/current?research_strategy=opening_momentum": {
+      "n": 69,
+      "p95_seconds": 0.07899999999790452,
+      "statuses": {
+        "503": 3,
+        "200": 66
+      }
+    },
+    "/api/health/live": {
+      "n": 69,
+      "p95_seconds": 0.1090000000258442,
+      "statuses": {
+        "200": 69
+      }
+    },
+    "/api/stocks/health/live": {
+      "n": 69,
+      "p95_seconds": 0.07800000000861473,
+      "statuses": {
+        "503": 3,
+        "200": 66
+      }
+    }
+  },
+  "http_failure_classes": {
+    "EXPECTED_INJECTED_FAILURE": 9
+  },
+  "browser": {
+    "three_real_pages": true,
+    "refreshes": [
+      3,
+      3,
+      3
+    ],
+    "problems": [],
+    "signal_delivery_accepted": false,
+    "live_market_delivery_accepted": false
+  },
+  "manual_http": {
+    "test_only": true,
+    "synthetic_contract_not_live_qualification": true,
+    "login_status": 200,
+    "entry_status": 200,
+    "actual_http_handlers": true,
+    "production_user_login": false,
+    "duplicate_entry_same": true,
+    "changed_key_status": 400,
+    "partial_exit_status": 200,
+    "duplicate_exit_same": true,
+    "open_quantity": 1,
+    "paper_fill": false,
+    "real_order_created": false,
+    "expired_session_status": 401,
+    "relogin_quantity": 1,
+    "logout_status": 200,
+    "after_logout_status": 401
+  },
+  "sdk_connections": 0,
+  "production_writes": 0,
+  "market_acceptance": false,
+  "real_receive_to_compute_p95": null,
+  "real_qualification_to_page_p95": null,
+  "new_production_launch_accepted": false,
+  "old_running_service_unchanged": true
+}

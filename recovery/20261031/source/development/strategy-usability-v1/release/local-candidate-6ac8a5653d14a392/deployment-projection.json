@@ -1,0 +1,185 @@
+{
+  "schema": "KQUANT_UNACCEPTED_RESEARCH_DELTA_V1",
+  "candidate_id": "local-candidate-6ac8a5653d14a392",
+  "base_candidate": "local-candidate-4ae28624d9e0d41b",
+  "base_entry_sha256": "4dc2a48c758e53d95e55f903694ec7122bcb0351de0c6614e53946dc61708309",
+  "release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\release\\local-candidate-6ac8a5653d14a392\\release-manifest.json",
+    "sha256": "20be71878ccb8c4df4919978bf46035fdaaabd8189ab723206b65eebec61aaa8"
+  },
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\release\\local-candidate-6ac8a5653d14a392\\recovery-manifest.json",
+    "sha256": "25e47d9e9f38549d94e5f0a7dc509c35125e2aa05233cd980bc4a38149310af0"
+  },
+  "changes": [
+    {
+      "target": "kquant/options_intraday_comparison.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_intraday_comparison.py",
+      "sha256": "0af1e12b4f64016e09f41244ab6a7c8a894c00186638f750a8c0a964e3a9a2d4",
+      "previous_sha256": null
+    },
+    {
+      "target": "kquant/options_intraday_reference.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_intraday_reference.py",
+      "sha256": "7ca5333ec82265eee613ae0ece7337d13521c1aea6e632a97c1ff9ed434be9b9",
+      "previous_sha256": null
+    },
+    {
+      "target": "kquant/options_one_minute_runtime.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_one_minute_runtime.py",
+      "sha256": "bcd0d9bf32a9b33474e49147fc50c8ca614de6acf5538748bd49d47fdbc8cf40",
+      "previous_sha256": "13a0cbf4bdd46d9a58a572a9ff6d196985e8672989c6e7634a38f18860515ce0"
+    },
+    {
+      "target": "kquant/options_opening_trend_current.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_opening_trend_current.py",
+      "sha256": "370687f372f4de88a54d57bae45d7cd49892739bd9de7ea32220949357f31ade",
+      "previous_sha256": "22b0a25cd233b1de7dfc43e21703fa4ba74a1fd3ca88de2fb249f8a623885282"
+    },
+    {
+      "target": "kquant/options_opening_trend_pipeline.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_opening_trend_pipeline.py",
+      "sha256": "fde2710bdf867ea5394423fd59a491eda097edc3bf5f15916444cd12783c274f",
+      "previous_sha256": "78cd3204f848e2ab518b2692a862f329b9624005d9fba6d6e58d02b6ceab334a"
+    },
+    {
+      "target": "kquant/options_opening_trend_runtime.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_opening_trend_runtime.py",
+      "sha256": "9af3f9cbfe56672deb6d713ebd4e70e34513f4092b4011cb56045d5f19ba267c",
+      "previous_sha256": "1da84b6ed303f17812d5595557a656509182752e8072f25bcca1897bac579892"
+    },
+    {
+      "target": "kquant/options_opening_trend_store.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_opening_trend_store.py",
+      "sha256": "c5db4302fa7b1e563869fb88d88f78b7bc23bdbf4650febc173abce84e9ba359",
+      "previous_sha256": "79b463b2b986b187022b5f42582ee55993c1f3f0e24bcbf648635b543909e812"
+    },
+    {
+      "target": "kquant/options_opening_trend_summary.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_opening_trend_summary.py",
+      "sha256": "4ae8777b89cd2dc8657cccf4a0d78c6cc363b79747b5dcf441bf8b8b5d00bd20",
+      "previous_sha256": "231e17878db60e3f74d8942889523b6e4716ea27315800c48fb97b97927aec72"
+    },
+    {
+      "target": "kquant/options_research_availability.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_research_availability.py",
+      "sha256": "8bc335c565eb63e388ea8fca58568faf980b02d7a0c5b754970f7380bd16bf91",
+      "previous_sha256": null
+    },
+    {
+      "target": "kquant/options_research_diagnostics.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\kquant\\options_research_diagnostics.py",
+      "sha256": "b2d7975882d94051c01d49bd6cbe3b6fade20133118bbce6f1f5c645a7840c4c",
+      "previous_sha256": null
+    },
+    {
+      "target": "web/dist-stock/assets/index-8MnraLHw.css",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\stock\\assets\\index-8MnraLHw.css",
+      "sha256": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956",
+      "previous_sha256": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956"
+    },
+    {
+      "target": "web/dist-stock/assets/index-Dx1YIUO6.js",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\stock\\assets\\index-Dx1YIUO6.js",
+      "sha256": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d",
+      "previous_sha256": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d"
+    },
+    {
+      "target": "web/dist-stock/index.html",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\stock\\index.html",
+      "sha256": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604",
+      "previous_sha256": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604"
+    },
+    {
+      "target": "web/dist-stock/kquant-mark.svg",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\stock\\kquant-mark.svg",
+      "sha256": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a",
+      "previous_sha256": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a"
+    },
+    {
+      "target": "web/dist-stock/manifest.webmanifest",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\stock\\manifest.webmanifest",
+      "sha256": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19",
+      "previous_sha256": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19"
+    },
+    {
+      "target": "web/dist-stock/service-worker.js",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\stock\\service-worker.js",
+      "sha256": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40",
+      "previous_sha256": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40"
+    },
+    {
+      "target": "web/dist-unified/assets/unified-BE33Baq-.css",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\unified\\assets\\unified-BE33Baq-.css",
+      "sha256": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad",
+      "previous_sha256": null
+    },
+    {
+      "target": "web/dist-unified/assets/unified-C0aHT8vS.js",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\unified\\assets\\unified-C0aHT8vS.js",
+      "sha256": "e272d10719dcaec56475057356909f94e7d874e911fab0522fec27b9cbe98bd4",
+      "previous_sha256": null
+    },
+    {
+      "target": "web/dist-unified/kq-mark.svg",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\unified\\kq-mark.svg",
+      "sha256": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d",
+      "previous_sha256": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d"
+    },
+    {
+      "target": "web/dist-unified/manifest.webmanifest",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\unified\\manifest.webmanifest",
+      "sha256": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac",
+      "previous_sha256": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac"
+    },
+    {
+      "target": "web/dist-unified/service-worker.js",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\unified\\service-worker.js",
+      "sha256": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0",
+      "previous_sha256": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0"
+    },
+    {
+      "target": "web/dist-unified/unified.html",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\build\\unified\\unified.html",
+      "sha256": "f5efb04e5bbfe16b4897bd7f82de8679a7ccb6240f24d10a51804e0b5556a618",
+      "previous_sha256": "95a03104f85d0e2036b79b355cad96523f6c359bda2bd0cda2d7cf41bc9cd027"
+    },
+    {
+      "target": "web/src/unified/OptionsOperations.tsx",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\web\\src\\unified\\OptionsOperations.tsx",
+      "sha256": "a3de9af02dc992ee31356c84448c49e51f6a5d990f41e1ab0accd555fc5c33af",
+      "previous_sha256": "c28db16ae9049dc30ce03cedf979da7d768bb7c6de6a8f2e20b9e0a0cc8377e7"
+    },
+    {
+      "target": "web/src/unified/StrategyComparisonCard.tsx",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\web\\src\\unified\\StrategyComparisonCard.tsx",
+      "sha256": "5a0e37089eb91fc138270f7178efa9d9a6ae81380488e8a02b821e3a3a50b512",
+      "previous_sha256": null
+    },
+    {
+      "target": "web/src/unified/strategyComparison.css",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\web\\src\\unified\\strategyComparison.css",
+      "sha256": "a886756ede796d658ee1d632ac8ed086910e5fd14b9ef91c4c81c153e7da295f",
+      "previous_sha256": null
+    }
+  ],
+  "retired_build_assets": [
+    "web/dist-unified/assets/unified-B9w9H7Ps.css",
+    "web/dist-unified/assets/unified-BdLr81Oy.js"
+  ],
+  "approved": false,
+  "applied": false,
+  "production_accepted": false,
+  "qualified_signal_authorized": false,
+  "deployment_requires": [
+    "exact OWNER research-only acceptance",
+    "original controlled stop with matching process identities",
+    "recheck baseline and delta hashes",
+    "save changed-file-only rollback payload",
+    "atomic file replacement while stopped",
+    "original five-role preflight",
+    "bind authentic acceptance and select entry",
+    "original launch and live observation"
+  ],
+  "preparation_tool_sha256": "714d3bfa353ff1e33a953ee30a5c10d0638948224b3183d0216f831bf9dc47df"
+}

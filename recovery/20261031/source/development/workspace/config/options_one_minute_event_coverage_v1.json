@@ -1,0 +1,30 @@
+{
+  "policy_id": "EVENT-COVERAGE-ONE-MINUTE-SAME-DAY-V1",
+  "status": "PROPOSAL_ONLY",
+  "effective": false,
+  "approval_gate": "O-SETUP",
+  "scope": "STRAT-INTRADAY-MOMENTUM-1M-V1",
+  "claim": "NO_KNOWN_BLOCKING_EVENT_IN_VERIFIED_SOURCES_AS_OF_KNOWLEDGE_TIME",
+  "source_snapshot_max_age_seconds": 900,
+  "review_horizon": "DECISION_TO_PLANNED_SAME_DAY_EXIT",
+  "recheck_on_every_closed_one_minute_bar": true,
+  "historical_alert_backfill": false,
+  "old_two_hour_reviews_do_not_transfer": true,
+  "empty_calendar_alone_is_clearance": false,
+  "categories": ["earnings", "dividends", "corporate", "macro"],
+  "automated_clearance_requires": [
+    "verified_instrument_identity_and_category_applicability",
+    "complete_current_source_pages_and_valid_horizon",
+    "provider_and_required_official_source_hashes",
+    "no_known_blocker_or_unresolved_important_event"
+  ],
+  "human_exception_review": {
+    "requires": ["named_reviewer", "source_content_hash", "exact_category_and_asset", "coverage_start_and_end", "strategy_hash", "scope_hash"],
+    "expires_no_later_than": "SAME_DAY_REGULAR_CLOSE",
+    "source_content_change_invalidates_review": true,
+    "append_only": true
+  },
+  "unknown_or_conflicting_event": "PENDING_REVIEW_NOT_SIGNAL",
+  "paper_enabled": false,
+  "real_orders_enabled": false
+}

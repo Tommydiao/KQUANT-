@@ -1,0 +1,96 @@
+- generic [ref=f1e21]:
+  - banner [ref=f1e22]:
+    - generic [ref=f1e23]:
+      - generic [ref=f1e24]: KQ
+      - generic [ref=f1e25]:
+        - strong [ref=f1e26]: KQUANT
+        - generic [ref=f1e27]: 统一研究工作台
+    - generic [ref=f1e28]:
+      - textbox "搜索当前工作区" [ref=f1e32]:
+        - /placeholder: 搜索正股或期权合约
+      - generic [ref=f1e33]: Enter
+    - generic [ref=f1e34]:
+      - tablist "切换工作区" [ref=f1e35]:
+        - button "股票" [ref=f1e36] [cursor=pointer]
+        - button "期权" [ref=f1e37] [cursor=pointer]
+        - button "Crypto" [ref=f1e38] [cursor=pointer]
+      - generic [ref=f1e39]: 网页服务已连接
+      - button "3" [ref=f1e41] [cursor=pointer]
+      - button "退出登录" [ref=f1e46] [cursor=pointer]
+  - generic [ref=f1e50]:
+    - complementary [ref=f1e51]:
+      - generic [ref=f1e52]:
+        - generic [ref=f1e53]: 期权
+        - generic [ref=f1e54]: 可用
+      - navigation [ref=f1e56]:
+        - button "今日" [ref=f1e57] [cursor=pointer]
+        - button "信号" [ref=f1e64] [cursor=pointer]
+        - button "期权链" [ref=f1e73] [cursor=pointer]
+        - button "图表" [ref=f1e82] [cursor=pointer]
+        - button "计划" [ref=f1e88] [cursor=pointer]
+        - button "复盘 3" [ref=f1e93] [cursor=pointer]:
+          - generic [ref=f1e96]: 复盘
+          - generic [ref=f1e97]: "3"
+      - generic [ref=f1e98]:
+        - button "设置" [ref=f1e99] [cursor=pointer]
+        - generic [ref=f1e104]: 研究与人工复核
+    - main [ref=f1e109]:
+      - generic [ref=f1e110]:
+        - generic [ref=f1e111]:
+          - generic [ref=f1e112]: 期权 · 全部自选
+          - heading "信号" [level=1] [ref=f1e113]
+        - generic [ref=f1e114]:
+          - generic "c15421478ae2c301beefaa2ce4dbfd123caf16962d274138e3f122a7524fb8cb" [ref=f1e115]: options-desktop-c15421478ae2
+          - generic "网页消息流状态（不代表设备提醒已送达）" [ref=f1e116]: 网页消息已连接
+          - button "刷新" [ref=f1e118] [cursor=pointer]
+      - generic [ref=f1e124]:
+        - group [ref=f1e125]:
+          - generic "旧策略查询" [ref=f1e126]
+        - region "早盘顺势" [ref=f1e127]:
+          - tablist [ref=f1e128]:
+            - tab "早盘顺势" [selected] [ref=f1e129] [cursor=pointer]
+            - tab "旧回踩对照" [ref=f1e130] [cursor=pointer]
+          - generic [ref=f1e132]:
+            - strong [ref=f1e133]: 早盘顺势
+            - generic [ref=f1e134]: 09:35–10:00 ET · 最晚01:30北京时间退出 · 研究版
+          - tablist [ref=f1e135]:
+            - tab "机会与资格" [ref=f1e136] [cursor=pointer]
+            - tab "研究观察" [ref=f1e137] [cursor=pointer]
+            - tab "持仓与退出" [ref=f1e138] [cursor=pointer]
+            - tab "历史与诊断" [active] [selected] [ref=f1e139] [cursor=pointer]
+          - region "运行与时钟核验" [ref=f1e595]:
+            - status [ref=f1e596]: "实际服务: RUNNING · 原清单: RUNNING · 最近心跳: 10/19 10:04 ET · 退出原因: —"
+            - group [ref=f1e597]
+            - status [ref=f1e599]: "研究主循环: 已就绪 · SHADOW_MONITORING · 循环次数: 4510 · 最近推进: 10/19 10:04 ET"
+            - paragraph [ref=f1e600]: "外部校时: Windows报告已同步 · 运行中时钟: 未发现跳变，不代表已经校准"
+            - paragraph [ref=f1e601]: "time.cloudflare.com · 检查时间: 10/19 10:04 ET · 系统同步状态不代表精密误差保证或信号批准"
+            - group [ref=f1e602]
+            - group [ref=f1e604]
+          - region "最新检查点计算结果" [ref=f1e606]:
+            - status [ref=f1e607]
+            - paragraph [ref=f1e609]: "检查点: 10/19 09:55 ET · 按方向统计，不跨检查点累加"
+            - generic "同检查点处理链" [ref=f1e610]
+            - paragraph [ref=f1e635]: 事件与合约按最近留档核验统计，当前可操作另按当前期限与报价检查
+            - generic [ref=f1e636]
+            - paragraph [ref=f1e655]: "主要原因（同一方向可有多项）: NO_PERSISTED_CHECKPOINT_EVALUATION: 200 · REGISTERED_IDENTITY_NOT_VERIFIED: 22"
+          - status [ref=f1e656]:
+            - strong [ref=f1e657]: 当前没有已核验的可操作信号
+            - generic [ref=f1e658]: 本版尚未获准发布合格提示
+          - paragraph [ref=f1e659]: "交易日: 2026-10-19 · 最近评价: 10/19 09:49 ET · 已评价方向: 200"
+          - region "历史原判断（本页）" [ref=f1e660]:
+            - generic [ref=f1e661]
+            - table [ref=f1e669]
+          - generic [ref=f1e818]:
+            - button "上一页" [disabled] [ref=f1e819]
+            - generic [ref=f1e822]: 页 1
+            - button "下一页" [ref=f1e823] [cursor=pointer]
+          - region "同检查点覆盖" [ref=f1e826]:
+            - generic [ref=f1e827]
+            - generic [ref=f1e829]
+            - generic [ref=f1e838]
+            - region "逐方向对账，非合格信号" [ref=f1e857]
+          - generic [ref=f1e964]:
+            - text: 事件补证标的
+            - combobox "事件补证标的" [ref=f1e965]
+          - group [ref=f1e966]:
+            - generic "版本与运行诊断" [ref=f1e967]

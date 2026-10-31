@@ -1,0 +1,347 @@
+- region "S0/S1" [ref=f1e201]:
+  - generic [ref=f1e202]:
+    - text: S0/S1研究
+    - combobox "S0/S1研究" [ref=f1e203]:
+      - option "全部结果" [selected]
+      - option "差异结果"
+  - generic [ref=f1e204]:
+    - article "AMDL CALL S0 S1" [ref=f1e205]:
+      - generic [ref=f1e206]:
+        - strong [ref=f1e207]: AMDL · CALL
+        - paragraph [ref=f1e208]: 研究候选，非合格买入提示
+        - generic [ref=f1e209]: 仅S1日内输入齐全；S0不是否决
+        - generic [ref=f1e210]: 10/19 09:45 ET · 10/19 09:50 ET
+      - generic [ref=f1e211]:
+        - strong [ref=f1e212]: "S0: 输入不完整 · S1: 技术触发"
+        - table [ref=f1e213]:
+          - rowgroup [ref=f1e214]:
+            - row [ref=f1e215]:
+              - columnheader "条件" [ref=f1e216]
+              - columnheader "S0" [ref=f1e217]
+              - columnheader "S1" [ref=f1e218]
+          - rowgroup [ref=f1e219]:
+            - row [ref=f1e220] [cursor=pointer]:
+              - cell "Q" [ref=f1e221]
+              - cell "通过" [ref=f1e222]
+              - cell "通过" [ref=f1e223]
+            - row [ref=f1e224] [cursor=pointer]:
+              - cell "M" [ref=f1e225]
+              - cell "通过" [ref=f1e226]
+              - cell "通过" [ref=f1e227]
+            - row [ref=f1e228] [cursor=pointer]:
+              - cell "昨收方向" [ref=f1e229]
+              - cell "未知" [ref=f1e230]
+              - cell "不需要" [ref=f1e231]
+            - row [ref=f1e232] [cursor=pointer]:
+              - cell "前序突破" [ref=f1e233]
+              - cell "通过" [ref=f1e234]
+              - cell "通过" [ref=f1e235]
+            - row [ref=f1e236] [cursor=pointer]:
+              - cell "当日开盘方向" [ref=f1e237]
+              - cell "通过" [ref=f1e238]
+              - cell "通过" [ref=f1e239]
+        - paragraph [ref=f1e240]: "振幅 / 实体: 215.1737 / 184.89 bps"
+        - generic [ref=f1e241]: "同槽历史 / ATR支持数: 0 / 0"
+        - generic [ref=f1e242]: RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY
+      - generic [ref=f1e243]:
+        - strong [ref=f1e244]: 具体参考合约
+        - paragraph [ref=f1e245]: 尚无可核验参考合约
+        - generic [ref=f1e246]: "每张权利金 / 价差金额: 未知 / 未知"
+        - generic [ref=f1e247]: "仅Delta价差等效正股变化: 未知"
+        - generic [ref=f1e248]: "完整往返成本: 未知"
+        - generic [ref=f1e249]: 局部成本近似，非目标价或盈亏预测
+        - generic [ref=f1e250]: REFERENCE_CONTRACT_UNAVAILABLE
+        - paragraph [ref=f1e251]: "60分钟正股观察: 尚未测量"
+        - generic [ref=f1e252]: 正股路径标签，不是期权收益或自动退出
+      - group [ref=f1e253]:
+        - generic "AI证据复核" [ref=f1e254]
+      - group [ref=f1e255]:
+        - generic "版本与输入方法" [ref=f1e256]
+      - generic [ref=f1e257]:
+        - button "查看依据" [ref=f1e258] [cursor=pointer]
+        - button "期权链" [ref=f1e262] [cursor=pointer]
+        - button "按S0登记独立交易" [ref=f1e267] [cursor=pointer]
+    - article "ASTS CALL S0 S1" [ref=f1e268]:
+      - generic [ref=f1e269]:
+        - strong [ref=f1e270]: ASTS · CALL
+        - paragraph [ref=f1e271]: 研究候选，非合格买入提示
+        - generic [ref=f1e272]: 仅S1日内输入齐全；S0不是否决
+        - generic [ref=f1e273]: 10/19 09:45 ET · 10/19 09:50 ET
+      - generic [ref=f1e274]:
+        - strong [ref=f1e275]: "S0: 输入不完整 · S1: 技术触发"
+        - table [ref=f1e276]:
+          - rowgroup [ref=f1e277]:
+            - row [ref=f1e278]:
+              - columnheader "条件" [ref=f1e279]
+              - columnheader "S0" [ref=f1e280]
+              - columnheader "S1" [ref=f1e281]
+          - rowgroup [ref=f1e282]:
+            - row [ref=f1e283] [cursor=pointer]:
+              - cell "Q" [ref=f1e284]
+              - cell "通过" [ref=f1e285]
+              - cell "通过" [ref=f1e286]
+            - row [ref=f1e287] [cursor=pointer]:
+              - cell "M" [ref=f1e288]
+              - cell "通过" [ref=f1e289]
+              - cell "通过" [ref=f1e290]
+            - row [ref=f1e291] [cursor=pointer]:
+              - cell "昨收方向" [ref=f1e292]
+              - cell "未知" [ref=f1e293]
+              - cell "不需要" [ref=f1e294]
+            - row [ref=f1e295] [cursor=pointer]:
+              - cell "前序突破" [ref=f1e296]
+              - cell "通过" [ref=f1e297]
+              - cell "通过" [ref=f1e298]
+            - row [ref=f1e299] [cursor=pointer]:
+              - cell "当日开盘方向" [ref=f1e300]
+              - cell "通过" [ref=f1e301]
+              - cell "通过" [ref=f1e302]
+        - paragraph [ref=f1e303]: "振幅 / 实体: 251.0658 / 146.8498 bps"
+        - generic [ref=f1e304]: "同槽历史 / ATR支持数: 0 / 0"
+        - generic [ref=f1e305]: RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY
+      - generic [ref=f1e306]:
+        - strong [ref=f1e307]: 具体参考合约
+        - paragraph [ref=f1e337]: ASTS261023C43000.US
+        - generic [ref=f1e338]: 2026-10-23 · 43 · CALL · DTE 4
+        - generic [ref=f1e339]: "bid / ask: 1.91 / 2.01 · USD"
+        - generic [ref=f1e340]: 10/19 09:49 ET · 历史参考报价，非当前资格
+        - generic [ref=f1e309]: "每张权利金 / 价差金额: 未知 / 未知"
+        - generic [ref=f1e310]: "仅Delta价差等效正股变化: 未知"
+        - generic [ref=f1e311]: "完整往返成本: 未知"
+        - generic [ref=f1e312]: 局部成本近似，非目标价或盈亏预测
+        - generic [ref=f1e313]: FEES_OR_SLIPPAGE_UNKNOWN
+        - paragraph [ref=f1e314]: "60分钟正股观察: 尚未测量"
+        - generic [ref=f1e315]: 正股路径标签，不是期权收益或自动退出
+      - group [ref=f1e316]:
+        - generic "AI证据复核 · gpt-6.1-sol" [ref=f1e341]
+      - group [ref=f1e318]:
+        - generic "版本与输入方法" [ref=f1e319]
+      - generic [ref=f1e320]:
+        - button "查看依据" [ref=f1e321] [cursor=pointer]
+        - button "期权链" [ref=f1e325] [cursor=pointer]
+        - button "按S0登记独立交易" [ref=f1e330] [cursor=pointer]
+    - article "CYN PUT S0 S1" [ref=f1e342]:
+      - generic [ref=f1e343]:
+        - strong [ref=f1e344]: CYN · PUT
+        - paragraph [ref=f1e345]: 研究候选，非合格买入提示
+        - generic [ref=f1e346]: 仅S1日内输入齐全；S0不是否决
+        - generic [ref=f1e347]: 10/19 09:45 ET · 10/19 09:50 ET
+      - generic [ref=f1e348]:
+        - strong [ref=f1e349]: "S0: 输入不完整 · S1: 技术触发"
+        - table [ref=f1e350]:
+          - rowgroup [ref=f1e351]:
+            - row [ref=f1e352]:
+              - columnheader "条件" [ref=f1e353]
+              - columnheader "S0" [ref=f1e354]
+              - columnheader "S1" [ref=f1e355]
+          - rowgroup [ref=f1e356]:
+            - row [ref=f1e357] [cursor=pointer]:
+              - cell "Q" [ref=f1e358]
+              - cell "通过" [ref=f1e359]
+              - cell "通过" [ref=f1e360]
+            - row [ref=f1e361] [cursor=pointer]:
+              - cell "M" [ref=f1e362]
+              - cell "通过" [ref=f1e363]
+              - cell "通过" [ref=f1e364]
+            - row [ref=f1e365] [cursor=pointer]:
+              - cell "昨收方向" [ref=f1e366]
+              - cell "未知" [ref=f1e367]
+              - cell "不需要" [ref=f1e368]
+            - row [ref=f1e369] [cursor=pointer]:
+              - cell "前序突破" [ref=f1e370]
+              - cell "通过" [ref=f1e371]
+              - cell "通过" [ref=f1e372]
+            - row [ref=f1e373] [cursor=pointer]:
+              - cell "当日开盘方向" [ref=f1e374]
+              - cell "通过" [ref=f1e375]
+              - cell "通过" [ref=f1e376]
+        - paragraph [ref=f1e377]: "振幅 / 实体: 310.3058 / 310.3058 bps"
+        - generic [ref=f1e378]: "同槽历史 / ATR支持数: 0 / 0"
+        - generic [ref=f1e379]: RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY
+      - generic [ref=f1e380]:
+        - strong [ref=f1e381]: 具体参考合约
+        - paragraph [ref=f1e382]: 尚无可核验参考合约
+        - generic [ref=f1e383]: "每张权利金 / 价差金额: 未知 / 未知"
+        - generic [ref=f1e384]: "仅Delta价差等效正股变化: 未知"
+        - generic [ref=f1e385]: "完整往返成本: 未知"
+        - generic [ref=f1e386]: 局部成本近似，非目标价或盈亏预测
+        - generic [ref=f1e387]: REFERENCE_CONTRACT_UNAVAILABLE
+        - paragraph [ref=f1e388]: "60分钟正股观察: 尚未测量"
+        - generic [ref=f1e389]: 正股路径标签，不是期权收益或自动退出
+      - group [ref=f1e390]:
+        - generic "AI证据复核" [ref=f1e391]
+      - group [ref=f1e392]:
+        - generic "版本与输入方法" [ref=f1e393]
+      - generic [ref=f1e394]:
+        - button "查看依据" [ref=f1e395] [cursor=pointer]
+        - button "期权链" [ref=f1e399] [cursor=pointer]
+        - button "按S0登记独立交易" [ref=f1e404] [cursor=pointer]
+    - article "DLR PUT S0 S1" [ref=f1e405]:
+      - generic [ref=f1e406]:
+        - strong [ref=f1e407]: DLR · PUT
+        - paragraph [ref=f1e408]: 研究候选，非合格买入提示
+        - generic [ref=f1e409]: 仅S1日内输入齐全；S0不是否决
+        - generic [ref=f1e410]: 10/19 09:45 ET · 10/19 09:50 ET
+      - generic [ref=f1e411]:
+        - strong [ref=f1e412]: "S0: 输入不完整 · S1: 技术触发"
+        - table [ref=f1e413]:
+          - rowgroup [ref=f1e414]:
+            - row [ref=f1e415]:
+              - columnheader "条件" [ref=f1e416]
+              - columnheader "S0" [ref=f1e417]
+              - columnheader "S1" [ref=f1e418]
+          - rowgroup [ref=f1e419]:
+            - row [ref=f1e420] [cursor=pointer]:
+              - cell "Q" [ref=f1e421]
+              - cell "通过" [ref=f1e422]
+              - cell "通过" [ref=f1e423]
+            - row [ref=f1e424] [cursor=pointer]:
+              - cell "M" [ref=f1e425]
+              - cell "通过" [ref=f1e426]
+              - cell "通过" [ref=f1e427]
+            - row [ref=f1e428] [cursor=pointer]:
+              - cell "昨收方向" [ref=f1e429]
+              - cell "未知" [ref=f1e430]
+              - cell "不需要" [ref=f1e431]
+            - row [ref=f1e432] [cursor=pointer]:
+              - cell "前序突破" [ref=f1e433]
+              - cell "通过" [ref=f1e434]
+              - cell "通过" [ref=f1e435]
+            - row [ref=f1e436] [cursor=pointer]:
+              - cell "当日开盘方向" [ref=f1e437]
+              - cell "通过" [ref=f1e438]
+              - cell "通过" [ref=f1e439]
+        - paragraph [ref=f1e440]: "振幅 / 实体: 38.5204 / 23.6787 bps"
+        - generic [ref=f1e441]: "同槽历史 / ATR支持数: 0 / 0"
+        - generic [ref=f1e442]: RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY
+      - generic [ref=f1e443]:
+        - strong [ref=f1e444]: 具体参考合约
+        - paragraph [ref=f1e445]: 尚无可核验参考合约
+        - generic [ref=f1e446]: "每张权利金 / 价差金额: 未知 / 未知"
+        - generic [ref=f1e447]: "仅Delta价差等效正股变化: 未知"
+        - generic [ref=f1e448]: "完整往返成本: 未知"
+        - generic [ref=f1e449]: 局部成本近似，非目标价或盈亏预测
+        - generic [ref=f1e450]: REFERENCE_CONTRACT_UNAVAILABLE
+        - paragraph [ref=f1e451]: "60分钟正股观察: 尚未测量"
+        - generic [ref=f1e452]: 正股路径标签，不是期权收益或自动退出
+      - group [ref=f1e453]:
+        - generic "AI证据复核" [ref=f1e454]
+      - group [ref=f1e455]:
+        - generic "版本与输入方法" [ref=f1e456]
+      - generic [ref=f1e457]:
+        - button "查看依据" [ref=f1e458] [cursor=pointer]
+        - button "期权链" [ref=f1e462] [cursor=pointer]
+        - button "按S0登记独立交易" [ref=f1e467] [cursor=pointer]
+    - article "ROBN PUT S0 S1" [ref=f1e468]:
+      - generic [ref=f1e469]:
+        - strong [ref=f1e470]: ROBN · PUT
+        - paragraph [ref=f1e471]: 研究候选，非合格买入提示
+        - generic [ref=f1e472]: 仅S1日内输入齐全；S0不是否决
+        - generic [ref=f1e473]: 10/19 09:45 ET · 10/19 09:50 ET
+      - generic [ref=f1e474]:
+        - strong [ref=f1e475]: "S0: 输入不完整 · S1: 技术触发"
+        - table [ref=f1e476]:
+          - rowgroup [ref=f1e477]:
+            - row [ref=f1e478]:
+              - columnheader "条件" [ref=f1e479]
+              - columnheader "S0" [ref=f1e480]
+              - columnheader "S1" [ref=f1e481]
+          - rowgroup [ref=f1e482]:
+            - row [ref=f1e483] [cursor=pointer]:
+              - cell "Q" [ref=f1e484]
+              - cell "通过" [ref=f1e485]
+              - cell "通过" [ref=f1e486]
+            - row [ref=f1e487] [cursor=pointer]:
+              - cell "M" [ref=f1e488]
+              - cell "通过" [ref=f1e489]
+              - cell "通过" [ref=f1e490]
+            - row [ref=f1e491] [cursor=pointer]:
+              - cell "昨收方向" [ref=f1e492]
+              - cell "未知" [ref=f1e493]
+              - cell "不需要" [ref=f1e494]
+            - row [ref=f1e495] [cursor=pointer]:
+              - cell "前序突破" [ref=f1e496]
+              - cell "通过" [ref=f1e497]
+              - cell "通过" [ref=f1e498]
+            - row [ref=f1e499] [cursor=pointer]:
+              - cell "当日开盘方向" [ref=f1e500]
+              - cell "通过" [ref=f1e501]
+              - cell "通过" [ref=f1e502]
+        - paragraph [ref=f1e503]: "振幅 / 实体: 92.0368 / 47.619 bps"
+        - generic [ref=f1e504]: "同槽历史 / ATR支持数: 0 / 0"
+        - generic [ref=f1e505]: RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY
+      - generic [ref=f1e506]:
+        - strong [ref=f1e507]: 具体参考合约
+        - paragraph [ref=f1e508]: 尚无可核验参考合约
+        - generic [ref=f1e509]: "每张权利金 / 价差金额: 未知 / 未知"
+        - generic [ref=f1e510]: "仅Delta价差等效正股变化: 未知"
+        - generic [ref=f1e511]: "完整往返成本: 未知"
+        - generic [ref=f1e512]: 局部成本近似，非目标价或盈亏预测
+        - generic [ref=f1e513]: REFERENCE_CONTRACT_UNAVAILABLE
+        - paragraph [ref=f1e514]: "60分钟正股观察: 尚未测量"
+        - generic [ref=f1e515]: 正股路径标签，不是期权收益或自动退出
+      - group [ref=f1e516]:
+        - generic "AI证据复核" [ref=f1e517]
+      - group [ref=f1e518]:
+        - generic "版本与输入方法" [ref=f1e519]
+      - generic [ref=f1e520]:
+        - button "查看依据" [ref=f1e521] [cursor=pointer]
+        - button "期权链" [ref=f1e525] [cursor=pointer]
+        - button "按S0登记独立交易" [ref=f1e530] [cursor=pointer]
+    - article "VRSK PUT S0 S1" [ref=f1e531]:
+      - generic [ref=f1e532]:
+        - strong [ref=f1e533]: VRSK · PUT
+        - paragraph [ref=f1e534]: 研究候选，非合格买入提示
+        - generic [ref=f1e535]: 仅S1日内输入齐全；S0不是否决
+        - generic [ref=f1e536]: 10/19 09:45 ET · 10/19 09:50 ET
+      - generic [ref=f1e537]:
+        - strong [ref=f1e538]: "S0: 输入不完整 · S1: 技术触发"
+        - table [ref=f1e539]:
+          - rowgroup [ref=f1e540]:
+            - row [ref=f1e541]:
+              - columnheader "条件" [ref=f1e542]
+              - columnheader "S0" [ref=f1e543]
+              - columnheader "S1" [ref=f1e544]
+          - rowgroup [ref=f1e545]:
+            - row [ref=f1e546] [cursor=pointer]:
+              - cell "Q" [ref=f1e547]
+              - cell "通过" [ref=f1e548]
+              - cell "通过" [ref=f1e549]
+            - row [ref=f1e550] [cursor=pointer]:
+              - cell "M" [ref=f1e551]
+              - cell "通过" [ref=f1e552]
+              - cell "通过" [ref=f1e553]
+            - row [ref=f1e554] [cursor=pointer]:
+              - cell "昨收方向" [ref=f1e555]
+              - cell "未知" [ref=f1e556]
+              - cell "不需要" [ref=f1e557]
+            - row [ref=f1e558] [cursor=pointer]:
+              - cell "前序突破" [ref=f1e559]
+              - cell "通过" [ref=f1e560]
+              - cell "通过" [ref=f1e561]
+            - row [ref=f1e562] [cursor=pointer]:
+              - cell "当日开盘方向" [ref=f1e563]
+              - cell "通过" [ref=f1e564]
+              - cell "通过" [ref=f1e565]
+        - paragraph [ref=f1e566]: "振幅 / 实体: 79.4537 / 79.4537 bps"
+        - generic [ref=f1e567]: "同槽历史 / ATR支持数: 0 / 0"
+        - generic [ref=f1e568]: RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY
+      - generic [ref=f1e569]:
+        - strong [ref=f1e570]: 具体参考合约
+        - paragraph [ref=f1e571]: 尚无可核验参考合约
+        - generic [ref=f1e572]: "每张权利金 / 价差金额: 未知 / 未知"
+        - generic [ref=f1e573]: "仅Delta价差等效正股变化: 未知"
+        - generic [ref=f1e574]: "完整往返成本: 未知"
+        - generic [ref=f1e575]: 局部成本近似，非目标价或盈亏预测
+        - generic [ref=f1e576]: REFERENCE_CONTRACT_UNAVAILABLE
+        - paragraph [ref=f1e577]: "60分钟正股观察: 尚未测量"
+        - generic [ref=f1e578]: 正股路径标签，不是期权收益或自动退出
+      - group [ref=f1e579]:
+        - generic "AI证据复核" [ref=f1e580]
+      - group [ref=f1e581]:
+        - generic "版本与输入方法" [ref=f1e582]
+      - generic [ref=f1e583]:
+        - button "查看依据" [ref=f1e584] [cursor=pointer]
+        - button "期权链" [ref=f1e588] [cursor=pointer]
+        - button "按S0登记独立交易" [ref=f1e593] [cursor=pointer]
+  - paragraph [ref=f1e331]: 更多标的和检查点见历史与诊断

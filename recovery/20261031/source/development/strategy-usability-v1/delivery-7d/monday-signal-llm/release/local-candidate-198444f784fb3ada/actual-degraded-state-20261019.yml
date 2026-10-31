@@ -1,0 +1,11 @@
+- region "运行与时钟核验" [ref=f1e140]:
+  - status [ref=f1e141]: "实际服务: RUNNING · 原清单: RUNNING · 最近心跳: 10/19 09:57 ET · 退出原因: —"
+  - group [ref=f1e142]:
+    - generic "运行身份与观察时间" [ref=f1e143]
+  - alert [ref=f1e594]: "研究主循环: 未就绪，不能确认正常扫描 · DEGRADED · 循环次数: 595 · 最近推进: 10/19 09:57 ET"
+  - paragraph [ref=f1e145]: "外部校时: Windows报告已同步 · 运行中时钟: 未发现跳变，不代表已经校准"
+  - paragraph [ref=f1e146]: "time.cloudflare.com · 检查时间: 10/19 09:57 ET · 系统同步状态不代表精密误差保证或信号批准"
+  - group [ref=f1e147]:
+    - generic "状态查询诊断" [ref=f1e148]
+  - group [ref=f1e149]:
+    - generic "来源刷新与请求依据" [ref=f1e150]

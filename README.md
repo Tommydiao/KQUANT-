@@ -1,5 +1,11 @@
 # KQUANT
 
+> **Current S0/S1 development handoff (2026-10-31):** start at
+> [`recovery/20261031/START_HERE.md`](recovery/20261031/START_HERE.md).
+> This contains the current recovery workspace, 11-checkpoint candidate and new-machine instructions.
+> It is a code handoff, not a production release or business-database backup. The original seven-day
+> delivery remains **FAIL**. The older OSS quick-start below must not be used to restore that workspace.
+
 [![KQUANT CI](https://github.com/Tommydiao/KQUANT-/actions/workflows/ci.yml/badge.svg)](https://github.com/Tommydiao/KQUANT-/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

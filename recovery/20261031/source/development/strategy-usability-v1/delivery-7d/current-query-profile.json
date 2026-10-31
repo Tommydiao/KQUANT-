@@ -1,0 +1,91 @@
+{
+  "test_only": true,
+  "read_only": true,
+  "store": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-short-20261016-v4\\TEST_ONLY-research.sqlite3",
+  "as_of": "2026-10-19T13:55:02+00:00",
+  "samples": [
+    {
+      "reader": "before",
+      "iteration": 0,
+      "seconds": 0.1376509999972768,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "after",
+      "iteration": 0,
+      "seconds": 0.06402560000424273,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "before",
+      "iteration": 1,
+      "seconds": 0.1237437000090722,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "after",
+      "iteration": 1,
+      "seconds": 0.053793200000654906,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "before",
+      "iteration": 2,
+      "seconds": 0.1399420999805443,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "after",
+      "iteration": 2,
+      "seconds": 0.05556300000171177,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "before",
+      "iteration": 3,
+      "seconds": 0.1054780000122264,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "after",
+      "iteration": 3,
+      "seconds": 0.0597942000022158,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "before",
+      "iteration": 4,
+      "seconds": 0.10336870001628995,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    },
+    {
+      "reader": "after",
+      "iteration": 4,
+      "seconds": 0.06053120002616197,
+      "result_sha256": "1f6f75194bde5e06b1e0bc0d986fa2fa001642b9da12e0636ca1da76934d2f82",
+      "total": 99,
+      "error": null
+    }
+  ],
+  "all_successful_outputs_equal": true,
+  "real_market_latency_claim": false,
+  "timeout_increased": false
+}

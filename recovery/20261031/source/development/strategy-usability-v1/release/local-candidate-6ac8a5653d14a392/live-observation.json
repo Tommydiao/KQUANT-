@@ -1,0 +1,1666 @@
+{
+  "candidate": "local-candidate-6ac8a5653d14a392",
+  "elapsed_seconds": 601.5779999999795,
+  "complete": true,
+  "samples": [
+    {
+      "at": "2026-10-16T12:40:22.353409+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 4.906588,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3190,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.046999999991385266
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 272,
+          "mtime": 1792154422.393381
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 514,
+          "mtime": 1792154422.4356966
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:40:52.438098+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 7.274734,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3158,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 476,
+          "mtime": 1792154452.4605708
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 975,
+          "mtime": 1792154452.5053794
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:41:22.509179+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 6.869329,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3173,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.031000000017229468
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0159999999741558
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 680,
+          "mtime": 1792154482.535177
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 1436,
+          "mtime": 1792154482.5823
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:41:52.585431+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 7.7879,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3172,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 884,
+          "mtime": 1792154512.5854318
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 1897,
+          "mtime": 1792154512.6279392
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:42:22.630397+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 9.720872,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3192,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.031000000017229468
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.03200000000651926
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.014999999984866008
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 1088,
+          "mtime": 1792154542.6578832
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 2804,
+          "mtime": 1792154542.7386272
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:42:52.741966+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 11.957228,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3173,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 1292,
+          "mtime": 1792154572.75781
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 3335,
+          "mtime": 1792154572.8029573
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:43:22.806260+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 0.351782,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3176,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 1564,
+          "mtime": 1792154602.808292
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 3849,
+          "mtime": 1792154602.8557084
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:43:52.861224+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 2.746517,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3179,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.03200000000651926
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 1768,
+          "mtime": 1792154632.8639863
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 4310,
+          "mtime": 1792154632.9083822
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:44:22.911691+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 5.105246,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3190,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0159999999741558
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.03200000000651926
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 1972,
+          "mtime": 1792154662.9324226
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 4771,
+          "mtime": 1792154662.9859147
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:44:52.989604+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 4.114121,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3158,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.031000000017229468
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 2176,
+          "mtime": 1792154693.0165405
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 5232,
+          "mtime": 1792154693.078439
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:45:23.082835+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 6.217863,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3190,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.014999999984866008
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 2380,
+          "mtime": 1792154723.1052432
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 5693,
+          "mtime": 1792154723.1385489
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:45:53.141952+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 8.605318,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3175,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.031000000017229468
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 2584,
+          "mtime": 1792154753.143795
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 6154,
+          "mtime": 1792154753.2030544
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:46:23.206609+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 8.437745,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3192,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 2788,
+          "mtime": 1792154783.2208958
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 6615,
+          "mtime": 1792154783.272854
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:46:53.275710+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 10.974645,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3193,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.015000000013969839
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0159999999741558
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 2992,
+          "mtime": 1792154813.2972035
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 7076,
+          "mtime": 1792154813.3473828
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:47:23.351615+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 0.427019,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3174,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.014999999984866008
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.046999999991385266
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 3264,
+          "mtime": 1792154843.354146
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 7590,
+          "mtime": 1792154843.4273841
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:47:53.438473+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 3.772094,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3171,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.031000000017229468
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 3468,
+          "mtime": 1792154873.4678102
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 8051,
+          "mtime": 1792154873.537632
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:48:23.544692+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 7.056196,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3172,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.0159999999741558
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.015000000013969839
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.01600000000325963
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 3672,
+          "mtime": 1792154903.5628188
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 8512,
+          "mtime": 1792154903.6097732
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:48:53.613035+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 10.669347,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3162,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.030999999988125637
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.01600000000325963
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.015000000013969839
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 3876,
+          "mtime": 1792154933.6377895
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 8973,
+          "mtime": 1792154933.682261
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:49:23.687552+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 0.304568,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3191,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.031000000017229468
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.0
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.0
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 4148,
+          "mtime": 1792154963.715356
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 9487,
+          "mtime": 1792154963.7506907
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:49:53.758104+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 3.253793,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3193,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.030999999988125637
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.030999999988125637
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 4352,
+          "mtime": 1792154993.7774835
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 9948,
+          "mtime": 1792154993.8676014
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    },
+    {
+      "at": "2026-10-16T12:50:23.873058+00:00",
+      "candidate": "local-candidate-6ac8a5653d14a392",
+      "state": "RUNNING",
+      "stage": "MAIN_LOOP",
+      "session": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+      "heartbeat_age_seconds": 6.064108,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 23176,
+          "identity": {
+            "pid": 23176,
+            "created_at": "2026-10-16T12:39:53.1068420Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        },
+        {
+          "port": 8020,
+          "pid": 26120,
+          "identity": {
+            "pid": 26120,
+            "created_at": "2026-10-16T12:39:53.2944550Z",
+            "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+          },
+          "command_verified": true
+        }
+      ],
+      "http": {
+        "live": {
+          "status": 200,
+          "bytes": 3175,
+          "summary": {
+            "status": "online"
+          },
+          "seconds": 0.01600000000325963
+        },
+        "page": {
+          "status": 200,
+          "bytes": 592,
+          "seconds": 0.0
+        },
+        "current": {
+          "status": 401,
+          "seconds": 0.031000000017229468
+        },
+        "compact": {
+          "status": 401,
+          "seconds": 0.0159999999741558
+        }
+      },
+      "logs": [
+        {
+          "name": "stock-options-foundation",
+          "kind": "stdout",
+          "bytes": 4556,
+          "mtime": 1792155023.8822596
+        },
+        {
+          "name": "stock-options-foundation",
+          "kind": "stderr",
+          "bytes": 2870,
+          "mtime": 1792154396.9902308
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stdout",
+          "bytes": 10409,
+          "mtime": 1792155023.9293191
+        },
+        {
+          "name": "gateway-options-foundation",
+          "kind": "stderr",
+          "bytes": 202,
+          "mtime": 1792154394.447681
+        }
+      ]
+    }
+  ]
+}

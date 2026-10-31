@@ -1,0 +1,41 @@
+{
+  "launcher_pid": 35444,
+  "launcher_identity": {
+    "pid": 35444,
+    "created_at": "2026-10-31T14:18:34.9921540Z",
+    "executable": "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+  },
+  "run_session_id": "4b14599d-127c-424f-b294-d3b4727ec86c",
+  "system_boot": {
+    "state": "VERIFIED",
+    "started_at": "2026-10-14T13:15:50.5121000Z",
+    "source": "WIN32_OPERATING_SYSTEM"
+  },
+  "started_at": "20261031T141835747Z",
+  "checked_at": "2026-10-31T14:19:05.6769950+00:00",
+  "state": "RUNNING",
+  "exit_reason": "TEST_ONLY_PROCESS_OBSERVATION",
+  "failed_stage": "MAIN_LOOP",
+  "launches": [
+    {
+      "name": "gateway-options-foundation",
+      "pid": 45356,
+      "identity": {
+        "pid": 45356,
+        "created_at": "2026-10-31T14:19:04.8797660Z",
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+      },
+      "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+      "arguments": "-u \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\opening-first-hour\\lifecycle-candidate/acceptance-health.py\" --port 50951",
+      "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\opening-first-hour\\lifecycle-candidate",
+      "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\weekend-20261031\\C-evidence\\lifecycle-core76-01\\gateway-options-foundation.20261031T141835747Z.out.log",
+      "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\weekend-20261031\\C-evidence\\lifecycle-core76-01\\gateway-options-foundation.20261031T141835747Z.err.log"
+    }
+  ],
+  "listeners": [],
+  "health_verified": false,
+  "recovery_count": 1,
+  "backend_release": "TEST_ONLY_LIFECYCLE_ISOLATION",
+  "backend_manifest_sha256": "3803593caac14cafe04288edc4339df985a2a26e01dc2629c4bdc2ae1926daae",
+  "research_health_is_separate": true
+}

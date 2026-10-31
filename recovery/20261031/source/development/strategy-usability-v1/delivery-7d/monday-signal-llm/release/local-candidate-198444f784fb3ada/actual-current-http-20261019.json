@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-19T13:49:48.759Z",
+  "url": "http://127.0.0.1:8020/?workspace=options&view=signals",
+  "status": 200,
+  "elapsed_ms": 23.30000001192093,
+  "keys": [
+    "session",
+    "scope_hash",
+    "approvals",
+    "candidates",
+    "evaluations",
+    "as_of",
+    "read_only",
+    "evaluations_total",
+    "research_summary",
+    "evaluations_deferred",
+    "current_projection",
+    "external_clock",
+    "worker_serialization_ms",
+    "query_transport",
+    "scope_observation",
+    "snapshot",
+    "service_observation"
+  ],
+  "summary": {
+    "session": "2026-10-19",
+    "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+    "as_of": "2026-10-19T13:49:47.580244+00:00",
+    "read_only": true,
+    "evaluations_total": 6,
+    "evaluations_deferred": false,
+    "worker_serialization_ms": 0.325
+  },
+  "hasAuthenticatedSignals": true,
+  "pageLabels": [
+    "实际服务: RUNNING · 原清单: RUNNING · 最近心跳: 10/19 09:49 ET · 退出原因: —",
+    "研究主循环: 已就绪 · SHADOW_MONITORING · 循环次数: 307 · 最近推进: 10/19 09:49 ET"
+  ]
+}

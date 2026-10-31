@@ -1,0 +1,35 @@
+{
+  "candidate": "local-candidate-198444f784fb3ada",
+  "elapsed_seconds": 600.0780000000377,
+  "sample_count": 21,
+  "complete": true,
+  "read_only": true,
+  "observation_sha256": "dbb94d18384325cb2073f81f8b22be74d906438187db684c212ccae8a18f99eb",
+  "same_session": true,
+  "all_expected_candidate": true,
+  "all_main_loop": true,
+  "all_worker_ready": false,
+  "max_heartbeat_age_seconds": 12.5253,
+  "max_worker_age_seconds": 14.811666,
+  "first_loop_count": 2,
+  "last_loop_count": 602,
+  "http_counts": {
+    "live": {
+      "200": 21
+    },
+    "page": {
+      "200": 21
+    },
+    "current_unauthenticated": {
+      "401": 21
+    },
+    "compact_unauthenticated": {
+      "401": 21
+    }
+  },
+  "state_read_errors": [],
+  "authenticated_page_verified": false,
+  "market_window_pass": false,
+  "natural_signal_pass": false,
+  "performance_pass": false
+}

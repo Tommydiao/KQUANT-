@@ -1,0 +1,72 @@
+{
+  "schema": "WEEKEND_WORKSTREAM_C_CLOSEOUT_V1",
+  "recorded_at": "2026-10-31T14:20:59.446298+00:00",
+  "ready_for_parent_integration": true,
+  "production_runtime_changed": false,
+  "production_database_access": false,
+  "matching_hour_started": false,
+  "production_restart": false,
+  "prior_seven_day_verdict": "FAIL_UNCHANGED",
+  "source_hashes": {
+    "opening-first-hour\\lifecycle-candidate\\start_kquant_workspace.ps1": "204bbb861014950b2c8a1065bdfaa28abf8cb28f2ce6367d1d3353679b1b9354",
+    "opening-first-hour\\lifecycle-candidate\\scripts\\FoundationLifecycle.ps1": "3803593caac14cafe04288edc4339df985a2a26e01dc2629c4bdc2ae1926daae",
+    "opening-first-hour\\lifecycle-candidate\\acceptance-child.ps1": "c85e76a931c5bc995f199f16730fa6af196683871e3438ab3438c53b1ba06328",
+    "opening-first-hour\\lifecycle-candidate\\acceptance-health.py": "b954652e88d19b110b675a28a644085c5cf7d5a7de1630bd69bc77536ccfc4b1",
+    "opening-first-hour\\lifecycle-candidate\\test-process-isolation.ps1": "4bf3e022b6b3aa0f2acc81cba261634654cbe1adb1ac25597c49329eb70caae9",
+    "weekend-20261031\\calendar\\window_calendar.py": "ff36c1657e4c6c75c4d471d38f9a6b409ae287be1315076f3025b3015e9c3eef",
+    "weekend-20261031\\calendar\\test_window_calendar.py": "786dde35c00126bec797950a8c3f251464c3d67b82e0035f7d2abee00ba44998",
+    "weekend-20261031\\calendar\\capture_calendar.py": "c8f14529c07b55d988b92e538047e211e5bb84736d2d2676a867f26ad03d354a"
+  },
+  "evidence_hashes": {
+    "C-evidence\\lifecycle-windows51-03\\result.json": "12cb9dfafc69c072042d45feec81ea476389d9e3e20b762a1806555b768125db",
+    "C-evidence\\lifecycle-core76-01\\result.json": "bdd69788dbfa64d00ae09600d313b69cbc8e4770e57adcba3536d51c9bb3cfa1",
+    "C-evidence\\calendar-verification.json": "a7d39fd6d5e6d1abc311413eb797d6f9b11fb500f77b00be02bcb4e8417b2250",
+    "C-evidence\\calendar-tests.xml": "5e2827157a4c10f1298d286e9fb6b3217ad2310ff6d0919b8a0f2ea52dc0d250"
+  },
+  "lifecycle": [
+    {
+      "host": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "version": "5.1.26100.4480",
+      "pass": true,
+      "checks": 38,
+      "remaining_children": 0,
+      "scope": "Original HostCheckOnly entry, candidate File entry gate rejection, actual entry start/listener/health functions, shared monitor, real child recovery/ownership/cleanup. TEST_ONLY loopback health transport. Not successful production recovery gates, business HTTP, Worker or full topology acceptance."
+    },
+    {
+      "host": "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+      "version": "7.6.5",
+      "pass": true,
+      "checks": 38,
+      "remaining_children": 0,
+      "scope": "Original HostCheckOnly entry, candidate File entry gate rejection, actual entry start/listener/health functions, shared monitor, real child recovery/ownership/cleanup. TEST_ONLY loopback health transport. Not successful production recovery gates, business HTTP, Worker or full topology acceptance."
+    }
+  ],
+  "calendar": {
+    "tests_passed": 15,
+    "tests_total": 15,
+    "failures_errors_skips": 0,
+    "exchange": "XNYS",
+    "timezone": "America/New_York",
+    "window_day": "2026-11-02",
+    "registered": 111,
+    "applicable": 100,
+    "unresolved": 11,
+    "checkpoints": 11,
+    "positions_per_variant": 2200,
+    "actually_registered": false
+  },
+  "exact_gaps": [
+    "Not a successful full original launcher five-role recovery/approval gate run: that requires parent integration and exact acceptance.",
+    "No actual Worker/Supervisor business topology, compiled page, SSE or matching 3600-second run was started in C scope.",
+    "Access-denied and missing-identity fields are explicit narrow injections; real CIM failure is invalid-namespace, not reproduction of the unknown October 23 cancellation cause.",
+    "Calendar task keys/reconciliation helpers are read-only verification adapters, not installed automation or newly persisted market tasks.",
+    "Budget repeated-hour test proves timezone bucket behavior, not the AI ledger: workstream A must retain its own atomic reservation tests.",
+    "Existing fixed BJT manual exit is verified; S1 manual-policy acceptance is not granted by timing tests."
+  ],
+  "parent_actions": [
+    "Bind only lifecycle-candidate/start_kquant_workspace.ps1 and scripts/FoundationLifecycle.ps1 in the final release projection. Keep acceptance fixtures out of production runtime dependencies.",
+    "No first_hour.py change is needed for DST: installed schedule/session_bounds_utc already uses XNYS/America_New_York correctly. Use window_calendar.window/expected_positions/reconcile only for readiness/audit if desired.",
+    "Run the integrated affected short penetration, then freeze and run the matching hour; C files are ready and will not be edited further without coordination.",
+    "Collect recovery, expired-method/AI budget and exact release choices once before production restoration."
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "scope": "TO_BE_EXECUTED_BY_CODEX_NOT_RUN_BY_PLAN_AUTHOR",
+  "tests": [
+    {
+      "id": "A01",
+      "task": "T1",
+      "case": "S0准确基线",
+      "expected": "原策略hash及原正反结果不因加入S1改变",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A02",
+      "task": "T1",
+      "case": "低开上行Call",
+      "expected": "S0昨收门失败且S1通过，仅一项策略差异",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A03",
+      "task": "T1",
+      "case": "高开下行Put",
+      "expected": "镜像差异正确，Put数值与方向不误用Call",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A04",
+      "task": "T1",
+      "case": "共同输入包含关系",
+      "expected": "完整可比输入下S0技术通过必然S1通过",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A05",
+      "task": "T1",
+      "case": "昨收未知",
+      "expected": "S0 INCOMPLETE；有合法日内输入的S1可算；不记S0拒绝",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A06",
+      "task": "T1",
+      "case": "真正缺少日内输入",
+      "expected": "错身份/错session/开盘未知/非法或冲突bar时S1不能硬过",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A07",
+      "task": "T1",
+      "case": "原期限与修订",
+      "expected": "300秒及10:00保持；同事件CAS修订不双发",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A08",
+      "task": "T2",
+      "case": "同形状不同幅度",
+      "expected": "两个指定OHLC例M/Q同值但range差100倍",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A09",
+      "task": "T2",
+      "case": "辅助缺失",
+      "expected": "ATR/同钟历史不足输出null+支持度，核心不被阻断",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A10",
+      "task": "T3",
+      "case": "成本定值",
+      "expected": "2.40/2.60/100/0.5得到260/20/0.40及约7.6923%",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A11",
+      "task": "T3",
+      "case": "未知金额与净成本",
+      "expected": "未知乘数/单位不算金额；费用未知不填0净成本",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A12",
+      "task": "T3",
+      "case": "局部敏感度语义",
+      "expected": "Vega百分点/Theta自然日一致；不生成概率或未来成交价",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A13",
+      "task": "T3",
+      "case": "价差与时效",
+      "expected": "crossed/缺单边/过期quote不得当有效报价；价差不重复扣",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A14",
+      "task": "T4",
+      "case": "无未来数据",
+      "expected": "t_ready+延迟后的后续观察；原截止后不纳入可执行队列",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A15",
+      "task": "T4",
+      "case": "比较对象隔离",
+      "expected": "共同可比集与S1独立可算集、源等级、回顾性与实时分开",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A16",
+      "task": "T4",
+      "case": "退出和路径限制",
+      "expected": "MFE不当成交收益；同bar先后不猜；缺路径不记0",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A17",
+      "task": "T4",
+      "case": "完整日切分",
+      "expected": "同日同侧、跨界标签清除、已曝光尾段不叫未见验证",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A18",
+      "task": "T4",
+      "case": "去重与分母",
+      "expected": "所有位置留档；修订/跨scope不增加独立事件数",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A19",
+      "task": "T5",
+      "case": "实际研究页面",
+      "expected": "同卡S0/S1条件差异、参考合约、成本和来源时间可见",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A20",
+      "task": "T5",
+      "case": "参考不晋级",
+      "expected": "S1/缺数量证明不写旧qualified_claims，不显示保证盈利",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A21",
+      "task": "T5",
+      "case": "全量与分页",
+      "expected": "真实manifest全部有去向；至少一个非Core真数据链可见",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A22",
+      "task": "T6",
+      "case": "受控运行",
+      "expected": "健康载荷研发不热改；真实构造、五角色路径和恢复通过",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A23",
+      "task": "T6",
+      "case": "完整混合负载",
+      "expected": "复用既有小时真实API/队列/前端，含缺字段、修订和pending恢复",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A24",
+      "task": "T7",
+      "case": "权限与日界",
+      "expected": "未接受不能代签；无订单/Paper/LLM；NOT_RUN不同于NO_TRIGGER",
+      "status": "NOT_RUN"
+    }
+  ]
+}

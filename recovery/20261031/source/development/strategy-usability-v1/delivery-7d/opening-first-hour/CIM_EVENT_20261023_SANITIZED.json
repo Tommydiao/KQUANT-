@@ -1,0 +1,11 @@
+{
+  "record_id": 67401,
+  "event_id": 5858,
+  "time_utc": "2026-10-23T12:33:46.7924630Z",
+  "client_pid": 34668,
+  "queried_pid": 24520,
+  "operation": "SELECT * FROM Win32_Process WHERE ProcessId = 24520",
+  "result_code": "0x80041032",
+  "possible_cause": "Unknown"
+}
+

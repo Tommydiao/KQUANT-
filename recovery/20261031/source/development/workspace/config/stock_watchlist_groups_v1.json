@@ -1,0 +1,58 @@
+{
+  "version": "stock_watchlist_groups_v1.0.0",
+  "source": "user_watchlist_screenshots_20260920",
+  "price_values_imported": false,
+  "groups": [
+    {
+      "group_id": "crypto-stocks",
+      "name": "Crypto Stocks",
+      "symbols": ["COIN", "MSTR", "HOOD", "STRC", "CRCL", "SOLT", "IBIT", "MSTU", "ROBN", "HOOG", "SBIT", "ETHU", "BMNG", "BMNR", "RIOT", "MSTX", "CRCG", "BITU", "CLSK", "MARA", "CONL", "BNC", "HIVE", "MSTZ"]
+    },
+    {
+      "group_id": "m7",
+      "name": "M7",
+      "symbols": ["META", "MSFT", "TSLA", "GOOGL", "AAPL", "AMZN", "NVDA", "NVDL", "TSLL"]
+    },
+    {
+      "group_id": "indexes",
+      "name": "Indexes",
+      "symbols": ["/YM[Z26]", "$DJI", "/NQ[Z26]", "/ES[Z26]", "SPX", "/RTY[Z26]", "VIX", "$COMP"]
+    },
+    {
+      "group_id": "metals",
+      "name": "Metals",
+      "symbols": ["DAXAUD:DBI", "SCCO", "JNUG", "NUGT", "DGP", "GDXU", "SIL", "FCX", "ERO", "COPZ", "HBM:XETA"]
+    },
+    {
+      "group_id": "nuclear-company",
+      "name": "Nuclear Company",
+      "symbols": ["BE", "VST", "DUK", "VIST", "OKLO", "NNE", "SMR", "FLNC", "GWH"]
+    },
+    {
+      "group_id": "quantum-company",
+      "name": "Quantum Company",
+      "symbols": ["IONQ", "QMCO", "ARQQ", "QBTS", "RGTI", "QUBT", "QS"]
+    },
+    {
+      "group_id": "semiconductor-stocks",
+      "name": "Semiconductor Stocks",
+      "symbols": ["SOX", "SNDK", "ASML", "MU", "SMH", "AMD", "WDC", "AVGO", "ARM", "SOXL", "AMDL", "SMCI", "WOLF", "NVTS"]
+    },
+    {
+      "group_id": "space-exploration-co",
+      "name": "Space Exploration Co",
+      "symbols": ["SPCX", "RKLB", "ASTS", "DXYZ", "SPAL", "RKLX", "LUNR", "RDW", "ASTX", "JOBY", "SPCE"]
+    },
+    {
+      "group_id": "ai-compute-company",
+      "name": "AI Compute Company",
+      "symbols": ["EQIX", "NBIS", "DLR", "ORCL", "IRM", "HUT", "CRWV", "IREN", "APLD", "RIOT", "CIFR", "CORZ", "WULF", "CLSK", "BTDR", "HIVE"]
+    },
+    {
+      "group_id": "ai-application-company",
+      "name": "AI Application Company",
+      "symbols": ["APP", "PLTR", "VRSK", "AI", "CYN"]
+    }
+  ],
+  "frozen_option_research_pool": ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "AMD", "AVGO"]
+}

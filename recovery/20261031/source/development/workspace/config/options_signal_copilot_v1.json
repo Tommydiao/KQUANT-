@@ -1,0 +1,99 @@
+{
+  "config_id": "OPTIONS-SIGNAL-COPILOT-PAPER-V1",
+  "version": "1.0.0-review-candidate",
+  "status": "PROPOSAL_ONLY_WAIT_SC_R1",
+  "effective": false,
+  "strategy_baseline": {
+    "status": "FOUND_APPROVED_COMPLETE",
+    "strategy_id": "STRAT-SHORT-ATM-RANGE-EXPANSION-V1",
+    "scope": {
+      "profile_id": "SHORT_ATM_DAYS_WEEK",
+      "rights": [
+        "CALL",
+        "PUT"
+      ],
+      "evidence_strata_separate": true
+    },
+    "forward_policy_id": "OPTIONS-SHORT-ATM-FORWARD-PAPER-V1",
+    "forward_policy_runtime_hash": "29e338542bb04fe09f7319a770b77bfb7684ee062f798dff55f8357e871f15ae",
+    "forward_policy_file_sha256": "fcee626d088f5fadc7d9a50f972c7069462df3f1b16ee1e5e1883611a6dbfd1f",
+    "approved_bundle_id": "options-r3-20260920-03",
+    "approved_bundle_hash": "de2fec2aac0507da1e886dbbf1a230b62f876dcf9a812b55196a8ff48abd54cb",
+    "approval_record_sha256": "54f8f00b5439e2c8ef8720596ce5bb480ab5cc4c70e9f6033bbfb3ea7ac07fd8",
+    "policy_ids": {
+      "paper_execution": "PAPER-RECEIPT-TIME-PROXY-V1",
+      "capital": "PAPER-RISK-10000-V1",
+      "cost": "COST-OPTIONS-CONSERVATIVE-V1",
+      "metric": "METRIC-OPTIONS-RESEARCH-GATE-V1"
+    }
+  },
+  "paper_execution_overlay": {
+    "proposal_id": "PAPER-MANUAL-CONFIRM-RECEIPT-L1-V1",
+    "mode": "PAPER_MANUAL_CONFIRM",
+    "evidence_class": "RECEIPT_L1_PROXY",
+    "owner_confirmation_required_for_entry": true,
+    "owner_confirmation_required_for_exit": true,
+    "quote_request_must_start_after_confirmation": true,
+    "entry_price_side": "ASK_PLUS_FROZEN_SLIPPAGE",
+    "exit_price_side": "BID_MINUS_FROZEN_SLIPPAGE",
+    "source_bbo_time_policy": "NULL_UNLESS_VERIFIED_NATIVE",
+    "strict_bbo_qualification_unchanged": true,
+    "approval_status": "WAIT_SC_R1",
+    "enabled": false
+  },
+  "llm_runtime": {
+    "requested_model": "gpt-6-astra",
+    "actual_model_id": null,
+    "model_access_status": "NOT_CHECKED",
+    "daily_budget_usd": null,
+    "daily_budget_usd_proposal": 5.0,
+    "max_total_output_tokens_per_assessment_proposal": 8000,
+    "max_tool_rounds_proposal": 4,
+    "assessment_deadline_seconds_proposal": 90,
+    "paid_calls_enabled": false,
+    "approval_status": "WAIT_SC_R1",
+    "silent_model_fallback": false,
+    "duplicate_notification_reuses_cached_assessment": true
+  },
+  "tool_policy": {
+    "mode": "READ_ONLY_ALLOWLIST",
+    "allowed": [
+      "get_market_snapshot",
+      "compute_registered_features",
+      "evaluate_frozen_policy",
+      "get_contract_candidates",
+      "run_option_scenarios",
+      "get_event_evidence",
+      "get_research_result"
+    ],
+    "denied_classes": [
+      "shell",
+      "python",
+      "sql",
+      "filesystem_write",
+      "configuration_write",
+      "order_submission",
+      "account_access"
+    ]
+  },
+  "safety": {
+    "system_signal_enabled": false,
+    "automatic_paper_entry_enabled": false,
+    "automatic_paper_exit_enabled": false,
+    "real_account_access_enabled": false,
+    "real_order_enabled": false,
+    "automatic_capital_increase_enabled": false,
+    "strategy_mutation_enabled": false,
+    "crypto_research_enabled": false
+  },
+  "review": {
+    "gate": "SC-R1",
+    "decision_required": [
+      "accept exact manual-confirm overlay",
+      "accept exact gpt-6-astra model identity after capability check",
+      "approve or reject a daily paid-API budget",
+      "accept that Signals, notifications, intents, and positions remain separate"
+    ],
+    "not_an_approval": true
+  }
+}

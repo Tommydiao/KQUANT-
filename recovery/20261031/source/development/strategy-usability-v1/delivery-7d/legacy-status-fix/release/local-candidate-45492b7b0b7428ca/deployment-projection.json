@@ -1,0 +1,161 @@
+{
+  "schema": "KQUANT_UNACCEPTED_RESEARCH_DELTA_V1",
+  "candidate_id": "local-candidate-45492b7b0b7428ca",
+  "candidate_payload_sha256": "607f0bb3593f3679689ab8f4749e4d97e3f862afbb56b4a263f3c0ec9d0864e6",
+  "base_candidate": "local-candidate-d4f4aad4be84d143",
+  "base_entry_sha256": "a2305b860c2e8e952bd9dd6c00d3e9cd1a192f3e306ebd72eaeac1773f97dba9",
+  "base_release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\release-manifest.json",
+    "sha256": "41825a80ae493a3154533cff6c99920f91d3f059928acc159867beede30ae808"
+  },
+  "base_recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\recovery-manifest-shadow-accepted.json",
+    "sha256": "734167754caae50c74e81b31ce348b4959dd4e97294653e3c843a276e8df8d2e"
+  },
+  "release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\release\\local-candidate-45492b7b0b7428ca\\release-manifest.json",
+    "sha256": "69f25ee32b81603f150c424f3f93396a948f42f2fb815fd514c455500cdee31f"
+  },
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\release\\local-candidate-45492b7b0b7428ca\\recovery-manifest.json",
+    "sha256": "aadcd602a09d990490bf8bee1da79a30f6d2700993a0ab8f5eae1d09c403624e"
+  },
+  "changes": [
+    {
+      "target": "kquant/dashboard/app.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\dashboard\\app.py",
+      "sha256": "adf0e1950495f90502bd209601f31db8984a7119753443f797b726eb0c42ae2c",
+      "previous_sha256": "d08a6a6a6881045128feec59aad8b9653acd45e8e14f70a24f78b3fc88f29b74"
+    },
+    {
+      "target": "kquant/main_store_runtime.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\main_store_runtime.py",
+      "sha256": "6ea9d210afb156adafcaad82be81d475850b792a2c89e419ce7ef05a7301c7f3",
+      "previous_sha256": null
+    },
+    {
+      "target": "kquant/options_minute_decisions.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\options_minute_decisions.py",
+      "sha256": "983a730fc5b8f617cfb7a38d591bbc4c639ea50fa7611d25e2afb543d6ba07d1",
+      "previous_sha256": "71decc21f5245e76250f75852167c272796ea406ea4e0048d04679071aa52252"
+    },
+    {
+      "target": "kquant/options_one_minute.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\options_one_minute.py",
+      "sha256": "dac725f6bded052453e064dff05e04fdae164bfac30a09803b6995eac72bd255",
+      "previous_sha256": "2d927d80910060b2683eb03d0732ef502918664d39b0699da08cedf6896250ea"
+    },
+    {
+      "target": "kquant/options_one_minute_status.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\options_one_minute_status.py",
+      "sha256": "700acb4d93c7dcd1d2964aef36d2ce6ad1c252546726dafeb4d6a93670bdeca0",
+      "previous_sha256": null
+    },
+    {
+      "target": "kquant/recovery_preflight.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\recovery_preflight.py",
+      "sha256": "a90d8468f8cc730a745b7e0f00052066b087aabe02f8e60b32cbdf6ad80f961d",
+      "previous_sha256": "cd69a6f1ba712398e6caf8d5ce8f0da86f79a54098c6a2cdb75bccd5111c5023"
+    },
+    {
+      "target": "kquant/recovery_runtime_probe.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\recovery_runtime_probe.py",
+      "sha256": "8890dce9f72a0b72b49b7ce903a0358920ce24eb55566afc8fb7bc761d2d6b84",
+      "previous_sha256": "c848e305f18d2e7cb9b3bfed15306dc10ce983c3dd2bb90ece2dfa22f97200a1"
+    },
+    {
+      "target": "kquant/status_worker.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\status_worker.py",
+      "sha256": "48ad0597192d07d5829fe82ba4e95605783c1570a1f7d4cbf6a9f26fa282da99",
+      "previous_sha256": "3dd5b05b1d635f63dd69136431bee263e13cd3d165e444935661d1c3e76481b2"
+    }
+  ],
+  "retired_build_assets": [],
+  "proposed_entry": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\release\\local-candidate-45492b7b0b7428ca\\proposed-local-workspace-entry.json",
+    "sha256": "e78ab4cff4d634b7f72f903d11641eef2d661ad360e4b07bb10f2b40e9d560db"
+  },
+  "deployment_tool": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\apply_accepted_delta.py",
+    "sha256": "593cd10372a3f06335180c29ca6a0d8ad0e313340612e638561861a5dee81541"
+  },
+  "approved": false,
+  "applied": false,
+  "production_accepted": false,
+  "qualified_signal_authorized": false,
+  "frontend_rebuilt": false,
+  "frontend_reuse": "EXACT_ACCEPTED_UNCHANGED_BUILD",
+  "data_epoch_reinitialized": false,
+  "live_writes": 0,
+  "deadline_constraint": {
+    "schema": "KQUANT_FIXED_SEVEN_CALENDAR_DAY_DELIVERY_V1",
+    "t0_utc": "2026-10-16T14:30:22Z",
+    "deadline_utc": "2026-10-23T14:30:22Z",
+    "t0_local": "2026-10-16T22:30:22+08:00",
+    "deadline_local": "2026-10-23T22:30:22+08:00",
+    "initial_blockers_due_local": "2026-10-17T04:30:22+08:00",
+    "deadline_reset_allowed": false,
+    "source": "DIRECT_USER_SEVEN_DAY_CONSTRAINT_20261016",
+    "existing_protocol": "KQ-S0-S1-RESEARCH-20261015-V1",
+    "existing_candidate_at_t0": "local-candidate-6ac8a5653d14a392",
+    "deliverable": "Runnable opening research workbench with fixed S0/S1 comparison and option cost diagnostics",
+    "minimum_real_opening_windows": 3,
+    "minimum_completion_ratio_per_variant": 0.9,
+    "denominator_policy": "Freeze applicable identities before new windows; retain all registered objects and failures; never exclude after outcomes",
+    "completion_units": [
+      "instrument_complete_at_all_five_checkpoints_both_directions",
+      "direction_checkpoint"
+    ],
+    "first_pass_and_revised_results_separate": true,
+    "late_computation_not_timely_completion": true,
+    "no_progress_work_periods_before_alternative": 2,
+    "work_period_definition": "A bounded active execution with measured attempts and evidence, not passive overnight waiting",
+    "replacement_scope": "Smallest local module within existing authorization; no changed strategy/source method/release/fee without required exact choice",
+    "unavailable_counts": null,
+    "background_coding_guaranteed": false,
+    "existing_heartbeat": "kquant-2",
+    "new_orders_paper_llm_models_fees": false
+  },
+  "schema_extension": {
+    "role": "minute",
+    "contract": "MINUTE_STATUS_METADATA_INDEX_V1",
+    "sql": "CREATE INDEX IF NOT EXISTS one_minute_status_metadata ON one_minute_evaluations(session,symbol,right_name,created_at,bar_end,state)",
+    "apply": "original Worker initialization only after exact new launch acceptance",
+    "preserves_rows": true,
+    "deletes_or_replaces_databases": false,
+    "rollback": "Older gate does not accept this additive index; refuse incompatible rollback, never overwrite business data."
+  },
+  "retained_research_index": "OPENING_SOURCE_INDEX_V1",
+  "main_store_startup": {
+    "journal_mode": "WAL",
+    "existing_file_only": true,
+    "apply": "after exact launch acceptance, before workers start",
+    "business_rows_changed": false
+  },
+  "method_binding": {
+    "schema": "KQUANT_PENDING_METHOD_BINDING_V1",
+    "accepted_parent_candidate": "local-candidate-6ac8a5653d14a392",
+    "parent_config_sha256": "63415c2eeac6ce564527c760ce3a9a2f5d318abd8247bbbb9110655bd6ed49b0",
+    "pending_config_sha256": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a",
+    "acceptance_path": "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+    "acceptance_sha256": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95",
+    "method_hash": "37b7b37759b2ae8a1021f85fa5d9dce3286999a646ce9ff55a8ace17fb4f01b2",
+    "approved_at": "2026-10-16T15:24:33Z",
+    "valid_until": "2026-10-23T14:30:22Z",
+    "only_changed_key": "canonical_resolution_method",
+    "production_config_modified": false,
+    "production_restarted": false,
+    "new_candidate_launch_approved": false,
+    "real_clock_measurement_proven": false,
+    "strict_s0_source_facts_proven": false
+  },
+  "deployment_requires": [
+    "exact new OWNER limited-research O-LAUNCH acceptance",
+    "matching frozen assembly-hour evidence and separate performance verdict",
+    "original controlled stop with process creation identities",
+    "recheck baseline and delta hashes, changed-file-only rollback reference",
+    "atomic payload replacement while stopped, original five-role gate",
+    "original launch and ten-minute real loop/page observation"
+  ],
+  "preparation_tool_sha256": "f39d30d65986df648371204f119cb6f4b73e1df6e08149904e5411c4e592fbc6"
+}

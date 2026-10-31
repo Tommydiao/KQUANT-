@@ -1,0 +1,11 @@
+{
+  "observed_at": "2026-10-18T11:26:41.994831+00:00",
+  "failed_candidate": "local-candidate-0f4190e07e36ec96",
+  "previous_candidate": "local-candidate-d4f4aad4be84d143",
+  "source_files": 38,
+  "applied": true,
+  "business_database_opens": 0,
+  "business_database_writes": 0,
+  "reason": "RELEASE_FRONTEND_HASH_SECTIONS_INCONSISTENT_NO_WORKER_STARTED",
+  "state": "CODE_RESTORED_ORIGINAL_GATE_REQUIRED_BEFORE_START"
+}

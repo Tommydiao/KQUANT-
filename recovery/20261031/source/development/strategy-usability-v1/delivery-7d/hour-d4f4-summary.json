@@ -1,0 +1,299 @@
+{
+  "observed_at": "2026-10-16T18:25:31.566529+00:00",
+  "test_only": true,
+  "candidate_id": "local-candidate-d4f4aad4be84d143",
+  "candidate_payload_sha256": "2720fc5c628cd23ab5252d5d2bfef9795a8820e96d99d43c82f8a4d0cd6b01d0",
+  "report": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\topology_report.json",
+    "sha256": "0fa53433afd94c3a96c3fc6f2812b74620d46ba8184a6b46b2248245295c2cae"
+  },
+  "projection": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\deployment-projection.json",
+    "sha256": "33e6efc618fdd1e2ee1c845ce7412300e864f783b68cecd19754c78f37ffe3ff"
+  },
+  "exact_candidate_binding": true,
+  "mapped_files": {
+    "config/review_acceptances/local_closed_snapshot_owner_20261016.json": true,
+    "config/review_acceptances/options_opening_trend_reference_sources.json": true,
+    "kquant/options_intraday_reference.py": true,
+    "kquant/options_minute_decisions.py": true,
+    "kquant/options_one_minute_recovery.py": true,
+    "kquant/options_opening_momentum_journal.py": true,
+    "kquant/options_opening_trend_pipeline.py": true,
+    "kquant/options_opening_trend_recovery.py": true,
+    "kquant/options_opening_trend_store.py": true,
+    "kquant/options_source_updates.py": true,
+    "kquant/recovery_preflight.py": true,
+    "kquant/recovery_runtime_probe.py": true
+  },
+  "duration_seconds": 3600.2660000000033,
+  "continuous_60_minutes": true,
+  "five_minute_cadence": true,
+  "source_unchanged": true,
+  "frontend_unchanged": true,
+  "observation_assembly_pass": true,
+  "enqueue_to_commit_performance_pass": false,
+  "errors": [],
+  "child_processes_alive": [],
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-19T13:35:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 170,
+        "NUMERIC_PASS": 100,
+        "NO_TRIGGER": 100
+      },
+      "raw_revision_count": 370,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 6.657000000006519
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.046000000002095476
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.01600000000325963
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:40:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "NUMERIC_PASS": 100,
+        "NO_TRIGGER": 100
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 7.844000000011874
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.0629999999946449
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.030999999988125637
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:45:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 2,
+        "NUMERIC_PASS": 99,
+        "NO_TRIGGER": 99
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 8.687999999994645
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.09299999999348074
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.031000000017229468
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:50:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 2,
+        "NUMERIC_PASS": 99,
+        "NO_TRIGGER": 99
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 8.53200000000652
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.09299999999348074
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.031000000017229468
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:55:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "states": {
+        "INCOMPLETE": 2,
+        "NUMERIC_PASS": 99,
+        "NO_TRIGGER": 99
+      },
+      "raw_revision_count": 200,
+      "enqueue_to_commit": {
+        "n": 100,
+        "p95_seconds": 10.719000000011874
+      },
+      "input_read": {
+        "n": 100,
+        "p95_seconds": 0.09400000001187436
+      },
+      "calculation": {
+        "n": 100,
+        "p95_seconds": 0.0470000000204891
+      }
+    }
+  ],
+  "recovery": [
+    {
+      "pending_before": 100,
+      "restored": 100,
+      "original_deadlines_preserved": true,
+      "snapshot_ready_seconds": 4.421999999991385
+    }
+  ],
+  "http": {
+    "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true": {
+      "n": 2094,
+      "p95_seconds": 0.0629999999946449,
+      "statuses": {
+        "503": 3,
+        "200": 2091
+      }
+    },
+    "/api/health/live": {
+      "n": 2094,
+      "p95_seconds": 0.07800000000861473,
+      "statuses": {
+        "200": 2094
+      }
+    },
+    "/api/stocks/health/live": {
+      "n": 2094,
+      "p95_seconds": 0.07800000000861473,
+      "statuses": {
+        "503": 3,
+        "200": 2091
+      }
+    },
+    "/api/options/opening-trend/current?research_strategy=opening_momentum": {
+      "n": 2094,
+      "p95_seconds": 0.0779999999795109,
+      "statuses": {
+        "503": 3,
+        "200": 2091
+      }
+    }
+  },
+  "http_failure_classes": {
+    "EXPECTED_INJECTED_FAILURE": 9
+  },
+  "browser": {
+    "three_real_pages": true,
+    "refreshes": [
+      116,
+      116,
+      116
+    ],
+    "problems": [],
+    "signal_delivery_accepted": false,
+    "live_market_delivery_accepted": false
+  },
+  "manual_http": {
+    "test_only": true,
+    "synthetic_contract_not_live_qualification": true,
+    "login_status": 200,
+    "entry_status": 200,
+    "actual_http_handlers": true,
+    "production_user_login": false,
+    "duplicate_entry_same": true,
+    "changed_key_status": 400,
+    "partial_exit_status": 200,
+    "duplicate_exit_same": true,
+    "open_quantity": 1,
+    "paper_fill": false,
+    "real_order_created": false,
+    "expired_session_status": 401,
+    "relogin_quantity": 1,
+    "logout_status": 200,
+    "after_logout_status": 401
+  },
+  "sdk_connections": 0,
+  "production_writes": 0,
+  "market_acceptance": false,
+  "real_receive_to_compute_p95": null,
+  "real_qualification_to_page_p95": null,
+  "new_production_launch_accepted": false,
+  "old_running_service_unchanged": true,
+  "background_query_transport": {
+    "test_only": true,
+    "available": true,
+    "files": [
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\TEST_ONLY-query-transport-16228.jsonl",
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\TEST_ONLY-query-transport-23376.jsonl",
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\TEST_ONLY-query-transport-32488.jsonl"
+    ],
+    "processes": {
+      "16228": {
+        "records": 22,
+        "success": 22,
+        "failure": 0,
+        "deadline": 0,
+        "last_attempt": 22,
+        "last_denominator": {
+          "attempts": 22,
+          "successes": 22,
+          "failures": 0,
+          "deadlines": 0,
+          "scope": "PARENT_PROCESS"
+        },
+        "errors": []
+      },
+      "32488": {
+        "records": 4698,
+        "success": 4698,
+        "failure": 0,
+        "deadline": 0,
+        "last_attempt": 4698,
+        "last_denominator": {
+          "attempts": 4698,
+          "successes": 4698,
+          "failures": 0,
+          "deadlines": 0,
+          "scope": "PARENT_PROCESS"
+        },
+        "errors": []
+      }
+    },
+    "complete": true,
+    "problems": [],
+    "totals": {
+      "records": 4720,
+      "success": 4720,
+      "failure": 0,
+      "deadline": 0
+    },
+    "source_sha256": {
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\TEST_ONLY-query-transport-16228.jsonl": "fe5386c874bfe98b42d60ac68cbe2ae0326d7fcf8144226c779bef700e21de0c",
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\TEST_ONLY-query-transport-23376.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\delivery7-method-hour-d4f4aad4-20261017\\TEST_ONLY-query-transport-32488.jsonl": "bf3312572c73ccc546e63ed50fe893c9283fd9600d5a1da8ba73e9b52c593362"
+    }
+  }
+}

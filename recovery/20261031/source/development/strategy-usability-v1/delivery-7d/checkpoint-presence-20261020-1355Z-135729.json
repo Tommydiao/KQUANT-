@@ -1,0 +1,38 @@
+{
+  "schema": "KQUANT_EXISTING_CHECKPOINT_PRESENCE_V1",
+  "observed_at": "2026-10-20T13:57:29.098765+00:00",
+  "session": "2026-10-20",
+  "checkpoint": "2026-10-20T13:55:00+00:00",
+  "observation_clock": "SYSTEM_UTC_ONLY_NOT_VERIFIED_BOUND_MARKET_TIME",
+  "observed_late_seconds": 149.098765,
+  "database": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute\\opening_trend_research.sqlite3",
+  "production_writes": 0,
+  "sdk_requests": 0,
+  "tasks_created": 0,
+  "history_replayed": false,
+  "query_confirmed": true,
+  "checkpoint_evaluation_rows": 0,
+  "session_job_rows": 6632,
+  "evaluation_query_confirmed": true,
+  "job_query_confirmed": true,
+  "evaluations": [],
+  "session_jobs": [
+    {
+      "kind": "OPENING_MOMENTUM_CALCULATION",
+      "state": "EXPIRED",
+      "rows": 400
+    },
+    {
+      "kind": "OPENING_MOMENTUM_CALCULATION",
+      "state": "WAIT_INPUT",
+      "rows": 100
+    },
+    {
+      "kind": "SESSION_PRICE_BINDING_V1",
+      "state": "COMPLETED",
+      "rows": 6132
+    }
+  ],
+  "query_elapsed_seconds": 0.3279999999795109,
+  "inference_limits": "Presence only; combine actual process/listener evidence. Session-wide job counts are not checkpoint-specific or completed mathematics. A failed query is unconfirmed, never zero. Never fill future points or market signals."
+}

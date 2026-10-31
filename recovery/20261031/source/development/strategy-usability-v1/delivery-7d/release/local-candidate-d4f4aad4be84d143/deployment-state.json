@@ -1,0 +1,21 @@
+{
+  "candidate_id": "local-candidate-d4f4aad4be84d143",
+  "started_at": "2026-10-17T02:09:51.726946+00:00",
+  "state": "START_REQUESTED_REQUIRES_REAL_TEN_MINUTE_OBSERVATION",
+  "replaced": [
+    "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+    "config/review_acceptances/options_opening_trend_reference_sources.json",
+    "kquant/options_intraday_reference.py",
+    "kquant/options_minute_decisions.py",
+    "kquant/options_one_minute_recovery.py",
+    "kquant/options_opening_momentum_journal.py",
+    "kquant/options_opening_trend_pipeline.py",
+    "kquant/options_opening_trend_recovery.py",
+    "kquant/options_opening_trend_store.py",
+    "kquant/options_source_updates.py",
+    "kquant/recovery_preflight.py",
+    "kquant/recovery_runtime_probe.py"
+  ],
+  "business_databases_written": false,
+  "finished_at": "2026-10-17T02:10:04.373164+00:00"
+}

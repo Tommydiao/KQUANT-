@@ -1,0 +1,2912 @@
+{
+  "record_type": "SOURCE_FACT_REVIEW_NOT_OWNER_STRATEGY_APPROVAL",
+  "previous_close_interface": {
+    "status": "APPROVED",
+    "source_kind": "OFFICIAL_INTERFACE_FACT",
+    "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+    "interface": "US_SECURITY_QUOTE",
+    "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+    "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+    "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+    "valid_until": "2026-11-03T00:00:00+00:00",
+    "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/quote",
+    "source_path": "outputs/r58/20261004/p7-source-facts/quote.html",
+    "source_sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788",
+    "excerpt": "<tr><td>∟ prev_close</td><td>string</td><td>昨收价</td></tr>",
+    "contract_version": "INTERFACE_FACT_V1",
+    "claim": {
+      "field_path": "secu_quote.prev_close",
+      "assertion": "MAIN_QUOTE_PREVIOUS_CLOSE",
+      "market_scope": "US",
+      "sdk_scope": "longbridge.openapi"
+    },
+    "claim_hash": "624ac1f69363d1a1b1704518caf7f2ab5855822748dffbc3ab2b7a5b4109e882",
+    "assertion_limits": [
+      "DOES_NOT_PROVE_PRICE_SCALE",
+      "DOES_NOT_PROVE_DEPTH_UNITS",
+      "NOT_OWNER_APPROVAL"
+    ],
+    "field": "prev_close",
+    "meaning": "PROVIDER_MAIN_QUOTE_PREVIOUS_CLOSE"
+  },
+  "provider_standard_chain": {
+    "standard_definition": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "OPTION_STANDARD_CHAIN",
+      "interface": "US_OPTION_CHAIN",
+      "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+      "valid_until": "2026-11-03T00:00:00+00:00",
+      "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/optionchain-date-strike",
+      "source_path": "outputs/r58/20261004/p7-source-facts/optionchain-date-strike.html",
+      "source_sha256": "f4940457a2dd0ed32bc58f67b0d230fd0c5898054da3e35d212fd316d66489d4",
+      "excerpt": "<tr><td>∟ standard</td><td>bool</td><td>是否标准期权</td></tr>",
+      "contract_version": "INTERFACE_FACT_V1",
+      "claim": {
+        "field_path": "option_chain.standard",
+        "assertion": "NATIVE_STANDARD_CHAIN_FLAG",
+        "market_scope": "US",
+        "sdk_scope": "longbridge.openapi"
+      },
+      "claim_hash": "817f455605c3b5a57e569358b6de16c2d3b924425b70c9caf3e119e5eb533ada",
+      "assertion_limits": [
+        "DOES_NOT_PROVE_PRICE_SCALE",
+        "DOES_NOT_PROVE_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "equity_specification": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "EQUITY_STANDARD_SPECIFICATION",
+      "reviewer": "KQUANT_CODEX_DOCUMENT_REVIEW_R58",
+      "review_method": "NAMED_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-03T12:48:00+00:00",
+      "valid_until": "2026-11-02T12:48:00+00:00",
+      "source_url": "https://www.theocc.com/clearance-and-settlement/clearing/equity-options-product-specifications",
+      "source_path": "outputs/r58/20261003/source-facts/occ-equity-excerpt.txt",
+      "source_sha256": "b338e9bcf73e79b0a10dd7de5d2789258e7a5bc72be9ae6dad6dd08fde91b4f1",
+      "excerpt": "Each standard contract represents 100 shares of the underlying equity.",
+      "archive_format": "OFFICIAL_TEXT_EXCERPT_NOT_FULL_HTML",
+      "scope": "GENERAL_ORDINARY_EQUITY_NOT_SPECIFIC_SERIES_OR_DEPTH"
+    }
+  },
+  "ordinary_equities": {},
+  "unresolved": [
+    "SESSION_PRICE_COMPARABILITY_AND_CORPORATE_ACTIONS",
+    "QUOTE_BUSINESS_SESSION_WHEN_LAST_TRADE_IS_PRIOR_DAY",
+    "PER_INSTRUMENT_EQUITY_IDENTITY",
+    "US_OPTION_DEPTH_RAW_UNITS_PER_CONTRACT",
+    "CANONICAL_MINUTE_FINAL_CORRECTION_SEMANTICS"
+  ],
+  "binding_contract": "SESSION_PRICE_BINDING_V1",
+  "price_binding_method": null,
+  "instrument_facts": {
+    "NVDA": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "NVDA",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:26:44.397287+00:00",
+      "valid_until": "2026-10-11T09:26:44.397287+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/nvda",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-v2/NVDA.html",
+      "source_sha256": "dbf56df38b63664f1ce9933337e5b850d58fa63fb5bff9eb2c6d7cd847b9df5f",
+      "excerpt": "NVIDIA Corporation Common Stock (NVDA) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "NVDA",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "NVIDIA Corporation Common Stock (NVDA) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "fc3fcdc61c65e0f114f84c2701a8eb8500371cbde06a17350907b1753a4e50db",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "MSTR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "MSTR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:26:46.652240+00:00",
+      "valid_until": "2026-10-11T09:26:46.652240+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/mstr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-v2/MSTR.html",
+      "source_sha256": "49af5339007d8b675824d220ef8d91650ea3623e64f589d46e21dae90ba3f9d5",
+      "excerpt": "Strategy Inc Common Stock Class A (MSTR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "MSTR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Strategy Inc Common Stock Class A (MSTR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "b1e9919f517b126de5e36eca252bd04a7dd05ff7045d882a83e347907db948ee",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "HOOD": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "HOOD",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:26:47.865774+00:00",
+      "valid_until": "2026-10-11T09:26:47.865774+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/hood",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-v2/HOOD.html",
+      "source_sha256": "d2ccf433c864d7d9dad8deeff8286d54234d660301e3a5b84e254e65817457cf",
+      "excerpt": "Robinhood Markets, Inc. Class A Common Stock (HOOD) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "HOOD",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Robinhood Markets, Inc. Class A Common Stock (HOOD) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "ea14094d13a471d28f703ba2e508087b82852620a639cb5e7831005ac1ba5e3b",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "COIN": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "COIN",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:26:50.110010+00:00",
+      "valid_until": "2026-10-11T09:26:50.110010+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/coin",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-v2/COIN.html",
+      "source_sha256": "6460b5ada801a9f7b052922315409a73283c7311ab097467741e18364a5dc4ea",
+      "excerpt": "Coinbase Global, Inc. Class A Common Stock (COIN) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "COIN",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Coinbase Global, Inc. Class A Common Stock (COIN) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "4f6acd350a35851b95d12a459a750721e61c121ee744437954d0497b2485a475",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "AI": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "AI",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:54:49.670037+00:00",
+      "valid_until": "2026-10-11T09:54:49.670037+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/ai",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/AI.html",
+      "source_sha256": "d1d093ba19165a40a46ebe7fd99d97457e406603659610e68bdecf051b023f23",
+      "excerpt": "C3.ai, Inc. Class A Common Stock (AI) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "AI",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "C3.ai, Inc. Class A Common Stock (AI) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "67f87398da8fb8d82b42f310d727644a5acf18f0f69408e0a5291e2397e2758d",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "AMD": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "AMD",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:54:53.881174+00:00",
+      "valid_until": "2026-10-11T09:54:53.881174+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/amd",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/AMD.html",
+      "source_sha256": "fbd7be84d42d1aba6c70540268ab9c5142603ec25858c1c53dafbe9085e366a1",
+      "excerpt": "Advanced Micro Devices, Inc. Common Stock (AMD) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "AMD",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Advanced Micro Devices, Inc. Common Stock (AMD) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "edb39ce611d385afc41950abed540ce8efd475f6075a9ea6e36fdb5148994734",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "AMZN": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "AMZN",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:01.803499+00:00",
+      "valid_until": "2026-10-11T09:55:01.803499+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/amzn",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/AMZN.html",
+      "source_sha256": "2857fcb212e7ef9d658aae6a1287fdaee22067518ff6696f197d8d205b544524",
+      "excerpt": "Amazon.com, Inc. Common Stock (AMZN) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "AMZN",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Amazon.com, Inc. Common Stock (AMZN) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "d4cc051335422d2465ed5c20a03ef082285712b8ea3c76484371749de572b2b8",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "APLD": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "APLD",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:06.024079+00:00",
+      "valid_until": "2026-10-11T09:55:06.024079+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/apld",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/APLD.html",
+      "source_sha256": "04e56e5bf3d9d0365b4e559f3a2f64778cd1edc0a2d7d09fd33136262d315a3b",
+      "excerpt": "Applied Digital Corporation Common Stock (APLD) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "APLD",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Applied Digital Corporation Common Stock (APLD) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "a03e482dc2dbe6ca72ca0a9f26585858c8a094ce7b26e6fc4ab18600e4480558",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "APP": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "APP",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:10.240420+00:00",
+      "valid_until": "2026-10-11T09:55:10.240420+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/app",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/APP.html",
+      "source_sha256": "2419de0b815367ce3e249d23a51e475b61fccfac784e31bcafdb45129b5a3282",
+      "excerpt": "Applovin Corporation Class A Common Stock (APP) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "APP",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Applovin Corporation Class A Common Stock (APP) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "d5cbf25e4e426ae6fc0fde505c66340dde39630322a5134fd142757c64555ec3",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ASTS": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ASTS",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:23.491319+00:00",
+      "valid_until": "2026-10-11T09:55:23.491319+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/asts",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/ASTS.html",
+      "source_sha256": "2e4351e9b050308d4dbaee082728dd54430fedbb2a8cd3abe45267976ac5fcd5",
+      "excerpt": "AST SpaceMobile, Inc. Class A Common Stock (ASTS) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "ASTS",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "AST SpaceMobile, Inc. Class A Common Stock (ASTS) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "a53f683ae757c67446e2b3ce86a533ec818f1fb3b1d6f5f01e2bcf5c1e5f38c2",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "AVGO": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "AVGO",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:31.226229+00:00",
+      "valid_until": "2026-10-11T09:55:31.226229+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/avgo",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/AVGO.html",
+      "source_sha256": "8df2f1a1c31008dcd31b9f247df8060708fd369b9459c341fc81eb7e33a4ccd3",
+      "excerpt": "Broadcom Inc. Common Stock (AVGO) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "AVGO",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Broadcom Inc. Common Stock (AVGO) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "15f9e08f2bcf303a83dc46ccb2a0fb6a94ff70a64cf61b5e01e1576a0fef08fe",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "BE": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "BE",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:34.461031+00:00",
+      "valid_until": "2026-10-11T09:55:34.461031+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/be",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/BE.html",
+      "source_sha256": "7b5e8acec4de105dea63fef04fc0d9f30dcdce54c0a8c4a7964cdbfe8727cc10",
+      "excerpt": "Bloom Energy Corporation Class A Common Stock (BE) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "BE",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Bloom Energy Corporation Class A Common Stock (BE) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "f5af41524560dc22c968bb86fdfadaf714e530898c3b6a3e50b7a13448672012",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "BMNR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "BMNR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:49.709974+00:00",
+      "valid_until": "2026-10-11T09:55:49.709974+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/bmnr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/BMNR.html",
+      "source_sha256": "fd8eb9942931582cafcf2c9662a78ffc4ac6ee7ea053de8c03dea2ebceade213",
+      "excerpt": "BitMine Immersion Technologies, Inc. Common Stock (BMNR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "BMNR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "BitMine Immersion Technologies, Inc. Common Stock (BMNR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "530f150c112e3923c48e2d194ef011dc1b08b58de7d7a4cd42ff22732693f00f",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "BNC": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "BNC",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:55:52.910343+00:00",
+      "valid_until": "2026-10-11T09:55:52.910343+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/bnc",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/BNC.html",
+      "source_sha256": "bf0321dd670a097419312fa995c33f8b44fb1a167241b53efeaeebf9c1e0416a",
+      "excerpt": "BNB Standard Corporation Common Stock (BNC) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "BNC",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "BNB Standard Corporation Common Stock (BNC) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "1aeb17435a5e65cd8310e4240e10cedfd9dbedfafcea7876fd45d474f17cd2c3",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CIFR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CIFR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:00.111223+00:00",
+      "valid_until": "2026-10-11T09:56:00.111223+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/cifr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/CIFR.html",
+      "source_sha256": "caaa4823bd57e008a096c3bf76312d32d64a66030f5614477b13b7016964999f",
+      "excerpt": "Cipher Digital Inc. Common Stock (CIFR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "CIFR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Cipher Digital Inc. Common Stock (CIFR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "7adbb32d3e1ddd864ec9866d7c0ed7712c22d46550cd888c943fabf080337877",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CLSK": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CLSK",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:04.337461+00:00",
+      "valid_until": "2026-10-11T09:56:04.337461+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/clsk",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/CLSK.html",
+      "source_sha256": "9dcac41bd688276ca2af9712425670d05df861db08e239e1740df7d87c9249d0",
+      "excerpt": "CleanSpark, Inc. Common Stock (CLSK) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "CLSK",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "CleanSpark, Inc. Common Stock (CLSK) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "ab487e9cbb97ab29213f13d95acb15ecab825b7b7a55bfbb69391e977f1adc7f",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CORZ": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CORZ",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:19.502823+00:00",
+      "valid_until": "2026-10-11T09:56:19.502823+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/corz",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/CORZ.html",
+      "source_sha256": "c2851858e154d4ac3e1e7072c5d9a4f6b1d198c7fb98d7c4a30405d30f6f7c84",
+      "excerpt": "Core Scientific, Inc. Common Stock (CORZ) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "CORZ",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Core Scientific, Inc. Common Stock (CORZ) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "35e5541d645735a4835cbcd076063f5a6c5901a5cc3fa9ae304665d51785d71d",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CRCL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CRCL",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:27.997070+00:00",
+      "valid_until": "2026-10-11T09:56:27.997070+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/crcl",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/CRCL.html",
+      "source_sha256": "cea22dc0ae5befecb7850826c7589f6fb1c66dd5388530a0c0c61d6616763aff",
+      "excerpt": "Circle Internet Group, Inc. Class A Common Stock (CRCL) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "CRCL",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Circle Internet Group, Inc. Class A Common Stock (CRCL) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "4134d166cda3312e6e679d0e949d30c35474c8b32f21e3eafe5c4686b6a890ed",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CRWV": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CRWV",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:30.567581+00:00",
+      "valid_until": "2026-10-11T09:56:30.567581+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/crwv",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/CRWV.html",
+      "source_sha256": "dc528d54954cacc6324ab1d0ecc2a1d1adde6328a8b81e0bbf13767ef15dd251",
+      "excerpt": "CoreWeave, Inc. Class A Common Stock (CRWV) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "CRWV",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "CoreWeave, Inc. Class A Common Stock (CRWV) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "1320f1260f4cc5bdfbadcf75947769f0c816eb354317b5a7a392963646f37e31",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CYN": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CYN",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:33.996788+00:00",
+      "valid_until": "2026-10-11T09:56:33.996788+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/cyn",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/CYN.html",
+      "source_sha256": "ffaa59a0535bb160e1d2ee3b02482c893c82ab65eb234b6fa89da8787647aded",
+      "excerpt": "Cyngn Inc. Common Stock (CYN) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "CYN",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Cyngn Inc. Common Stock (CYN) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "02b18205b0722e66906efb1215b8b77a4d318e707e6367264ea8dbf30323f25c",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "DLR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "DLR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:42.913225+00:00",
+      "valid_until": "2026-10-11T09:56:42.913225+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/dlr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/DLR.html",
+      "source_sha256": "a643f28395d45e6e62d24242aac03a7b45721112062120e1a6f48cfc241cd4fe",
+      "excerpt": "Digital Realty Trust, Inc. Common Stock (DLR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "DLR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Digital Realty Trust, Inc. Common Stock (DLR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "3861132a53d652adcce362f348c83995dfca43a74680bb0cc969f430a498175c",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "DUK": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "DUK",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:46.494845+00:00",
+      "valid_until": "2026-10-11T09:56:46.494845+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/duk",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/DUK.html",
+      "source_sha256": "f30230e32e8a4fdeb82393a8d4555c3c046824c72bb55558465e286d5ec1260a",
+      "excerpt": "Duke Energy Corporation (Holding Company) Common Stock (DUK) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "DUK",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Duke Energy Corporation (Holding Company) Common Stock (DUK) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "4fe37ae4ba9dd5bf20c04b11910273938fe173f1dbdb563bc9108e92b5797b91",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "DXYZ": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "DXYZ",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:51.091214+00:00",
+      "valid_until": "2026-10-11T09:56:51.091214+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/dxyz",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/DXYZ.html",
+      "source_sha256": "34cd13fa74818ece2b5383efbff24f9548026a445ff410507af9714373e7fa64",
+      "excerpt": "Destiny Tech100 Inc. Common Stock (DXYZ) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "DXYZ",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Destiny Tech100 Inc. Common Stock (DXYZ) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "8070f243384b7e955d7bd7141fd0ea1899781f3c9a4f18d71f6d689ec03f573d",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "EQIX": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "EQIX",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:56:55.293574+00:00",
+      "valid_until": "2026-10-11T09:56:55.293574+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/eqix",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/EQIX.html",
+      "source_sha256": "088b5ae45138f0a79e7d21ed463a7b7847c0a62010489aa27d8f28bc358ca8ce",
+      "excerpt": "Equinix, Inc. Common Stock REIT (EQIX) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "EQIX",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Equinix, Inc. Common Stock REIT (EQIX) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "55d5f4a1fc887a75e1d63fc02c9127dea9b86060a3ec3ef88a57a382c54fe8e0",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "FCX": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "FCX",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:08.983890+00:00",
+      "valid_until": "2026-10-11T09:57:08.983890+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/fcx",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/FCX.html",
+      "source_sha256": "7aa587d5e68f7050c084e6f553f285e38deb2937579deb55b3c41ac5906ec40a",
+      "excerpt": "Freeport-McMoRan, Inc. Common Stock (FCX) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "FCX",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Freeport-McMoRan, Inc. Common Stock (FCX) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "a120b445aa975205505dbf97ba1178d801dda591d35f065c1d32bcbac3e75f35",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "FLNC": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "FLNC",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:13.208138+00:00",
+      "valid_until": "2026-10-11T09:57:13.208138+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/flnc",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/FLNC.html",
+      "source_sha256": "597c7e40e54a90eee3f186d4fd29db3fd9ddfb88df98c60e90d96caa19dff61e",
+      "excerpt": "Fluence Energy, Inc. Class A Common Stock (FLNC) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "FLNC",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Fluence Energy, Inc. Class A Common Stock (FLNC) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "cfd8a157f20858448630aa6f301343bd2e5e858c071b00a1787b180856593959",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "GOOGL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "GOOGL",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:23.446675+00:00",
+      "valid_until": "2026-10-11T09:57:23.446675+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/googl",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/GOOGL.html",
+      "source_sha256": "76355ceae0bb722ade4ee17429cead795efd5cb2f34657ce210d6160735ecb40",
+      "excerpt": "Alphabet Inc. Class A Common Stock (GOOGL) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "GOOGL",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Alphabet Inc. Class A Common Stock (GOOGL) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "e3743e25245ae31367e20eacace385c10ecabb95d80d26a9db879933af946ea1",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "GWH": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "GWH",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:26.719431+00:00",
+      "valid_until": "2026-10-11T09:57:26.719431+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/gwh",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/GWH.html",
+      "source_sha256": "e1fbdce44d535917fb912cba29c048a85bf94211761a8a0ac3a52ae588da6bb3",
+      "excerpt": "ESS Tech, Inc. Common Stock (GWH) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "GWH",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "ESS Tech, Inc. Common Stock (GWH) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "49c76436beb68edf52f1c737c6db2121c867ea8ef25b3e2d436e44faeb8a9809",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "HUT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "HUT",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:38.469504+00:00",
+      "valid_until": "2026-10-11T09:57:38.469504+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/hut",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/HUT.html",
+      "source_sha256": "53f93049e22d513e00191650b160a1eb8f4543c86b385082fc9e441bf962a696",
+      "excerpt": "Hut 8 Corp. Common Stock (HUT) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "HUT",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Hut 8 Corp. Common Stock (HUT) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "d064605d7367448a1a39e867734c37c7a88aa165e03775205b9ad107707479f0",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "IONQ": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "IONQ",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:47.829118+00:00",
+      "valid_until": "2026-10-11T09:57:47.829118+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/ionq",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/IONQ.html",
+      "source_sha256": "01af624a7cf140d1a90856d890011c4c3042a7f4e0cc1e88b46de21126700320",
+      "excerpt": "IonQ, Inc. Common Stock (IONQ) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "IONQ",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "IonQ, Inc. Common Stock (IONQ) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "54ee5bb0a1a76855787a39aa68e1f0494cdbf226e0a6547527c4bba2f0695535",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "IRM": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "IRM",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:57:54.836800+00:00",
+      "valid_until": "2026-10-11T09:57:54.836800+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/irm",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/IRM.html",
+      "source_sha256": "38b19ba77ddc9ffa9222fc1107495eb5fe6f7257ef098ddd1febc8553947c324",
+      "excerpt": "Iron Mountain Incorporated (Delaware)Common Stock REIT (IRM) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "IRM",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Iron Mountain Incorporated (Delaware)Common Stock REIT (IRM) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "7820e1a1eb6d6bbd2adb3e7c9ddb5a7129ae591e743845de0751d13f85ae8a18",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "JOBY": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "JOBY",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:58:04.440914+00:00",
+      "valid_until": "2026-10-11T09:58:04.440914+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/joby",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/JOBY.html",
+      "source_sha256": "e09d0bdf6d16c2127eee44db65c19c265e9f147214f81152c3b121150e0265fd",
+      "excerpt": "Joby Aviation, Inc. Common Stock (JOBY) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "JOBY",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Joby Aviation, Inc. Common Stock (JOBY) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "c7088f06f3d3da15782302d2115f0faa9110b06f9c4d2757cc00a505f1ba530e",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "LUNR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "LUNR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:58:08.763721+00:00",
+      "valid_until": "2026-10-11T09:58:08.763721+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/lunr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/LUNR.html",
+      "source_sha256": "37d0e9ccfbda311a574c1d6ef157f1144882b350784bbd830dabfa90ade12a04",
+      "excerpt": "Intuitive Machines, Inc. Class A Common Stock (LUNR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "LUNR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Intuitive Machines, Inc. Class A Common Stock (LUNR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "97c6157a5782d9548beaddb17d6fb7df0ddf47861c62861b8bda4f8e8921a056",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "MARA": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "MARA",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:58:11.996672+00:00",
+      "valid_until": "2026-10-11T09:58:11.996672+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/mara",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/MARA.html",
+      "source_sha256": "323b33cca787b009e254a8c14d9929e16712e549564e2aee68085f04f6f2a8eb",
+      "excerpt": "MARA Holdings, Inc. Common Stock (MARA) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "MARA",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "MARA Holdings, Inc. Common Stock (MARA) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "b7e2e50dcc83bf027645df11599960282a729176940d11d2c765bb684c7fb398",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "META": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "META",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:58:16.195111+00:00",
+      "valid_until": "2026-10-11T09:58:16.195111+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/meta",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/META.html",
+      "source_sha256": "caf53e13d83575507a578cf676c55ece97006ec71698b9821dec13d03ac2329f",
+      "excerpt": "Meta Platforms, Inc. Class A Common Stock (META) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "META",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Meta Platforms, Inc. Class A Common Stock (META) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "297d9006571476b3fc33f0441f18a601874d5af5c44eb0203a784c75bbdbce75",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "MU": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "MU",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:58:40.360017+00:00",
+      "valid_until": "2026-10-11T09:58:40.360017+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/mu",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/MU.html",
+      "source_sha256": "6c25cae3f932dc65d9a2c09d5d6a65a9796cd704430e6065e938e893e23d2174",
+      "excerpt": "Micron Technology, Inc. Common Stock (MU) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "MU",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Micron Technology, Inc. Common Stock (MU) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "0c44705dd365b1f08eefae1bc6df7de8ecd9d6995e878b7aa36d00e9646f73dc",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "NNE": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "NNE",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:58:45.538019+00:00",
+      "valid_until": "2026-10-11T09:58:45.538019+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/nne",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/NNE.html",
+      "source_sha256": "ff1cb373c2fd4de43ae3ab8a5b30ddfd53ff3b0e6e830d617786b9493c9c5d2a",
+      "excerpt": "Nano Nuclear Energy Inc. Common Stock (NNE) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "NNE",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Nano Nuclear Energy Inc. Common Stock (NNE) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "29b2d5eb3c821758a65d23915ea874af3b364e65735598bc5b09fa971564347e",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "NVTS": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "NVTS",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:00.423103+00:00",
+      "valid_until": "2026-10-11T09:59:00.423103+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/nvts",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/NVTS.html",
+      "source_sha256": "bd1025743da4796f70b4fa49a6ebd5bf66a6c1a158dfd39e6e2c599a0234f7c3",
+      "excerpt": "Navitas Semiconductor Corporation Common Stock (NVTS) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "NVTS",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Navitas Semiconductor Corporation Common Stock (NVTS) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "04a792cf2b89acf779cb4eb4161c298539dfb237721f61e0be0d4718ec7c3887",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ORCL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ORCL",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:09.425911+00:00",
+      "valid_until": "2026-10-11T09:59:09.425911+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/orcl",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/ORCL.html",
+      "source_sha256": "56c7983324c179678f5b3cef1c0d0db66be3236edcea03b42ee13c3f1a10ce12",
+      "excerpt": "Oracle Corporation Common Stock (ORCL) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "ORCL",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Oracle Corporation Common Stock (ORCL) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "f03419963cbdf4db02efe4bd32d41664f16c2669e4d11dbfdf70d893345e2eac",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "PLTR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "PLTR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:13.073925+00:00",
+      "valid_until": "2026-10-11T09:59:13.073925+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/pltr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/PLTR.html",
+      "source_sha256": "1f8c191fe6f24c3dd7b64008bd309e2211943250bd134943c39a350a14e9a449",
+      "excerpt": "Palantir Technologies Inc. Class A Common Stock (PLTR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "PLTR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Palantir Technologies Inc. Class A Common Stock (PLTR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "332a7e64960df1809a6577d80413456da6189f69210eb45dcededc9e67df0f2b",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "QBTS": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "QBTS",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:16.463764+00:00",
+      "valid_until": "2026-10-11T09:59:16.463764+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/qbts",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/QBTS.html",
+      "source_sha256": "e35f24dc7df8e82a441b21a78b8054d39f91ee8f3870317159e510848703dd2b",
+      "excerpt": "D-Wave Quantum Inc. Common Stock (QBTS) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "QBTS",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "D-Wave Quantum Inc. Common Stock (QBTS) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "de7062369615a49630007af5fb6ed5422d6469cdf603ad5cfa7b8e874d65c862",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "QMCO": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "QMCO",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:20.683082+00:00",
+      "valid_until": "2026-10-11T09:59:20.683082+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/qmco",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/QMCO.html",
+      "source_sha256": "b1e787fdbcbd548e5e181f2dd936e87ccb9e61f6858b771c364c06641401759f",
+      "excerpt": "Quantum Corporation Common Stock (QMCO) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "QMCO",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Quantum Corporation Common Stock (QMCO) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "4cc9e249db9a6a80ad44ade677100c73c1341d1b3e24e2e390e78370280db38b",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "QS": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "QS",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:24.262047+00:00",
+      "valid_until": "2026-10-11T09:59:24.262047+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/qs",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/QS.html",
+      "source_sha256": "9bf44bbfb53653cdce9db0727bf22d4b411dcd68b86f4dd218ef47e43e24ef49",
+      "excerpt": "QuantumScape Corporation Class A Common Stock (QS) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "QS",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "QuantumScape Corporation Class A Common Stock (QS) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "1415583cd9e5652e7d28329ff6dcf0efb688545d74ad6d7487c8d7c00dffd181",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "QUBT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "QUBT",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:26.480861+00:00",
+      "valid_until": "2026-10-11T09:59:26.480861+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/qubt",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/QUBT.html",
+      "source_sha256": "6170d4ae6a86f292f1028d74e9361c840a18323d9690c729670f800816b89288",
+      "excerpt": "Quantum Computing Inc. Common Stock (QUBT) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "QUBT",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Quantum Computing Inc. Common Stock (QUBT) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "725bb28c15f7693c3407a5a3d6a6029ede65d78348728663db2c210c8028f68a",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "RDW": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "RDW",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:29.697179+00:00",
+      "valid_until": "2026-10-11T09:59:29.697179+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/rdw",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/RDW.html",
+      "source_sha256": "a0125e2c712d98fdac68de8b6369656f3872a6b51e1dbde70655066c1968c6ff",
+      "excerpt": "Redwire Corporation Common Stock (RDW) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "RDW",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Redwire Corporation Common Stock (RDW) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "0c53a8ba129bc8f8452350c8d444787bbc0212a6a2a31db1137b960a20f6ae26",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "RGTI": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "RGTI",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:32.263390+00:00",
+      "valid_until": "2026-10-11T09:59:32.263390+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/rgti",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/RGTI.html",
+      "source_sha256": "f55a316203a2da8e0a8aa5e29c430269d64944913df4558f48291496cef8c1b3",
+      "excerpt": "Rigetti Computing, Inc. Common Stock (RGTI) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "RGTI",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Rigetti Computing, Inc. Common Stock (RGTI) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "ca9820c544e611ff69d6c8c25ca4997f7249798f23d7e223283a46a83a7c8f0b",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "RIOT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "RIOT",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:34.506482+00:00",
+      "valid_until": "2026-10-11T09:59:34.506482+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/riot",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/RIOT.html",
+      "source_sha256": "2526454ab65cfc54df4ba23358132d6d4f9a84aaeaa72acfe05ceab464e24370",
+      "excerpt": "Riot Platforms, Inc. Common Stock (RIOT) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "RIOT",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Riot Platforms, Inc. Common Stock (RIOT) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "1fb4a5a9a445e5e5906297af0789bc030034be6ba0130b2e62cc098342825a09",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "RKLB": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "RKLB",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T09:59:38.720209+00:00",
+      "valid_until": "2026-10-11T09:59:38.720209+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/rklb",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/RKLB.html",
+      "source_sha256": "48affcc23f4bcc5dd9f474babfea1a263162852b169e8d6d375c89b714c1d744",
+      "excerpt": "Rocket Lab Corporation Common Stock (RKLB) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "RKLB",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Rocket Lab Corporation Common Stock (RKLB) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "acdf37dccdc900fac78ebeef60d96715369b3ff4d1b42861e43238a113b81751",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SCCO": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SCCO",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:00.056572+00:00",
+      "valid_until": "2026-10-11T10:00:00.056572+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/scco",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/SCCO.html",
+      "source_sha256": "ac1a35f49b8786b74930cd6cfcbbf12084e9c1a6565a15d0390e61b813765101",
+      "excerpt": "Southern Copper Corporation Common Stock (SCCO) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "SCCO",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Southern Copper Corporation Common Stock (SCCO) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "7259bd413b795853989e115dae03e3d525c5605b0540a015d8f6beef4733e5e2",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SMCI": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SMCI",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:07.602718+00:00",
+      "valid_until": "2026-10-11T10:00:07.602718+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/smci",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/SMCI.html",
+      "source_sha256": "c719bfd076aa18eac762c8d6defb90f1738d4092d9be9ba312862c9b6ea349b3",
+      "excerpt": "Super Micro Computer, Inc. Common Stock (SMCI) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "SMCI",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Super Micro Computer, Inc. Common Stock (SMCI) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "7d06d2aa9725922abc9b4b9cd173dabe31062d925d8329486ebec997f19f97e5",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SMR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SMR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:13.694928+00:00",
+      "valid_until": "2026-10-11T10:00:13.694928+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/smr",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/SMR.html",
+      "source_sha256": "07a5f179db642e5cea5fb1bf3679a222d0c9f18ab8bed23557873eb6dd9c6226",
+      "excerpt": "NuScale Power Corporation Class A Common Stock (SMR) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "SMR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "NuScale Power Corporation Class A Common Stock (SMR) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "631cac5763259f0b37b30826a3ab08c2ce5a04080d4de4257dfc036c09a1dc6a",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SNDK": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SNDK",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:17.895897+00:00",
+      "valid_until": "2026-10-11T10:00:17.895897+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/sndk",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/SNDK.html",
+      "source_sha256": "375ac18b39425a0a92e832d577d90edabd6ed86ca92f82cdd6be6e80a3720930",
+      "excerpt": "Sandisk Corporation Common Stock (SNDK) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "SNDK",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Sandisk Corporation Common Stock (SNDK) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "3260e428cf2d1e0ceccbb5329d67c1a8db5511191f299b04512106c5df1da820",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SPCE": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SPCE",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:40.258781+00:00",
+      "valid_until": "2026-10-11T10:00:40.258781+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/spce",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/SPCE.html",
+      "source_sha256": "c25bc75b21c35bb6161263d79a2daab348cf746675dee96d0ed45bba61eab192",
+      "excerpt": "Virgin Galactic Holdings, Inc. Common Stock (SPCE) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "SPCE",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Virgin Galactic Holdings, Inc. Common Stock (SPCE) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "bd5dab0491f0a53f623e601287b8b89863d1ebcdb79733b15507b38cedf3bacf",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SPCX": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SPCX",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:43.721980+00:00",
+      "valid_until": "2026-10-11T10:00:43.721980+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/spcx",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/SPCX.html",
+      "source_sha256": "63e8b426a71e879550451142fd7c9b4a4bb5ceacd05326ea75355837a17f0734",
+      "excerpt": "Space Exploration Technologies Corp. Class A Common Stock (SPCX) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "SPCX",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Space Exploration Technologies Corp. Class A Common Stock (SPCX) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "1a8033c4090796e112c82f3af6561a459f9dec27c56479c32f31b3cbcf48abdc",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "VRSK": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "VRSK",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:00:59.278115+00:00",
+      "valid_until": "2026-10-11T10:00:59.278115+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/vrsk",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/VRSK.html",
+      "source_sha256": "8c18febc5572a1a75f6daf3e20b74d14567e181e4a0e54d5c950f5b95d74f85b",
+      "excerpt": "Verisk Analytics, Inc. Common Stock (VRSK) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "VRSK",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Verisk Analytics, Inc. Common Stock (VRSK) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "5af3b5a6472c8bf037aebe2d8b28f42491e11c1dd476dda7a146c1640e2d2957",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "VST": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "VST",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:01:01.582967+00:00",
+      "valid_until": "2026-10-11T10:01:01.582967+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/vst",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/VST.html",
+      "source_sha256": "0eb0f2d345f9431494fe2abffe67a2cc2cad32b4a9d49df5623db8b53cb52014",
+      "excerpt": "Vistra Corp. Common Stock (VST) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "VST",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Vistra Corp. Common Stock (VST) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "d11e65f16e54aecc07942072d0853d016728870608a66e559673ac8bd0365d1c",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "WDC": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "WDC",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:01:06.171637+00:00",
+      "valid_until": "2026-10-11T10:01:06.171637+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/wdc",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/WDC.html",
+      "source_sha256": "3b8044603a27f4ca088e767d54f11e618f723464f6cf40bf9ccf26375b0684bd",
+      "excerpt": "Western Digital Corporation Common Stock (WDC) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "WDC",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Western Digital Corporation Common Stock (WDC) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "b5dccd6ee8f82c3425d52786e61a281ee60488be579d954d2161eb55886fc305",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "WOLF": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "WOLF",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:01:09.794202+00:00",
+      "valid_until": "2026-10-11T10:01:09.794202+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/wolf",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/WOLF.html",
+      "source_sha256": "eaacbf642e1af04f1df91e2e160786206ffca4b52531f48ea6559608987807b0",
+      "excerpt": "Wolfspeed, Inc. Common Stock New (WOLF) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "WOLF",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Wolfspeed, Inc. Common Stock New (WOLF) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "ea10d6cd9acc5ac2621263ee62d85ed80b4bc5c9969673bdbe4b5daddaf740ba",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "WULF": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "WULF",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P7",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T10:01:14.395785+00:00",
+      "valid_until": "2026-10-11T10:01:14.395785+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/wulf",
+      "source_path": "outputs/r58/20261004/p7-instrument-facts-scope/WULF.html",
+      "source_sha256": "a8b14258dc77d89349d93ff223db545ee91ca278dd5e20f3fa26132e1ee18f3d",
+      "excerpt": "TeraWulf Inc. Common Stock (WULF) Stock Price, Quote, News &amp; History | Nasdaq",
+      "claim": {
+        "underlying": "WULF",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "TeraWulf Inc. Common Stock (WULF) Stock Price, Quote, News &amp; History | Nasdaq"
+      },
+      "claim_hash": "a61bd734a4d082ecc55ad64abe4a60a4e717a1b671b6d4654fc98affe19264c1",
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "AMDL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "AMDL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:11.509727+00:00",
+      "valid_until": "2026-10-11T11:18:11.509727+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/amdl",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/AMDL.html",
+      "source_sha256": "6e5cb029591fe2ca67fbe80663511a3f1a800aa51f4e1bbce2f6583487cce355",
+      "excerpt": "<title>GraniteShares 2x Long AMD Daily ETF (AMDL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "AMDL",
+        "asset_type": "US_ETF",
+        "official_title": "GraniteShares 2x Long AMD Daily ETF (AMDL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "b987b09538dfc1d1d0090c9c955fb3c09ed0387a2b904564175ea5eaddad3589",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/amdl",
+          "to": "https://www.nasdaq.com/market-activity/etf/amdl",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ARM": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ARM",
+      "asset_type": "US_ADR",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:14.854095+00:00",
+      "valid_until": "2026-10-11T11:18:14.854095+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/arm",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/ARM.html",
+      "source_sha256": "e5e2e05b092715348324856c3c65af379f6436cbdaa84ab3ceec314effb76b4b",
+      "excerpt": "<title>Arm Holdings plc American Depositary Shares (ARM) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "ARM",
+        "asset_type": "US_ADR",
+        "official_title": "Arm Holdings plc American Depositary Shares (ARM) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "7464e4ba96e5ce95d348a42d06f93b34775882936108e05a01fad5d5aae6ecf2",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ARQQ": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ARQQ",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:18.187654+00:00",
+      "valid_until": "2026-10-11T11:18:18.187654+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/arqq",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/ARQQ.html",
+      "source_sha256": "ba324d7347a222037171a4de37e162be7356d751d134d05da77a3c7c6bed951d",
+      "excerpt": "<title>Arqit Quantum Inc. Ordinary Shares (ARQQ) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "ARQQ",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Arqit Quantum Inc. Ordinary Shares (ARQQ) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "fb30660944b9c911f211be175110a52ad3f6b86f22e73bf3fb6f0a4150aa9948",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ASTX": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ASTX",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:31.652104+00:00",
+      "valid_until": "2026-10-11T11:18:31.652104+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/astx",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/ASTX.html",
+      "source_sha256": "03bb65922f9d6536becf18b243a5f603e99dbf65875916bfc769b3d5d2b3dab9",
+      "excerpt": "<title>Tradr 2X Long ASTS Daily ETF (ASTX) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "ASTX",
+        "asset_type": "US_ETF",
+        "official_title": "Tradr 2X Long ASTS Daily ETF (ASTX) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "ad8faeb06e85e04ed06cb052cb17022b04536a7e0895869dd45ba32b562738d6",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/astx",
+          "to": "https://www.nasdaq.com/market-activity/etf/astx",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "BITU": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "BITU",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:35.937508+00:00",
+      "valid_until": "2026-10-11T11:18:35.937508+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/bitu",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/BITU.html",
+      "source_sha256": "f27d3ca153649f951ea3cb2a51cabf0808613977eae850c19b6a662edb585865",
+      "excerpt": "<title>ProShares Ultra Bitcoin ETF (BITU) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "BITU",
+        "asset_type": "US_ETF",
+        "official_title": "ProShares Ultra Bitcoin ETF (BITU) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "b60e0ee6722e6b2717cfd3c8b7e65d4d2238b87449eb7d8cfefa4b29b0633140",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/bitu",
+          "to": "https://www.nasdaq.com/market-activity/etf/bitu",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "BMNG": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "BMNG",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:42.187592+00:00",
+      "valid_until": "2026-10-11T11:18:42.187592+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/bmng",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/BMNG.html",
+      "source_sha256": "5589499faad4121315ba9ac789ca0118c329dd42ba7b9de3fcacb7f23965cc45",
+      "excerpt": "<title>Leverage Shares 2X Long BMNR Daily ETF (BMNG) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "BMNG",
+        "asset_type": "US_ETF",
+        "official_title": "Leverage Shares 2X Long BMNR Daily ETF (BMNG) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "69f0eb613cd8e293bece74bd3ea5e9619addf3738c6cfd8b39a327616ea1cdb9",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/bmng",
+          "to": "https://www.nasdaq.com/market-activity/etf/bmng",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "BTDR": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "BTDR",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:45.009413+00:00",
+      "valid_until": "2026-10-11T11:18:45.009413+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/btdr",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/BTDR.html",
+      "source_sha256": "b1b577f19eeb8c3dd0b14808c42b3e58747df0bf74afbfd44edaa5b349cf49df",
+      "excerpt": "<title>Bitdeer Technologies Group Class A Ordinary Shares (BTDR) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "BTDR",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Bitdeer Technologies Group Class A Ordinary Shares (BTDR) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "160d5b4d17247677e9fdee8ec3ed02afcf0113d6d86fe91641e86ef13d77e084",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CONL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CONL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:51.226520+00:00",
+      "valid_until": "2026-10-11T11:18:51.226520+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/conl",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/CONL.html",
+      "source_sha256": "222811ad29dadadbf39b5656e1e840c822b8a0e6164460ef3df2f1485de12c82",
+      "excerpt": "<title>GraniteShares 2x Long COIN Daily ETF (CONL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "CONL",
+        "asset_type": "US_ETF",
+        "official_title": "GraniteShares 2x Long COIN Daily ETF (CONL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "61b667b39b99d9b25d801ac8c1fa2eb766f4ebbdec8d968639780c7596542c75",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/conl",
+          "to": "https://www.nasdaq.com/market-activity/etf/conl",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "COPZ": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "COPZ",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:18:59.480303+00:00",
+      "valid_until": "2026-10-11T11:18:59.480303+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/copz",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/COPZ.html",
+      "source_sha256": "0b9317d7b204bb59a998dd716d6450cae89bc242771b034d52c30b27fc3a5327",
+      "excerpt": "<title>Defiance Daily Target 2X Long Copper Miners ETF (COPZ) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "COPZ",
+        "asset_type": "US_ETF",
+        "official_title": "Defiance Daily Target 2X Long Copper Miners ETF (COPZ) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "b0960b6efdcbe017297148aa70c8744fbca7e56c2b30e40743851d4c58e9bc27",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/copz",
+          "to": "https://www.nasdaq.com/market-activity/etf/copz",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "CRCG": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "CRCG",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:05.467621+00:00",
+      "valid_until": "2026-10-11T11:19:05.467621+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/crcg",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/CRCG.html",
+      "source_sha256": "825e5e17e20967d8fe5f715337c28a13afe92fb86616e0c1ecbacb4bb9570f2f",
+      "excerpt": "<title>Leverage Shares 2X Long CRCL Daily ETF (CRCG) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "CRCG",
+        "asset_type": "US_ETF",
+        "official_title": "Leverage Shares 2X Long CRCL Daily ETF (CRCG) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "3fc21158458641cc0ece81a62588105deffb3733d2426d3d3b3cf675389d417c",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/crcg",
+          "to": "https://www.nasdaq.com/market-activity/etf/crcg",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "DGP": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "DGP",
+      "asset_type": "US_ETN",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:10.470835+00:00",
+      "valid_until": "2026-10-11T11:19:10.470835+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/dgp",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/DGP.html",
+      "source_sha256": "ff2b08bdbdca4047a3ea669eee418c239639be0e8538644bdb9aaf613a98eb67",
+      "excerpt": "<title>DB Gold Double Long ETN due February 15, 2038 (DGP) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "DGP",
+        "asset_type": "US_ETN",
+        "official_title": "DB Gold Double Long ETN due February 15, 2038 (DGP) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "6379ebfe4dd685dabc67964e09c459099c55728a23a2adabc1f97a2edfd483de",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/dgp",
+          "to": "https://www.nasdaq.com/market-activity/etf/dgp",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ERO": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ERO",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:13.868175+00:00",
+      "valid_until": "2026-10-11T11:19:13.868175+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/ero",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/ERO.html",
+      "source_sha256": "3a4f4889997a25f9df557b347976fe5c4bfa9c7e0b7c65d3cf1c25b71c77014a",
+      "excerpt": "<title>Ero Copper Corp. Common Shares (ERO) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "ERO",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Ero Copper Corp. Common Shares (ERO) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "03faa5383dd0ad937d0de015af2996fbf043e67991bac64a56013d45df54fd7b",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ETHU": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ETHU",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:18.877489+00:00",
+      "valid_until": "2026-10-11T11:19:18.877489+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/ethu",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/ETHU.html",
+      "source_sha256": "9a9290fb813998ef9e8a5caaf18816028539b3480600c795c0d18e9375d4bcc1",
+      "excerpt": "<title>2x Ether ETF (ETHU) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "ETHU",
+        "asset_type": "US_ETF",
+        "official_title": "2x Ether ETF (ETHU) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "6720085179510b5d0928d49601221ef0d53595eb8860ec8fe847cdf0e051f4c0",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/ethu",
+          "to": "https://www.nasdaq.com/market-activity/etf/ethu",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "GDXU": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "GDXU",
+      "asset_type": "US_ETN",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:23.941946+00:00",
+      "valid_until": "2026-10-11T11:19:23.941946+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/gdxu",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/GDXU.html",
+      "source_sha256": "6efa54a4b53aa2c8c6a19ca62b8e112aa0726691aa2d9f386caf53bb7bf5fe55",
+      "excerpt": "<title>MicroSectors Gold Miners 3X Leveraged ETN (GDXU) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "GDXU",
+        "asset_type": "US_ETN",
+        "official_title": "MicroSectors Gold Miners 3X Leveraged ETN (GDXU) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "bb96886df6443e5b985a4bf444765f2fa16fcdc048275fb23d9ed3819936cdbd",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/gdxu",
+          "to": "https://www.nasdaq.com/market-activity/etf/gdxu",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "HIVE": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "HIVE",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:28.680020+00:00",
+      "valid_until": "2026-10-11T11:19:28.680020+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/hive",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/HIVE.html",
+      "source_sha256": "8bb0079509f5229924a95d8d86920f6000794311b64d1242871e70dab0b30432",
+      "excerpt": "<title>HIVE Digital Technologies Ltd. Common Shares (HIVE) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "HIVE",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "HIVE Digital Technologies Ltd. Common Shares (HIVE) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "7f5db7d54c307210310d066b5c92a9b0eaae2834cb1169b8d57777227aded6f5",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "HOOG": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "HOOG",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:32.880479+00:00",
+      "valid_until": "2026-10-11T11:19:32.880479+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/hoog",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/HOOG.html",
+      "source_sha256": "b3f88e8a94cf5ee4fb93c3975e3a04ebd96eec3dc42e5943d649fd8dd199d5fc",
+      "excerpt": "<title>Leverage Shares 2X Long HOOD Daily ETF (HOOG) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "HOOG",
+        "asset_type": "US_ETF",
+        "official_title": "Leverage Shares 2X Long HOOD Daily ETF (HOOG) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "33cd891fc5d71941945a3aa4d7dbf5aabf67740dfd14c16ca165cbabf0ac0ab1",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/hoog",
+          "to": "https://www.nasdaq.com/market-activity/etf/hoog",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "IBIT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "IBIT",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:37.137648+00:00",
+      "valid_until": "2026-10-11T11:19:37.137648+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/ibit",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/IBIT.html",
+      "source_sha256": "511f06f71cc1079fb988fb57b2cab0510cf521643c382d548ceef4c8dfd58cf0",
+      "excerpt": "<title>iShares Bitcoin Trust ETF (IBIT) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "IBIT",
+        "asset_type": "US_ETF",
+        "official_title": "iShares Bitcoin Trust ETF (IBIT) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "c41b5183623084aeb2a7a56406497ed72ca3dfad0ddea97228297c07e39b61ec",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/ibit",
+          "to": "https://www.nasdaq.com/market-activity/etf/ibit",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "IREN": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "IREN",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:39.679248+00:00",
+      "valid_until": "2026-10-11T11:19:39.679248+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/iren",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/IREN.html",
+      "source_sha256": "aff0fed8cd0db5ac80d42d96aa68f646825b3a9cedde4c0e5db537715cd9c916",
+      "excerpt": "<title>IREN Limited Ordinary Shares (IREN) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "IREN",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "IREN Limited Ordinary Shares (IREN) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "30ef49887a5ad73584d6ac027e31f5e932433596dc26f315ef5dbc47ef00e71d",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "JNUG": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "JNUG",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:19:45.469348+00:00",
+      "valid_until": "2026-10-11T11:19:45.469348+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/jnug",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/JNUG.html",
+      "source_sha256": "ba31570ab5daf04612489c07ab2f4391f675d6b14e59d22c2bc018687c735f51",
+      "excerpt": "<title>Direxion Daily Junior Gold Miners Index Bull 2X ETF (JNUG) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "JNUG",
+        "asset_type": "US_ETF",
+        "official_title": "Direxion Daily Junior Gold Miners Index Bull 2X ETF (JNUG) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "eb1f45dde76da2ddc8e868bb3f6f2712cd4259f8d0339c40dcbe8c4f15000b1e",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/jnug",
+          "to": "https://www.nasdaq.com/market-activity/etf/jnug",
+          "status": 301
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "MSTU": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "MSTU",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:00.404627+00:00",
+      "valid_until": "2026-10-11T11:20:00.404627+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/mstu",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/MSTU.html",
+      "source_sha256": "e6991fe2f3e16ff36f5a6b33873119e32cd446db23517b60541ce70ada97e843",
+      "excerpt": "<title>T-Rex 2X Long MSTR Daily Target ETF (MSTU) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "MSTU",
+        "asset_type": "US_ETF",
+        "official_title": "T-Rex 2X Long MSTR Daily Target ETF (MSTU) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "8baf1d6cd2a66dd6754f68a0413a1c01d5ccc3a5540e423478ecd30a4d2edf7b",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/mstu",
+          "to": "https://www.nasdaq.com/market-activity/etf/mstu",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "MSTX": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "MSTX",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:07.985518+00:00",
+      "valid_until": "2026-10-11T11:20:07.985518+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/mstx",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/MSTX.html",
+      "source_sha256": "ef3106484484296ef19b62e2bc2fe7250abf7d9692d4cbe80bc5f960da31635b",
+      "excerpt": "<title>Defiance Daily Target 2x Long MSTR ETF (MSTX) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "MSTX",
+        "asset_type": "US_ETF",
+        "official_title": "Defiance Daily Target 2x Long MSTR ETF (MSTX) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "c1d5feeb7fc1dfd8323783b722aa2924cf45f5c4b111f0cb4636d65aef51fbd2",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/mstx",
+          "to": "https://www.nasdaq.com/market-activity/etf/mstx",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "MSTZ": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "MSTZ",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:12.758442+00:00",
+      "valid_until": "2026-10-11T11:20:12.758442+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/mstz",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/MSTZ.html",
+      "source_sha256": "f34ee17d36dc718b64f37564557b02ea33d6ffcad770307a2b74477538b2a284",
+      "excerpt": "<title>T-Rex 2X Inverse MSTR Daily Target ETF (MSTZ) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "MSTZ",
+        "asset_type": "US_ETF",
+        "official_title": "T-Rex 2X Inverse MSTR Daily Target ETF (MSTZ) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "4985085349f8e0abe1e6c341dd9c9b56972665a43ed74c803e5ff2e73c04f055",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/mstz",
+          "to": "https://www.nasdaq.com/market-activity/etf/mstz",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "NBIS": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "NBIS",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:15.084204+00:00",
+      "valid_until": "2026-10-11T11:20:15.084204+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/nbis",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/NBIS.html",
+      "source_sha256": "20e544a4eecec48210375e469903708299bcd98d0d82685e830b7d3fa9abbb11",
+      "excerpt": "<title>Nebius Group N.V. Class A Ordinary Shares (NBIS) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "NBIS",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Nebius Group N.V. Class A Ordinary Shares (NBIS) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "786c7cbbda0cac2295989d1026d563ed8abc2120d2bcc1dff4d8affa5e2736fd",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "NUGT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "NUGT",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:19.277404+00:00",
+      "valid_until": "2026-10-11T11:20:19.277404+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/nugt",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/NUGT.html",
+      "source_sha256": "e85971cdfcd63d2e7761286c71fbc650a5bc67149928f144d78696f271bcc28e",
+      "excerpt": "<title>Direxion Daily Gold Miners Index Bull 2X ETF (NUGT) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "NUGT",
+        "asset_type": "US_ETF",
+        "official_title": "Direxion Daily Gold Miners Index Bull 2X ETF (NUGT) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "ad0e093b913960967d67d13573841bb36b3f967fdab4580d66af70c37cabcccd",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/nugt",
+          "to": "https://www.nasdaq.com/market-activity/etf/nugt",
+          "status": 301
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "NVDL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "NVDL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:24.528910+00:00",
+      "valid_until": "2026-10-11T11:20:24.528910+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/nvdl",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/NVDL.html",
+      "source_sha256": "4b43a2c8c9d70b58c83a16fbc852ff5da5cfae61fb7a3943100d793cb8ee8767",
+      "excerpt": "<title>GraniteShares 2x Long NVDA Daily ETF (NVDL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "NVDL",
+        "asset_type": "US_ETF",
+        "official_title": "GraniteShares 2x Long NVDA Daily ETF (NVDL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "b38a73a3788dcd9b4bddad2913163001145cd851b51bebc74f3e3281cd332069",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/nvdl",
+          "to": "https://www.nasdaq.com/market-activity/etf/nvdl",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "OKLO": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "OKLO",
+      "asset_type": "US_ORDINARY_EQUITY",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:26.862083+00:00",
+      "valid_until": "2026-10-11T11:20:26.862083+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/oklo",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/OKLO.html",
+      "source_sha256": "48fa10fbdfafae68ba141f4fdcb7f319958cd94ba115076eee1368e096e36255",
+      "excerpt": "<title>Oklo Inc. Class A common stock (OKLO) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "OKLO",
+        "asset_type": "US_ORDINARY_EQUITY",
+        "official_title": "Oklo Inc. Class A common stock (OKLO) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "16bad910f5e9e203e4550dcf17c4eac85054991659baa8ec04ac7c6d0f3be1e7",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "RKLX": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "RKLX",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:32.067134+00:00",
+      "valid_until": "2026-10-11T11:20:32.067134+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/rklx",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/RKLX.html",
+      "source_sha256": "ddb2923d0faf8ce342da368d714a1eab4ac1ee5d8c5721dcf80d805f54bc4962",
+      "excerpt": "<title>Defiance Daily Target 2X Long RKLB ETF (RKLX) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "RKLX",
+        "asset_type": "US_ETF",
+        "official_title": "Defiance Daily Target 2X Long RKLB ETF (RKLX) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "9c75ca70497548c80263bbb9fb65f95af0338444a51044b381f2f2df920db42c",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/rklx",
+          "to": "https://www.nasdaq.com/market-activity/etf/rklx",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "ROBN": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "ROBN",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:36.254343+00:00",
+      "valid_until": "2026-10-11T11:20:36.254343+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/robn",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/ROBN.html",
+      "source_sha256": "bde4061f59206c3fba6cdf4f68442ff03ca431b7a0163934223cd5607dc13840",
+      "excerpt": "<title>T-Rex 2X Long HOOD Daily Target ETF (ROBN) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "ROBN",
+        "asset_type": "US_ETF",
+        "official_title": "T-Rex 2X Long HOOD Daily Target ETF (ROBN) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "b3bed4d3593a0e086a566785095e9bb0e2e7300abc1b8b54a31bb9164142c369",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/robn",
+          "to": "https://www.nasdaq.com/market-activity/etf/robn",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SBIT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SBIT",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:42.496451+00:00",
+      "valid_until": "2026-10-11T11:20:42.496451+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/sbit",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/SBIT.html",
+      "source_sha256": "30e381ab45a6aad725a2db7511cb6ae9d388cba294e161e601f67f2be3d5f164",
+      "excerpt": "<title>ProShares UltraShort Bitcoin ETF (SBIT) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "SBIT",
+        "asset_type": "US_ETF",
+        "official_title": "ProShares UltraShort Bitcoin ETF (SBIT) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "7c0fde5559280bc7c626160da4ab8241f4ea3d18fe1551c5ba8e6362114bacaf",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/sbit",
+          "to": "https://www.nasdaq.com/market-activity/etf/sbit",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SIL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SIL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:48.727776+00:00",
+      "valid_until": "2026-10-11T11:20:48.727776+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/sil",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/SIL.html",
+      "source_sha256": "1736a1c5ac39f624fbcc84411b6a39cd5ebd9f5bd7086790af30ac8d5226523f",
+      "excerpt": "<title>Global X Silver Miners ETF (SIL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "SIL",
+        "asset_type": "US_ETF",
+        "official_title": "Global X Silver Miners ETF (SIL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "be68bacf70d24e3ed9d7a2607c7ed159a81b25fb7be0b88bc24aab549445e621",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/sil",
+          "to": "https://www.nasdaq.com/market-activity/etf/sil",
+          "status": 301
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SMH": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SMH",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:20:55.549231+00:00",
+      "valid_until": "2026-10-11T11:20:55.549231+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/smh",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/SMH.html",
+      "source_sha256": "b94f352f34a071439b247c7c91d1bd214caa69c1697e344b46381d5dd059555f",
+      "excerpt": "<title>VanEck Semiconductor ETF (SMH) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "SMH",
+        "asset_type": "US_ETF",
+        "official_title": "VanEck Semiconductor ETF (SMH) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "38dd4edd239fe0023cdd8928e32bed136867ed96be0a826bd873bc44a7e4035c",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/smh",
+          "to": "https://www.nasdaq.com/market-activity/etf/smh",
+          "status": 301
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SOLT": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SOLT",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:21:03.856463+00:00",
+      "valid_until": "2026-10-11T11:21:03.856463+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/solt",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/SOLT.html",
+      "source_sha256": "b5518044071f65b23366ed3dce601e7e618fe3be426ee6ec30db283cbf8afe38",
+      "excerpt": "<title>2x Solana ETF (SOLT) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "SOLT",
+        "asset_type": "US_ETF",
+        "official_title": "2x Solana ETF (SOLT) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "af4af63a70f33d66dbbc74d084f661762e3fe786194f4b92f2c96403923b54a0",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/solt",
+          "to": "https://www.nasdaq.com/market-activity/etf/solt",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SOXL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SOXL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:21:09.105773+00:00",
+      "valid_until": "2026-10-11T11:21:09.105773+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/soxl",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/SOXL.html",
+      "source_sha256": "60d6168733f4b68352a703838dc70c9a62a372bb3123218610e0dc8036bd4f30",
+      "excerpt": "<title>Direxion Daily Semiconductor Bull 3X ETF (SOXL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "SOXL",
+        "asset_type": "US_ETF",
+        "official_title": "Direxion Daily Semiconductor Bull 3X ETF (SOXL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "313ee64462c25aff3ae66399b5df6897b14c9156b517426307b280b9c5841693",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/soxl",
+          "to": "https://www.nasdaq.com/market-activity/etf/soxl",
+          "status": 301
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "SPAL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "SPAL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:21:15.280077+00:00",
+      "valid_until": "2026-10-11T11:21:15.280077+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/spal",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/SPAL.html",
+      "source_sha256": "0974b81b5013bc0256d23065b2c78c222c7e03575b67505a28c1019c67ae9a4e",
+      "excerpt": "<title>GraniteShares 2x Long SpaceX Daily ETF (SPAL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "SPAL",
+        "asset_type": "US_ETF",
+        "official_title": "GraniteShares 2x Long SpaceX Daily ETF (SPAL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "5a7f92dd90c0232cf8cb0b000287bc43d7a10896bed77f7a1d6207b910a38cac",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/spal",
+          "to": "https://www.nasdaq.com/market-activity/etf/spal",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "STRC": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "STRC",
+      "asset_type": "US_PREFERRED",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:21:19.264332+00:00",
+      "valid_until": "2026-10-11T11:21:19.264332+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/strc",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/STRC.html",
+      "source_sha256": "2cc33df823b8e93e5a30d39837e0d209e0a4c1e65870fe3842b5fa64991782d8",
+      "excerpt": "<title>Strategy Inc Variable Rate Series A Perpetual Stretch Preferred Stock (STRC) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "STRC",
+        "asset_type": "US_PREFERRED",
+        "official_title": "Strategy Inc Variable Rate Series A Perpetual Stretch Preferred Stock (STRC) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "85c2250b86785dec503a820f8e3b296bcca41c459bfc5f380c75ebe350003a97",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "TSLL": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "TSLL",
+      "asset_type": "US_ETF",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:21:33.459132+00:00",
+      "valid_until": "2026-10-11T11:21:33.459132+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/etf/tsll",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/TSLL.html",
+      "source_sha256": "605e86487f576bfc180bc6ea3bb62655197fd1bc53ab73d9a9c152c2a816027a",
+      "excerpt": "<title>Direxion Daily TSLA Bull 2X ETF (TSLL) Latest Prices, Charts &amp; News | Nasdaq</title>",
+      "claim": {
+        "underlying": "TSLL",
+        "asset_type": "US_ETF",
+        "official_title": "Direxion Daily TSLA Bull 2X ETF (TSLL) Latest Prices, Charts & News | Nasdaq"
+      },
+      "claim_hash": "f3cb2894e6d0e6c044e9c6908001182a47db47e08863de14135b82055aecdc19",
+      "redirect_chain": [
+        {
+          "from": "https://www.nasdaq.com/market-activity/stocks/tsll",
+          "to": "https://www.nasdaq.com/market-activity/etf/tsll",
+          "status": 302
+        }
+      ],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    },
+    "VIST": {
+      "status": "APPROVED",
+      "source_kind": "OFFICIAL_INTERFACE_FACT",
+      "fact_type": "INSTRUMENT_ASSET_IDENTITY",
+      "interface": "EXCHANGE_INSTRUMENT_TITLE",
+      "underlying": "VIST",
+      "asset_type": "US_ADR",
+      "reviewer": "KQUANT_CODEX_EXCHANGE_TITLE_REVIEW_P8",
+      "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+      "reviewed_at": "2026-10-04T11:21:37.993652+00:00",
+      "valid_until": "2026-10-11T11:21:37.993652+00:00",
+      "source_url": "https://www.nasdaq.com/market-activity/stocks/vist",
+      "source_path": "outputs/r58/20261004/p8-instrument-facts-scope/VIST.html",
+      "source_sha256": "e84657c9e0155def92df12a33762e884c6fe4a00242cf2b506530a0babff0eb0",
+      "excerpt": "<title>Vista Energy S.A.B. de C.V. American Depositary Shares, each representing one series A share, with no par value (VIST) Stock Price, Quote, News &amp; History | Nasdaq</title>",
+      "claim": {
+        "underlying": "VIST",
+        "asset_type": "US_ADR",
+        "official_title": "Vista Energy S.A.B. de C.V. American Depositary Shares, each representing one series A share, with no par value (VIST) Stock Price, Quote, News & History | Nasdaq"
+      },
+      "claim_hash": "81bb9b277c08fd910961d9f5937d177e1efd284700d29ddce7e8bb5501f63182",
+      "redirect_chain": [],
+      "assertion_limits": [
+        "IDENTITY_ONLY_NOT_PRICE_BASIS_OR_ACTION_COVERAGE",
+        "NOT_DEPTH_UNITS",
+        "NOT_OWNER_APPROVAL"
+      ]
+    }
+  },
+  "instrument_price_actions": {},
+  "canonical_resolution_method": null,
+  "price_basis_interface": {
+    "status": "APPROVED",
+    "source_kind": "OFFICIAL_DOCUMENT",
+    "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+    "interface": "US_OPTION_QUOTE",
+    "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+    "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+    "reviewed_at": "2026-10-04T11:31:44.970648+00:00",
+    "valid_until": "2026-11-03T00:00:00+00:00",
+    "source_url": "https://open.longbridge.com/docs/quote/objects",
+    "source_path": "outputs/r58/20261004/p8-source-facts-v2/price_basis.html",
+    "source_sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436",
+    "excerpt": "<tr><td>0</td><td>Actual</td></tr>",
+    "contract_version": "INTERFACE_FACT_V1",
+    "claim": {
+      "field_path": "candlestick.adjust_type.NO_ADJUST",
+      "assertion": "QUOTE_AND_NO_ADJUST_PRICE_BASIS",
+      "market_scope": "US",
+      "sdk_scope": "longbridge.openapi"
+    },
+    "claim_hash": "e0b0f7ec8a3440a674112bdd4b3187bbed4e8bc54b16b62dea86900de6410c1a",
+    "assertion_limits": [
+      "NO_ADJUST_IS_ACTUAL_PRICE",
+      "DOES_NOT_PROVE_ABSENCE_OF_CORPORATE_ACTIONS",
+      "NOT_OWNER_APPROVAL"
+    ],
+    "price_basis": "NoAdjust",
+    "method_version": "NATIVE_PRICE_SCALE_V1",
+    "price_transform": "IDENTITY",
+    "action_coverage_required": true
+  }
+}

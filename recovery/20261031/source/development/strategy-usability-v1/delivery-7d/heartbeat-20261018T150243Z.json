@@ -1,0 +1,49 @@
+{
+  "schema": "KQUANT_BOUNDED_HEARTBEAT_EVIDENCE_V1",
+  "automation_id": "kquant-2",
+  "checked_at_utc": "2026-10-18T15:02:43Z",
+  "fixed_t0_utc": "2026-10-16T14:30:22Z",
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "calendar_evidence": "audit-20261018T150157Z.json",
+  "market_state": "MARKET_CLOSED",
+  "production": {
+    "state": "STOPPED",
+    "selected_entry_candidate": "local-candidate-b6cf37cc4955061a",
+    "historical_stopped_record_candidate": "local-candidate-d4f4aad4be84d143",
+    "actual_8001_8020_listeners": [],
+    "release_and_recovery_hashes_match_entry": true,
+    "genuine_owner_receipt_retained": true,
+    "new_candidate_accepted": false,
+    "worker_scanning_claim": false
+  },
+  "existing_isolated_test": {
+    "candidate_id": "local-candidate-cc97f95a84a01704",
+    "exec_session": 80866,
+    "parent_pid": 27036,
+    "backend_pid": 33604,
+    "backend_created_at_utc": "2026-10-18T14:16:08.3786873Z",
+    "gateway_pid": 32872,
+    "gateway_created_at_utc": "2026-10-18T14:15:57.1172505Z",
+    "backend_port": 8193,
+    "gateway_port": 8194,
+    "query_log_last_write_utc": "2026-10-18T15:02:44Z",
+    "final_report_present": false,
+    "state": "IN_PROGRESS_NOT_PASS",
+    "five_checkpoints_completed": true,
+    "queue_p95_seconds": [7.235, 6.109, 9.344, 8.0, 8.844],
+    "queue_performance_pass": false,
+    "new_test_started_this_check": false,
+    "source_or_build_changed": false
+  },
+  "real_window_counts": {
+    "S0": {"expected": null, "full": null, "technical_trigger": null, "specific_reference_contract": null, "page_delivered": null},
+    "S1": {"expected": null, "full": null, "technical_trigger": null, "specific_reference_contract": null, "page_delivered": null},
+    "reason": "NON_TRADING_DAY_NOT_NO_TRIGGER_SYNTHETIC_HOUR_NOT_REAL_COUNTS"
+  },
+  "sdk_connections_created": 0,
+  "api_key_probe_repeated": false,
+  "business_database_writes": 0,
+  "background_coding_guaranteed": false,
+  "test_wait_counted_as_active_coding": false,
+  "next_action": "Collect the existing cc97 final report once complete; preserve full HTTP/query denominators and original4998 failure; submit one accurate new launch decision only if final evidence permits."
+}

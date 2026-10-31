@@ -1,0 +1,82 @@
+{
+  "test_only": true,
+  "run": "weekend-handoff-short6-20261031",
+  "rows": [
+    {
+      "browser_request_id": "TEST_ONLY-browser-93",
+      "forwarded_request_id": "ceff01ab780a434c981563c22486c1dc",
+      "path": "/api/options/opening-trend/current",
+      "original_classification": "HTTP_FAILURE_REQUIRES_ATTRIBUTION",
+      "classification": "DECLARED_BACKEND_CONNECT_FAULT_CORRELATED",
+      "causal_network_root_proven": false,
+      "historical_verdict_changed": false,
+      "matching_trace_count": 2,
+      "phase": [
+        "CONNECT"
+      ],
+      "killed_pid": 6256,
+      "gateway_pid": 39544,
+      "contract_sha256": "eb8faf924c35f7606a93dea9d63a9ffe5755829e84f3cb92e54399a644e1c6b9",
+      "reason": "EXACT_REQUEST_PHASE_PROCESS_AND_RECOVERY_CONTRACT_MATCH"
+    },
+    {
+      "browser_request_id": "TEST_ONLY-browser-95",
+      "forwarded_request_id": "ceff01ab780a434c981563c22486c1dc",
+      "path": "/api/options/opening-trend/current",
+      "original_classification": "HTTP_FAILURE_REQUIRES_ATTRIBUTION",
+      "classification": "DECLARED_BACKEND_CONNECT_FAULT_CORRELATED",
+      "causal_network_root_proven": false,
+      "historical_verdict_changed": false,
+      "matching_trace_count": 2,
+      "phase": [
+        "CONNECT"
+      ],
+      "killed_pid": 6256,
+      "gateway_pid": 39544,
+      "contract_sha256": "eb8faf924c35f7606a93dea9d63a9ffe5755829e84f3cb92e54399a644e1c6b9",
+      "reason": "EXACT_REQUEST_PHASE_PROCESS_AND_RECOVERY_CONTRACT_MATCH"
+    },
+    {
+      "browser_request_id": "TEST_ONLY-browser-92",
+      "forwarded_request_id": "87ced7e722f04beeb24b927d05229a5d",
+      "path": "/api/options/one-minute/status",
+      "original_classification": "HTTP_FAILURE_REQUIRES_ATTRIBUTION",
+      "classification": "DECLARED_BACKEND_CONNECT_FAULT_CORRELATED",
+      "causal_network_root_proven": false,
+      "historical_verdict_changed": false,
+      "matching_trace_count": 2,
+      "phase": [
+        "CONNECT"
+      ],
+      "killed_pid": 6256,
+      "gateway_pid": 39544,
+      "contract_sha256": "eb8faf924c35f7606a93dea9d63a9ffe5755829e84f3cb92e54399a644e1c6b9",
+      "reason": "EXACT_REQUEST_PHASE_PROCESS_AND_RECOVERY_CONTRACT_MATCH"
+    },
+    {
+      "browser_request_id": "TEST_ONLY-browser-94",
+      "forwarded_request_id": "87ced7e722f04beeb24b927d05229a5d",
+      "path": "/api/options/one-minute/status",
+      "original_classification": "HTTP_FAILURE_REQUIRES_ATTRIBUTION",
+      "classification": "DECLARED_BACKEND_CONNECT_FAULT_CORRELATED",
+      "causal_network_root_proven": false,
+      "historical_verdict_changed": false,
+      "matching_trace_count": 2,
+      "phase": [
+        "CONNECT"
+      ],
+      "killed_pid": 6256,
+      "gateway_pid": 39544,
+      "contract_sha256": "eb8faf924c35f7606a93dea9d63a9ffe5755829e84f3cb92e54399a644e1c6b9",
+      "reason": "EXACT_REQUEST_PHASE_PROCESS_AND_RECOVERY_CONTRACT_MATCH"
+    }
+  ],
+  "source_sha256": {
+    "topology_report.json": "e8c62ce6231cf10b12c5c6af92e1a4c5f106a92d073b59a648866e9716f621ac",
+    "TEST_ONLY-topology.json": "a2fdb1e9e6559c1223619acd9efd9b5190588ac348d3df444108cdc3714cfb2c",
+    "TEST_ONLY-gateway-transport.json": "6e79827b64bb8e2a2190c0949223aec0be92eb983acc83e540813e74e6f6f6a9"
+  },
+  "does_not_override_original_verdict": true,
+  "performance_pass": false,
+  "limits": "Correlates exact gateway phase, terminated process and recovery contract; does not prove an unrecorded OS/network cause or waive any historical failure."
+}

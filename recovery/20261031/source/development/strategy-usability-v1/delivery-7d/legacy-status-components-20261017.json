@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "elapsed": 0.0,
+      "kind": "SQL",
+      "sql": "SELECT m.normalized_symbol AS symbol,\n            m.provider_symbol,m.identity_status,m.group_id FROM stock_watchlist_members m\n            JOIN stock_watchlist_groups g ON g.group_id=m.group_id\n            WHERE m.status='active' AND g.is_active=1 ORDER BY m.normalized_symbol,m.group_id",
+      "database": "kquant_us.sqlite3"
+    },
+    {
+      "elapsed": 1.0159999999741558,
+      "kind": "sessions_before",
+      "seconds": 1.0159999999741558
+    },
+    {
+      "elapsed": 1.0159999999741558,
+      "kind": "SQL",
+      "sql": "SELECT symbol,state,reason,checked_at FROM one_minute_prewarm WHERE session='2026-10-16' ORDER BY symbol",
+      "database": "one_minute.sqlite3"
+    },
+    {
+      "elapsed": 1.0159999999741558,
+      "kind": "expiry_audit",
+      "seconds": 0.0
+    },
+    {
+      "elapsed": 1.0159999999741558,
+      "kind": "SQL",
+      "sql": "\n            SELECT p.state,COUNT(*) FROM one_minute_history_pages p\n            JOIN one_minute_prewarm w ON w.symbol=p.symbol AND w.session='2026-10-16'\n            WHERE p.session>='2026-09-18' AND p.session<'2026-10-16' AND w.state!='IDENTITY_UNRESOLVED'\n            GROUP BY p.state",
+      "database": "one_minute.sqlite3"
+    },
+    {
+      "elapsed": 1.0159999999741558,
+      "kind": "SQL",
+      "sql": "\n            SELECT e.payload_json FROM one_minute_evaluations e JOIN (\n                SELECT rowid AS evidence_rowid, ROW_NUMBER() OVER (\n                    PARTITION BY symbol,right_name ORDER BY created_at DESC,rowid DESC\n                ) AS rank_in_direction\n                FROM one_minute_evaluations WHERE session='2026-10-16'\n            ) ranked ON e.rowid=ranked.evidence_rowid WHERE rank_in_direction=1",
+      "database": "one_minute.sqlite3"
+    },
+    {
+      "elapsed": 1.1099999999860302,
+      "kind": "SQL",
+      "sql": "SELECT MAX(bar_end),MAX(created_at) FROM one_minute_evaluations WHERE session='2026-10-16'",
+      "database": "one_minute.sqlite3"
+    },
+    {
+      "elapsed": 1.6719999999913853,
+      "kind": "SQL",
+      "sql": "\n            SELECT e.payload_json FROM one_minute_evaluations e JOIN (\n                SELECT rowid AS evidence_rowid, ROW_NUMBER() OVER (\n                    PARTITION BY symbol,right_name ORDER BY created_at DESC,rowid DESC\n                ) AS rank_at_bar\n                FROM one_minute_evaluations\n                WHERE session='2026-10-16' AND bar_end='2026-10-16T19:59:00+00:00'\n                  AND json_extract(payload_json,'$.policy_hash')='0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447'\n                  AND ('fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f' IS NULL OR json_extract(payload_json,'$.scope_hash')='fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f')\n            ) ranked ON e.rowid=ranked.evidence_rowid WHERE rank_at_bar=1\n            ",
+      "database": "one_minute.sqlite3"
+    }
+  ],
+  "budget_unchanged": true,
+  "business_writes": 0,
+  "sdk_connections": 0,
+  "result": "FAILED",
+  "error_type": "TimeoutError",
+  "traceback": "Traceback (most recent call last):\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\bounded_sqlite.py\", line 16, in read_connection\n    yield connection\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\profile_status_components.py\", line 33, in measured\n    yield connection\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute.py\", line 441, in status\n    bar_rows = [json.loads(row[0]) for row in connection.execute(\"\"\"\n                                              ^^^^^^^^^^^^^^^^^^^^^^\nsqlite3.OperationalError: interrupted\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\profile_status_components.py\", line 51, in child\n    value = query(Path(json.loads(BINDING.read_text())['stores']['main']))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\status_worker.py\", line 352, in query\n    return status(scope_hash=scope_hash)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute.py\", line 420, in status\n    with read_connection(path) as connection:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\profile_status_components.py\", line 29, in measured\n    with original(path, **kwargs) as connection:\n         ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\bounded_sqlite.py\", line 19, in read_connection\n    raise TimeoutError(\"STATUS_QUERY_BUDGET_EXCEEDED\") from exc\nTimeoutError: STATUS_QUERY_BUDGET_EXCEEDED\n",
+  "elapsed": 2.015999999974156,
+  "observed_at": "2026-10-17T02:17:43.280506+00:00",
+  "returncode": 0
+}

@@ -1,0 +1,116 @@
+{
+  "plan_id": "KQ-STRATEGY-USABILITY-PATCH-1",
+  "state": "UNASSESSED_MAP_EXISTING_WORK",
+  "tasks": [
+    {
+      "id": "T0",
+      "title": "准确基线和稳定运行边界",
+      "depends_on": [],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "baseline_map.json",
+        "current_runtime_observation"
+      ],
+      "wait_rule": "不重查已结案旧故障；不把安全观察装配依赖于完整S0"
+    },
+    {
+      "id": "T1",
+      "title": "S0/S1共享输入及独立必要条件",
+      "depends_on": [
+        "T0"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "rule_semantic_diff",
+        "paired_evaluation_examples"
+      ],
+      "wait_rule": "S0不变；S1只去昨收方向；明确新的研究权限"
+    },
+    {
+      "id": "T2",
+      "title": "幅度诊断",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "amplitude_field_tests"
+      ],
+      "wait_rule": "历史辅助缺失不阻塞核心；不新增硬门"
+    },
+    {
+      "id": "T3",
+      "title": "具体合约成本诊断",
+      "depends_on": [
+        "T0"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "cost_field_tests",
+        "real_reference_or_precise_gap"
+      ],
+      "wait_rule": "接口不可用时继续实现；未知单位不猜"
+    },
+    {
+      "id": "T4",
+      "title": "有限回放、标签和比较",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "replay_manifest",
+        "paired_vs_intraday_report",
+        "label_examples"
+      ],
+      "wait_rule": "已有数据即可做；无完备退出不造PnL"
+    },
+    {
+      "id": "T5",
+      "title": "实际Signals研究差异与成本",
+      "depends_on": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "actual_page_evidence",
+        "api_contract"
+      ],
+      "wait_rule": "缺某字段显示限制；不让合格资格限制所有研究展示"
+    },
+    {
+      "id": "T6",
+      "title": "真实装配和版本化集成",
+      "depends_on": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "integration_report",
+        "candidate_manifest",
+        "resume_pointer"
+      ],
+      "wait_rule": "研究没有增益/结果未成熟不阻塞软件验收"
+    },
+    {
+      "id": "T7",
+      "title": "一次研究版发布接受及常态观察",
+      "depends_on": [
+        "T6"
+      ],
+      "status": "UNASSESSED",
+      "deliverables": [
+        "owner_review_pack",
+        "actual_runtime_evidence",
+        "daily_research_report"
+      ],
+      "wait_rule": "需要准确发布接受；不需要先盈利；未批准其余开发继续"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "observed_at": "2026-10-17T02:56:32.987623+00:00",
+  "business_writes": 0,
+  "sdk_connections": 0,
+  "indexes": [
+    [
+      "sqlite_autoindex_one_minute_evaluations_1",
+      null
+    ],
+    [
+      "one_minute_evaluations_lookup",
+      "CREATE INDEX one_minute_evaluations_lookup ON one_minute_evaluations(session,symbol,right_name,created_at)"
+    ]
+  ],
+  "session_counts": [
+    [
+      "2026-10-12",
+      52714
+    ],
+    [
+      "2026-10-14",
+      24544
+    ],
+    [
+      "2026-10-15",
+      60008
+    ],
+    [
+      "2026-10-16",
+      75900
+    ]
+  ],
+  "metadata_seconds": 0.7030000000086147,
+  "metadata_rows": 75900,
+  "session": "2026-10-16",
+  "max_bar_end": "2026-10-16T19:59:00+00:00",
+  "latest_bar_rows": 194,
+  "numeric_rows": 0,
+  "distinct_directions": 198,
+  "result": "SUCCESS",
+  "elapsed_seconds": 1.2190000000118744
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "KQUANT_OWNER_METHOD_ACCEPTANCE_V1",
+  "checkpoint": "O-SETUP",
+  "status": "ACCEPTED",
+  "accepted_by": "OWNER",
+  "accepted_at": "2026-10-13T12:47:06+00:00",
+  "valid_until": "2027-10-12T16:00:00+00:00",
+  "method": {
+    "version": "NTP_INTERVAL_BOUND_V1",
+    "servers": [
+      "time.cloudflare.com",
+      "time.windows.com"
+    ],
+    "minimum_sources": 2,
+    "max_age_seconds": 900,
+    "max_uncertainty_ms": 1000,
+    "maximum_wall_jump_ms": 50,
+    "trust_assumption": "LISTED_SERVERS_ACCURATE_AND_NO_UDP_SPOOFING",
+    "system_clock_modified": false
+  },
+  "method_hash": "8d53f9275feb80bf4f20478ebba058fefb9edbb09f97ff3bb4788a1ef61c1144",
+  "owner_evidence": {
+    "question_item_id": "[\"request_user_input_async\",\"call_562127d4dd4a43b6952b55d22fccc805\",0]",
+    "answer": "接受上述准确时钟方法",
+    "decision_document_sha256": "c6b0b7b6d877716db8813a0b7706edb4d65bed0341a430a007f0982be8544098"
+  },
+  "scope": {
+    "system_clock_change": false,
+    "company_action_fact": false,
+    "qualified_publication": false,
+    "candidate_start": false,
+    "orders": false
+  }
+}

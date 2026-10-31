@@ -1,0 +1,62 @@
+{
+  "schema": "KQUANT_ACTUAL_PREOPEN_LAYER_VERDICT_V1",
+  "target_check_local": "2026-10-19T21:25:00+08:00",
+  "observed_at_utc": "2026-10-19T13:26:19Z",
+  "observation_late_seconds": 79,
+  "session": "2026-10-19",
+  "market_calendar": {
+    "source": "kquant.market_clock.is_trading_day/session_bounds_utc",
+    "is_trading_day": true,
+    "opening_utc": "2026-10-19T13:30:00Z",
+    "close_utc": "2026-10-19T20:00:00Z"
+  },
+  "verdict": "NO_GO_SERVICE_STOPPED_MATCHED_HOUR_AND_EXACT_ACCEPTANCE_PENDING",
+  "service": {
+    "state": "STOPPED",
+    "actual_8001_8020_listeners": [],
+    "actual_production_module_processes": [],
+    "historical_services_record_candidate": "local-candidate-d4f4aad4be84d143",
+    "selected_entry_candidate": "local-candidate-b6cf37cc4955061a",
+    "b6cf_genuine_acceptance_preserved": true,
+    "new_worker_started": false
+  },
+  "scope": {
+    "registered_objects": 111,
+    "applicable_objects": 100,
+    "unresolved_identity_objects": 11,
+    "expected_applicable_direction_positions_per_variant_window": 1000,
+    "registration_evidence_is_runtime_coverage": false
+  },
+  "layers": {
+    "runtime_coverage": "NOT_RUN",
+    "current_real_price_input": "NOT_EXECUTED",
+    "current_clock_attachment": "UNCONFIRMED_NO_RUNNING_PRODUCTION_MONITOR",
+    "event_risk": "NOT_EXECUTED_NOT_CLEAR",
+    "contract_qualification": "NOT_EXECUTED_SOURCE_FACT_LIMITS_RETAINED",
+    "new_exact_launch_acceptance": "NOT_REQUESTED_NOT_GRANTED",
+    "qualified_buy_authorization": false,
+    "model_capability": "USER_DEFERRED_KEY_NONBLOCKING_NO_PROBE_REPEATED"
+  },
+  "current_real_counts": {
+    "S0": {"expected_now": null, "full": null, "technical_trigger": null, "reference_contract": null, "page_delivered": null},
+    "S1": {"expected_now": null, "full": null, "technical_trigger": null, "reference_contract": null, "page_delivered": null},
+    "reason": "OBSERVED_BEFORE_OPEN_NOT_NO_TRIGGER"
+  },
+  "isolated_matching_hour": {
+    "candidate_id": "local-candidate-198444f784fb3ada",
+    "exec_session": 86642,
+    "state": "IN_PROGRESS_NOT_PASS",
+    "backend_pid": 356,
+    "gateway_pid": 18648,
+    "backend_port": 8193,
+    "gateway_port": 8194,
+    "is_actual_production_scanning": false,
+    "queue_performance_pass": false
+  },
+  "primary_cause": "ENGINEERING_HTTP_RELIABILITY_AND_EXACT_LAUNCH_NOT_SOURCE_FACTS_OR_DEFERRED_LLM_KEY",
+  "missed_future_checkpoint_policy": "If stopped at an original checkpoint, record NOT_RUN; never backfill an instant Signal or extend300seconds/10:00ET.",
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "sdk_connections_created_by_check": 0,
+  "business_database_writes": 0,
+  "owner_approval_created": false
+}

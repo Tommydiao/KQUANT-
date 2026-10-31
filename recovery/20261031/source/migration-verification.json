@@ -1,0 +1,26 @@
+[
+  {
+    "file": "KQUANT_Development_20261007.zip",
+    "bytes": 308171015,
+    "sha256": "8842306e3b00d4ad0012b77af53a7aebb689f73c908bf40b1477f872a3205217",
+    "verified": true,
+    "entries": 2372,
+    "destination": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\development"
+  },
+  {
+    "file": "KQUANT_Recovered_Data_20261007.zip",
+    "bytes": 308700387,
+    "sha256": "d078e555e65ef2a42df31a924ddded019100b6d7f94f424d0c30f17a6fd1d514",
+    "verified": true,
+    "entries": 12,
+    "destination": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\recovered-data"
+  },
+  {
+    "file": "KQUANT_Environment_20261007.zip",
+    "bytes": 11723828,
+    "sha256": "3903ed1d41a2bccce5f72f2d103b3c91ecfb6c1cffc5dcf85d6ea928232a38a5",
+    "verified": true,
+    "entries": 5,
+    "destination": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\environment"
+  }
+]

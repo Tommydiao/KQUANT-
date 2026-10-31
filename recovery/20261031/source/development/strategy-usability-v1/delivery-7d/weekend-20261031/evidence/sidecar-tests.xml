@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="17" time="4.569" timestamp="2026-10-31T22:16:10.531418+08:00" hostname="PC-20260215FHYW"><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_versioned_identity_exactly_matches_client_and_retains_legacy" time="0.071" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_recovery_matches_actual_reservation_and_never_replays_paid_or_reserved[False]" time="0.072" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_recovery_matches_actual_reservation_and_never_replays_paid_or_reserved[True]" time="0.079" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_unsent_without_reservation_recovers_and_versions_are_checked" time="0.067" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_astra_event_limit_is_atomic_across_generations" time="0.064" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_existing_astra_budget_blocks_new_outbox_generation" time="0.046" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_first_hour_policy_ids_and_all_eleven_checkpoint_envelopes" time="0.017" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_constructs_captures_versions_and_restores_without_duplicate" time="0.392" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority[revision]" time="0.350"><failure message="AssertionError: {'access_blocker': None, 'authorization_valid': True, 'capability': {'paid_call': False, 'state': 'ACCESSIBLE', 'test_only': True}, 'last_cycle_at': '2026-10-31T15:00:00+00:00', ...}&#10;assert 'INPUT_REVISED' == 'WITHDRAWN'&#10;  &#10;  - WITHDRAWN&#10;  + INPUT_REVISED">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1946/test_actual_worker_nonblocking0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001E58C1EBAD0&gt;
+fault = 'revision'
+
+    @pytest.mark.parametrize('fault',['revision','expiry','model_error','quote_age','permission_expiry','receipt_revoked'])
+    def test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority(tmp_path,monkeypatch,fault):
+        h=Harness(tmp_path,monkeypatch)
+        h.release.clear()
+        try:
+            worker=h.start()
+            assert h.started.wait(3),worker.state
+            assert len(worker.read_revisions(0))==1
+            assert worker.thread.is_alive()
+            if fault=='revision':
+                rev={**revision_value(h.now),'state':'WITHDRAWN','reasons':['TEST_ONLY_INPUT_REVISION']}
+                with closing(sqlite3.connect(h.research)) as db,db:
+                    db.execute('INSERT INTO revisions VALUES(2,?,?)',(h.events[0]['evaluation_id'],json.dumps(rev)))
+            elif fault=='expiry':
+                h.now+=timedelta(seconds=300)
+            elif fault=='quote_age':
+                h.now+=timedelta(seconds=4)
+            elif fault=='model_error':
+                h.outcome={'state':'FAILED','error_code':'TEST_ONLY_TIMEOUT','paid_call':False}
+            elif fault=='permission_expiry':
+                h.now=datetime.fromisoformat(h.config['valid_until'].replace('Z','+00:00'))
+            else:
+                h.receipt['status']='REVOKED'
+                h.save_config()
+            h.release.set()
+            wait_for(lambda:len(h.published)==1)
+            expected={'revision':'WITHDRAWN','expiry':'EXPIRED','quote_age':'QUOTE_STALE',
+                'model_error':'MODEL_UNAVAILABLE','permission_expiry':'AUTHORIZATION_EXPIRED_OR_CHANGED',
+                'receipt_revoked':'AUTHORIZATION_EXPIRED_OR_CHANGED'}[fault]
+&gt;           assert h.published[0]['delivery_state']==expected,worker.state
+E           AssertionError: {'access_blocker': None, 'authorization_valid': True, 'capability': {'paid_call': False, 'state': 'ACCESSIBLE', 'test_only': True}, 'last_cycle_at': '2026-10-31T15:00:00+00:00', ...}
+E           assert 'INPUT_REVISED' == 'WITHDRAWN'
+E             
+E             - WITHDRAWN
+E             + INPUT_REVISED
+
+..\strategy-usability-v1\delivery-7d\weekend-20261031\test_weekend_sidecar.py:280: AssertionError</failure></testcase><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority[expiry]" time="0.357" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority[model_error]" time="0.351" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority[quote_age]" time="0.358" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority[permission_expiry]" time="0.358" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority[receipt_revoked]" time="0.349" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_expired_authority_or_test_only_receipt_never_probes_or_claims" time="0.066" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_model_access_error_blocks_repeated_probe_and_does_not_stop_worker" time="0.968" /><testcase classname="strategy-usability-v1.delivery-7d.weekend-20261031.test_weekend_sidecar" name="test_missing_key_blocks_without_network_or_default_store" time="0.091" /></testsuite></testsuites>

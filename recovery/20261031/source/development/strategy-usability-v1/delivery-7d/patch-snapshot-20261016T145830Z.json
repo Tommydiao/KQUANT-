@@ -1,0 +1,298 @@
+{
+  "observed_at": "2026-10-16T14:58:30.814345+00:00",
+  "accepted_parent_candidate": "local-candidate-6ac8a5653d14a392",
+  "entry_sha256": "cdd1fc033ae2abe049b323a554547e3782be760a418ae3f0e0e47e910103a9da",
+  "manifest_sha256": "20be71878ccb8c4df4919978bf46035fdaaabd8189ab723206b65eebec61aaa8",
+  "constraint_sha256": "5edffb8f60135bc8aeef31b4ad7cc0de7f311b9a9779f85e8f12d068b5ceb4bd",
+  "denominator_sha256": "964aaa5ada2f53f17844284d5c873c7cb73c755bfe144b4b483545dc5dc84cab",
+  "patches": [
+    {
+      "path": "kquant/options_intraday_reference.py",
+      "accepted_parent_sha256": "7ca5333ec82265eee613ae0ece7337d13521c1aea6e632a97c1ff9ed434be9b9",
+      "actual_live_sha256": "7ca5333ec82265eee613ae0ece7337d13521c1aea6e632a97c1ff9ed434be9b9",
+      "live_matches_accepted": true,
+      "development_patch_sha256": "7b95ebee1785e2bc3c2db2f2b9323692c431eaf1ef02503d67649b9745b5ac33"
+    },
+    {
+      "path": "kquant/options_one_minute_recovery.py",
+      "accepted_parent_sha256": "33c3ca2d9daee97a642ec25b52857942e9a34c47dc7352b2eb83cd52b2eb9c56",
+      "actual_live_sha256": "33c3ca2d9daee97a642ec25b52857942e9a34c47dc7352b2eb83cd52b2eb9c56",
+      "live_matches_accepted": true,
+      "development_patch_sha256": "8076d2e7711a23cc35dee2fc4a907c4e9361a6667ab3d164ab023966ffbb5ca0"
+    },
+    {
+      "path": "kquant/options_opening_trend_pipeline.py",
+      "accepted_parent_sha256": "fde2710bdf867ea5394423fd59a491eda097edc3bf5f15916444cd12783c274f",
+      "actual_live_sha256": "fde2710bdf867ea5394423fd59a491eda097edc3bf5f15916444cd12783c274f",
+      "live_matches_accepted": true,
+      "development_patch_sha256": "2df1244dd48f31dfe993a0622edef755f840c667e354f3a1f4b8ec20f8301d21"
+    },
+    {
+      "path": "kquant/options_opening_trend_recovery.py",
+      "accepted_parent_sha256": "26dd39c9959ee8048b39db1204860e7cb729d239ac8860c65af707d7ad8767d2",
+      "actual_live_sha256": "26dd39c9959ee8048b39db1204860e7cb729d239ac8860c65af707d7ad8767d2",
+      "live_matches_accepted": true,
+      "development_patch_sha256": "ca674b2af6b32d3585407cb45cccabc0c8a37f4c403b23e999dde51a82de19f1"
+    }
+  ],
+  "live_code_modified": false,
+  "deployed": false,
+  "new_candidate_accepted": false,
+  "new_matched_hour": "NOT_RUN_NOT_FROZEN",
+  "runtime": {
+    "launcher_pid": 26344,
+    "launcher_identity": {
+      "pid": 26344,
+      "created_at": "2026-10-16T12:39:43.6612630Z",
+      "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    "run_session_id": "a32b5eab-490b-4f2c-917e-dba1ee11c7fd",
+    "system_boot": {
+      "state": "VERIFIED",
+      "started_at": "2026-10-14T13:15:47.1520980Z",
+      "source": "WIN32_OPERATING_SYSTEM"
+    },
+    "stage": "MAIN_LOOP",
+    "started_at": "20261016T123947961Z",
+    "checked_at": "2026-10-16T14:58:21.4414855+00:00",
+    "mode": "options_foundation",
+    "launches": [
+      {
+        "name": "stock-options-foundation",
+        "pid": 29528,
+        "identity": {
+          "pid": 29528,
+          "created_at": "2026-10-16T12:39:53.0647650Z",
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+        },
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "arguments": "-m kquant.dashboard --host 127.0.0.1 --port 8001",
+        "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+        "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261016T123947961Z.out.log",
+        "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261016T123947961Z.err.log"
+      },
+      {
+        "name": "gateway-options-foundation",
+        "pid": 31152,
+        "identity": {
+          "pid": 31152,
+          "created_at": "2026-10-16T12:39:53.2497140Z",
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+        },
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "arguments": "-m kquant_crypto gateway",
+        "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto",
+        "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261016T123947961Z.out.log",
+        "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261016T123947961Z.err.log"
+      }
+    ],
+    "listeners": [
+      {
+        "port": 8001,
+        "pid": 23176,
+        "identity": {
+          "pid": 23176,
+          "created_at": "2026-10-16T12:39:53.1068420Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      },
+      {
+        "port": 8020,
+        "pid": 26120,
+        "identity": {
+          "pid": 26120,
+          "created_at": "2026-10-16T12:39:53.2944550Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      }
+    ],
+    "health_verified": true,
+    "state": "RUNNING",
+    "exit_reason": null,
+    "recovery_count": 0,
+    "backend_release": "local-candidate-6ac8a5653d14a392",
+    "backend_manifest_sha256": "20be71878ccb8c4df4919978bf46035fdaaabd8189ab723206b65eebec61aaa8",
+    "research_health_is_separate": true
+  },
+  "http": [
+    {
+      "url": "http://127.0.0.1:8001/api/health/live",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8020/",
+      "status": 200
+    }
+  ],
+  "worker": {
+    "state": "SHADOW_MONITORING",
+    "stage": "WAIT_NEXT_CYCLE",
+    "first_loop_at": "2026-10-16T12:39:54.775388+00:00",
+    "last_cycle_at": "2026-10-16T14:58:26.344260+00:00",
+    "loop_count": 74101,
+    "thread_alive": true,
+    "research_ready": true,
+    "last_bar_age_seconds": 26.406298,
+    "clock_measurement": {
+      "state": "VERIFIED_BOUND",
+      "precision_verified": true,
+      "uncertainty_ms": 128.48400402395055,
+      "measured_interval_ms": [
+        -7.219069484155627,
+        128.48400402395055
+      ],
+      "checked_at": "2026-10-16T14:55:21.198383+00:00",
+      "samples": [
+        {
+          "server": "time.cloudflare.com",
+          "address": "162.159.200.123",
+          "t1": 1792162520.8363328,
+          "t2": 1792162521.113565,
+          "t3": 1792162521.113656,
+          "t4": 1792162521.0868964,
+          "monotonic_elapsed_seconds": 0.25,
+          "offset_seconds": 0.15199589729309082,
+          "uncertainty_radius_seconds": 0.20276635479927063,
+          "packet_hex": "240300e7000025d8000000450a780880ee7cb92dc2f4b8e4ee7cb958d619e800ee7cb9591d1296abee7cb9591d1891be",
+          "checked_at": "2026-10-16T14:55:21.086896+00:00",
+          "udp_authenticated": false,
+          "transport_diagnostic": {
+            "phase": "COMPLETE",
+            "dns": {
+              "phase": "COMPLETE",
+              "candidates": [
+                {
+                  "family": "AF_INET",
+                  "address": "162.159.200.123",
+                  "port": 123
+                },
+                {
+                  "family": "AF_INET",
+                  "address": "162.159.200.1",
+                  "port": 123
+                }
+              ],
+              "candidate_limit": 4,
+              "elapsed_seconds": 0.01600000000325963
+            },
+            "attempts": [
+              {
+                "family": "AF_INET",
+                "address": "162.159.200.123",
+                "port": 123,
+                "phase": "COMPLETE",
+                "timeout_seconds": 0.9919999999983702,
+                "elapsed_seconds": 0.25
+              }
+            ],
+            "per_host_timeout_seconds": 2.0,
+            "selection": "FIRST_VALID_PACKET_IN_DNS_ORDER",
+            "elapsed_seconds": 0.26600000000325963
+          },
+          "observation_hash": "a094ccd56af0cfde6dc5a6f9f3e0b367adf597b4112280ce06d8c22cc9449060"
+        },
+        {
+          "server": "time.windows.com",
+          "address": "52.231.114.183",
+          "t1": 1792162521.088554,
+          "t2": 1792162521.2041001,
+          "t3": 1792162521.2041013,
+          "t4": 1792162521.1983826,
+          "monotonic_elapsed_seconds": 0.10899999999674037,
+          "offset_seconds": 0.06063246726989746,
+          "uncertainty_radius_seconds": 0.06785153675405309,
+          "packet_hex": "1c0400e90000000500000294564d5450ee7cb951d85886a9ee7cb95916ab7800ee7cb959343fe776ee7cb959343ffb98",
+          "checked_at": "2026-10-16T14:55:21.198383+00:00",
+          "udp_authenticated": false,
+          "transport_diagnostic": {
+            "phase": "COMPLETE",
+            "dns": {
+              "phase": "COMPLETE",
+              "candidates": [
+                {
+                  "family": "AF_INET",
+                  "address": "52.231.114.183",
+                  "port": 123
+                }
+              ],
+              "candidate_limit": 4,
+              "elapsed_seconds": 0
+            },
+            "attempts": [
+              {
+                "family": "AF_INET",
+                "address": "52.231.114.183",
+                "port": 123,
+                "phase": "COMPLETE",
+                "timeout_seconds": 1.0,
+                "elapsed_seconds": 0.10899999999674037
+              }
+            ],
+            "per_host_timeout_seconds": 2.0,
+            "selection": "FIRST_VALID_PACKET_IN_DNS_ORDER",
+            "elapsed_seconds": 0.10899999999674037
+          },
+          "observation_hash": "1f132a9c7891bba4963d4d9168bcb470fba09bf97b121615d8eae358fd34c8d9"
+        }
+      ],
+      "method": {
+        "version": "NTP_INTERVAL_BOUND_V1",
+        "servers": [
+          "time.cloudflare.com",
+          "time.windows.com"
+        ],
+        "minimum_sources": 2,
+        "max_age_seconds": 900,
+        "max_uncertainty_ms": 1000,
+        "maximum_wall_jump_ms": 50,
+        "trust_assumption": "LISTED_SERVERS_ACCURATE_AND_NO_UDP_SPOOFING",
+        "system_clock_modified": false
+      },
+      "method_acceptance": {
+        "acceptance_path": "config/review_acceptances/clock_method_owner_acceptance_20261013.json",
+        "acceptance_sha256": "788e21cdae352e8374b0bf27bdb7355d67e810583733c4ad8cefea887e41a02b"
+      },
+      "method_accepted": true,
+      "system_clock_modified": false,
+      "source_hash": "f837a1e3b52c3277a4a04e1139d91c848702d1cdfdbf8306e10ca30481b9c4ac",
+      "child_diagnostic": {
+        "phase": "COMPLETE",
+        "child_pid": 27188,
+        "returncode": 0,
+        "cwd": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+        "interpreter": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "data_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+        "method_config_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\clock_measurement_method.json",
+        "acceptance_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+        "stderr": "{\"phase\": \"NETWORK\", \"server\": \"time.cloudflare.com\"}\n{\"phase\": \"NETWORK\", \"server\": \"time.windows.com\"}\n{\"phase\": \"ENCODE\", \"sample_count\": 2}\n",
+        "stderr_truncated": false,
+        "elapsed_seconds": 5.0460000000020955,
+        "test_only_transport": false
+      },
+      "method_config_state": "PRESENT"
+    }
+  },
+  "evidence_hashes": {
+    "audit-20261016T143336Z.json": "b9e4dccd45d975d5fc9747372992967a27d611549cad11048a583580d1da976c",
+    "audit-20261016T145528Z.json": "d1d281f659997a482636d7cc00352cf21068a67ac363dd56641bb7ab6dee1b9a",
+    "blocker-probe-20261016.json": "9e0d31a0b486b1f5acfeec2989df2e2a832ef48e2d978161bff73c2b0fa99a6b",
+    "blockers.json": "3cea8faf1a81dd2f5a426181ae1cd07a7783f179bf1db96a6f48dee6ae4bafd1",
+    "browser-observation-20261016.json": "4b475e5c61e2ed520edb4c5cbc56e127b5249780c5ea938de5a16c55ca1dbd9c",
+    "capture_delivery.py": "7e2465c9d555ab7686c1ddcd4ce4ff2da046e95114433112930e06fd721f0922",
+    "constraint.json": "5edffb8f60135bc8aeef31b4ad7cc0de7f311b9a9779f85e8f12d068b5ceb4bd",
+    "DAILY_20261016.md": "637a60bb193cdd3ef68611906ff76749d35105eb930c599b95c7a9b1f1ad3b68",
+    "denominator.json": "964aaa5ada2f53f17844284d5c873c7cb73c755bfe144b4b483545dc5dc84cab",
+    "O_SETUP_MINUTE_METHOD_20261016.md": "641b0e68a8e1a0400dff3c0e5c8b6a76cf4864095d510b3af04e6d9e0cfca3a0",
+    "probe_blockers.py": "8c8202bfb4824a213fba9674727cf5453d779f49ad2e247fa9791ddcd7f60159",
+    "related-tests.xml": "8bdb26c0663627ff03513973a16ed339a36183ba7315802e609faefeafeeacd5",
+    "RESUME.md": "3a96b38007535bcabfa0866e00836375a53ace8739c7d4d1babee83a3873ad7e",
+    "run_tests.py": "b072543304b9603c0157f794e5689cda3c3e3845ffd69bdf796f36a52c369756",
+    "snapshot_changes.py": "2f44565eb1ae41738db6068b139cb584d1269bcda38fd45045f2eb7b3f4b32b9",
+    "targeted-tests.xml": "119b7b89944d2a81b129688bcfab866ea91f44ac99d2f8a8f553091006df9e2b",
+    "test_delivery_accounting.py": "7fd0044991dafb9c6443a80dbf5e89529d25dc83f56142753f93671952743186",
+    "test_no_expiry_completion.py": "90f1ad992f4b6a3301c9d677e8219c84d555a920281b950ca0d40d1461860e98",
+    "test_recovery_readiness.py": "614842b4b1047b121a1afeff5a6ca1985f235ecacb6bbffbb6053f71716f0317"
+  }
+}

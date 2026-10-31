@@ -1,0 +1,9 @@
+{
+    "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "version":  "5.1.26100.4480",
+    "edition":  "Desktop",
+    "missing_commands":  [
+
+                         ],
+    "ready":  true
+}

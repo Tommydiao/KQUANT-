@@ -1,0 +1,21 @@
+{
+  "schema": "KQUANT_DIRECT_BOUNDED_API_ACCEPTANCE_V1",
+  "gate": "O-SETUP",
+  "status": "APPROVED",
+  "approved_by": "OWNER",
+  "source_kind": "DIRECT_USER_PASTED_REQUEST",
+  "source_sha256": "6964022fab0515e6d009a8b8ef93ef5a9955ffa2a1a313978a25866e957f2b58",
+  "source_path": "C:\\Users\\Administrator\\.codex\\attachments\\0b5dc798-0055-4721-ad8b-f0b395f9e9b6\\Pasted text.txt",
+  "approved_at": "2026-10-31T14:12:04.827291+00:00",
+  "approved_at_basis": "FIRST_LOCAL_RECORD_NOT_MESSAGE_TIMESTAMP",
+  "approval_id": "WEEKEND_API_20261031_6964022fab0515e6",
+  "config_hash": "5db66e0119d818c8d006cc9de9d2811de362f2e5a3092a961608a2ac3dfd67a0",
+  "authorization_total_usd": "5.00",
+  "task_limit_usd": "1.00",
+  "valid_until": "2026-11-01T16:00:00Z",
+  "capability_tests_allowed": true,
+  "live_paid_research_allowed": false,
+  "seven_day_verdict": "FAIL_PRESERVED",
+  "minute_method_renewed": false,
+  "launch_approved": false
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "OPENING_RESEARCH_AI_V1",
+  "endpoint": "https://api.openai.com/v1",
+  "primary_model": "gpt-6.1-sol",
+  "reasoning_effort": "medium",
+  "escalation_model": "gpt-6-astra",
+  "automatic_escalation": false,
+  "budget_timezone": "Asia/Shanghai",
+  "daily_limit_usd": "5.00",
+  "task_limit_usd": "1.00",
+  "initial_capability_total_usd": "1.00",
+  "initial_capability_included_in_daily_budget": true,
+  "valid_until": "2026-10-23T14:30:22Z",
+  "max_parallel": 1,
+  "max_requests_per_task": 3,
+  "maximum_input_token_bound": 12000,
+  "maximum_total_output_tokens": 2048,
+  "max_tool_calls": 4,
+  "request_timeout_seconds": 30,
+  "task_timeout_seconds": 90,
+  "paid_enabled": false,
+  "qualified_signal_enabled": false,
+  "prices_verified_at": "2026-10-18T06:15:52Z",
+  "price_schedule": {
+    "gpt-6.1-sol": {
+      "input_usd_per_million": "2.00",
+      "cached_input_usd_per_million": "0.10",
+      "cache_write_usd_per_million": "2.50",
+      "output_usd_per_million": "10.00",
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+    },
+    "gpt-6-astra": {
+      "input_usd_per_million": "10.00",
+      "cached_input_usd_per_million": "1.00",
+      "cache_write_usd_per_million": "12.50",
+      "output_usd_per_million": "50.00",
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-astra"
+    }
+  }
+}

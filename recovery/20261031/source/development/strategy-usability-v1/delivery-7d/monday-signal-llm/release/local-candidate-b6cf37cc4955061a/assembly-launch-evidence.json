@@ -1,0 +1,29 @@
+{
+  "schema": "KQUANT_EXACT_ASSEMBLY_LAUNCH_EVIDENCE_V1",
+  "observed_at": "2026-10-18T12:38:39.858195+00:00",
+  "candidate_id": "local-candidate-b6cf37cc4955061a",
+  "candidate_payload_sha256": "72d8a036b952b261909ac7f4fe6a84d3a6621dba7626a9e097c6d36e20168371",
+  "exact_candidate_binding": true,
+  "continuous_60_minutes": true,
+  "observation_assembly_pass": true,
+  "enqueue_to_commit_performance_pass": false,
+  "comprehensive_pass": false,
+  "errors": [],
+  "child_processes_alive": [],
+  "report": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\monday-release-hour-b6cf-20261018\\topology_report.json",
+    "sha256": "dd9b8ea3dfafba5edc0f453853dc9721e483f6283f0a724a338d1f030feab2d4"
+  },
+  "summary": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\hour-b6cf37cc4955061a-summary.json",
+    "sha256": "a927a5751d9572cb93f945af9a4a3ecc04f783eb7d49eef7505ae31913afdac6"
+  },
+  "projection": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-b6cf37cc4955061a\\deployment-projection.json",
+    "sha256": "acc282787ae8e46f683d3467248d8afcc7147ba68f1052dbfaca820eda055306"
+  },
+  "owner_approval_created": false,
+  "actual_model_capability_pass": false,
+  "actual_market_pass": false,
+  "limits": "Assembly only. Preserve performance failure and all source/model/market limits."
+}

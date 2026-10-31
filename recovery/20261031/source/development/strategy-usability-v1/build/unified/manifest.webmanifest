@@ -1,0 +1,10 @@
+{
+  "name": "KQUANT Unified Research Workspace",
+  "short_name": "KQUANT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#151a1e",
+  "theme_color": "#151a1e",
+  "icons": [{ "src": "/kq-mark.svg", "sizes": "any", "type": "image/svg+xml" }],
+  "description": "Stocks and Crypto read-only research workspace."
+}

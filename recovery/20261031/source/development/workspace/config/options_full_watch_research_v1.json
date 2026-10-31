@@ -1,0 +1,23 @@
+{
+  "config_id": "FULL_WATCH_RULE_RESEARCH_V1",
+  "version": "1.0.0",
+  "status": "RESEARCH_ONLY_SCOPE_EXTRAPOLATION",
+  "universe_source": "RUNTIME_GROUPED_WATCHLIST_DATABASE",
+  "reference_strategy_id": "STRAT-SHORT-ATM-RANGE-EXPANSION-V1",
+  "reference_policy_path": "config/options_short_atm_forward_policy_v1.json",
+  "profile_id": "SHORT_ATM_DAYS_WEEK",
+  "rights": [
+    "CALL",
+    "PUT"
+  ],
+  "core12_role": "HISTORICAL_BENCHMARK_ONLY",
+  "full_watch_model_status": "NO_FULL_WATCH_MODEL_APPROVED",
+  "cbrm_activity_use": false,
+  "deterministic_rule_only": true,
+  "option_query_policy": "ON_DEMAND_ONLY",
+  "paper_scope_approved": false,
+  "automatic_paper_enabled": false,
+  "real_orders_enabled": false,
+  "unknown_is_not_failure": true,
+  "quota_deferred_is_not_rejection": true
+}

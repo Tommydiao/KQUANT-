@@ -1,0 +1,1083 @@
+{
+  "started_at": "2026-10-22T12:47:48.921774+00:00",
+  "session": "2026-10-21",
+  "production_writes": 0,
+  "sdk_calls": 0,
+  "errors": [],
+  "tasks": [
+    {
+      "job_id": "1b81699edf7b4aa38e25a40aa3c6ec2c94d4df7d6e8f9c98972da04d5419e358",
+      "symbol": "ASTS",
+      "slot": "SESSION_PRICE_BINDING_V1",
+      "state": "COMPLETED",
+      "reason": null,
+      "queued_at": "2026-10-20T20:00:00.176388+00:00",
+      "deadline_at": "2026-10-21T20:00:00.176388+00:00",
+      "payload": {
+        "action_coverage": null,
+        "contract_version": "SESSION_PRICE_BINDING_V1",
+        "currency": "USD",
+        "fact_hash": "1b81699edf7b4aa38e25a40aa3c6ec2c94d4df7d6e8f9c98972da04d5419e358",
+        "instrument": {
+          "asset_type": "UNKNOWN",
+          "classification_proof": null,
+          "classification_status": "PENDING_ASSET_TYPE_FACT",
+          "currency": "USD",
+          "identity_verified": true,
+          "known_at": "2026-10-20T12:30:10.549859+00:00",
+          "native_identity": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-20T12:30:10.549859+00:00",
+            "requested_at": "2026-10-20T12:30:10.476860+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "3585a152172b99b7e0f822ff5050d52debbc83d3a7cd0c7455a38132595cc9ba",
+            "symbol": "ASTS"
+          },
+          "provider_symbol": "ASTS.US",
+          "status": "IDENTITY_CURRENCY_VERIFIED",
+          "symbol": "ASTS",
+          "valid_until": "2026-10-27T12:30:10.549859+00:00"
+        },
+        "instrument_fact_hash": "3633aa8c63baca6e70a616641be8e2c283211badb539fa6c2a3d35ed8ca81709",
+        "interface_fact": {
+          "assertion_limits": [
+            "DOES_NOT_PROVE_PRICE_SCALE",
+            "DOES_NOT_PROVE_DEPTH_UNITS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "MAIN_QUOTE_PREVIOUS_CLOSE",
+            "field_path": "secu_quote.prev_close",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "624ac1f69363d1a1b1704518caf7f2ab5855822748dffbc3ab2b7a5b4109e882",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>∟ prev_close</td><td>string</td><td>昨收价</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "field": "prev_close",
+          "interface": "US_SECURITY_QUOTE",
+          "meaning": "PROVIDER_MAIN_QUOTE_PREVIOUS_CLOSE",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_INTERFACE_FACT",
+          "source_path": "outputs/r58/20261004/p7-source-facts/quote.html",
+          "source_sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788",
+          "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/quote",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "kind": "SESSION_PRICE_BINDING_V1",
+        "known_at": "2026-10-20T20:00:00.176388+00:00",
+        "method": "LIVE_MAIN_QUOTE_WITH_REVIEWED_PRICE_BASIS",
+        "observed_provider_previous_close": 41.87,
+        "previous_close": null,
+        "price_basis_method": {
+          "action_coverage_required": true,
+          "assertion_limits": [
+            "NO_ADJUST_IS_ACTUAL_PRICE",
+            "DOES_NOT_PROVE_ABSENCE_OF_CORPORATE_ACTIONS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "QUOTE_AND_NO_ADJUST_PRICE_BASIS",
+            "field_path": "candlestick.adjust_type.NO_ADJUST",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "e0b0f7ec8a3440a674112bdd4b3187bbed4e8bc54b16b62dea86900de6410c1a",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>0</td><td>Actual</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "interface": "US_OPTION_QUOTE",
+          "method_version": "NATIVE_PRICE_SCALE_V1",
+          "price_basis": "NoAdjust",
+          "price_transform": "IDENTITY",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T11:31:44.970648+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_DOCUMENT",
+          "source_path": "outputs/r58/20261004/p8-source-facts-v2/price_basis.html",
+          "source_sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436",
+          "source_url": "https://open.longbridge.com/docs/quote/objects",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "raw_quote": {
+          "ask": null,
+          "ask_size": null,
+          "bid": null,
+          "bid_size": null,
+          "change": -41.13,
+          "change_pct": -100.0,
+          "currency": "USD",
+          "currency_evidence": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-20T12:30:10.549859+00:00",
+            "requested_at": "2026-10-20T12:30:10.476860+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "3585a152172b99b7e0f822ff5050d52debbc83d3a7cd0c7455a38132595cc9ba",
+            "symbol": "ASTS"
+          },
+          "display_last": 0.0,
+          "display_session": "post",
+          "freshness_seconds": 1,
+          "high": 42.369,
+          "last": 41.13,
+          "low": 39.017,
+          "open": 41.55,
+          "post_market": {
+            "event_time": "2026-10-20T20:00:00+00:00",
+            "last": 0.0,
+            "previous_close": 41.13,
+            "volume": 0.0
+          },
+          "pre_market": {
+            "event_time": "2026-10-20T13:30:01+00:00",
+            "last": 41.67,
+            "previous_close": 41.87,
+            "volume": 423990.0
+          },
+          "previous_close": 41.87,
+          "provider": "longbridge",
+          "provider_status": "available",
+          "provider_symbol": "ASTS.US",
+          "quote_age_seconds": 1.176388,
+          "quote_checked_at": "2026-10-20T20:00:00.176388+00:00",
+          "quote_time": "2026-10-20T19:59:59+00:00",
+          "quote_time_status": "AVAILABLE",
+          "read_only_market_data": true,
+          "received_at": "2026-10-20T20:00:00.176388+00:00",
+          "requested_at": "2026-10-20T20:00:00.056986+00:00",
+          "session": "after_hours",
+          "symbol": "ASTS",
+          "turnover": 522456128.248,
+          "volume": 12743792.0
+        },
+        "reasons": [
+          "INSTRUMENT_PRICE_ACTION_COVERAGE_MISSING",
+          "PREPARED_PENDING_CURRENT_SESSION"
+        ],
+        "reference_session": "2026-10-20",
+        "session": "2026-10-21",
+        "status": "PREPARED_WITH_GAPS",
+        "symbol": "ASTS",
+        "valid_until": "2026-10-21T20:00:00.176388+00:00"
+      }
+    },
+    {
+      "job_id": "abee3d2bbdb76c9ac0f574492569d677c4320e66e7a637f1967bc27196cc8c1d",
+      "symbol": "ASTS",
+      "slot": "2",
+      "state": "EXPIRED",
+      "reason": "DATA_UNAVAILABLE_NO_MINUTE",
+      "queued_at": "2026-10-21T13:41:06.208754+00:00",
+      "deadline_at": "2026-10-21T13:45:00+00:00",
+      "payload": {
+        "checkpoint_at": "2026-10-21T13:40:00+00:00",
+        "checkpoint_slot": 2,
+        "completed_generation": 0,
+        "deadline_at": "2026-10-21T13:45:00+00:00",
+        "input_fingerprint": null,
+        "input_generation": 0,
+        "input_received": false,
+        "kind": "OPENING_MOMENTUM_CALCULATION",
+        "policy_hash": "9fcbe3bf87f5509bfda4ef31e4cd7956dd2be2bfcc25a9a2472123a61111b261",
+        "reference": {},
+        "registered_at": "2026-10-21T13:41:06.208754+00:00",
+        "registered_from": "MANIFEST_AND_SESSION_CLOCK",
+        "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+        "session": "2026-10-21",
+        "strategy": "opening_momentum",
+        "symbol": "ASTS",
+        "terminal_observed_at": "2026-10-21T13:45:00.016298+00:00"
+      }
+    },
+    {
+      "job_id": "fce710581474ceacceadd1fe0e43c475fef8028118bf535eba297fc0d2eea9e2",
+      "symbol": "ASTS",
+      "slot": "3",
+      "state": "EXPIRED",
+      "reason": "DATA_UNAVAILABLE_NO_MINUTE",
+      "queued_at": "2026-10-21T13:41:06.208754+00:00",
+      "deadline_at": "2026-10-21T13:50:00+00:00",
+      "payload": {
+        "checkpoint_at": "2026-10-21T13:45:00+00:00",
+        "checkpoint_slot": 3,
+        "completed_generation": 0,
+        "deadline_at": "2026-10-21T13:50:00+00:00",
+        "input_fingerprint": null,
+        "input_generation": 0,
+        "input_received": false,
+        "kind": "OPENING_MOMENTUM_CALCULATION",
+        "policy_hash": "9fcbe3bf87f5509bfda4ef31e4cd7956dd2be2bfcc25a9a2472123a61111b261",
+        "reference": {},
+        "registered_at": "2026-10-21T13:41:06.208754+00:00",
+        "registered_from": "MANIFEST_AND_SESSION_CLOCK",
+        "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+        "session": "2026-10-21",
+        "strategy": "opening_momentum",
+        "symbol": "ASTS",
+        "terminal_observed_at": "2026-10-21T13:50:05.497177+00:00"
+      }
+    },
+    {
+      "job_id": "e1ae5e5622ca8f1cee57e92c894eeff52e9e0b4554217a31ae315e4866bac490",
+      "symbol": "ASTS",
+      "slot": "4",
+      "state": "EXPIRED",
+      "reason": "DATA_UNAVAILABLE_NO_MINUTE",
+      "queued_at": "2026-10-21T13:41:06.208754+00:00",
+      "deadline_at": "2026-10-21T13:55:00+00:00",
+      "payload": {
+        "checkpoint_at": "2026-10-21T13:50:00+00:00",
+        "checkpoint_slot": 4,
+        "completed_generation": 0,
+        "deadline_at": "2026-10-21T13:55:00+00:00",
+        "input_fingerprint": null,
+        "input_generation": 0,
+        "input_received": false,
+        "kind": "OPENING_MOMENTUM_CALCULATION",
+        "policy_hash": "9fcbe3bf87f5509bfda4ef31e4cd7956dd2be2bfcc25a9a2472123a61111b261",
+        "reference": {},
+        "registered_at": "2026-10-21T13:41:06.208754+00:00",
+        "registered_from": "MANIFEST_AND_SESSION_CLOCK",
+        "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+        "session": "2026-10-21",
+        "strategy": "opening_momentum",
+        "symbol": "ASTS",
+        "terminal_observed_at": "2026-10-21T13:55:04.280285+00:00"
+      }
+    },
+    {
+      "job_id": "2090676caabe76b1c2f7cc23a12abb3e31f1e950466b74efa2fc09061f8cb2c3",
+      "symbol": "ASTS",
+      "slot": "5",
+      "state": "EXPIRED",
+      "reason": "DATA_UNAVAILABLE_NO_MINUTE",
+      "queued_at": "2026-10-21T13:41:06.208754+00:00",
+      "deadline_at": "2026-10-21T14:00:00+00:00",
+      "payload": {
+        "checkpoint_at": "2026-10-21T13:55:00+00:00",
+        "checkpoint_slot": 5,
+        "completed_generation": 0,
+        "deadline_at": "2026-10-21T14:00:00+00:00",
+        "input_fingerprint": null,
+        "input_generation": 0,
+        "input_received": false,
+        "kind": "OPENING_MOMENTUM_CALCULATION",
+        "policy_hash": "9fcbe3bf87f5509bfda4ef31e4cd7956dd2be2bfcc25a9a2472123a61111b261",
+        "reference": {},
+        "registered_at": "2026-10-21T13:41:06.208754+00:00",
+        "registered_from": "MANIFEST_AND_SESSION_CLOCK",
+        "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+        "session": "2026-10-21",
+        "strategy": "opening_momentum",
+        "symbol": "ASTS",
+        "terminal_observed_at": "2026-10-21T14:00:00.287972+00:00"
+      }
+    },
+    {
+      "job_id": "8279dd97d7ef8b1e5adcaa8e75746725d8c1527110b9381e8ee2ae345a729223",
+      "symbol": "ASTS",
+      "slot": "2026-10-21T13:39:00+00:00",
+      "state": "DONE",
+      "reason": null,
+      "queued_at": "2026-10-21T13:41:14.096255+00:00",
+      "deadline_at": "2026-10-21T13:45:00+00:00",
+      "payload": {
+        "deadline_at": "2026-10-21T13:45:00+00:00",
+        "dependent_bar": "2026-10-21T13:39:00+00:00",
+        "kind": "OPENING_TREND_BAR_RECOVERY",
+        "missing_bars": [
+          "2026-10-21T13:30:00+00:00",
+          "2026-10-21T13:31:00+00:00",
+          "2026-10-21T13:32:00+00:00",
+          "2026-10-21T13:33:00+00:00",
+          "2026-10-21T13:34:00+00:00",
+          "2026-10-21T13:35:00+00:00",
+          "2026-10-21T13:36:00+00:00",
+          "2026-10-21T13:37:00+00:00",
+          "2026-10-21T13:38:00+00:00",
+          "2026-10-21T13:39:00+00:00"
+        ],
+        "policy_hash": "9fcbe3bf87f5509bfda4ef31e4cd7956dd2be2bfcc25a9a2472123a61111b261",
+        "priority": 1,
+        "purpose": "OPENING_RESEARCH",
+        "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+        "session": "2026-10-21",
+        "symbol": "ASTS"
+      }
+    },
+    {
+      "job_id": "e6b23e72af9326abfec80178ebd0ca3227226a7b73f16a5ace934e5f82283b57",
+      "symbol": "ASTS",
+      "slot": "SESSION_PRICE_BINDING_V1",
+      "state": "COMPLETED",
+      "reason": null,
+      "queued_at": "2026-10-21T13:41:14.096793+00:00",
+      "deadline_at": "2026-10-22T13:41:14.096793+00:00",
+      "payload": {
+        "action_coverage": null,
+        "contract_version": "SESSION_PRICE_BINDING_V1",
+        "currency": "USD",
+        "fact_hash": "e6b23e72af9326abfec80178ebd0ca3227226a7b73f16a5ace934e5f82283b57",
+        "instrument": {
+          "asset_type": "UNKNOWN",
+          "classification_proof": null,
+          "classification_status": "PENDING_ASSET_TYPE_FACT",
+          "currency": "USD",
+          "identity_verified": true,
+          "known_at": "2026-10-21T13:41:14.012716+00:00",
+          "native_identity": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "provider_symbol": "ASTS.US",
+          "status": "IDENTITY_CURRENCY_VERIFIED",
+          "symbol": "ASTS",
+          "valid_until": "2026-10-28T13:41:14.012716+00:00"
+        },
+        "instrument_fact_hash": "0c7b610ed6b0e9457838d90e050bbafd44db6ea0859d205f7a742a3be62e01e3",
+        "interface_fact": {
+          "assertion_limits": [
+            "DOES_NOT_PROVE_PRICE_SCALE",
+            "DOES_NOT_PROVE_DEPTH_UNITS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "MAIN_QUOTE_PREVIOUS_CLOSE",
+            "field_path": "secu_quote.prev_close",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "624ac1f69363d1a1b1704518caf7f2ab5855822748dffbc3ab2b7a5b4109e882",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>∟ prev_close</td><td>string</td><td>昨收价</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "field": "prev_close",
+          "interface": "US_SECURITY_QUOTE",
+          "meaning": "PROVIDER_MAIN_QUOTE_PREVIOUS_CLOSE",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_INTERFACE_FACT",
+          "source_path": "outputs/r58/20261004/p7-source-facts/quote.html",
+          "source_sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788",
+          "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/quote",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "kind": "SESSION_PRICE_BINDING_V1",
+        "known_at": "2026-10-21T13:41:14.096793+00:00",
+        "method": "LIVE_MAIN_QUOTE_WITH_REVIEWED_PRICE_BASIS",
+        "observed_provider_previous_close": 41.13,
+        "previous_close": 41.13,
+        "price_basis_method": {
+          "action_coverage_required": true,
+          "assertion_limits": [
+            "NO_ADJUST_IS_ACTUAL_PRICE",
+            "DOES_NOT_PROVE_ABSENCE_OF_CORPORATE_ACTIONS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "QUOTE_AND_NO_ADJUST_PRICE_BASIS",
+            "field_path": "candlestick.adjust_type.NO_ADJUST",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "e0b0f7ec8a3440a674112bdd4b3187bbed4e8bc54b16b62dea86900de6410c1a",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>0</td><td>Actual</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "interface": "US_OPTION_QUOTE",
+          "method_version": "NATIVE_PRICE_SCALE_V1",
+          "price_basis": "NoAdjust",
+          "price_transform": "IDENTITY",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T11:31:44.970648+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_DOCUMENT",
+          "source_path": "outputs/r58/20261004/p8-source-facts-v2/price_basis.html",
+          "source_sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436",
+          "source_url": "https://open.longbridge.com/docs/quote/objects",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "raw_quote": {
+          "ask": null,
+          "ask_size": null,
+          "bid": null,
+          "bid_size": null,
+          "change": 1.189,
+          "change_pct": 2.8908339411621684,
+          "currency": "USD",
+          "currency_evidence": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "display_last": 42.319,
+          "display_session": "regular",
+          "freshness_seconds": 1,
+          "high": 42.685,
+          "last": 42.319,
+          "low": 41.234,
+          "open": 41.7,
+          "post_market": {
+            "event_time": "2026-10-20T23:59:59+00:00",
+            "last": 42.045,
+            "previous_close": 41.13,
+            "volume": 675888.0
+          },
+          "pre_market": {
+            "event_time": "2026-10-21T13:30:00+00:00",
+            "last": 41.78,
+            "previous_close": 41.13,
+            "volume": 252402.0
+          },
+          "previous_close": 41.13,
+          "provider": "longbridge",
+          "provider_status": "available",
+          "provider_symbol": "ASTS.US",
+          "quote_age_seconds": 1.096793,
+          "quote_checked_at": "2026-10-21T13:41:14.096793+00:00",
+          "quote_time": "2026-10-21T13:41:13+00:00",
+          "quote_time_status": "AVAILABLE",
+          "read_only_market_data": true,
+          "received_at": "2026-10-21T13:41:14.096793+00:00",
+          "requested_at": "2026-10-21T13:41:14.017684+00:00",
+          "session": "regular",
+          "symbol": "ASTS",
+          "turnover": 57567810.297,
+          "volume": 1370317.0
+        },
+        "reasons": [
+          "INSTRUMENT_PRICE_ACTION_COVERAGE_MISSING"
+        ],
+        "reference_session": "2026-10-20",
+        "session": "2026-10-21",
+        "status": "PREPARED_WITH_GAPS",
+        "symbol": "ASTS",
+        "valid_until": "2026-10-22T13:41:14.096793+00:00"
+      }
+    },
+    {
+      "job_id": "07e960203a75d0a596c3055cea8d00c5b31efd51ef15d083609da0e93684ee78",
+      "symbol": "ASTS",
+      "slot": "SESSION_PRICE_BINDING_V1",
+      "state": "COMPLETED",
+      "reason": null,
+      "queued_at": "2026-10-21T13:42:13.329402+00:00",
+      "deadline_at": "2026-10-22T13:42:13.329402+00:00",
+      "payload": {
+        "action_coverage": null,
+        "contract_version": "SESSION_PRICE_BINDING_V1",
+        "currency": "USD",
+        "fact_hash": "07e960203a75d0a596c3055cea8d00c5b31efd51ef15d083609da0e93684ee78",
+        "instrument": {
+          "asset_type": "UNKNOWN",
+          "classification_proof": null,
+          "classification_status": "PENDING_ASSET_TYPE_FACT",
+          "currency": "USD",
+          "identity_verified": true,
+          "known_at": "2026-10-21T13:41:14.012716+00:00",
+          "native_identity": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "provider_symbol": "ASTS.US",
+          "status": "IDENTITY_CURRENCY_VERIFIED",
+          "symbol": "ASTS",
+          "valid_until": "2026-10-28T13:41:14.012716+00:00"
+        },
+        "instrument_fact_hash": "0c7b610ed6b0e9457838d90e050bbafd44db6ea0859d205f7a742a3be62e01e3",
+        "interface_fact": {
+          "assertion_limits": [
+            "DOES_NOT_PROVE_PRICE_SCALE",
+            "DOES_NOT_PROVE_DEPTH_UNITS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "MAIN_QUOTE_PREVIOUS_CLOSE",
+            "field_path": "secu_quote.prev_close",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "624ac1f69363d1a1b1704518caf7f2ab5855822748dffbc3ab2b7a5b4109e882",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>∟ prev_close</td><td>string</td><td>昨收价</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "field": "prev_close",
+          "interface": "US_SECURITY_QUOTE",
+          "meaning": "PROVIDER_MAIN_QUOTE_PREVIOUS_CLOSE",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_INTERFACE_FACT",
+          "source_path": "outputs/r58/20261004/p7-source-facts/quote.html",
+          "source_sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788",
+          "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/quote",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "kind": "SESSION_PRICE_BINDING_V1",
+        "known_at": "2026-10-21T13:42:13.329402+00:00",
+        "method": "LIVE_MAIN_QUOTE_WITH_REVIEWED_PRICE_BASIS",
+        "observed_provider_previous_close": 41.13,
+        "previous_close": 41.13,
+        "price_basis_method": {
+          "action_coverage_required": true,
+          "assertion_limits": [
+            "NO_ADJUST_IS_ACTUAL_PRICE",
+            "DOES_NOT_PROVE_ABSENCE_OF_CORPORATE_ACTIONS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "QUOTE_AND_NO_ADJUST_PRICE_BASIS",
+            "field_path": "candlestick.adjust_type.NO_ADJUST",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "e0b0f7ec8a3440a674112bdd4b3187bbed4e8bc54b16b62dea86900de6410c1a",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>0</td><td>Actual</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "interface": "US_OPTION_QUOTE",
+          "method_version": "NATIVE_PRICE_SCALE_V1",
+          "price_basis": "NoAdjust",
+          "price_transform": "IDENTITY",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T11:31:44.970648+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_DOCUMENT",
+          "source_path": "outputs/r58/20261004/p8-source-facts-v2/price_basis.html",
+          "source_sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436",
+          "source_url": "https://open.longbridge.com/docs/quote/objects",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "raw_quote": {
+          "ask": null,
+          "ask_size": null,
+          "bid": null,
+          "bid_size": null,
+          "change": 0.9600000000000009,
+          "change_pct": 2.334062727935815,
+          "currency": "USD",
+          "currency_evidence": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "display_last": 42.09,
+          "display_session": "regular",
+          "freshness_seconds": 0,
+          "high": 42.685,
+          "last": 42.09,
+          "low": 41.234,
+          "open": 41.7,
+          "post_market": {
+            "event_time": "2026-10-20T23:59:59+00:00",
+            "last": 42.045,
+            "previous_close": 41.13,
+            "volume": 675888.0
+          },
+          "pre_market": {
+            "event_time": "2026-10-21T13:30:00+00:00",
+            "last": 41.78,
+            "previous_close": 41.13,
+            "volume": 252402.0
+          },
+          "previous_close": 41.13,
+          "provider": "longbridge",
+          "provider_status": "available",
+          "provider_symbol": "ASTS.US",
+          "quote_age_seconds": 0.329402,
+          "quote_checked_at": "2026-10-21T13:42:13.329402+00:00",
+          "quote_time": "2026-10-21T13:42:13+00:00",
+          "quote_time_status": "AVAILABLE",
+          "read_only_market_data": true,
+          "received_at": "2026-10-21T13:42:13.329402+00:00",
+          "requested_at": "2026-10-21T13:42:13.263864+00:00",
+          "session": "regular",
+          "symbol": "ASTS",
+          "turnover": 59886961.077,
+          "volume": 1425363.0
+        },
+        "reasons": [
+          "INSTRUMENT_PRICE_ACTION_COVERAGE_MISSING"
+        ],
+        "reference_session": "2026-10-20",
+        "session": "2026-10-21",
+        "status": "PREPARED_WITH_GAPS",
+        "symbol": "ASTS",
+        "valid_until": "2026-10-22T13:42:13.329402+00:00"
+      }
+    },
+    {
+      "job_id": "0f518c6dc585315457931f96d7e0588b235a3306809416ce2f8c84fbb28078cb",
+      "symbol": "ASTS",
+      "slot": "SESSION_PRICE_BINDING_V1",
+      "state": "COMPLETED",
+      "reason": null,
+      "queued_at": "2026-10-21T13:43:13.340347+00:00",
+      "deadline_at": "2026-10-22T13:43:13.340347+00:00",
+      "payload": {
+        "action_coverage": null,
+        "contract_version": "SESSION_PRICE_BINDING_V1",
+        "currency": "USD",
+        "fact_hash": "0f518c6dc585315457931f96d7e0588b235a3306809416ce2f8c84fbb28078cb",
+        "instrument": {
+          "asset_type": "UNKNOWN",
+          "classification_proof": null,
+          "classification_status": "PENDING_ASSET_TYPE_FACT",
+          "currency": "USD",
+          "identity_verified": true,
+          "known_at": "2026-10-21T13:41:14.012716+00:00",
+          "native_identity": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "provider_symbol": "ASTS.US",
+          "status": "IDENTITY_CURRENCY_VERIFIED",
+          "symbol": "ASTS",
+          "valid_until": "2026-10-28T13:41:14.012716+00:00"
+        },
+        "instrument_fact_hash": "0c7b610ed6b0e9457838d90e050bbafd44db6ea0859d205f7a742a3be62e01e3",
+        "interface_fact": {
+          "assertion_limits": [
+            "DOES_NOT_PROVE_PRICE_SCALE",
+            "DOES_NOT_PROVE_DEPTH_UNITS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "MAIN_QUOTE_PREVIOUS_CLOSE",
+            "field_path": "secu_quote.prev_close",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "624ac1f69363d1a1b1704518caf7f2ab5855822748dffbc3ab2b7a5b4109e882",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>∟ prev_close</td><td>string</td><td>昨收价</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "field": "prev_close",
+          "interface": "US_SECURITY_QUOTE",
+          "meaning": "PROVIDER_MAIN_QUOTE_PREVIOUS_CLOSE",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_INTERFACE_FACT",
+          "source_path": "outputs/r58/20261004/p7-source-facts/quote.html",
+          "source_sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788",
+          "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/quote",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "kind": "SESSION_PRICE_BINDING_V1",
+        "known_at": "2026-10-21T13:43:13.340347+00:00",
+        "method": "LIVE_MAIN_QUOTE_WITH_REVIEWED_PRICE_BASIS",
+        "observed_provider_previous_close": 41.13,
+        "previous_close": 41.13,
+        "price_basis_method": {
+          "action_coverage_required": true,
+          "assertion_limits": [
+            "NO_ADJUST_IS_ACTUAL_PRICE",
+            "DOES_NOT_PROVE_ABSENCE_OF_CORPORATE_ACTIONS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "QUOTE_AND_NO_ADJUST_PRICE_BASIS",
+            "field_path": "candlestick.adjust_type.NO_ADJUST",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "e0b0f7ec8a3440a674112bdd4b3187bbed4e8bc54b16b62dea86900de6410c1a",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>0</td><td>Actual</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "interface": "US_OPTION_QUOTE",
+          "method_version": "NATIVE_PRICE_SCALE_V1",
+          "price_basis": "NoAdjust",
+          "price_transform": "IDENTITY",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T11:31:44.970648+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_DOCUMENT",
+          "source_path": "outputs/r58/20261004/p8-source-facts-v2/price_basis.html",
+          "source_sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436",
+          "source_url": "https://open.longbridge.com/docs/quote/objects",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "raw_quote": {
+          "ask": null,
+          "ask_size": null,
+          "bid": null,
+          "bid_size": null,
+          "change": 0.8799999999999955,
+          "change_pct": 2.139557500607818,
+          "currency": "USD",
+          "currency_evidence": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "display_last": 42.01,
+          "display_session": "regular",
+          "freshness_seconds": 0,
+          "high": 42.685,
+          "last": 42.01,
+          "low": 41.234,
+          "open": 41.7,
+          "post_market": {
+            "event_time": "2026-10-20T23:59:59+00:00",
+            "last": 42.045,
+            "previous_close": 41.13,
+            "volume": 675888.0
+          },
+          "pre_market": {
+            "event_time": "2026-10-21T13:30:00+00:00",
+            "last": 41.78,
+            "previous_close": 41.13,
+            "volume": 252402.0
+          },
+          "previous_close": 41.13,
+          "provider": "longbridge",
+          "provider_status": "available",
+          "provider_symbol": "ASTS.US",
+          "quote_age_seconds": 0.340347,
+          "quote_checked_at": "2026-10-21T13:43:13.340347+00:00",
+          "quote_time": "2026-10-21T13:43:13+00:00",
+          "quote_time_status": "AVAILABLE",
+          "read_only_market_data": true,
+          "received_at": "2026-10-21T13:43:13.340347+00:00",
+          "requested_at": "2026-10-21T13:43:13.277527+00:00",
+          "session": "regular",
+          "symbol": "ASTS",
+          "turnover": 62533755.613,
+          "volume": 1488240.0
+        },
+        "reasons": [
+          "INSTRUMENT_PRICE_ACTION_COVERAGE_MISSING"
+        ],
+        "reference_session": "2026-10-20",
+        "session": "2026-10-21",
+        "status": "PREPARED_WITH_GAPS",
+        "symbol": "ASTS",
+        "valid_until": "2026-10-22T13:43:13.340347+00:00"
+      }
+    },
+    {
+      "job_id": "d3900c7f8c067e6b3c8c3ae299a8fe65db2edf7a022af78fa993cd0d8043ff07",
+      "symbol": "ASTS",
+      "slot": "SESSION_PRICE_BINDING_V1",
+      "state": "COMPLETED",
+      "reason": null,
+      "queued_at": "2026-10-21T13:44:13.412295+00:00",
+      "deadline_at": "2026-10-22T13:44:13.412295+00:00",
+      "payload": {
+        "action_coverage": null,
+        "contract_version": "SESSION_PRICE_BINDING_V1",
+        "currency": "USD",
+        "fact_hash": "d3900c7f8c067e6b3c8c3ae299a8fe65db2edf7a022af78fa993cd0d8043ff07",
+        "instrument": {
+          "asset_type": "UNKNOWN",
+          "classification_proof": null,
+          "classification_status": "PENDING_ASSET_TYPE_FACT",
+          "currency": "USD",
+          "identity_verified": true,
+          "known_at": "2026-10-21T13:41:14.012716+00:00",
+          "native_identity": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "provider_symbol": "ASTS.US",
+          "status": "IDENTITY_CURRENCY_VERIFIED",
+          "symbol": "ASTS",
+          "valid_until": "2026-10-28T13:41:14.012716+00:00"
+        },
+        "instrument_fact_hash": "0c7b610ed6b0e9457838d90e050bbafd44db6ea0859d205f7a742a3be62e01e3",
+        "interface_fact": {
+          "assertion_limits": [
+            "DOES_NOT_PROVE_PRICE_SCALE",
+            "DOES_NOT_PROVE_DEPTH_UNITS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "MAIN_QUOTE_PREVIOUS_CLOSE",
+            "field_path": "secu_quote.prev_close",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "624ac1f69363d1a1b1704518caf7f2ab5855822748dffbc3ab2b7a5b4109e882",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>∟ prev_close</td><td>string</td><td>昨收价</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "field": "prev_close",
+          "interface": "US_SECURITY_QUOTE",
+          "meaning": "PROVIDER_MAIN_QUOTE_PREVIOUS_CLOSE",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_INTERFACE_FACT",
+          "source_path": "outputs/r58/20261004/p7-source-facts/quote.html",
+          "source_sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788",
+          "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/quote",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "kind": "SESSION_PRICE_BINDING_V1",
+        "known_at": "2026-10-21T13:44:13.412295+00:00",
+        "method": "LIVE_MAIN_QUOTE_WITH_REVIEWED_PRICE_BASIS",
+        "observed_provider_previous_close": 41.13,
+        "previous_close": 41.13,
+        "price_basis_method": {
+          "action_coverage_required": true,
+          "assertion_limits": [
+            "NO_ADJUST_IS_ACTUAL_PRICE",
+            "DOES_NOT_PROVE_ABSENCE_OF_CORPORATE_ACTIONS",
+            "NOT_OWNER_APPROVAL"
+          ],
+          "claim": {
+            "assertion": "QUOTE_AND_NO_ADJUST_PRICE_BASIS",
+            "field_path": "candlestick.adjust_type.NO_ADJUST",
+            "market_scope": "US",
+            "sdk_scope": "longbridge.openapi"
+          },
+          "claim_hash": "e0b0f7ec8a3440a674112bdd4b3187bbed4e8bc54b16b62dea86900de6410c1a",
+          "contract_version": "INTERFACE_FACT_V1",
+          "excerpt": "<tr><td>0</td><td>Actual</td></tr>",
+          "fact_type": "PREVIOUS_CLOSE_DEFINITION",
+          "interface": "US_OPTION_QUOTE",
+          "method_version": "NATIVE_PRICE_SCALE_V1",
+          "price_basis": "NoAdjust",
+          "price_transform": "IDENTITY",
+          "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+          "reviewed_at": "2026-10-04T11:31:44.970648+00:00",
+          "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+          "source_kind": "OFFICIAL_DOCUMENT",
+          "source_path": "outputs/r58/20261004/p8-source-facts-v2/price_basis.html",
+          "source_sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436",
+          "source_url": "https://open.longbridge.com/docs/quote/objects",
+          "status": "APPROVED",
+          "valid_until": "2026-11-03T00:00:00+00:00"
+        },
+        "raw_quote": {
+          "ask": null,
+          "ask_size": null,
+          "bid": null,
+          "bid_size": null,
+          "change": 0.9399999999999977,
+          "change_pct": 2.2854364211038116,
+          "currency": "USD",
+          "currency_evidence": {
+            "currency": "USD",
+            "native_field": "currency",
+            "native_static_fields": {
+              "board": "SecurityBoard.USMain",
+              "exchange": "NASD",
+              "name_en": "AST SpaceMobile",
+              "stock_derivatives": "[DerivativeType.Option]"
+            },
+            "provider_symbol": "ASTS.US",
+            "received_at": "2026-10-21T13:41:14.012716+00:00",
+            "requested_at": "2026-10-21T13:41:13.239527+00:00",
+            "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+            "source_hash": "76ef15bd7274fcdda25afb80b1cc6c1c5fd5543f0d5ad6c59986068b58239377",
+            "symbol": "ASTS"
+          },
+          "display_last": 42.07,
+          "display_session": "regular",
+          "freshness_seconds": 1,
+          "high": 42.685,
+          "last": 42.07,
+          "low": 41.234,
+          "open": 41.7,
+          "post_market": {
+            "event_time": "2026-10-20T23:59:59+00:00",
+            "last": 42.045,
+            "previous_close": 41.13,
+            "volume": 675888.0
+          },
+          "pre_market": {
+            "event_time": "2026-10-21T13:30:00+00:00",
+            "last": 41.78,
+            "previous_close": 41.13,
+            "volume": 252402.0
+          },
+          "previous_close": 41.13,
+          "provider": "longbridge",
+          "provider_status": "available",
+          "provider_symbol": "ASTS.US",
+          "quote_age_seconds": 1.412295,
+          "quote_checked_at": "2026-10-21T13:44:13.412295+00:00",
+          "quote_time": "2026-10-21T13:44:12+00:00",
+          "quote_time_status": "AVAILABLE",
+          "read_only_market_data": true,
+          "received_at": "2026-10-21T13:44:13.412295+00:00",
+          "requested_at": "2026-10-21T13:44:13.345488+00:00",
+          "session": "regular",
+          "symbol": "ASTS",
+          "turnover": 63459606.852,
+          "volume": 1510280.0
+        },
+        "reasons": [
+          "INSTRUMENT_PRICE_ACTION_COVERAGE_MISSING"
+        ],
+        "reference_session": "2026-10-20",
+        "session": "2026-10-21",
+        "status": "PREPARED_WITH_GAPS",
+        "symbol": "ASTS",
+        "valid_until": "2026-10-22T13:44:13.412295+00:00"
+      }
+    }
+  ],
+  "raw_sample_count": 576,
+  "installed_sha256": "983a730fc5b8f617cfb7a38d591bbc4c639ea50fa7611d25e2afb543d6ba07d1",
+  "candidate_sha256": "a206bd80cdc4339053dad96535e3df217be70d42ae26f3da13f0365d4f28923c",
+  "reproductions": [
+    {
+      "raw_sha256": "f46dcacbdb0d3c3d300fc0a098e041b76ba63804d512b0d6f004586d3b807a86",
+      "available_at": "2026-10-21T13:42:00+00:00",
+      "received_at": "2026-10-21T13:42:00.016424+00:00",
+      "interface": "QuoteContext.set_on_candlestick",
+      "request_started_at": null,
+      "proof_scope": "EMPTY_PROOF_VALIDATION_ONLY_NOT_SOURCE_ACCEPTANCE",
+      "installed": {
+        "exception_type": "AttributeError"
+      },
+      "candidate": {
+        "accepted": false
+      }
+    },
+    {
+      "raw_sha256": "5d90bca0d5abae9949dba58dec52db3ef9f46abc29814d339babef2e2de4366b",
+      "available_at": "2026-10-21T13:43:00+00:00",
+      "received_at": "2026-10-21T13:42:59.631213+00:00",
+      "interface": "QuoteContext.set_on_candlestick",
+      "request_started_at": null,
+      "proof_scope": "EMPTY_PROOF_VALIDATION_ONLY_NOT_SOURCE_ACCEPTANCE",
+      "installed": {
+        "exception_type": "AttributeError"
+      },
+      "candidate": {
+        "accepted": false
+      }
+    },
+    {
+      "raw_sha256": "e5e9289b203f8e9bcf99bbbfebb13b4c0645c6a704c38e83a7f76d943be1021f",
+      "available_at": "2026-10-21T13:44:00+00:00",
+      "received_at": "2026-10-21T13:43:59.620363+00:00",
+      "interface": "QuoteContext.set_on_candlestick",
+      "request_started_at": null,
+      "proof_scope": "EMPTY_PROOF_VALIDATION_ONLY_NOT_SOURCE_ACCEPTANCE",
+      "installed": {
+        "exception_type": "AttributeError"
+      },
+      "candidate": {
+        "accepted": false
+      }
+    }
+  ],
+  "conclusion": "SAMPLE_VALIDATION_ONLY_NOT_FULL_WINDOW_CAUSAL_ATTRIBUTION",
+  "finished_at": "2026-10-22T12:47:49.052081+00:00"
+}

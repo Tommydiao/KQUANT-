@@ -1,0 +1,102 @@
+{
+  "schema": "KQUANT_UNACCEPTED_RESEARCH_DELTA_V1",
+  "candidate_id": "local-candidate-75a0fc308f84672d",
+  "candidate_payload_sha256": "6d5a42c84664a6cf635f7e34470260365fe6d683e821e92ace374a3e1bf683de",
+  "base_candidate": "local-candidate-198444f784fb3ada",
+  "base_entry_sha256": "2336e5a56a10e13a220383e621ff9e03e7a864414ca0c0b097853b1bc4e47ab8",
+  "base_release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\release-manifest.json",
+    "sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9"
+  },
+  "base_recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\recovery-manifest-shadow-accepted.json",
+    "sha256": "da4510e8d4bf52c7dfd0a177076a248bf9e221964d7f5212695e828fb062d28b"
+  },
+  "release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-75a0fc308f84672d\\release-manifest.json",
+    "sha256": "8f4c7664d3fd1a934da1280f8d1fd006be1ae336aeb0927fb4cbec9b46823e5a"
+  },
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-75a0fc308f84672d\\recovery-manifest.json",
+    "sha256": "ce9fa2e777904896a55ee9f26f72e35dad9a257c0413905d76c628bd386357de"
+  },
+  "proposed_entry": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-75a0fc308f84672d\\proposed-local-workspace-entry.json",
+    "sha256": "2c079b55db3591e740b4c3c301a15e03a499c11fd3e72f44fecd82eae637b582"
+  },
+  "changes": [
+    {
+      "target": "kquant/options_minute_decisions.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py",
+      "sha256": "a206bd80cdc4339053dad96535e3df217be70d42ae26f3da13f0365d4f28923c",
+      "previous_sha256": "983a730fc5b8f617cfb7a38d591bbc4c639ea50fa7611d25e2afb543d6ba07d1"
+    },
+    {
+      "target": "kquant/options_opening_trend_store.py",
+      "payload": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\current-card-followup\\patches\\kquant\\options_opening_trend_store.py",
+      "sha256": "9bffb829292d9e31defd1df81f33234b2b31197c0289c127fbcf9d4aeeb990ac",
+      "previous_sha256": "2bd9afb7a46b763a080f34b6debc81a58945c8b1fa0248a19bef329986064f1c"
+    }
+  ],
+  "inherited_projection": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\deployment-projection.json",
+    "sha256": "bf30207380487b58c895da502f098a564b8e1b1698fd5a4a373dea2ca867e547"
+  },
+  "deployment_tool": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\apply_checked_delta.py",
+    "sha256": "005691f7f7d7ca9f8167c70fda5222326576db1377e40b5bfed743eb1753bfb0"
+  },
+  "recovery_input_boundary": "REJECT_PUSH_BEFORE_PULL_TIME_PARSE_V1",
+  "current_card_materialization_boundary": "VISIBLE_RESEARCH_SUBSET_SNAPSHOT_V1",
+  "approved": false,
+  "applied": false,
+  "production_accepted": false,
+  "qualified_signal_authorized": false,
+  "frontend_rebuilt": false,
+  "frontend_reuse": "EXACT_ACCEPTED_PARENT_STOCK_AND_UNIFIED_BUILDS",
+  "data_epoch_reinitialized": false,
+  "live_writes": 0,
+  "deadline_constraint": {
+    "schema": "KQUANT_FIXED_SEVEN_CALENDAR_DAY_DELIVERY_V1",
+    "t0_utc": "2026-10-16T14:30:22Z",
+    "deadline_utc": "2026-10-23T14:30:22Z",
+    "t0_local": "2026-10-16T22:30:22+08:00",
+    "deadline_local": "2026-10-23T22:30:22+08:00",
+    "initial_blockers_due_local": "2026-10-17T04:30:22+08:00",
+    "deadline_reset_allowed": false,
+    "source": "DIRECT_USER_SEVEN_DAY_CONSTRAINT_20261016",
+    "existing_protocol": "KQ-S0-S1-RESEARCH-20261015-V1",
+    "existing_candidate_at_t0": "local-candidate-6ac8a5653d14a392",
+    "deliverable": "Runnable opening research workbench with fixed S0/S1 comparison and option cost diagnostics",
+    "minimum_real_opening_windows": 3,
+    "minimum_completion_ratio_per_variant": 0.9,
+    "denominator_policy": "Freeze applicable identities before new windows; retain all registered objects and failures; never exclude after outcomes",
+    "completion_units": [
+      "instrument_complete_at_all_five_checkpoints_both_directions",
+      "direction_checkpoint"
+    ],
+    "first_pass_and_revised_results_separate": true,
+    "late_computation_not_timely_completion": true,
+    "no_progress_work_periods_before_alternative": 2,
+    "work_period_definition": "A bounded active execution with measured attempts and evidence, not passive overnight waiting",
+    "replacement_scope": "Smallest local module within existing authorization; no changed strategy/source method/release/fee without required exact choice",
+    "unavailable_counts": null,
+    "background_coding_guaranteed": false,
+    "existing_heartbeat": "kquant-2",
+    "new_orders_paper_llm_models_fees": false
+  },
+  "preparation_tool_sha256": "df206b650bf820930fd434dffd5f67ee767bf64cf1c1047d397d564309328904",
+  "source_equivalence_evidence": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\evidence\\current-card-equivalence-final-20261020.json",
+    "sha256": "460c795c5d28fac884753b710fe4bc0ef9a771dc8e8254fd80e89d08ff99ae5e"
+  },
+  "harness_readiness": "EXACT_TWO_REPAIR_ADAPTER_REQUIRED_BEFORE_SHORT_AND_MATCHED_HOUR",
+  "prior_b874_hour": "SEPARATE_ONE_REPAIR_HOUR_PRESERVE_CURRENT_CARDS_FAILURE_NOT_THIS_CANDIDATE",
+  "deployment_requires": [
+    "actual affected constructor/recovery/short and matched-hour evidence",
+    "one genuine exact O-LAUNCH after frozen validation",
+    "original controlled entry and five-role gate",
+    "no hot edits or business-data rollback",
+    "ten-minute actual observer"
+  ]
+}

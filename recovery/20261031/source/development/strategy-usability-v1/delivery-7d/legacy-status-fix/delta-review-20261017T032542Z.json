@@ -1,0 +1,162 @@
+{
+  "schema": "KQUANT_UNPUBLISHED_DELTA_REVIEW_V1",
+  "observed_at": "2026-10-17T03:25:42.897330+00:00",
+  "fixed_deadline": "2026-10-23T14:30:22Z",
+  "running_candidate": "local-candidate-d4f4aad4be84d143",
+  "candidate_frozen": false,
+  "owner_launch_accepted": false,
+  "production_writes": 0,
+  "sdk_connections": 0,
+  "frontend_changed": false,
+  "changes": [
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\dashboard\\app.py",
+      "sha256": "adf0e1950495f90502bd209601f31db8984a7119753443f797b726eb0c42ae2c",
+      "bytes": 95061,
+      "target": "kquant/dashboard/app.py",
+      "live_sha256": "d08a6a6a6881045128feec59aad8b9653acd45e8e14f70a24f78b3fc88f29b74"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\main_store_runtime.py",
+      "sha256": "6ea9d210afb156adafcaad82be81d475850b792a2c89e419ce7ef05a7301c7f3",
+      "bytes": 1155,
+      "target": "kquant/main_store_runtime.py",
+      "live_sha256": null
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\options_one_minute.py",
+      "sha256": "dac725f6bded052453e064dff05e04fdae164bfac30a09803b6995eac72bd255",
+      "bytes": 30033,
+      "target": "kquant/options_one_minute.py",
+      "live_sha256": "2d927d80910060b2683eb03d0732ef502918664d39b0699da08cedf6896250ea"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\options_one_minute_status.py",
+      "sha256": "01f49c1c6f6c75eda5b110c8474337db56bd9a6dec258387f14131abd469e4de",
+      "bytes": 3313,
+      "target": "kquant/options_one_minute_status.py",
+      "live_sha256": null
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\recovery_preflight.py",
+      "sha256": "a90d8468f8cc730a745b7e0f00052066b087aabe02f8e60b32cbdf6ad80f961d",
+      "bytes": 26134,
+      "target": "kquant/recovery_preflight.py",
+      "live_sha256": "cd69a6f1ba712398e6caf8d5ce8f0da86f79a54098c6a2cdb75bccd5111c5023"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\recovery_runtime_probe.py",
+      "sha256": "8890dce9f72a0b72b49b7ce903a0358920ce24eb55566afc8fb7bc761d2d6b84",
+      "bytes": 12254,
+      "target": "kquant/recovery_runtime_probe.py",
+      "live_sha256": "c848e305f18d2e7cb9b3bfed15306dc10ce983c3dd2bb90ece2dfa22f97200a1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\patches\\kquant\\status_worker.py",
+      "sha256": "48ad0597192d07d5829fe82ba4e95605783c1570a1f7d4cbf6a9f26fa282da99",
+      "bytes": 24418,
+      "target": "kquant/status_worker.py",
+      "live_sha256": "3dd5b05b1d635f63dd69136431bee263e13cd3d165e444935661d1c3e76481b2"
+    }
+  ],
+  "tests": [
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\tests-index-gate-bound.xml",
+      "sha256": "66da8da521246427fc5568b9be51b7366ac9f458c6b6385eda7374a478232462",
+      "bytes": 3858,
+      "counts": {
+        "tests": 37,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\tests-related-bound.xml",
+      "sha256": "5cfc15b4a94d112b0e1d046230b20ef5ae70ba47ce7610b8ebde5f7e448087aa",
+      "bytes": 22689,
+      "counts": {
+        "tests": 113,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\tests-main-wal-20261017.xml",
+      "sha256": "2cc7a1cc310b512663dfca289193e79f8601f23007ccd0ad079ec8a51c959988",
+      "bytes": 4144,
+      "counts": {
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\tests-related-wal-20261017.xml",
+      "sha256": "7ba3535f0a4a9a4c47106bf145aaff4b7c13793d30a027a75237a549586797d6",
+      "bytes": 22974,
+      "counts": {
+        "tests": 116,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\indexed-cli-volume-result.json",
+      "sha256": "0228a2b867df596de7cd70f44d3c0d88c4b6fcc93fcb21c4311223fd59398cc9",
+      "bytes": 19644
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\readonly-cli-results.json",
+      "sha256": "c1d78ba37e835eda2eaf1b006ed9a3fb580040f2b2e60a2942936e756dd36d2f",
+      "bytes": 13956
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\readonly-cli-rowid-results.json",
+      "sha256": "3064527066dcf8be2c32108969c2788f01ac447e44d256982d7533bf7154655f",
+      "bytes": 18494
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\legacy-status-fix\\universe-lock-20261017T032123Z.json",
+      "sha256": "4e8817cf7d6b6a4437f2377b2969c3d6afb7ec8db5e33e932de440f08c332ac7",
+      "bytes": 38407
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\user-page-confirmation-20261017.json",
+      "sha256": "2ac2ae670ff2951021265e710e7f52267e66945b83fb9245cafcab0b73787878",
+      "bytes": 656
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\runtime-evidence-20261017T032504Z.json",
+      "sha256": "6212cd015af09301f1dcd7b419a85a9bb76e9e11fe22ce40a47e0b1e080f311b",
+      "bytes": 16124
+    }
+  ],
+  "scope": {
+    "legacy_response_equivalence": "PASS",
+    "actual_background_and_status_cli_isolated": "PASS",
+    "covering_index_75900_rows_isolated": "PASS_5_OF_5",
+    "live_unindexed_cli": "FAIL_PRESERVED",
+    "main_delete_mode": "REAL_READONLY_OBSERVED",
+    "main_lock_holder": "UNKNOWN",
+    "wal_cross_process_universe_read_mitigation": "ISOLATED_PASS",
+    "actual_page": "USER_REPORTED",
+    "actual_sse_delivery": "NOT_MEASURED",
+    "new_delta_matched_hour": "NOT_RUN",
+    "production_fix_verified": false,
+    "market_window": "NOT_RUN_WEEKEND",
+    "natural_signal": "NOT_PROVEN"
+  },
+  "remaining": [
+    "freeze exact delta with both additive index and startup WAL preparation",
+    "include legacy background lane and representative history in actual topology harness",
+    "profile remaining queue delay and run matching short then full hour",
+    "consolidated exact OWNER acceptance before any live change",
+    "next complete market window and actual page-delivery evidence"
+  ]
+}

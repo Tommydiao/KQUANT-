@@ -1,0 +1,34 @@
+{
+  "status": "APPROVED",
+  "approved_by": "OWNER",
+  "gate": "O-LAUNCH",
+  "candidate_id": "local-candidate-d4f4aad4be84d143",
+  "candidate_payload_sha256": "2720fc5c628cd23ab5252d5d2bfef9795a8820e96d99d43c82f8a4d0cd6b01d0",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "continuity_receipt_sha256": "7bdc73884919ae0d73ef8efa5e95ce59662ffc05166473305cab671c1c1d07a2",
+  "accepted_at": "2026-10-17T02:08:31Z",
+  "accepted_at_basis": "FIRST_TOOL_OBSERVED_UTC_AFTER_DIRECT_REPLY_NOT_MESSAGE_TIMESTAMP",
+  "human_decision_evidence": {
+    "source": "DIRECT_USER_REPLY",
+    "reference": "[\"request_user_input_async\",\"call_1ed37b5bb94547ddabeb0fbce8aeac2d\",0]",
+    "answer": "批准上述准确候选的有限研究发布，保留限制",
+    "scope_document": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\O_LAUNCH_D7_RESEARCH_DECISION_20261017.md",
+    "scope_document_sha256": "2d5ce289e6dd04509dca4d2debc1bc4d48ecfb79885ab4562383fea11f2e38bc"
+  },
+  "scope": "SHADOW_STARTUP_RESEARCH_OBSERVATIONS_ONLY",
+  "limitations_accepted": [
+    "PERFORMANCE_NOT_PASSED",
+    "SOURCE_FACTS_PENDING",
+    "MARKET_ACCEPTANCE_PENDING",
+    "EXACT_ADDITIVE_OPENING_SOURCE_INDEX_V1_OLD_GATE_ROLLBACK_INCOMPATIBLE",
+    "OLD_RECORDS_CONTINUITY_UNKNOWN"
+  ],
+  "accepted_projection_sha256": "33e6efc618fdd1e2ee1c845ce7412300e864f783b68cecd19754c78f37ffe3ff",
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "qualified_signal_authorized": false,
+  "source_facts_approved": false,
+  "orders_authorized": false,
+  "system_clock_change_authorized": false,
+  "s1_manual_policy_authorized": false,
+  "system_autostart_authorized": false
+}

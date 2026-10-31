@@ -1,0 +1,1103 @@
+{
+  "schema": "WEEKEND_EXECUTION_EVIDENCE_INDEX_V1",
+  "captured_at": "2026-10-31T15:32:12.127871+00:00",
+  "old_seven_day_verdict": "FAIL_UNCHANGED",
+  "candidate_accepted": false,
+  "production_started": false,
+  "real_api_tasks_sent": 0,
+  "real_api_unknown_cost": false,
+  "known_api_cost_usd": "0",
+  "real_api_states": [
+    {
+      "role": "SOL",
+      "case": "minimal",
+      "state": "MISSING_LOCAL_DPAPI_NO_NETWORK"
+    }
+  ],
+  "external_capability_gate_pass": null,
+  "tests": [
+    {
+      "path": "evidence\\ai-boundaries-initial.xml",
+      "sha256": "c88245b818d5f84f1084e558fdc1ef98431810b1ebbc125128b0ef43d66a9b46",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\ai-fence-integration-smoke.xml",
+      "sha256": "02e3d473f31baa2574bfbb1b607b90f7ea841ef21afc37206b5c8d30e4ce19d4",
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\authenticated-ai-route-tests.xml",
+      "sha256": "b43284c242d02a4ef3cecbbddc417f8c9c7b03e13690644f191ae3859c0485f9",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\bound-root-regression.xml",
+      "sha256": "5fdb026ff1a4af9bc1cc47e154a5bfeaf4d0bd043d90387984d45f31581f32a0",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\final-handoff-regression.xml",
+      "sha256": "22185b279f804b7d2844041b9ed1d5f4ccaaf02de8bcb0f086f68698e8a704d2",
+      "tests": 66,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\handoff-legacy-regression.xml",
+      "sha256": "9b513c41372faf630f351d40891a2ae1494dc4c1203ff5e28044252164492352",
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\http-attribution-tests.xml",
+      "sha256": "7dce426ccf4a48ced40ff12e1dd9d41531fdfd25267debc3157bfdadd86f9408",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\integrated-ai-and-route.xml",
+      "sha256": "9bc479f49c6561332fc3877d8c9e96fe6f2f3c60e726554337aad4d7e8eb5b91",
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\integrated-ai-boundaries.xml",
+      "sha256": "c50aaa212f7f6d1ca6c9fa3bd82ad2eea622e6b240a3c77a101f1d3314bf3b8b",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\loopback-transport.xml",
+      "sha256": "f161ddb14b36bea4c5e6c1b0c61a91aa41d3d2fdf297ac8b96f380db1ec119ea",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\passive-timing-regression.xml",
+      "sha256": "dcbfea35c865f02a8bd20db74615245cf03ffcb78e5ea4880a4c8c8baf55f6fb",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\reference-before-fix.xml",
+      "sha256": "c73783c7eb90a5da24f1d6ce93ab974e3b677f808971a4583e275a257a6a3c7f",
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\reference-handoff-regression.xml",
+      "sha256": "d454830aeca76eac2ebb8fde57c1296544ce93de3634cafdcb9caba4965c792d",
+      "tests": 74,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\sidecar-client-tests.xml",
+      "sha256": "f329dbbbfa8c16af6b1f3e79822af75fb6f4d9ad9e01569d0da49456c69435c2",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\sidecar-tests.xml",
+      "sha256": "a397fb555546895488ea88a105d4d72743df2fb7fe3c0a9325c6e6e591137672",
+      "tests": 17,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\source-path-dedup-regression.xml",
+      "sha256": "8553e86c1f63790ed8976720f720341e8f8cd8a614b1f84813e1199885722062",
+      "tests": 72,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "topologies": [
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short1-20261031\\topology_report.json",
+      "sha256": "c420924a7dddd7e3430fb3c5abd95832da4e4c30f6a42d71ba2187622af29078",
+      "duration_seconds": 36.64100000006147,
+      "errors": [
+        {
+          "code": "TOPOLOGY_EXERCISE_FAILED",
+          "error_type": "RuntimeError",
+          "detail": "ISOLATED_HTTP_NOT_READY"
+        }
+      ],
+      "performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short1-20261031\\TEST_ONLY-query-transport-25540.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short1-20261031\\TEST_ONLY-query-transport-38164.jsonl"
+        ],
+        "processes": {
+          "38164": {
+            "records": 66,
+            "success": 66,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 66,
+            "last_denominator": {
+              "attempts": 66,
+              "successes": 66,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 66,
+          "success": 66,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short2-20261031\\topology_report.json",
+      "sha256": "00354bb2f57e71ea78abff8d2f009a866600afc1ca7fd5e675d7cd1dbc5595be",
+      "duration_seconds": 240.1710000000894,
+      "errors": [
+        {
+          "code": "UNEXPLAINED_HTTP_FAILURES",
+          "count": 22
+        },
+        {
+          "code": "BACKGROUND_QUERY_FAILURES",
+          "failures": 1,
+          "complete": true
+        }
+      ],
+      "performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        12.077999999979511,
+        10.75,
+        10.781999999890104,
+        11.094000000040978,
+        12.968999999808148,
+        13.234000000171363,
+        14.203999999910593,
+        15.0,
+        16.57799999997951,
+        18.859999999869615,
+        19.344000000040978
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short2-20261031\\TEST_ONLY-query-transport-25540.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short2-20261031\\TEST_ONLY-query-transport-42128.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short2-20261031\\TEST_ONLY-query-transport-42416.jsonl"
+        ],
+        "processes": {
+          "25540": {
+            "records": 26,
+            "success": 26,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 26,
+            "last_denominator": {
+              "attempts": 26,
+              "successes": 26,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "42416": {
+            "records": 576,
+            "success": 575,
+            "failure": 1,
+            "deadline": 1,
+            "last_attempt": 576,
+            "last_denominator": {
+              "attempts": 576,
+              "successes": 575,
+              "failures": 1,
+              "deadlines": 1,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": [
+              {
+                "attempt_id": 4,
+                "request_id": "bc05ef67a55649b08a585733367e56ea",
+                "observed_at": "2026-10-31T14:57:34.987299+00:00",
+                "outcome": "PROCESS_DEADLINE",
+                "stages_ms": {
+                  "spawn": 7.047,
+                  "import": null,
+                  "query": null,
+                  "universe": null,
+                  "policy": null,
+                  "current_cards": null,
+                  "latest_status": null,
+                  "checkpoint_audit": null,
+                  "projection_delta": null,
+                  "qualification_stages": null,
+                  "clock": null,
+                  "encode": null,
+                  "ipc": null
+                },
+                "returncode": 1
+              }
+            ]
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 602,
+          "success": 601,
+          "failure": 1,
+          "deadline": 1
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short3-20261031\\topology_report.json",
+      "sha256": "d55008877ad48001ed86e63182c45499d3041a9d82384ff7ccf7e8c5e5a4eb2a",
+      "duration_seconds": 240.375,
+      "errors": [],
+      "performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        7.078999999910593,
+        10.469000000040978,
+        10.75,
+        10.827999999979511,
+        10.655999999959022,
+        9.843000000109896,
+        11.562000000150874,
+        10.125,
+        10.812999999849126,
+        11.203999999910593,
+        12.437000000150874
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short3-20261031\\TEST_ONLY-query-transport-13056.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short3-20261031\\TEST_ONLY-query-transport-20076.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short3-20261031\\TEST_ONLY-query-transport-39496.jsonl"
+        ],
+        "processes": {
+          "20076": {
+            "records": 533,
+            "success": 533,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 533,
+            "last_denominator": {
+              "attempts": 533,
+              "successes": 533,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "39496": {
+            "records": 27,
+            "success": 27,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 27,
+            "last_denominator": {
+              "attempts": 27,
+              "successes": 27,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 560,
+          "success": 560,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short4-20261031\\topology_report.json",
+      "sha256": "ebe17028e2cb93a5dcbab9f71f61f2b36afe09c7d95431a1ebc69f7600126e45",
+      "duration_seconds": 240.06299999984913,
+      "errors": [
+        {
+          "code": "CHECKPOINT_MISSING",
+          "slot": 11
+        },
+        {
+          "code": "CHECKPOINT_TIMING_INCOMPLETE",
+          "slot": 11
+        },
+        {
+          "code": "UNEXPLAINED_REVISION_NOT_BLOCKED",
+          "slot": 11
+        }
+      ],
+      "performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        8.297000000020489,
+        9.686999999918044,
+        12.015999999828637,
+        11.062999999849126,
+        13.453999999910593,
+        14.405999999959022,
+        15.797000000020489,
+        14.233999999938533,
+        16.141000000061467,
+        17.875,
+        null
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short4-20261031\\TEST_ONLY-query-transport-12824.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short4-20261031\\TEST_ONLY-query-transport-44800.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short4-20261031\\TEST_ONLY-query-transport-9752.jsonl"
+        ],
+        "processes": {
+          "44800": {
+            "records": 548,
+            "success": 548,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 548,
+            "last_denominator": {
+              "attempts": 548,
+              "successes": 548,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "9752": {
+            "records": 27,
+            "success": 27,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 27,
+            "last_denominator": {
+              "attempts": 27,
+              "successes": 27,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 575,
+          "success": 575,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short5-20261031\\topology_report.json",
+      "sha256": "eb86ac5cfb37ad1a3f09a76a2f265abcf366ce062947f5b4887670ca1c8fa830",
+      "duration_seconds": 240.25,
+      "errors": [],
+      "performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        7.094000000040978,
+        8.5,
+        8.827999999979511,
+        9.608999999938533,
+        10.047000000020489,
+        11.108999999938533,
+        13.077999999979511,
+        14.452999999979511,
+        18.093999999808148,
+        13.577999999979511,
+        17.156999999890104
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short5-20261031\\TEST_ONLY-query-transport-24768.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short5-20261031\\TEST_ONLY-query-transport-30460.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short5-20261031\\TEST_ONLY-query-transport-35284.jsonl"
+        ],
+        "processes": {
+          "24768": {
+            "records": 27,
+            "success": 27,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 27,
+            "last_denominator": {
+              "attempts": 27,
+              "successes": 27,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "30460": {
+            "records": 569,
+            "success": 569,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 569,
+            "last_denominator": {
+              "attempts": 569,
+              "successes": 569,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 596,
+          "success": 596,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short6-20261031\\topology_report.json",
+      "sha256": "e8c62ce6231cf10b12c5c6af92e1a4c5f106a92d073b59a648866e9716f621ac",
+      "duration_seconds": 240.23499999986961,
+      "errors": [],
+      "performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        7.952999999979511,
+        8.030999999959022,
+        8.719000000040978,
+        8.733999999938533,
+        9.813000000081956,
+        10.141000000061467,
+        11.156000000191852,
+        11.5,
+        12.797000000020489,
+        12.687999999849126,
+        14.266000000061467
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short6-20261031\\TEST_ONLY-query-transport-39544.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short6-20261031\\TEST_ONLY-query-transport-40556.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\weekend-handoff-short6-20261031\\TEST_ONLY-query-transport-6256.jsonl"
+        ],
+        "processes": {
+          "40556": {
+            "records": 547,
+            "success": 547,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 547,
+            "last_denominator": {
+              "attempts": 547,
+              "successes": 547,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "6256": {
+            "records": 27,
+            "success": 27,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 27,
+            "last_denominator": {
+              "attempts": 27,
+              "successes": 27,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 574,
+          "success": 574,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "evidence\\ai-boundaries-initial.xml",
+      "sha256": "c88245b818d5f84f1084e558fdc1ef98431810b1ebbc125128b0ef43d66a9b46",
+      "bytes": 1201
+    },
+    {
+      "path": "evidence\\ai-fence-integration-smoke.xml",
+      "sha256": "02e3d473f31baa2574bfbb1b607b90f7ea841ef21afc37206b5c8d30e4ce19d4",
+      "bytes": 6962
+    },
+    {
+      "path": "evidence\\authenticated-ai-route-tests.xml",
+      "sha256": "b43284c242d02a4ef3cecbbddc417f8c9c7b03e13690644f191ae3859c0485f9",
+      "bytes": 1558
+    },
+    {
+      "path": "evidence\\baseline-20261031T141424Z.json",
+      "sha256": "debb435876ded841f6c947b3382fbf5065ada5a9f5d3c166c3390ba6d9ba6bea",
+      "bytes": 6694
+    },
+    {
+      "path": "evidence\\baseline-20261031T151412Z.json",
+      "sha256": "656a650023dd94a9705510ff1e440615d74b64822818b385da4d8a4e3409822b",
+      "bytes": 6933
+    },
+    {
+      "path": "evidence\\baseline-20261031T153007Z.json",
+      "sha256": "4aefca7bc5fc914b5e5b6775bf6e029ea2b9e480c57010fcedd09262c3412d16",
+      "bytes": 6694
+    },
+    {
+      "path": "evidence\\bound-root-regression.xml",
+      "sha256": "5fdb026ff1a4af9bc1cc47e154a5bfeaf4d0bd043d90387984d45f31581f32a0",
+      "bytes": 11186
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\browser-result.json",
+      "sha256": "4c46c8c5a4a72685d3f87a4ebddb010352dc688d2dba925e1c47f0fd50df5670",
+      "bytes": 3979
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\first-hour-expired.png",
+      "sha256": "42e0dbe2f320f60d5c3b22c9143850b3734e8b36cc1550c0d9fa720c6d87fc76",
+      "bytes": 213798
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\first-hour-reference.png",
+      "sha256": "e27ac4136aee8b81923876d9615695fcc3c3520459e687c568ca39a190400c25",
+      "bytes": 235565
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\report.json",
+      "sha256": "bf567d08893af1e10af5ad991ce5b06bae0843bf195dfbc3cded8a5eda9ce7a9",
+      "bytes": 12381
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\TEST_ONLY-ai-event.json",
+      "sha256": "ff1ac22efeefc12d51c12ab56148c36ae1ffcc02ec286c96a6fb0165c1c667d5",
+      "bytes": 22800
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-1440-en-dark.png",
+      "sha256": "fe7f5f6a29a01767aad00d71bffb2a6859f95934c2615758c5fe6387e816a2e9",
+      "bytes": 287323
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-1440-en-light.png",
+      "sha256": "d3ea121e3703d9ffcffbd28740aba4a594f5a42ab8afeac92c24db81a6bad7a3",
+      "bytes": 275439
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-1440-zh-dark.png",
+      "sha256": "9e4c35093c9f69eb9fc0f6bbbfc66cbf3adb073646c2cd1c80e2003a9a01f492",
+      "bytes": 236190
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-1440-zh-light.png",
+      "sha256": "aa18933e5188fdab4c1127a2f98f980bd1e8f117e6066673cb777c1635dba09c",
+      "bytes": 237558
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-2560-en-dark.png",
+      "sha256": "a66d24efbd3501733a85649d2da6b7e105a9306995eb6549f674697eb6e8c55f",
+      "bytes": 286198
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-2560-en-light.png",
+      "sha256": "d7ddf3641faa8202887e22658b226c37e4f49d27d990372132fe6923f536be9f",
+      "bytes": 285413
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-2560-zh-dark.png",
+      "sha256": "45e9463687fbab967373abae8f988f93799099970523a8856fe6c8a52b109b6b",
+      "bytes": 247252
+    },
+    {
+      "path": "evidence\\browser-20261031T142503Z\\weekend-2560-zh-light.png",
+      "sha256": "1b7784a1bc0e0efaeaf3c461bafb8dfed19a92d06d609f1a1c74d813b72da33b",
+      "bytes": 248616
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\browser-result.json",
+      "sha256": "9a821bd75f429e4b22f9219542ce844e7d2e884b7b0257c856556950486d55f5",
+      "bytes": 4081
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\first-hour-expired.png",
+      "sha256": "e6f48bdf6e57025163ee1f97f5c72cb0a13414be4ad1de8ea853c81c60afdb2d",
+      "bytes": 214024
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\first-hour-reference.png",
+      "sha256": "e05a2326746bee29944a2321aa056722a16f7e4c29311c02bdac1288a8598c58",
+      "bytes": 242689
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\report.json",
+      "sha256": "2946dc092eb22f45ddf9c381f1b8ae33ada86e852079bb4b87aa98c16eeea769",
+      "bytes": 12381
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\TEST_ONLY-ai-event.json",
+      "sha256": "ff1ac22efeefc12d51c12ab56148c36ae1ffcc02ec286c96a6fb0165c1c667d5",
+      "bytes": 22800
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-1440-en-dark.png",
+      "sha256": "829e978e65791116d28f38372db0740154b83e19526e346bbdaf88f6ef4fe9ad",
+      "bytes": 275894
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-1440-en-light.png",
+      "sha256": "999a1552a95436112d9f98af0c42a5c7627bd00113e809f99a46b74c9565dad4",
+      "bytes": 274555
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-1440-zh-dark.png",
+      "sha256": "ff938ed8d44180ef6a9f43a34e28f1bafa6dd134ef7c2b6f069c2d76747f9e59",
+      "bytes": 235278
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-1440-zh-light.png",
+      "sha256": "f2a1a15ba537dfc70f4e871d1f91186194edc0d01e7bcea4466548eaae16cd9c",
+      "bytes": 236031
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-2560-en-dark.png",
+      "sha256": "fc37f1b8f7f3c89cabb408b90733787258b6d7e5ae85781501e203f60092488d",
+      "bytes": 285366
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-2560-en-light.png",
+      "sha256": "032df2673028c064c591e111f4d7230bfc1d451f960541a47194c928375a83e2",
+      "bytes": 284456
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-2560-zh-dark.png",
+      "sha256": "319b220c86ea9dde9dc33dc47e35b1428631bc7abd5284a914be8a7589ae0f12",
+      "bytes": 255505
+    },
+    {
+      "path": "evidence\\browser-20261031T144808Z\\weekend-2560-zh-light.png",
+      "sha256": "2089c3bded7f34b22ba2d232959a9f2ff651d40b83981a857052505da7741e62",
+      "bytes": 247656
+    },
+    {
+      "path": "evidence\\final-handoff-regression.xml",
+      "sha256": "22185b279f804b7d2844041b9ed1d5f4ccaaf02de8bcb0f086f68698e8a704d2",
+      "bytes": 9891
+    },
+    {
+      "path": "evidence\\handoff-legacy-regression.xml",
+      "sha256": "9b513c41372faf630f351d40891a2ae1494dc4c1203ff5e28044252164492352",
+      "bytes": 8366
+    },
+    {
+      "path": "evidence\\http-attribution-tests.xml",
+      "sha256": "7dce426ccf4a48ced40ff12e1dd9d41531fdfd25267debc3157bfdadd86f9408",
+      "bytes": 942
+    },
+    {
+      "path": "evidence\\integrated-ai-and-route.xml",
+      "sha256": "9bc479f49c6561332fc3877d8c9e96fe6f2f3c60e726554337aad4d7e8eb5b91",
+      "bytes": 6962
+    },
+    {
+      "path": "evidence\\integrated-ai-boundaries.xml",
+      "sha256": "c50aaa212f7f6d1ca6c9fa3bd82ad2eea622e6b240a3c77a101f1d3314bf3b8b",
+      "bytes": 5654
+    },
+    {
+      "path": "evidence\\loopback-transport.xml",
+      "sha256": "f161ddb14b36bea4c5e6c1b0c61a91aa41d3d2fdf297ac8b96f380db1ec119ea",
+      "bytes": 952
+    },
+    {
+      "path": "evidence\\passive-timing-regression.xml",
+      "sha256": "dcbfea35c865f02a8bd20db74615245cf03ffcb78e5ea4880a4c8c8baf55f6fb",
+      "bytes": 2819
+    },
+    {
+      "path": "evidence\\real-sol-minimal-20261031T141425658129Z.json",
+      "sha256": "6fc42375b97abe39dfb90bd415f8b6b0941fa11d79f77953ee4f1974a9c4f6a9",
+      "bytes": 292
+    },
+    {
+      "path": "evidence\\reference-before-fix.xml",
+      "sha256": "c73783c7eb90a5da24f1d6ce93ab974e3b677f808971a4583e275a257a6a3c7f",
+      "bytes": 2368
+    },
+    {
+      "path": "evidence\\reference-handoff-regression.xml",
+      "sha256": "d454830aeca76eac2ebb8fde57c1296544ce93de3634cafdcb9caba4965c792d",
+      "bytes": 10881
+    },
+    {
+      "path": "evidence\\saved-real-replay-20261031T142732Z.json",
+      "sha256": "a8dda003b224cb8f6eb45212cb7400b3a4b0db330f78bcf3a9501e9c91949368",
+      "bytes": 120961
+    },
+    {
+      "path": "evidence\\saved-real-replay-20261031T153002Z.json",
+      "sha256": "c46d7aab3cb9a6bb2fb4c7433b553f1f38046820d0129bd5d2c7ad1fd8a98fba",
+      "bytes": 120961
+    },
+    {
+      "path": "evidence\\sidecar-client-tests.xml",
+      "sha256": "f329dbbbfa8c16af6b1f3e79822af75fb6f4d9ad9e01569d0da49456c69435c2",
+      "bytes": 5654
+    },
+    {
+      "path": "evidence\\sidecar-tests.xml",
+      "sha256": "a397fb555546895488ea88a105d4d72743df2fb7fe3c0a9325c6e6e591137672",
+      "bytes": 6315
+    },
+    {
+      "path": "evidence\\source-path-dedup-regression.xml",
+      "sha256": "8553e86c1f63790ed8976720f720341e8f8cd8a614b1f84813e1199885722062",
+      "bytes": 10566
+    },
+    {
+      "path": "evidence\\weekend-handoff-short2-20261031-analysis.json",
+      "sha256": "5072d2aa218f793fbdfa9fecab54ab7e80dd972e6d15afe54fa0dac2ffb9ffc8",
+      "bytes": 63730
+    },
+    {
+      "path": "evidence\\weekend-handoff-short2-20261031-http-attribution.json",
+      "sha256": "973cd709975635e52e38b69ef12fab787e5c3b0ff0f2dd0dd62fc5331fe78498",
+      "bytes": 2947
+    },
+    {
+      "path": "evidence\\weekend-handoff-short3-20261031-analysis.json",
+      "sha256": "a404a28f9980d42cc51bde3e1d8035ee168d0b0ec070efbdb41a2ccb539d2e24",
+      "bytes": 63550
+    },
+    {
+      "path": "evidence\\weekend-handoff-short5-20261031-http-attribution.json",
+      "sha256": "f0e370244427118396300fa2f682c501b834f73424c2bcd01f2919af95596e8e",
+      "bytes": 3557
+    },
+    {
+      "path": "evidence\\weekend-handoff-short6-20261031-analysis.json",
+      "sha256": "db836b34fe0967274af1bc25fa4c0da265d837f416e38be03400342d567ba6a4",
+      "bytes": 69384
+    },
+    {
+      "path": "evidence\\weekend-handoff-short6-20261031-http-attribution.json",
+      "sha256": "6faa9212b1f579bcbe24e11c15b629db53a8225b57447baecab430a35568182d",
+      "bytes": 3553
+    },
+    {
+      "path": "C-evidence\\C_CLOSEOUT.json",
+      "sha256": "28b8f49ad5fd733efbfb89bd8aea97276cda7adc5790192fc6c291e86ca66c3b",
+      "bytes": 5042
+    },
+    {
+      "path": "C-evidence\\calendar-tests.xml",
+      "sha256": "5e2827157a4c10f1298d286e9fb6b3217ad2310ff6d0919b8a0f2ea52dc0d250",
+      "bytes": 1754
+    },
+    {
+      "path": "C-evidence\\calendar-verification.json",
+      "sha256": "a7d39fd6d5e6d1abc311413eb797d6f9b11fb500f77b00be02bcb4e8417b2250",
+      "bytes": 33938
+    },
+    {
+      "path": "C-evidence\\lifecycle-core76-01\\confirmed-exit.child.json",
+      "sha256": "e9644c583a20fd9d69fc561ccf281af223020970adc60ed953cfb3fa3ca5950c",
+      "bytes": 81
+    },
+    {
+      "path": "C-evidence\\lifecycle-core76-01\\original-host-check.json",
+      "sha256": "a8059a587c320431979eb82fff869c446f9301ee8f398578b4f889989671274b",
+      "bytes": 223
+    },
+    {
+      "path": "C-evidence\\lifecycle-core76-01\\owned-parent.child.json",
+      "sha256": "933262a379adc8d9690a23efd51e5fcdc52b72fe5e3673b4ea562d473e3b3e42",
+      "bytes": 83
+    },
+    {
+      "path": "C-evidence\\lifecycle-core76-01\\result.json",
+      "sha256": "bdd69788dbfa64d00ae09600d313b69cbc8e4770e57adcba3536d51c9bb3cfa1",
+      "bytes": 7918
+    },
+    {
+      "path": "C-evidence\\lifecycle-core76-01\\services.test-only.json",
+      "sha256": "7e3983738591dbb6ef93d4735c94594eb1ffea16b9d6f31cf322e23e4249180d",
+      "bytes": 2141
+    },
+    {
+      "path": "C-evidence\\lifecycle-core76-01\\unrelated.child.json",
+      "sha256": "28f19ca7d90fc01b33848badbe677879b851a784c5997b697788a76e49503917",
+      "bytes": 81
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-01\\confirmed-exit.child.json",
+      "sha256": "7106fe9e75a8cc3d254fe48415aca8670f58a55d08a30748b815552085820696",
+      "bytes": 111
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-01\\original-host-check.json",
+      "sha256": "ecd77d7e60d6b8a17af7098b784675bf1e4c236a31f14766980a8539de4de8ef",
+      "bytes": 224
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-01\\owned-parent.child.json",
+      "sha256": "19676a060c2e43decc4ea330f91ac43038738dbf8e5e16cf6952996709491f1b",
+      "bytes": 94
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-01\\result.json",
+      "sha256": "81776ea3fa11a71d2564a37ff8219dc35a8dbd15a47d861d3b2b1e836684c1cf",
+      "bytes": 8200
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-01\\services.test-only.json",
+      "sha256": "83bfbeed35fd3e94347d5c67a42f9940d36a4d35c3a6285d5b214828b3f97ccd",
+      "bytes": 2831
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-01\\unrelated.child.json",
+      "sha256": "a4dcdf08c4b694e3072d67fa261ce1c5ab9a4c1446f0b9f92356bfab25cdfab0",
+      "bytes": 113
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-02\\confirmed-exit.child.json",
+      "sha256": "3bca0ad0dbb4b9cf51f29b378b2680817fff3815523923741b328410714c5c2a",
+      "bytes": 113
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-02\\original-host-check.json",
+      "sha256": "ecd77d7e60d6b8a17af7098b784675bf1e4c236a31f14766980a8539de4de8ef",
+      "bytes": 224
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-02\\owned-parent.child.json",
+      "sha256": "30546ceae2f3a099d11ef73ab9c63c88eff3c068dbaacdb4d1b3c68b9046f24c",
+      "bytes": 95
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-02\\result.json",
+      "sha256": "b12763f209ccf4ac4d55e57d5508852b24461c1dde8a78ae0c3ce1ca3fe04262",
+      "bytes": 9487
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-02\\services.test-only.json",
+      "sha256": "22fc48aa609627088e6c08af406583c8a4cdcaf7639b3a9e67b62259d77541ce",
+      "bytes": 2840
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-02\\unrelated.child.json",
+      "sha256": "31ca386737a317d6e90c028646e5ea22dcc99c12640631423c2fba5824008749",
+      "bytes": 113
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-03\\confirmed-exit.child.json",
+      "sha256": "c99f6fcda049b32d6ae9cbfecda2b2020403ac38b910398a57df649b5f055f66",
+      "bytes": 112
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-03\\original-host-check.json",
+      "sha256": "ecd77d7e60d6b8a17af7098b784675bf1e4c236a31f14766980a8539de4de8ef",
+      "bytes": 224
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-03\\owned-parent.child.json",
+      "sha256": "4ed2c75dd76c521c40a14a6b26b8b113072af2d4113f87a196a26967d118e2a7",
+      "bytes": 94
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-03\\result.json",
+      "sha256": "12cb9dfafc69c072042d45feec81ea476389d9e3e20b762a1806555b768125db",
+      "bytes": 12173
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-03\\services.test-only.json",
+      "sha256": "3e9e6b017663b5a8dab4b6acd0cbb52f70c7aac7f34b60d11385729384fd04bb",
+      "bytes": 2696
+    },
+    {
+      "path": "C-evidence\\lifecycle-windows51-03\\unrelated.child.json",
+      "sha256": "1df29f53a0362a943b53fa7f6467b6abe06639561fad03e5f1d35dae6d48cde2",
+      "bytes": 111
+    },
+    {
+      "path": "C-evidence\\WORKSTREAM_C_CLOSEOUT.md",
+      "sha256": "096de18970c3041eb27e2d3c95e3193aa9f2437b13aae04b2376d536347bcce9",
+      "bytes": 7134
+    }
+  ],
+  "sources": {
+    "opening-first-hour\\browser_short.py": "ebdae60fbe07b5d2fa18896ada3989b941e7d2f4507fc42a9e31a80cda8eaead",
+    "opening-first-hour\\capture_baseline.py": "69cad376b7c266a482df420a42bb7fbf3dd15fd94d281b1a65495d7478d956c7",
+    "opening-first-hour\\first_hour.py": "e117b776fb54ed160d0b90cea3a611b18ff3b6294a2048de057c39dbf47b8840",
+    "opening-first-hour\\first_hour_approval.py": "78de57d6c322a54e8c6267978fd68703ccf3e83d6a3d61c9957691fdf88cfd65",
+    "opening-first-hour\\first_hour_current.py": "2edcac2b3c9c2839a4e55cbec3f71a4a768df586c876120f2dd6739d807e17c4",
+    "opening-first-hour\\first_hour_http_snapshots.py": "377b180b40e72233ed2ce23ec454e72d902e586aed3d95931172909137c94b38",
+    "opening-first-hour\\first_hour_journal.py": "df656bf1af848e8ce4ee9fa53d76f9a110a0c3c54a289590b3cd85112895ec88",
+    "opening-first-hour\\first_hour_minute_decisions.py": "ca8d91823fbe39aff5ade2447215238b84678cd3d1e0a59000a5161623fe224d",
+    "opening-first-hour\\first_hour_pipeline.py": "c21f94cb2682758e33522bb5397936821e247260f56f0a7e5704581cff8c38f0",
+    "opening-first-hour\\first_hour_policy.py": "649e82ce77f1ad621af9b8b504305f3b73aa979d62e15aa0dc94d15e5898a3bb",
+    "opening-first-hour\\first_hour_reference.py": "729773ddc9d620be423289e7eb29ee8f55da74058d868360c37eb9a87a3a446c",
+    "opening-first-hour\\first_hour_runtime.py": "cd7b210af95f5382723a34334c50bcd829d407822b2d588215b722a098dd91bc",
+    "opening-first-hour\\first_hour_status_worker.py": "084d8c4f851754ea4e1f471762350dbc4520ec2e72678bd8e161dafb933f5c54",
+    "opening-first-hour\\first_hour_store.py": "d5df20a181bd871093def04d9e7c0f46604dcb5d81e4dae79fd53d8e971e3b2e",
+    "opening-first-hour\\gateway_candidate.py": "5ce6c083c264d244d39ab605b7d24fdfd3eae270b01b34ade5a42d7ad207bc91",
+    "opening-first-hour\\method_snapshot.py": "525b5cf4060498a41c630fbd03a8ea1c24bc6fd31bc1070d6c08f373002929b2",
+    "opening-first-hour\\prepared_generation.py": "a06e13ed5fe9da5e0c42387faeedbdf483a24ac04e939f46c69fc8ba4819ccdc",
+    "opening-first-hour\\prepared_minutes.py": "56caada6a8eee39242b8d95c332f54afaab64668c16025c74bf65658863a9664",
+    "opening-first-hour\\published_status_snapshot.py": "2d9d9299015d844df1215dbf7e63f66e8d7162d8b1a5424b3aadd517e85251c2",
+    "opening-first-hour\\replay_saved.py": "22232762e3fb86974b84c87d981367908ffa9928792849f91d8859275a21cc62",
+    "opening-first-hour\\run_topology.py": "fc43f7160bc068a550f2792439bfe153f656754d772b02f5ba03af4c19c0c38e",
+    "opening-first-hour\\short_probe.py": "06e811a6114ddc3d0467d0945e86d519ed745d6af0ac86cb35a9561cee7ae864",
+    "opening-first-hour\\test_decision_preparation.py": "c25b5aba165e5add9d3feb28ad622967aa4226f49e6c2fbcee3939ca3171f650",
+    "opening-first-hour\\test_first_hour.py": "f2c3e5e4d21c0b2b3434aea7e94a398ca8053c4a3ae73d4cb32ba9be9fd832f0",
+    "opening-first-hour\\test_first_hour_approval.py": "2c54f0579d313eeca88e9f5bf14e9ba6a983fa955e75f0d4bbe720f0a2c15677",
+    "opening-first-hour\\test_first_hour_journal.py": "a91279843f7561089fce824cec59732d33d572c05fe1f2eb2cb191e9e0555d5d",
+    "opening-first-hour\\test_first_hour_runtime.py": "abcd86908d42ce7964eba30b42786fafeb3894bf2932e74ab18d810ddd287846",
+    "opening-first-hour\\test_first_hour_selection.py": "eed9e3f98ec2c1bcd2147d03b8d0a447a85a3992c21441466e64d2052f0258d0",
+    "opening-first-hour\\test_gateway_candidate.py": "6ccedc9bce37137c334d62323aa80aae5964372f34ce7d04c74c1e0f8f8d7a1e",
+    "opening-first-hour\\test_generation_handoff.py": "0a88518c062e7cc5c503bc1151901a00aa3009f352da847718d614ef7c1cc85f",
+    "opening-first-hour\\test_input_commit_fence.py": "41488dd4da866f2750fe37e91665e8f73306dfca9711a7b81ccc043d2426cf29",
+    "opening-first-hour\\test_method_snapshot.py": "f716d26c0bde1aadf7deee46dd7eb4669e5001df7b234c63cac98d532f5f5e3d",
+    "opening-first-hour\\test_prepared_minutes.py": "f131eaa5c4c7c5b2b8aa1f870d854d093129a93542db1902bb6b1d4a3e2e6422",
+    "opening-first-hour\\test_published_status_snapshot.py": "89e8b1fe10b3f442cd48e67527719fadd800c52b3ecced830f4d896c9f8d3cd2",
+    "opening-first-hour\\test_source_preparation.py": "2fcb5739a5498a5025599d5bad079d921434702c6c3bc34713a33ba48b31bcdc",
+    "opening-first-hour\\trace_missing_evaluation.py": "1171d81451a4b269b85999c4ea7b2578f4a774b83ab1de9235a1cde8f14f0089",
+    "opening-first-hour\\assembly\\bootstrap.py": "5fc9907218c84b29259d8311e533345edc3d41098410f0f354781df37e135d54",
+    "opening-first-hour\\assembly\\browser_response_evidence.cjs": "041bb5659b6cda26e64ada5be01c8b06f408ae95c4127795ff6dff07e2ffb9ac",
+    "opening-first-hour\\assembly\\check_r58_p9_browser.cjs": "f3bcc032694c50f48260dfed62582612458be0dcb8bba77bdd54d8e236cb895e",
+    "opening-first-hour\\assembly\\live_fact_topology.py": "133ee601966bb12fef81ba93be08f5698d0966e7a9964705fc49fc206cd9dc56",
+    "opening-first-hour\\assembly\\run_assembly.py": "cd50fcbd83d01af5111ddbe5a42f867e3a4c2347cf1b9648ae080cf581e526c1",
+    "opening-first-hour\\assembly\\sitecustomize.py": "7714071a0674c4f6a777918565d6fa531288456faf426bdba5f20a076af8065a",
+    "opening-first-hour\\lifecycle-candidate\\start_kquant_workspace.ps1": "204bbb861014950b2c8a1065bdfaa28abf8cb28f2ce6367d1d3353679b1b9354",
+    "opening-first-hour\\lifecycle-candidate\\scripts\\FoundationLifecycle.ps1": "3803593caac14cafe04288edc4339df985a2a26e01dc2629c4bdc2ae1926daae",
+    "opening-first-hour\\patches\\web\\src\\unified\\OptionsOperations.tsx": "b99bff7f95412919f8d4e3bada4927051f7c050ec73a5a9dc2b55c7dbcd317cd",
+    "opening-first-hour\\patches\\web\\src\\unified\\snapshotRefreshPolicy.ts": "0175cbec535a506ce40de984e2de281ddf82c39d92c7c98498602043a302b05a",
+    "opening-first-hour\\patches\\web\\src\\unified\\StrategyComparisonCard.tsx": "caefeb11ee09ce19ae8c935148c040f4f5eda6f9129681b96fe72d696f870948",
+    "opening-first-hour\\patches\\web\\src\\unified\\useOperationalResource.ts": "306e102433f3e8608c656c6dba4c1cb5d4f9ee7ad332fa7574dbd938abdd66d8",
+    "opening-first-hour\\build\\unified\\kq-mark.svg": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d",
+    "opening-first-hour\\build\\unified\\manifest.webmanifest": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac",
+    "opening-first-hour\\build\\unified\\service-worker.js": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0",
+    "opening-first-hour\\build\\unified\\unified.html": "428f53f615dc75d0648510bafec9a4b34da16e780c6b9e6f2adb5e5cdbd1de6a",
+    "opening-first-hour\\build\\unified\\assets\\unified-BE33Baq-.css": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad",
+    "opening-first-hour\\build\\unified\\assets\\unified-nq0Il6lQ.js": "8bb1e21a52f8d026eedbc87bb9c651389580fbf55a27675ad9a444774ad0ee99",
+    "opening-first-hour\\build\\stock\\index.html": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604",
+    "opening-first-hour\\build\\stock\\kquant-mark.svg": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a",
+    "opening-first-hour\\build\\stock\\manifest.webmanifest": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19",
+    "opening-first-hour\\build\\stock\\service-worker.js": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40",
+    "opening-first-hour\\build\\stock\\assets\\index-8MnraLHw.css": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956",
+    "opening-first-hour\\build\\stock\\assets\\index-Dx1YIUO6.js": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d",
+    "weekend-20261031\\analyze_short.py": "9f1f3ebd2da3a85a9c2ee0b12e9660e0059d2529f9f6918c72b7a9b7f2cfe09e",
+    "weekend-20261031\\bootstrap.py": "0aedd2fc13a16220fdf1ec26ec9ced73cce759dd57238d27692ccda8539ab45a",
+    "weekend-20261031\\browser_short.py": "5a5d46a16961312abb8b6897e75a5075eb10f0996b2499bea5449bb028b2e2e6",
+    "weekend-20261031\\capture_baseline.py": "478a5ccf11ee96f79c91eead846a906c17e6a356320112bf3a573528802a5b46",
+    "weekend-20261031\\capture_execution.py": "314d1882a0072aa5b1a0603defacbd2e32fd462dd2c7fd058fbbfc9f4b0b6789",
+    "weekend-20261031\\http_attribution.py": "6e91d321bafd4250c7983255118a094ec03705ff71fbd40a69bd51e6264a5250",
+    "weekend-20261031\\prepare_authorization.py": "947b3aa3b247e9e74728948e07792cf71abe5a6358be64e5da361e8208fabfe8",
+    "weekend-20261031\\replay_saved.py": "26b0bc4d92cc1bd55e5d049bd59bc23fd0ade4d98c45611836e7ea996b1df79b",
+    "weekend-20261031\\run_real_capability.py": "f078ed45c44184bb6f1d1020646971b9c23bf02ba6010ae277d3c73bdcb8f52c",
+    "weekend-20261031\\run_topology.py": "911ac545150591c5910d6fb56964010d4ee72107c49f76c12963604f06765e1b",
+    "weekend-20261031\\test_http_attribution.py": "0800af3ed2c50ef9f9961edfc387ec8afa2ea07c43178f191593fd334b338116",
+    "weekend-20261031\\test_loopback_transport.py": "7fa0eb558372b1ef2779080a2112934e00eeabcfccc6c9ab21989dc8efecabff",
+    "weekend-20261031\\test_weekend_ai.py": "82be452b1dcaf8c2b1ca9821ecc60a6ae28259cd921a4bb8d4a55d1afac81de1",
+    "weekend-20261031\\test_weekend_ai_route.py": "4efcec167f411ae1a85b04ae60f270aed0346322aa0697c3ded86200b2975684",
+    "weekend-20261031\\test_weekend_sidecar.py": "a09ac2922408931022596f3829861964c8173271b28b2e2a4521875419695766",
+    "weekend-20261031\\browser_short.cjs": "ca2bfeebf58571f1fde540f09e36eea6b55ca2955082174ddecc41b576406745",
+    "weekend-20261031\\patches\\kquant\\options_api_budget.py": "f753cc16c6e4b072ad93af9d666bfa70ceb328ccf466ad4a2ab58081262f74f2",
+    "weekend-20261031\\patches\\kquant\\options_input_commit_fence.py": "fa7e4a4b810681f8795249e8b72c3e19e71ff713bf0b6c5b6695f7fe4a7011b1",
+    "weekend-20261031\\patches\\kquant\\options_llm_credentials.py": "bb627b7810a64589da40b43eb1e85a81ccc99d8b679b86df0b6f194059740bb6",
+    "weekend-20261031\\patches\\kquant\\options_one_minute.py": "79db421351647fcf9b574cdba8b1d64d4477fa89bb916e3a51718afa8049b2a1",
+    "weekend-20261031\\patches\\kquant\\options_one_minute_runtime.py": "fbc510728005e878256255d9692df27c3db070f04209318874b0a288df4537ab",
+    "weekend-20261031\\patches\\kquant\\options_price_action_source.py": "c316e2ff4011d45ac1ad2f877955631f591641263233a6575afceb7e58e25a58",
+    "weekend-20261031\\patches\\kquant\\options_price_facts.py": "5e92cea06943743c241dde8cbd9c08079c40636cf96310f52a015c763effcef8",
+    "weekend-20261031\\patches\\kquant\\options_research_ai.py": "3f27a26e225fff9cb39ebd433d90acc1780d6ff5a71b6beddca04c023e37a677",
+    "weekend-20261031\\patches\\kquant\\options_research_ai_evidence.py": "853c8dcfdc7b92e76a7ad38999f7f3e855f74facd2af223f4f8b55c13b395e13",
+    "weekend-20261031\\patches\\kquant\\options_research_ai_store.py": "6dd0176415ba48964e8fc13e6d3314dad6e6bc6be8092868b645f720b19f4d90",
+    "weekend-20261031\\patches\\kquant\\options_research_ai_worker.py": "bc5a34de4c05045c6d96d7ab0a6b040bb57787d835f9c5ec9a61e7746a44f784",
+    "weekend-20261031\\patches\\kquant\\dashboard\\app.py": "393a045e891898c39ff7590a41c04a92daf467e831bdc180f97bd5f23bdee0b0",
+    "weekend-20261031\\calendar\\capture_calendar.py": "c8f14529c07b55d988b92e538047e211e5bb84736d2d2676a867f26ad03d354a",
+    "weekend-20261031\\calendar\\test_window_calendar.py": "786dde35c00126bec797950a8c3f251464c3d67b82e0035f7d2abee00ba44998",
+    "weekend-20261031\\calendar\\window_calendar.py": "ff36c1657e4c6c75c4d471d38f9a6b409ae287be1315076f3025b3015e9c3eef",
+    "weekend-20261031\\config\\owner_weekend_api.json": "e152442d6dde4faca77b973cc59e57e469ce9bf05b13a5bf2d40fa0d205913fd",
+    "weekend-20261031\\config\\research_ai.json": "8ba472eadff15064d89f6b8c903fc03c473fe3f954a48c3b63cf300c92becb38"
+  },
+  "source_identity": "26abbc61b61f781e1ce495253ea2b6df6ec20a374c5e84913e6f2a000e9d7d91",
+  "consistency": "Sequential file observations, not an atomic runtime or database snapshot."
+}

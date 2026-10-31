@@ -1,0 +1,11 @@
+{
+  "checked_at": "2026-10-31T14:14:25.658129+00:00",
+  "scope": "TEST_ONLY_BUSINESS_REAL_API_COST",
+  "natural_signal": false,
+  "production_start": false,
+  "role": "SOL",
+  "case": "minimal",
+  "paid_call": false,
+  "result": null,
+  "state": "MISSING_LOCAL_DPAPI_NO_NETWORK"
+}

@@ -1,0 +1,558 @@
+{
+  "frozen_at": "2026-10-16T14:33:36.878541+00:00",
+  "constraint_sha256": "5edffb8f60135bc8aeef31b4ad7cc0de7f311b9a9779f85e8f12d068b5ceb4bd",
+  "source": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\option_foundation\\runtime\\one-minute-worker.json",
+  "source_sha256": "7f9fad7ca9da949ad7336ef0a62a5167d312f1f0c2412703dd95b684c751657f",
+  "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+  "items": [
+    {
+      "symbol": "$COMP",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "$DJI",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "/ES[Z26]",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "/NQ[Z26]",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "/RTY[Z26]",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "/YM[Z26]",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "AAPL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "AI",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "AMD",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "AMDL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "AMZN",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "APLD",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "APP",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ARM",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ARQQ",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ASML",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ASTS",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ASTX",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "AVGO",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "BE",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "BITU",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "BMNG",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "BMNR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "BNC",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "BTDR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CIFR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CLSK",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "COIN",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CONL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "COPZ",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CORZ",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CRCG",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CRCL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CRWV",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "CYN",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "DAXAUD:DBI",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "DGP",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "DLR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "DUK",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "DXYZ",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "EQIX",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ERO",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ETHU",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "FCX",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "FLNC",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "GDXU",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "GOOGL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "GWH",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "HBM:XETA",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "HIVE",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "HOOD",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "HOOG",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "HUT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "IBIT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "IONQ",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "IREN",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "IRM",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "JNUG",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "JOBY",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "LUNR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MARA",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "META",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MSFT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MSTR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MSTU",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MSTX",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MSTZ",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "MU",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "NBIS",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "NNE",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "NUGT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "NVDA",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "NVDL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "NVTS",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "OKLO",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ORCL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "PLTR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "QBTS",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "QMCO",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "QS",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "QUBT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "RDW",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "RGTI",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "RIOT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "RKLB",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "RKLX",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "ROBN",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SBIT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SCCO",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SIL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SMCI",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SMH",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SMR",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SNDK",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SOLT",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SOX",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "SOXL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SPAL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SPCE",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SPCX",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "SPX",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "STRC",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "TSLA",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "TSLL",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "VIST",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "VIX",
+      "identity_status": "identity_unconfirmed"
+    },
+    {
+      "symbol": "VRSK",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "VST",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "WDC",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "WOLF",
+      "identity_status": "verified"
+    },
+    {
+      "symbol": "WULF",
+      "identity_status": "verified"
+    }
+  ],
+  "applicable": [
+    "AAPL",
+    "AI",
+    "AMD",
+    "AMDL",
+    "AMZN",
+    "APLD",
+    "APP",
+    "ARM",
+    "ARQQ",
+    "ASML",
+    "ASTS",
+    "ASTX",
+    "AVGO",
+    "BE",
+    "BITU",
+    "BMNG",
+    "BMNR",
+    "BNC",
+    "BTDR",
+    "CIFR",
+    "CLSK",
+    "COIN",
+    "CONL",
+    "COPZ",
+    "CORZ",
+    "CRCG",
+    "CRCL",
+    "CRWV",
+    "CYN",
+    "DGP",
+    "DLR",
+    "DUK",
+    "DXYZ",
+    "EQIX",
+    "ERO",
+    "ETHU",
+    "FCX",
+    "FLNC",
+    "GDXU",
+    "GOOGL",
+    "GWH",
+    "HIVE",
+    "HOOD",
+    "HOOG",
+    "HUT",
+    "IBIT",
+    "IONQ",
+    "IREN",
+    "IRM",
+    "JNUG",
+    "JOBY",
+    "LUNR",
+    "MARA",
+    "META",
+    "MSFT",
+    "MSTR",
+    "MSTU",
+    "MSTX",
+    "MSTZ",
+    "MU",
+    "NBIS",
+    "NNE",
+    "NUGT",
+    "NVDA",
+    "NVDL",
+    "NVTS",
+    "OKLO",
+    "ORCL",
+    "PLTR",
+    "QBTS",
+    "QMCO",
+    "QS",
+    "QUBT",
+    "RDW",
+    "RGTI",
+    "RIOT",
+    "RKLB",
+    "RKLX",
+    "ROBN",
+    "SBIT",
+    "SCCO",
+    "SIL",
+    "SMCI",
+    "SMH",
+    "SMR",
+    "SNDK",
+    "SOLT",
+    "SOXL",
+    "SPAL",
+    "SPCE",
+    "SPCX",
+    "STRC",
+    "TSLA",
+    "TSLL",
+    "VIST",
+    "VRSK",
+    "VST",
+    "WDC",
+    "WOLF",
+    "WULF"
+  ],
+  "applies_to_new_windows_after_freeze": true,
+  "earlier_sessions": "RETROSPECTIVE_BASELINE_NOT_PREREGISTERED_SUCCESS",
+  "failed_inputs_remain_in_denominator": true
+}

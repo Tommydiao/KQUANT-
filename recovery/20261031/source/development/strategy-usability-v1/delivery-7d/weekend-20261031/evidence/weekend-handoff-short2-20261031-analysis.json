@@ -1,0 +1,2226 @@
+{
+  "test_only": true,
+  "report_sha256": "00354bb2f57e71ea78abff8d2f009a866600afc1ca7fd5e675d7cd1dbc5595be",
+  "run": "weekend-handoff-short2-20261031",
+  "errors": [
+    {
+      "code": "UNEXPLAINED_HTTP_FAILURES",
+      "count": 22
+    },
+    {
+      "code": "BACKGROUND_QUERY_FAILURES",
+      "failures": 1,
+      "complete": true
+    }
+  ],
+  "performance_pass": false,
+  "children_alive": [],
+  "http_failure_groups": {
+    "('/api/stocks/health/live', 503, None, 'UPSTREAM_TIMEOUT')": 3,
+    "('/api/options/opening-trend/current?research_strategy=opening_momentum', 503, None, 'UPSTREAM_TIMEOUT')": 3,
+    "('/api/options/one-minute/status?research_strategy=opening_momentum&compact=true', 503, None, 'TREND_STATUS_UNAVAILABLE')": 3,
+    "('/api/health/live', None, 'ReadError', None)": 13
+  },
+  "browser_keys": [
+    "test_only",
+    "duration_seconds",
+    "three_real_pages",
+    "refreshes",
+    "problems",
+    "api_failure_observations",
+    "rendered_http_issues",
+    "api_failure_classification",
+    "connection_scope_observations",
+    "manual_epoch_continuity_observations",
+    "signal_delivery_accepted",
+    "production_data",
+    "intercepted_routes",
+    "browser_executable",
+    "browser_version",
+    "playwright_module"
+  ],
+  "browser_unexplained": [],
+  "background": {
+    "records": 602,
+    "success": 601,
+    "failure": 1,
+    "deadline": 1
+  },
+  "points": [
+    {
+      "checkpoint": "2026-10-22T13:35:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 400,
+          "complete": 200,
+          "states": {
+            "NUMERIC_PASS": 100,
+            "NO_TRIGGER": 100
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 498,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.3440000000409782
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 12.077999999979511
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:40:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 196,
+          "states": {
+            "NUMERIC_PASS": 98,
+            "NO_TRIGGER": 98,
+            "INCOMPLETE": 4
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1880000000819564
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 10.75
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:45:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15699999989010394
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1720000000204891
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 10.781999999890104
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:50:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.14099999982863665
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.20300000021234155
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 11.094000000040978
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:55:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "INCOMPLETE": 2,
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 202,
+          "complete": 198,
+          "states": {
+            "INCOMPLETE": 2,
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.20399999991059303
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.25
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 12.968999999808148
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:00:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.18799999984912574
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.26500000013038516
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 13.234000000171363
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:05:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.18700000015087426
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.375
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 14.203999999910593
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:10:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15600000019185245
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.25
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04699999978765845
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.28199999989010394
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 15.0
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:15:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23400000017136335
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2809999999590218
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 16.57799999997951
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:20:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.34399999980814755
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.40600000019185245
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 18.859999999869615
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:25:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000008195639
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.3130000000819564
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.43799999984912574
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 19.344000000040978
+        }
+      }
+    }
+  ],
+  "latest_position_count": 4401,
+  "incomplete": [
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:35:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+      ],
+      "generation": 6,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 5,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 5
+        },
+        "intraday": {
+          "checks": {
+            "identity_currency": "PASS",
+            "known_intraday_risk": "PASS",
+            "native_price_basis": "UNKNOWN",
+            "same_session": "PASS",
+            "session_open": "PASS"
+          },
+          "currency_source_hash": "1472765b54a288929d67915e352c791669e881165e8ead83c30706f63fea6086",
+          "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+          "minute_hashes": [
+            "d33825fdfb323a730072c236f7bd125ca323bd397056b431538e56ba8287ca9e",
+            "4179185dfd44e937cc52569e6185759ca18ac400e480f242b17386e49beb080e",
+            "48db81d611bc5861bc98a784dd2e1a97815dce99276ec633edc15346a62b5020",
+            "fb46a9dc6684de8ed9ee13096002a77f46cfa77682cbbccdb14a0f7178c39b7f",
+            "f49b630efe262edd300ed4d5b50176bf94e53ed820460e53102343bf411de0e2"
+          ],
+          "previous_close": "NOT_REQUIRED",
+          "reasons": [
+            "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+          ],
+          "state": "INCOMPLETE",
+          "strict_cross_day_reference": "NOT_CLAIMED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:35:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+      ],
+      "generation": 6,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 5,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 5
+        },
+        "intraday": {
+          "checks": {
+            "identity_currency": "PASS",
+            "known_intraday_risk": "PASS",
+            "native_price_basis": "UNKNOWN",
+            "same_session": "PASS",
+            "session_open": "PASS"
+          },
+          "currency_source_hash": "1472765b54a288929d67915e352c791669e881165e8ead83c30706f63fea6086",
+          "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+          "minute_hashes": [
+            "d33825fdfb323a730072c236f7bd125ca323bd397056b431538e56ba8287ca9e",
+            "4179185dfd44e937cc52569e6185759ca18ac400e480f242b17386e49beb080e",
+            "48db81d611bc5861bc98a784dd2e1a97815dce99276ec633edc15346a62b5020",
+            "fb46a9dc6684de8ed9ee13096002a77f46cfa77682cbbccdb14a0f7178c39b7f",
+            "f49b630efe262edd300ed4d5b50176bf94e53ed820460e53102343bf411de0e2"
+          ],
+          "previous_close": "NOT_REQUIRED",
+          "reasons": [
+            "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+          ],
+          "state": "INCOMPLETE",
+          "strict_cross_day_reference": "NOT_CLAIMED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AI",
+      "right": "CALL",
+      "point": "2026-10-22T13:40:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "PRICE_REFERENCE_UNVERIFIED"
+      ],
+      "generation": 2,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 10,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 10
+        },
+        "reference": {
+          "reasons": [
+            "INSTRUMENT_IDENTITY_UNVERIFIED",
+            "PREPARED_PENDING_CURRENT_SESSION",
+            "PREVIOUS_CLOSE_VALUE_INVALID",
+            "REFERENCE_CURRENCY_UNVERIFIED",
+            "REFERENCE_TIME_CONFLICT"
+          ],
+          "state": "UNVERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AI",
+      "right": "CALL",
+      "point": "2026-10-22T13:40:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "INTRADAY_IDENTITY_CURRENCY_UNVERIFIED",
+        "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+      ],
+      "generation": 2,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 10,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 10
+        },
+        "intraday": {
+          "checks": {
+            "identity_currency": "UNKNOWN",
+            "known_intraday_risk": "PASS",
+            "native_price_basis": "UNKNOWN",
+            "same_session": "PASS",
+            "session_open": "PASS"
+          },
+          "currency_source_hash": null,
+          "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+          "minute_hashes": [
+            "c52184a019d2672e1ed4c4dfb2492d9f1b6806ae765f6f28da899b7ace5d778f",
+            "7ea0df9d0951eca10f6af0ccc34394510605431279e41b574f0171bf0a2d94ef",
+            "67f91c9426448c05493d4c923b2bbb13d037f4b8140f6307390d94d5c4f50f8f",
+            "938d44730cbf5f176bc0d3fe28d1d9c85f681a976ee9e6c9164e817511bdc0b8",
+            "ec5880cc1a6994f03c10bf5b83ffa7cdc37b8ebf0c124c1d21aad1d90f06d25e",
+            "f34f77dc87c797cc7f2480057f3487768748b0959c03173c0584f956ff882a95",
+            "18f5893581d1ef1c3457538b8bbf0932861304b079b2fb2b07d0e100b53649f2",
+            "bf2103e94ccd1eb506d31edbde785622fb67cb451c7f90bc06e8fd0f7e1183b0",
+            "9d363b5b090febcdcdd95997750d4bca8eaa6335358eec69a08f32f2d1967186",
+            "d95f5315ef08bc58d4abe91f257d3e9e0e7f58d9beb04540f8bfce6f84cc82eb"
+          ],
+          "previous_close": "NOT_REQUIRED",
+          "reasons": [
+            "INTRADAY_IDENTITY_CURRENCY_UNVERIFIED",
+            "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+          ],
+          "state": "INCOMPLETE",
+          "strict_cross_day_reference": "NOT_CLAIMED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AI",
+      "right": "PUT",
+      "point": "2026-10-22T13:40:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "PRICE_REFERENCE_UNVERIFIED"
+      ],
+      "generation": 2,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 10,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 10
+        },
+        "reference": {
+          "reasons": [
+            "INSTRUMENT_IDENTITY_UNVERIFIED",
+            "PREPARED_PENDING_CURRENT_SESSION",
+            "PREVIOUS_CLOSE_VALUE_INVALID",
+            "REFERENCE_CURRENCY_UNVERIFIED",
+            "REFERENCE_TIME_CONFLICT"
+          ],
+          "state": "UNVERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AI",
+      "right": "PUT",
+      "point": "2026-10-22T13:40:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "INTRADAY_IDENTITY_CURRENCY_UNVERIFIED",
+        "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+      ],
+      "generation": 2,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 10,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 10
+        },
+        "intraday": {
+          "checks": {
+            "identity_currency": "UNKNOWN",
+            "known_intraday_risk": "PASS",
+            "native_price_basis": "UNKNOWN",
+            "same_session": "PASS",
+            "session_open": "PASS"
+          },
+          "currency_source_hash": null,
+          "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+          "minute_hashes": [
+            "c52184a019d2672e1ed4c4dfb2492d9f1b6806ae765f6f28da899b7ace5d778f",
+            "7ea0df9d0951eca10f6af0ccc34394510605431279e41b574f0171bf0a2d94ef",
+            "67f91c9426448c05493d4c923b2bbb13d037f4b8140f6307390d94d5c4f50f8f",
+            "938d44730cbf5f176bc0d3fe28d1d9c85f681a976ee9e6c9164e817511bdc0b8",
+            "ec5880cc1a6994f03c10bf5b83ffa7cdc37b8ebf0c124c1d21aad1d90f06d25e",
+            "f34f77dc87c797cc7f2480057f3487768748b0959c03173c0584f956ff882a95",
+            "18f5893581d1ef1c3457538b8bbf0932861304b079b2fb2b07d0e100b53649f2",
+            "bf2103e94ccd1eb506d31edbde785622fb67cb451c7f90bc06e8fd0f7e1183b0",
+            "9d363b5b090febcdcdd95997750d4bca8eaa6335358eec69a08f32f2d1967186",
+            "d95f5315ef08bc58d4abe91f257d3e9e0e7f58d9beb04540f8bfce6f84cc82eb"
+          ],
+          "previous_close": "NOT_REQUIRED",
+          "reasons": [
+            "INTRADAY_IDENTITY_CURRENCY_UNVERIFIED",
+            "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+          ],
+          "state": "INCOMPLETE",
+          "strict_cross_day_reference": "NOT_CLAIMED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:40:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 10,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 10
+        },
+        "intraday": {
+          "checks": {
+            "identity_currency": "PASS",
+            "known_intraday_risk": "PASS",
+            "native_price_basis": "UNKNOWN",
+            "same_session": "PASS",
+            "session_open": "PASS"
+          },
+          "currency_source_hash": "eb6e423ccf04214ba548a0cd40930c636972d96a17bd28487ffe1299490c68a0",
+          "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+          "minute_hashes": [
+            "d33825fdfb323a730072c236f7bd125ca323bd397056b431538e56ba8287ca9e",
+            "4179185dfd44e937cc52569e6185759ca18ac400e480f242b17386e49beb080e",
+            "48db81d611bc5861bc98a784dd2e1a97815dce99276ec633edc15346a62b5020",
+            "fb46a9dc6684de8ed9ee13096002a77f46cfa77682cbbccdb14a0f7178c39b7f",
+            "f49b630efe262edd300ed4d5b50176bf94e53ed820460e53102343bf411de0e2",
+            "3cbb48f02b71d88485b4baaa06fa6911a8e1f6810f474f7a40732884754c5aac",
+            "22777a724e8ad016e554d0298731952f5bfa72ccbdf51e6e50324a9d0085d4e5",
+            "d5ff43b0e7533ccd0dfd4d335a0913602839079bde94473e895fc1208e6002e4",
+            "3ff26032d79d327e6a8e742adbd22f316037d7c03978e4cb268f0868490bc197",
+            "4e97c77ef21d6136bb953fcdb2c1ecada6bff7e297fc56ed132d5c6b304a9e5e"
+          ],
+          "previous_close": "NOT_REQUIRED",
+          "reasons": [
+            "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+          ],
+          "state": "INCOMPLETE",
+          "strict_cross_day_reference": "NOT_CLAIMED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:40:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 10,
+          "missing_slots": [],
+          "state": "COMPLETE",
+          "valid_minutes": 10
+        },
+        "intraday": {
+          "checks": {
+            "identity_currency": "PASS",
+            "known_intraday_risk": "PASS",
+            "native_price_basis": "UNKNOWN",
+            "same_session": "PASS",
+            "session_open": "PASS"
+          },
+          "currency_source_hash": "eb6e423ccf04214ba548a0cd40930c636972d96a17bd28487ffe1299490c68a0",
+          "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+          "minute_hashes": [
+            "d33825fdfb323a730072c236f7bd125ca323bd397056b431538e56ba8287ca9e",
+            "4179185dfd44e937cc52569e6185759ca18ac400e480f242b17386e49beb080e",
+            "48db81d611bc5861bc98a784dd2e1a97815dce99276ec633edc15346a62b5020",
+            "fb46a9dc6684de8ed9ee13096002a77f46cfa77682cbbccdb14a0f7178c39b7f",
+            "f49b630efe262edd300ed4d5b50176bf94e53ed820460e53102343bf411de0e2",
+            "3cbb48f02b71d88485b4baaa06fa6911a8e1f6810f474f7a40732884754c5aac",
+            "22777a724e8ad016e554d0298731952f5bfa72ccbdf51e6e50324a9d0085d4e5",
+            "d5ff43b0e7533ccd0dfd4d335a0913602839079bde94473e895fc1208e6002e4",
+            "3ff26032d79d327e6a8e742adbd22f316037d7c03978e4cb268f0868490bc197",
+            "4e97c77ef21d6136bb953fcdb2c1ecada6bff7e297fc56ed132d5c6b304a9e5e"
+          ],
+          "previous_close": "NOT_REQUIRED",
+          "reasons": [
+            "INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED"
+          ],
+          "state": "INCOMPLETE",
+          "strict_cross_day_reference": "NOT_CLAIMED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:45:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 15,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 14
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:45:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 15,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 14
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:45:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 15,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 14
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:45:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 15,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 14
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:50:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 20,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 19
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:50:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 20,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 19
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:50:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 20,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 19
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:50:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 20,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 19
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:55:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 25,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 24
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T13:55:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 2,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 25,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 24
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:55:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 25,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 24
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T13:55:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 2,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 25,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 24
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:00:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 30,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 29
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:00:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 30,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 29
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:00:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 30,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 29
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:00:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 30,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 29
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:05:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 35,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 34
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:05:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 35,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 34
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:05:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 35,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 34
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:05:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 35,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 34
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:10:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 40,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 39
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:10:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 40,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 39
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:10:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 40,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 39
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:10:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 40,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 39
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:15:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 45,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 44
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:15:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 45,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 44
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:15:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 45,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 44
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:15:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 45,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 44
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:20:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 50,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 49
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:20:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 50,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 49
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:20:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 50,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 49
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:20:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 50,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 49
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:25:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 55,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 54
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "CALL",
+      "point": "2026-10-22T14:25:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 55,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 54
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:25:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 55,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 54
+        },
+        "reference": {
+          "reasons": [],
+          "state": "VERIFIED"
+        }
+      }
+    },
+    {
+      "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+      "symbol": "AAPL",
+      "right": "PUT",
+      "point": "2026-10-22T14:25:00+00:00",
+      "state": "INCOMPLETE",
+      "reasons": [
+        "SOURCE_CONFLICT"
+      ],
+      "generation": 1,
+      "input_checks": {
+        "current_minutes": {
+          "expected_minutes": 55,
+          "missing_slots": [
+            {
+              "open_at": "2026-10-22T13:30:00+00:00",
+              "reasons": [
+                "SOURCE_CONFLICT"
+              ]
+            }
+          ],
+          "state": "INCOMPLETE",
+          "valid_minutes": 54
+        }
+      }
+    }
+  ]
+}

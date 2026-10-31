@@ -1,0 +1,29 @@
+{
+  "status": "APPROVED",
+  "approved_by": "OWNER",
+  "gate": "O-LAUNCH",
+  "candidate_id": "local-candidate-6ac8a5653d14a392",
+  "candidate_payload_sha256": "918d56b36f7565c7d083b37e080d17c23ad5b48e1a0a3766edcf9b80c8d31077",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "continuity_receipt_sha256": "7bdc73884919ae0d73ef8efa5e95ce59662ffc05166473305cab671c1c1d07a2",
+  "accepted_at": "2026-10-16T12:39:23.408294+00:00",
+  "human_decision_evidence": {
+    "source": "DIRECT_USER_REPLY",
+    "reference": "[\"request_user_input_async\",\"call_633f35e5dd31435c97f88bee9b54ccc2\",0]",
+    "answer": "\u6279\u51c6\u6709\u9650\u7814\u7a76\u53d1\u5e03\uff0c\u4fdd\u7559\u4e0a\u8ff0\u9650\u5236",
+    "scope_document": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\O_LAUNCH_RESEARCH_DECISION_20261016.md",
+    "scope_document_sha256": "bd843a5250c21f988257996dee04066829dc292332f23ade6eb71d52869e56e9"
+  },
+  "scope": "SHADOW_STARTUP_RESEARCH_OBSERVATIONS_ONLY",
+  "limitations_accepted": [
+    "PERFORMANCE_NOT_PASSED",
+    "SOURCE_FACTS_PENDING",
+    "MARKET_ACCEPTANCE_PENDING"
+  ],
+  "qualified_signal_authorized": false,
+  "source_facts_approved": false,
+  "orders_authorized": false,
+  "system_clock_change_authorized": false,
+  "s1_manual_policy_authorized": false,
+  "system_autostart_authorized": false
+}

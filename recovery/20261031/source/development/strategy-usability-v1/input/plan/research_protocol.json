@@ -1,0 +1,111 @@
+{
+  "protocol_id": "KQ-S0-S1-RESEARCH-20261015-V1",
+  "status": "DEVELOPMENT_SPEC_NOT_PRODUCTION_CONFIG",
+  "source_basis": [
+    "U1 2026-10-13 closeout",
+    "U2 2026-10-04 S0 specification",
+    "U3 P14"
+  ],
+  "baseline": {
+    "policy_id": "STRAT-OPENING-MOMENTUM-5M-V1",
+    "hash": "READ_LOCAL_AND_BIND",
+    "mutate": false
+  },
+  "challenger": {
+    "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1",
+    "inherit_from": "EXACT_LOCAL_S0",
+    "semantic_override": {
+      "require_previous_close_direction": false
+    },
+    "qualification_upgrade": false,
+    "existing_s1_artifact_reconstruction": "NEW_PROTOCOL_NOT_OLD_APPROVAL"
+  },
+  "scope": {
+    "source": "ACTUAL_FULL_WATCH_MANIFEST",
+    "historical_report_count": 111,
+    "hardcoded_count": false,
+    "unknown_identities": "PRESERVE_WITH_STATUS",
+    "core12_limits_scan": false
+  },
+  "data_requirements": {
+    "shared": [
+      "verified_instrument",
+      "currency",
+      "same_session_open",
+      "complete_valid_native_minutes",
+      "same_day_price_basis",
+      "clock_and_source_policy",
+      "current_and_prior_5m"
+    ],
+    "s0_additional": [
+      "previous_close_direction_basis"
+    ],
+    "s1_previous_close": "OPTIONAL_CONTEXT_NOT_REQUIRED",
+    "conflict_policy": "DO_NOT_SILENTLY_SELECT_LATEST",
+    "limited_reference_method": "ONLY_IF_ALREADY_EXPLICITLY_ACCEPTED"
+  },
+  "comparison_sets": {
+    "paired": "BOTH_POLICIES_HAVE_REQUIRED_COMPARABLE_INPUTS",
+    "intraday_only": "S1_HAS_DAY_INPUTS_S0_PREVCLOSE_UNKNOWN_NEVER_S0_REJECT"
+  },
+  "diagnostics": {
+    "range_bps": true,
+    "body_bps": true,
+    "prior_atr_optional": true,
+    "same_slot_20_day_range_optional": true,
+    "new_hard_filters": [],
+    "new_ai_scores": false,
+    "cost_effective_move_label": "DELTA_LOCAL_FRICTION_EQUIVALENT_NOT_TARGET"
+  },
+  "labels": {
+    "kind": "FIXED_HORIZON_UNDERLYING_RESEARCH_NOT_OPTION_PNL",
+    "primary_delay_seconds": 60,
+    "secondary_delay_seconds": [
+      30,
+      120
+    ],
+    "primary_horizon_minutes": 60,
+    "entry_observation": "NEXT_VALID_1M_OPEN_NOT_BEFORE_ACTUAL_READY_PLUS_DELAY_WITHIN_ORIGINAL_DEADLINE",
+    "deadline_extension": false,
+    "cap": "EXISTING_EARLIEST_MANAGEMENT_END",
+    "truncation": "SEPARATE_COHORT",
+    "missing": "MISSING_OR_CENSORED_NOT_ZERO",
+    "mfe_is_realized_profit": false
+  },
+  "evaluation": {
+    "existing_split": "REUSE_IF_EXACT_AND_VALID",
+    "new_split_if_missing": [
+      0.7,
+      0.3
+    ],
+    "split_by": "CHRONOLOGICAL_WHOLE_SESSION_BEFORE_OUTCOME_INSPECTION",
+    "exposed_tail": "DEVELOPMENT_NOT_UNSEEN",
+    "parameter_search": false,
+    "new_predictive_model_training": false,
+    "main_unit": "FIRST_TECHNICAL_EVENT_PER_VARIANT_INSTRUMENT_RIGHT_SESSION",
+    "correlation": "DATE_GROUPED",
+    "option_metrics": "ONLY_MATCHED_CONTRACT_DATA_WITH_PRICE_PROXY_AND_COST_LABELS"
+  },
+  "runtime": {
+    "separate_worktree_from_accepted_payload": true,
+    "reuse_supervisor": true,
+    "reuse_five_db_roles": true,
+    "observation_assembly_requires_profitable_signal": false,
+    "scan_timezone": "America/New_York",
+    "ui_timezone": "Asia/Shanghai",
+    "snapshot_dates": "REAL_SESSION_NEVER_BACKFILL_INSTANT_SIGNAL"
+  },
+  "permissions": {
+    "development_and_bounded_existing_data_replay": "REQUESTED_SCOPE",
+    "new_production_release_owner_accepted": false,
+    "production_s0_override": false,
+    "qualified_s1_publication": false,
+    "paid_api": false,
+    "llm": false,
+    "paper": false,
+    "real_orders": false,
+    "system_clock_write": false,
+    "new_provider": false,
+    "system_notifications": false
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "client_date": "2026-10-16",
+  "status": "ACCEPTED_RESEARCH_DEPLOYED_TEN_MINUTES_OBSERVED_PERFORMANCE_FAILED",
+  "candidate": "local-candidate-6ac8a5653d14a392",
+  "candidate_payload_sha256": "918d56b36f7565c7d083b37e080d17c23ad5b48e1a0a3766edcf9b80c8d31077",
+  "applied": true,
+  "owner_accepted": true,
+  "live_candidate": "local-candidate-6ac8a5653d14a392",
+  "hour_report": {
+    "sha256": "c8223a4148441fd2251afd34d5eec147ea69364b531f3f99209b25670ca909b5",
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\strategy-usability-hour-20261016-v1\\topology_report.json"
+  },
+  "duration_seconds": 3600.4219999999914,
+  "continuous_60_minutes": true,
+  "five_minute_cadence": true,
+  "observation_assembly_pass": true,
+  "performance_pass": false,
+  "full_acceptance": false,
+  "source_unchanged": true,
+  "frontend_unchanged": true,
+  "errors": [],
+  "child_processes_alive": [],
+  "crash": [
+    {
+      "pending_before": 100,
+      "restored": 100,
+      "original_deadlines_preserved": true
+    }
+  ],
+  "http": {
+    "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true": {
+      "n": 2079,
+      "p95_seconds": 0.10899999999674037,
+      "statuses": {
+        "200": 2076,
+        "503": 3
+      }
+    },
+    "/api/stocks/health/live": {
+      "n": 2079,
+      "p95_seconds": 0.10899999999674037,
+      "statuses": {
+        "200": 2076,
+        "503": 3
+      }
+    },
+    "/api/health/live": {
+      "n": 2079,
+      "p95_seconds": 0.07800000000861473,
+      "statuses": {
+        "200": 2079
+      }
+    },
+    "/api/options/opening-trend/current?research_strategy=opening_momentum": {
+      "n": 2079,
+      "p95_seconds": 0.15599999998812564,
+      "statuses": {
+        "200": 2076,
+        "503": 3
+      }
+    }
+  },
+  "manual_http": {
+    "test_only": true,
+    "synthetic_contract_not_live_qualification": true,
+    "login_status": 200,
+    "entry_status": 200,
+    "actual_http_handlers": true,
+    "production_user_login": false,
+    "duplicate_entry_same": true,
+    "changed_key_status": 400,
+    "partial_exit_status": 200,
+    "duplicate_exit_same": true,
+    "open_quantity": 1,
+    "paper_fill": false,
+    "real_order_created": false,
+    "expired_session_status": 401,
+    "relogin_quantity": 1,
+    "logout_status": 200,
+    "after_logout_status": 401
+  },
+  "remaining": [
+    "End-to-end performance target not met",
+    "Authenticated actual Signals page and SSE verification",
+    "Real market and natural signal acceptance"
+  ]
+}

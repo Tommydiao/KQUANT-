@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="7" time="3.381" timestamp="2026-10-17T11:12:04.088716+08:00" hostname="PC-20260215FHYW"><testcase classname="" name="test_declared_minute_index_restart_preserves_five_roles_and_boundary" time="0.361"><failure message="AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]&#10;assert False">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1867/test_declared_minute_index_res0')
+
+    def test_declared_minute_index_restart_preserves_five_roles_and_boundary(tmp_path):
+        manifest, row = fixture(tmp_path)
+        before = evaluate(manifest, roots=[tmp_path], allow_test_only=True)
+&gt;       assert before['can_launch'], before['errors']
+E       AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]
+E       assert False
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_minute_index_restart.py:53: AssertionError</failure></testcase><testcase classname="" name="test_minute_extension_cannot_hide_other_changes[columns]" time="0.382"><failure message="AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]&#10;assert 'DECLARED_INDEX_DEFINITION_CHANGED' in {'UNSUPPORTED_SCHEMA_EXTENSION'}">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1867/test_minute_extension_cannot_h0')
+change = 'columns'
+
+    @pytest.mark.parametrize('change', ['columns', 'other_index', 'boundary', 'undeclared', 'wrong_role', 'unaccepted'])
+    def test_minute_extension_cannot_hide_other_changes(tmp_path, change):
+        manifest, row = fixture(tmp_path)
+        with closing(sqlite3.connect(row['path'])) as db, db:
+            if change == 'columns':
+                db.execute('CREATE INDEX one_minute_status_metadata ON one_minute_evaluations(symbol,session)')
+            else:
+                db.execute(MINUTE_STATUS_SCHEMA[3])
+                if change == 'other_index':
+                    db.execute('CREATE INDEX unrelated ON one_minute_evaluations(state)')
+                elif change == 'boundary':
+                    db.execute('DELETE FROM data_epoch_boundary')
+        if change == 'undeclared':
+            row.pop('schema_extension')
+            resign(manifest)
+        elif change == 'wrong_role':
+            next(r for r in manifest['databases'] if r['role'] == 'main')['schema_extension'] = row.pop('schema_extension')
+            resign(manifest)
+        elif change == 'unaccepted':
+            manifest['final_runtime_accepted'] = False
+        result = evaluate(manifest, roots=[tmp_path], allow_test_only=True)
+        assert not result['can_launch'], result
+        expected = {'columns': 'DECLARED_INDEX_DEFINITION_CHANGED',
+            'other_index': 'ACTIVE_DATABASE_SCHEMA_CHANGED', 'boundary': 'NEW_EPOCH_BOUNDARY_MISSING',
+            'undeclared': 'ACTIVE_DATABASE_SCHEMA_CHANGED', 'wrong_role': 'UNSUPPORTED_SCHEMA_EXTENSION',
+            'unaccepted': 'FINAL_RUNTIME_NOT_ACCEPTED'}[change]
+&gt;       assert expected in {row['code'] for row in result['errors']}, result['errors']
+E       AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]
+E       assert 'DECLARED_INDEX_DEFINITION_CHANGED' in {'UNSUPPORTED_SCHEMA_EXTENSION'}
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_minute_index_restart.py:92: AssertionError</failure></testcase><testcase classname="" name="test_minute_extension_cannot_hide_other_changes[other_index]" time="0.426"><failure message="AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]&#10;assert 'ACTIVE_DATABASE_SCHEMA_CHANGED' in {'UNSUPPORTED_SCHEMA_EXTENSION'}">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1867/test_minute_extension_cannot_h1')
+change = 'other_index'
+
+    @pytest.mark.parametrize('change', ['columns', 'other_index', 'boundary', 'undeclared', 'wrong_role', 'unaccepted'])
+    def test_minute_extension_cannot_hide_other_changes(tmp_path, change):
+        manifest, row = fixture(tmp_path)
+        with closing(sqlite3.connect(row['path'])) as db, db:
+            if change == 'columns':
+                db.execute('CREATE INDEX one_minute_status_metadata ON one_minute_evaluations(symbol,session)')
+            else:
+                db.execute(MINUTE_STATUS_SCHEMA[3])
+                if change == 'other_index':
+                    db.execute('CREATE INDEX unrelated ON one_minute_evaluations(state)')
+                elif change == 'boundary':
+                    db.execute('DELETE FROM data_epoch_boundary')
+        if change == 'undeclared':
+            row.pop('schema_extension')
+            resign(manifest)
+        elif change == 'wrong_role':
+            next(r for r in manifest['databases'] if r['role'] == 'main')['schema_extension'] = row.pop('schema_extension')
+            resign(manifest)
+        elif change == 'unaccepted':
+            manifest['final_runtime_accepted'] = False
+        result = evaluate(manifest, roots=[tmp_path], allow_test_only=True)
+        assert not result['can_launch'], result
+        expected = {'columns': 'DECLARED_INDEX_DEFINITION_CHANGED',
+            'other_index': 'ACTIVE_DATABASE_SCHEMA_CHANGED', 'boundary': 'NEW_EPOCH_BOUNDARY_MISSING',
+            'undeclared': 'ACTIVE_DATABASE_SCHEMA_CHANGED', 'wrong_role': 'UNSUPPORTED_SCHEMA_EXTENSION',
+            'unaccepted': 'FINAL_RUNTIME_NOT_ACCEPTED'}[change]
+&gt;       assert expected in {row['code'] for row in result['errors']}, result['errors']
+E       AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]
+E       assert 'ACTIVE_DATABASE_SCHEMA_CHANGED' in {'UNSUPPORTED_SCHEMA_EXTENSION'}
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_minute_index_restart.py:92: AssertionError</failure></testcase><testcase classname="" name="test_minute_extension_cannot_hide_other_changes[boundary]" time="0.382"><failure message="AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]&#10;assert 'NEW_EPOCH_BOUNDARY_MISSING' in {'UNSUPPORTED_SCHEMA_EXTENSION'}">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1867/test_minute_extension_cannot_h2')
+change = 'boundary'
+
+    @pytest.mark.parametrize('change', ['columns', 'other_index', 'boundary', 'undeclared', 'wrong_role', 'unaccepted'])
+    def test_minute_extension_cannot_hide_other_changes(tmp_path, change):
+        manifest, row = fixture(tmp_path)
+        with closing(sqlite3.connect(row['path'])) as db, db:
+            if change == 'columns':
+                db.execute('CREATE INDEX one_minute_status_metadata ON one_minute_evaluations(symbol,session)')
+            else:
+                db.execute(MINUTE_STATUS_SCHEMA[3])
+                if change == 'other_index':
+                    db.execute('CREATE INDEX unrelated ON one_minute_evaluations(state)')
+                elif change == 'boundary':
+                    db.execute('DELETE FROM data_epoch_boundary')
+        if change == 'undeclared':
+            row.pop('schema_extension')
+            resign(manifest)
+        elif change == 'wrong_role':
+            next(r for r in manifest['databases'] if r['role'] == 'main')['schema_extension'] = row.pop('schema_extension')
+            resign(manifest)
+        elif change == 'unaccepted':
+            manifest['final_runtime_accepted'] = False
+        result = evaluate(manifest, roots=[tmp_path], allow_test_only=True)
+        assert not result['can_launch'], result
+        expected = {'columns': 'DECLARED_INDEX_DEFINITION_CHANGED',
+            'other_index': 'ACTIVE_DATABASE_SCHEMA_CHANGED', 'boundary': 'NEW_EPOCH_BOUNDARY_MISSING',
+            'undeclared': 'ACTIVE_DATABASE_SCHEMA_CHANGED', 'wrong_role': 'UNSUPPORTED_SCHEMA_EXTENSION',
+            'unaccepted': 'FINAL_RUNTIME_NOT_ACCEPTED'}[change]
+&gt;       assert expected in {row['code'] for row in result['errors']}, result['errors']
+E       AssertionError: [{'code': 'UNSUPPORTED_SCHEMA_EXTENSION', 'subject': 'minute'}]
+E       assert 'NEW_EPOCH_BOUNDARY_MISSING' in {'UNSUPPORTED_SCHEMA_EXTENSION'}
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_minute_index_restart.py:92: AssertionError</failure></testcase><testcase classname="" name="test_minute_extension_cannot_hide_other_changes[undeclared]" time="0.678" /><testcase classname="" name="test_minute_extension_cannot_hide_other_changes[wrong_role]" time="0.347" /><testcase classname="" name="test_minute_extension_cannot_hide_other_changes[unaccepted]" time="0.369" /></testsuite></testsuites>

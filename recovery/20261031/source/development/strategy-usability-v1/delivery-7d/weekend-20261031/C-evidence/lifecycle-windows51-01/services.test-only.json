@@ -1,0 +1,61 @@
+{
+    "launcher_pid":  20744,
+    "launcher_identity":  {
+                              "pid":  20744,
+                              "created_at":  "2026-10-31T14:13:01.7337810Z",
+                              "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                          },
+    "run_session_id":  "4f3164a1-46b3-4dd8-9432-1901c62ab60e",
+    "system_boot":  {
+                        "state":  "VERIFIED",
+                        "started_at":  "2026-10-14T13:15:50.5121000Z",
+                        "source":  "WIN32_OPERATING_SYSTEM"
+                    },
+    "started_at":  "20261031T141304230Z",
+    "checked_at":  "2026-10-31T14:13:26.9719276+00:00",
+    "state":  "DEGRADED",
+    "exit_reason":  "PROCESS_OBSERVATION_UNAVAILABLE",
+    "failed_stage":  "MAIN_LOOP",
+    "launches":  [
+                     {
+                         "name":  "confirmed-exit",
+                         "pid":  888,
+                         "identity":  {
+                                          "pid":  888,
+                                          "created_at":  "2026-10-31T14:13:23.4881060Z",
+                                          "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                                      },
+                         "proof":  {
+                                       "test_only":  true,
+                                       "pid":  888,
+                                       "child_pid":  {
+
+                                                     },
+                                       "leaf":  true
+                                   }
+                     },
+                     {
+                         "name":  "owned-parent",
+                         "pid":  1652,
+                         "identity":  {
+                                          "pid":  1652,
+                                          "created_at":  "2026-10-31T14:13:10.8013240Z",
+                                          "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                                      },
+                         "proof":  {
+                                       "test_only":  true,
+                                       "pid":  1652,
+                                       "child_pid":  36500,
+                                       "leaf":  false
+                                   }
+                     }
+                 ],
+    "listeners":  [
+
+                  ],
+    "health_verified":  false,
+    "recovery_count":  0,
+    "backend_release":  "TEST_ONLY_LIFECYCLE_ISOLATION",
+    "backend_manifest_sha256":  "d87ce4199ea9c22be6aac449682c989fbf3b918a3d4f1dbcfe39aa74c8d39cb3",
+    "research_health_is_separate":  true
+}

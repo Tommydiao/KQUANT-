@@ -1,0 +1,969 @@
+{
+  "schema": "WEEKEND_C_CALENDAR_VERIFICATION_V1",
+  "captured_at": "2026-10-31T14:18:13.927646+00:00",
+  "installed_dependencies": {
+    "exchange_calendars": "4.11.2",
+    "pandas": "2.3.3",
+    "tzdata": "2026.5"
+  },
+  "source_hashes": {
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_clock.py": "afb84eda2b0947643d91299f57632fc89fa195ff4ed694e1505df0e99f3fc30d",
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\opening-first-hour\\first_hour.py": "e117b776fb54ed160d0b90cea3a611b18ff3b6294a2048de057c39dbf47b8840",
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend.py": "47e6900eea674a48767ae510cfaf4a2f84754a2879bc58c7c6a6a695417cb59f",
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_opening_momentum_v1.json": "52e542e2a0871a526e13657bda130e2316f53ea6e9db38c9bc6f25d506ab79a5",
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\denominator.json": "964aaa5ada2f53f17844284d5c873c7cb73c755bfe144b4b483545dc5dc84cab",
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\weekend-20261031\\calendar\\window_calendar.py": "ff36c1657e4c6c75c4d471d38f9a6b409ae287be1315076f3025b3015e9c3eef",
+    "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\weekend-20261031\\calendar\\test_window_calendar.py": "786dde35c00126bec797950a8c3f251464c3d67b82e0035f7d2abee00ba44998"
+  },
+  "next_window": {
+    "schema": "FIRST_HOUR_CALENDAR_AUDIT_V1",
+    "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+    "session": "2026-11-02",
+    "state": "SCHEDULED_NOT_RUN",
+    "calendar_source": "exchange_calendars:XNYS",
+    "registered": 111,
+    "applicable": 100,
+    "unresolved": 11,
+    "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+    "checkpoint_count": 11,
+    "positions_per_variant": 2200,
+    "identity_unresolved_positions_per_variant": 242,
+    "scheduled_or_registered": false,
+    "checkpoints": [
+      {
+        "at": {
+          "utc": "2026-11-02T14:35:00+00:00",
+          "exchange": "2026-11-02T09:35:00-05:00",
+          "display": "2026-11-02T22:35:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T14:40:00+00:00",
+          "exchange": "2026-11-02T09:40:00-05:00",
+          "display": "2026-11-02T22:40:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T14:40:00+00:00",
+          "exchange": "2026-11-02T09:40:00-05:00",
+          "display": "2026-11-02T22:40:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T14:45:00+00:00",
+          "exchange": "2026-11-02T09:45:00-05:00",
+          "display": "2026-11-02T22:45:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T14:45:00+00:00",
+          "exchange": "2026-11-02T09:45:00-05:00",
+          "display": "2026-11-02T22:45:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T14:50:00+00:00",
+          "exchange": "2026-11-02T09:50:00-05:00",
+          "display": "2026-11-02T22:50:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T14:50:00+00:00",
+          "exchange": "2026-11-02T09:50:00-05:00",
+          "display": "2026-11-02T22:50:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T14:55:00+00:00",
+          "exchange": "2026-11-02T09:55:00-05:00",
+          "display": "2026-11-02T22:55:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T14:55:00+00:00",
+          "exchange": "2026-11-02T09:55:00-05:00",
+          "display": "2026-11-02T22:55:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:00:00+00:00",
+          "exchange": "2026-11-02T10:00:00-05:00",
+          "display": "2026-11-02T23:00:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T15:00:00+00:00",
+          "exchange": "2026-11-02T10:00:00-05:00",
+          "display": "2026-11-02T23:00:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:05:00+00:00",
+          "exchange": "2026-11-02T10:05:00-05:00",
+          "display": "2026-11-02T23:05:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T15:05:00+00:00",
+          "exchange": "2026-11-02T10:05:00-05:00",
+          "display": "2026-11-02T23:05:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:10:00+00:00",
+          "exchange": "2026-11-02T10:10:00-05:00",
+          "display": "2026-11-02T23:10:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T15:10:00+00:00",
+          "exchange": "2026-11-02T10:10:00-05:00",
+          "display": "2026-11-02T23:10:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:15:00+00:00",
+          "exchange": "2026-11-02T10:15:00-05:00",
+          "display": "2026-11-02T23:15:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T15:15:00+00:00",
+          "exchange": "2026-11-02T10:15:00-05:00",
+          "display": "2026-11-02T23:15:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:20:00+00:00",
+          "exchange": "2026-11-02T10:20:00-05:00",
+          "display": "2026-11-02T23:20:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T15:20:00+00:00",
+          "exchange": "2026-11-02T10:20:00-05:00",
+          "display": "2026-11-02T23:20:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:25:00+00:00",
+          "exchange": "2026-11-02T10:25:00-05:00",
+          "display": "2026-11-02T23:25:00+08:00"
+        }
+      },
+      {
+        "at": {
+          "utc": "2026-11-02T15:25:00+00:00",
+          "exchange": "2026-11-02T10:25:00-05:00",
+          "display": "2026-11-02T23:25:00+08:00"
+        },
+        "deadline": {
+          "utc": "2026-11-02T15:30:00+00:00",
+          "exchange": "2026-11-02T10:30:00-05:00",
+          "display": "2026-11-02T23:30:00+08:00"
+        }
+      }
+    ],
+    "opening": {
+      "utc": "2026-11-02T14:30:00+00:00",
+      "exchange": "2026-11-02T09:30:00-05:00",
+      "display": "2026-11-02T22:30:00+08:00"
+    },
+    "closing": {
+      "utc": "2026-11-02T21:00:00+00:00",
+      "exchange": "2026-11-02T16:00:00-05:00",
+      "display": "2026-11-03T05:00:00+08:00"
+    },
+    "early_close": false,
+    "prewarm": {
+      "utc": "2026-11-02T13:30:00+00:00",
+      "exchange": "2026-11-02T08:30:00-05:00",
+      "display": "2026-11-02T21:30:00+08:00"
+    },
+    "readiness": {
+      "utc": "2026-11-02T14:25:00+00:00",
+      "exchange": "2026-11-02T09:25:00-05:00",
+      "display": "2026-11-02T22:25:00+08:00"
+    },
+    "cutoff": {
+      "utc": "2026-11-02T15:30:00+00:00",
+      "exchange": "2026-11-02T10:30:00-05:00",
+      "display": "2026-11-02T23:30:00+08:00"
+    },
+    "reconciliation_at": {
+      "utc": "2026-11-02T15:30:00+00:00",
+      "exchange": "2026-11-02T10:30:00-05:00",
+      "display": "2026-11-02T23:30:00+08:00"
+    }
+  },
+  "comparison_windows": [
+    {
+      "schema": "FIRST_HOUR_CALENDAR_AUDIT_V1",
+      "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+      "session": "2026-03-06",
+      "state": "SCHEDULED_NOT_RUN",
+      "calendar_source": "exchange_calendars:XNYS",
+      "registered": 111,
+      "applicable": 100,
+      "unresolved": 11,
+      "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+      "checkpoint_count": 11,
+      "positions_per_variant": 2200,
+      "identity_unresolved_positions_per_variant": 242,
+      "scheduled_or_registered": false,
+      "checkpoints": [
+        {
+          "at": {
+            "utc": "2026-03-06T14:35:00+00:00",
+            "exchange": "2026-03-06T09:35:00-05:00",
+            "display": "2026-03-06T22:35:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T14:40:00+00:00",
+            "exchange": "2026-03-06T09:40:00-05:00",
+            "display": "2026-03-06T22:40:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T14:40:00+00:00",
+            "exchange": "2026-03-06T09:40:00-05:00",
+            "display": "2026-03-06T22:40:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T14:45:00+00:00",
+            "exchange": "2026-03-06T09:45:00-05:00",
+            "display": "2026-03-06T22:45:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T14:45:00+00:00",
+            "exchange": "2026-03-06T09:45:00-05:00",
+            "display": "2026-03-06T22:45:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T14:50:00+00:00",
+            "exchange": "2026-03-06T09:50:00-05:00",
+            "display": "2026-03-06T22:50:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T14:50:00+00:00",
+            "exchange": "2026-03-06T09:50:00-05:00",
+            "display": "2026-03-06T22:50:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T14:55:00+00:00",
+            "exchange": "2026-03-06T09:55:00-05:00",
+            "display": "2026-03-06T22:55:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T14:55:00+00:00",
+            "exchange": "2026-03-06T09:55:00-05:00",
+            "display": "2026-03-06T22:55:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:00:00+00:00",
+            "exchange": "2026-03-06T10:00:00-05:00",
+            "display": "2026-03-06T23:00:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T15:00:00+00:00",
+            "exchange": "2026-03-06T10:00:00-05:00",
+            "display": "2026-03-06T23:00:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:05:00+00:00",
+            "exchange": "2026-03-06T10:05:00-05:00",
+            "display": "2026-03-06T23:05:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T15:05:00+00:00",
+            "exchange": "2026-03-06T10:05:00-05:00",
+            "display": "2026-03-06T23:05:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:10:00+00:00",
+            "exchange": "2026-03-06T10:10:00-05:00",
+            "display": "2026-03-06T23:10:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T15:10:00+00:00",
+            "exchange": "2026-03-06T10:10:00-05:00",
+            "display": "2026-03-06T23:10:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:15:00+00:00",
+            "exchange": "2026-03-06T10:15:00-05:00",
+            "display": "2026-03-06T23:15:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T15:15:00+00:00",
+            "exchange": "2026-03-06T10:15:00-05:00",
+            "display": "2026-03-06T23:15:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:20:00+00:00",
+            "exchange": "2026-03-06T10:20:00-05:00",
+            "display": "2026-03-06T23:20:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T15:20:00+00:00",
+            "exchange": "2026-03-06T10:20:00-05:00",
+            "display": "2026-03-06T23:20:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:25:00+00:00",
+            "exchange": "2026-03-06T10:25:00-05:00",
+            "display": "2026-03-06T23:25:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-06T15:25:00+00:00",
+            "exchange": "2026-03-06T10:25:00-05:00",
+            "display": "2026-03-06T23:25:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-06T15:30:00+00:00",
+            "exchange": "2026-03-06T10:30:00-05:00",
+            "display": "2026-03-06T23:30:00+08:00"
+          }
+        }
+      ],
+      "opening": {
+        "utc": "2026-03-06T14:30:00+00:00",
+        "exchange": "2026-03-06T09:30:00-05:00",
+        "display": "2026-03-06T22:30:00+08:00"
+      },
+      "closing": {
+        "utc": "2026-03-06T21:00:00+00:00",
+        "exchange": "2026-03-06T16:00:00-05:00",
+        "display": "2026-03-07T05:00:00+08:00"
+      },
+      "early_close": false,
+      "prewarm": {
+        "utc": "2026-03-06T13:30:00+00:00",
+        "exchange": "2026-03-06T08:30:00-05:00",
+        "display": "2026-03-06T21:30:00+08:00"
+      },
+      "readiness": {
+        "utc": "2026-03-06T14:25:00+00:00",
+        "exchange": "2026-03-06T09:25:00-05:00",
+        "display": "2026-03-06T22:25:00+08:00"
+      },
+      "cutoff": {
+        "utc": "2026-03-06T15:30:00+00:00",
+        "exchange": "2026-03-06T10:30:00-05:00",
+        "display": "2026-03-06T23:30:00+08:00"
+      },
+      "reconciliation_at": {
+        "utc": "2026-03-06T15:30:00+00:00",
+        "exchange": "2026-03-06T10:30:00-05:00",
+        "display": "2026-03-06T23:30:00+08:00"
+      }
+    },
+    {
+      "schema": "FIRST_HOUR_CALENDAR_AUDIT_V1",
+      "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+      "session": "2026-03-09",
+      "state": "SCHEDULED_NOT_RUN",
+      "calendar_source": "exchange_calendars:XNYS",
+      "registered": 111,
+      "applicable": 100,
+      "unresolved": 11,
+      "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+      "checkpoint_count": 11,
+      "positions_per_variant": 2200,
+      "identity_unresolved_positions_per_variant": 242,
+      "scheduled_or_registered": false,
+      "checkpoints": [
+        {
+          "at": {
+            "utc": "2026-03-09T13:35:00+00:00",
+            "exchange": "2026-03-09T09:35:00-04:00",
+            "display": "2026-03-09T21:35:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T13:40:00+00:00",
+            "exchange": "2026-03-09T09:40:00-04:00",
+            "display": "2026-03-09T21:40:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T13:40:00+00:00",
+            "exchange": "2026-03-09T09:40:00-04:00",
+            "display": "2026-03-09T21:40:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T13:45:00+00:00",
+            "exchange": "2026-03-09T09:45:00-04:00",
+            "display": "2026-03-09T21:45:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T13:45:00+00:00",
+            "exchange": "2026-03-09T09:45:00-04:00",
+            "display": "2026-03-09T21:45:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T13:50:00+00:00",
+            "exchange": "2026-03-09T09:50:00-04:00",
+            "display": "2026-03-09T21:50:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T13:50:00+00:00",
+            "exchange": "2026-03-09T09:50:00-04:00",
+            "display": "2026-03-09T21:50:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T13:55:00+00:00",
+            "exchange": "2026-03-09T09:55:00-04:00",
+            "display": "2026-03-09T21:55:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T13:55:00+00:00",
+            "exchange": "2026-03-09T09:55:00-04:00",
+            "display": "2026-03-09T21:55:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:00:00+00:00",
+            "exchange": "2026-03-09T10:00:00-04:00",
+            "display": "2026-03-09T22:00:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T14:00:00+00:00",
+            "exchange": "2026-03-09T10:00:00-04:00",
+            "display": "2026-03-09T22:00:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:05:00+00:00",
+            "exchange": "2026-03-09T10:05:00-04:00",
+            "display": "2026-03-09T22:05:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T14:05:00+00:00",
+            "exchange": "2026-03-09T10:05:00-04:00",
+            "display": "2026-03-09T22:05:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:10:00+00:00",
+            "exchange": "2026-03-09T10:10:00-04:00",
+            "display": "2026-03-09T22:10:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T14:10:00+00:00",
+            "exchange": "2026-03-09T10:10:00-04:00",
+            "display": "2026-03-09T22:10:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:15:00+00:00",
+            "exchange": "2026-03-09T10:15:00-04:00",
+            "display": "2026-03-09T22:15:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T14:15:00+00:00",
+            "exchange": "2026-03-09T10:15:00-04:00",
+            "display": "2026-03-09T22:15:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:20:00+00:00",
+            "exchange": "2026-03-09T10:20:00-04:00",
+            "display": "2026-03-09T22:20:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T14:20:00+00:00",
+            "exchange": "2026-03-09T10:20:00-04:00",
+            "display": "2026-03-09T22:20:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:25:00+00:00",
+            "exchange": "2026-03-09T10:25:00-04:00",
+            "display": "2026-03-09T22:25:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-03-09T14:25:00+00:00",
+            "exchange": "2026-03-09T10:25:00-04:00",
+            "display": "2026-03-09T22:25:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-03-09T14:30:00+00:00",
+            "exchange": "2026-03-09T10:30:00-04:00",
+            "display": "2026-03-09T22:30:00+08:00"
+          }
+        }
+      ],
+      "opening": {
+        "utc": "2026-03-09T13:30:00+00:00",
+        "exchange": "2026-03-09T09:30:00-04:00",
+        "display": "2026-03-09T21:30:00+08:00"
+      },
+      "closing": {
+        "utc": "2026-03-09T20:00:00+00:00",
+        "exchange": "2026-03-09T16:00:00-04:00",
+        "display": "2026-03-10T04:00:00+08:00"
+      },
+      "early_close": false,
+      "prewarm": {
+        "utc": "2026-03-09T12:30:00+00:00",
+        "exchange": "2026-03-09T08:30:00-04:00",
+        "display": "2026-03-09T20:30:00+08:00"
+      },
+      "readiness": {
+        "utc": "2026-03-09T13:25:00+00:00",
+        "exchange": "2026-03-09T09:25:00-04:00",
+        "display": "2026-03-09T21:25:00+08:00"
+      },
+      "cutoff": {
+        "utc": "2026-03-09T14:30:00+00:00",
+        "exchange": "2026-03-09T10:30:00-04:00",
+        "display": "2026-03-09T22:30:00+08:00"
+      },
+      "reconciliation_at": {
+        "utc": "2026-03-09T14:30:00+00:00",
+        "exchange": "2026-03-09T10:30:00-04:00",
+        "display": "2026-03-09T22:30:00+08:00"
+      }
+    },
+    {
+      "schema": "FIRST_HOUR_CALENDAR_AUDIT_V1",
+      "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+      "session": "2026-10-30",
+      "state": "SCHEDULED_NOT_RUN",
+      "calendar_source": "exchange_calendars:XNYS",
+      "registered": 111,
+      "applicable": 100,
+      "unresolved": 11,
+      "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+      "checkpoint_count": 11,
+      "positions_per_variant": 2200,
+      "identity_unresolved_positions_per_variant": 242,
+      "scheduled_or_registered": false,
+      "checkpoints": [
+        {
+          "at": {
+            "utc": "2026-10-30T13:35:00+00:00",
+            "exchange": "2026-10-30T09:35:00-04:00",
+            "display": "2026-10-30T21:35:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T13:40:00+00:00",
+            "exchange": "2026-10-30T09:40:00-04:00",
+            "display": "2026-10-30T21:40:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T13:40:00+00:00",
+            "exchange": "2026-10-30T09:40:00-04:00",
+            "display": "2026-10-30T21:40:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T13:45:00+00:00",
+            "exchange": "2026-10-30T09:45:00-04:00",
+            "display": "2026-10-30T21:45:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T13:45:00+00:00",
+            "exchange": "2026-10-30T09:45:00-04:00",
+            "display": "2026-10-30T21:45:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T13:50:00+00:00",
+            "exchange": "2026-10-30T09:50:00-04:00",
+            "display": "2026-10-30T21:50:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T13:50:00+00:00",
+            "exchange": "2026-10-30T09:50:00-04:00",
+            "display": "2026-10-30T21:50:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T13:55:00+00:00",
+            "exchange": "2026-10-30T09:55:00-04:00",
+            "display": "2026-10-30T21:55:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T13:55:00+00:00",
+            "exchange": "2026-10-30T09:55:00-04:00",
+            "display": "2026-10-30T21:55:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:00:00+00:00",
+            "exchange": "2026-10-30T10:00:00-04:00",
+            "display": "2026-10-30T22:00:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T14:00:00+00:00",
+            "exchange": "2026-10-30T10:00:00-04:00",
+            "display": "2026-10-30T22:00:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:05:00+00:00",
+            "exchange": "2026-10-30T10:05:00-04:00",
+            "display": "2026-10-30T22:05:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T14:05:00+00:00",
+            "exchange": "2026-10-30T10:05:00-04:00",
+            "display": "2026-10-30T22:05:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:10:00+00:00",
+            "exchange": "2026-10-30T10:10:00-04:00",
+            "display": "2026-10-30T22:10:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T14:10:00+00:00",
+            "exchange": "2026-10-30T10:10:00-04:00",
+            "display": "2026-10-30T22:10:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:15:00+00:00",
+            "exchange": "2026-10-30T10:15:00-04:00",
+            "display": "2026-10-30T22:15:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T14:15:00+00:00",
+            "exchange": "2026-10-30T10:15:00-04:00",
+            "display": "2026-10-30T22:15:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:20:00+00:00",
+            "exchange": "2026-10-30T10:20:00-04:00",
+            "display": "2026-10-30T22:20:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T14:20:00+00:00",
+            "exchange": "2026-10-30T10:20:00-04:00",
+            "display": "2026-10-30T22:20:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:25:00+00:00",
+            "exchange": "2026-10-30T10:25:00-04:00",
+            "display": "2026-10-30T22:25:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-10-30T14:25:00+00:00",
+            "exchange": "2026-10-30T10:25:00-04:00",
+            "display": "2026-10-30T22:25:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-10-30T14:30:00+00:00",
+            "exchange": "2026-10-30T10:30:00-04:00",
+            "display": "2026-10-30T22:30:00+08:00"
+          }
+        }
+      ],
+      "opening": {
+        "utc": "2026-10-30T13:30:00+00:00",
+        "exchange": "2026-10-30T09:30:00-04:00",
+        "display": "2026-10-30T21:30:00+08:00"
+      },
+      "closing": {
+        "utc": "2026-10-30T20:00:00+00:00",
+        "exchange": "2026-10-30T16:00:00-04:00",
+        "display": "2026-10-31T04:00:00+08:00"
+      },
+      "early_close": false,
+      "prewarm": {
+        "utc": "2026-10-30T12:30:00+00:00",
+        "exchange": "2026-10-30T08:30:00-04:00",
+        "display": "2026-10-30T20:30:00+08:00"
+      },
+      "readiness": {
+        "utc": "2026-10-30T13:25:00+00:00",
+        "exchange": "2026-10-30T09:25:00-04:00",
+        "display": "2026-10-30T21:25:00+08:00"
+      },
+      "cutoff": {
+        "utc": "2026-10-30T14:30:00+00:00",
+        "exchange": "2026-10-30T10:30:00-04:00",
+        "display": "2026-10-30T22:30:00+08:00"
+      },
+      "reconciliation_at": {
+        "utc": "2026-10-30T14:30:00+00:00",
+        "exchange": "2026-10-30T10:30:00-04:00",
+        "display": "2026-10-30T22:30:00+08:00"
+      }
+    },
+    {
+      "schema": "FIRST_HOUR_CALENDAR_AUDIT_V1",
+      "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+      "session": "2026-11-01",
+      "state": "MARKET_CLOSED",
+      "calendar_source": "exchange_calendars:XNYS",
+      "registered": 111,
+      "applicable": 100,
+      "unresolved": 11,
+      "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+      "checkpoint_count": 0,
+      "positions_per_variant": 0,
+      "identity_unresolved_positions_per_variant": 0,
+      "scheduled_or_registered": false,
+      "checkpoints": []
+    },
+    {
+      "schema": "FIRST_HOUR_CALENDAR_AUDIT_V1",
+      "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+      "session": "2026-11-27",
+      "state": "SCHEDULED_NOT_RUN",
+      "calendar_source": "exchange_calendars:XNYS",
+      "registered": 111,
+      "applicable": 100,
+      "unresolved": 11,
+      "scope_hash": "fbdef81587ac6c1be34c44624961c5056b6ac940a238133ed427ffd614583b7f",
+      "checkpoint_count": 11,
+      "positions_per_variant": 2200,
+      "identity_unresolved_positions_per_variant": 242,
+      "scheduled_or_registered": false,
+      "checkpoints": [
+        {
+          "at": {
+            "utc": "2026-11-27T14:35:00+00:00",
+            "exchange": "2026-11-27T09:35:00-05:00",
+            "display": "2026-11-27T22:35:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T14:40:00+00:00",
+            "exchange": "2026-11-27T09:40:00-05:00",
+            "display": "2026-11-27T22:40:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T14:40:00+00:00",
+            "exchange": "2026-11-27T09:40:00-05:00",
+            "display": "2026-11-27T22:40:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T14:45:00+00:00",
+            "exchange": "2026-11-27T09:45:00-05:00",
+            "display": "2026-11-27T22:45:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T14:45:00+00:00",
+            "exchange": "2026-11-27T09:45:00-05:00",
+            "display": "2026-11-27T22:45:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T14:50:00+00:00",
+            "exchange": "2026-11-27T09:50:00-05:00",
+            "display": "2026-11-27T22:50:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T14:50:00+00:00",
+            "exchange": "2026-11-27T09:50:00-05:00",
+            "display": "2026-11-27T22:50:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T14:55:00+00:00",
+            "exchange": "2026-11-27T09:55:00-05:00",
+            "display": "2026-11-27T22:55:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T14:55:00+00:00",
+            "exchange": "2026-11-27T09:55:00-05:00",
+            "display": "2026-11-27T22:55:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:00:00+00:00",
+            "exchange": "2026-11-27T10:00:00-05:00",
+            "display": "2026-11-27T23:00:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T15:00:00+00:00",
+            "exchange": "2026-11-27T10:00:00-05:00",
+            "display": "2026-11-27T23:00:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:05:00+00:00",
+            "exchange": "2026-11-27T10:05:00-05:00",
+            "display": "2026-11-27T23:05:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T15:05:00+00:00",
+            "exchange": "2026-11-27T10:05:00-05:00",
+            "display": "2026-11-27T23:05:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:10:00+00:00",
+            "exchange": "2026-11-27T10:10:00-05:00",
+            "display": "2026-11-27T23:10:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T15:10:00+00:00",
+            "exchange": "2026-11-27T10:10:00-05:00",
+            "display": "2026-11-27T23:10:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:15:00+00:00",
+            "exchange": "2026-11-27T10:15:00-05:00",
+            "display": "2026-11-27T23:15:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T15:15:00+00:00",
+            "exchange": "2026-11-27T10:15:00-05:00",
+            "display": "2026-11-27T23:15:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:20:00+00:00",
+            "exchange": "2026-11-27T10:20:00-05:00",
+            "display": "2026-11-27T23:20:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T15:20:00+00:00",
+            "exchange": "2026-11-27T10:20:00-05:00",
+            "display": "2026-11-27T23:20:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:25:00+00:00",
+            "exchange": "2026-11-27T10:25:00-05:00",
+            "display": "2026-11-27T23:25:00+08:00"
+          }
+        },
+        {
+          "at": {
+            "utc": "2026-11-27T15:25:00+00:00",
+            "exchange": "2026-11-27T10:25:00-05:00",
+            "display": "2026-11-27T23:25:00+08:00"
+          },
+          "deadline": {
+            "utc": "2026-11-27T15:30:00+00:00",
+            "exchange": "2026-11-27T10:30:00-05:00",
+            "display": "2026-11-27T23:30:00+08:00"
+          }
+        }
+      ],
+      "opening": {
+        "utc": "2026-11-27T14:30:00+00:00",
+        "exchange": "2026-11-27T09:30:00-05:00",
+        "display": "2026-11-27T22:30:00+08:00"
+      },
+      "closing": {
+        "utc": "2026-11-27T18:00:00+00:00",
+        "exchange": "2026-11-27T13:00:00-05:00",
+        "display": "2026-11-28T02:00:00+08:00"
+      },
+      "early_close": true,
+      "prewarm": {
+        "utc": "2026-11-27T13:30:00+00:00",
+        "exchange": "2026-11-27T08:30:00-05:00",
+        "display": "2026-11-27T21:30:00+08:00"
+      },
+      "readiness": {
+        "utc": "2026-11-27T14:25:00+00:00",
+        "exchange": "2026-11-27T09:25:00-05:00",
+        "display": "2026-11-27T22:25:00+08:00"
+      },
+      "cutoff": {
+        "utc": "2026-11-27T15:30:00+00:00",
+        "exchange": "2026-11-27T10:30:00-05:00",
+        "display": "2026-11-27T23:30:00+08:00"
+      },
+      "reconciliation_at": {
+        "utc": "2026-11-27T15:30:00+00:00",
+        "exchange": "2026-11-27T10:30:00-05:00",
+        "display": "2026-11-27T23:30:00+08:00"
+      }
+    }
+  ],
+  "manual_exit_example": {
+    "planned_exit_at": {
+      "utc": "2026-11-02T17:30:00+00:00",
+      "exchange": "2026-11-02T12:30:00-05:00",
+      "display": "2026-11-03T01:30:00+08:00"
+    },
+    "wind_down_at": {
+      "utc": "2026-11-02T17:15:00+00:00",
+      "exchange": "2026-11-02T12:15:00-05:00",
+      "display": "2026-11-03T01:15:00+08:00"
+    }
+  },
+  "manual_policy_boundary": "Existing fixed BJT 01:30/01:15 preserved; this is timing verification, not S1 manual-policy approval.",
+  "budget_fall_back_dates": [
+    "2026-11-01",
+    "2026-11-01"
+  ],
+  "budget_boundary_scope": "Calendar contract only. Does not replace A's actual ledger/reservation acceptance.",
+  "actual_schedule_registration": false,
+  "production_tasks_created": false,
+  "production_database_access": false,
+  "market_execution_state": "NOT_RUN",
+  "natural_signal_claim": false,
+  "official_sources_checked_20261031": [
+    {
+      "url": "https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst",
+      "fact": "2026 US DST begins March 8 and ends November 1; repeated local hour must not be treated as a new budget day."
+    },
+    {
+      "url": "https://www.nyse.com/markets/hours-calendars",
+      "fact": "NYSE core session is 09:30-16:00 ET; November 27 2026 is an early-close date. November 2 is not a listed holiday."
+    }
+  ]
+}

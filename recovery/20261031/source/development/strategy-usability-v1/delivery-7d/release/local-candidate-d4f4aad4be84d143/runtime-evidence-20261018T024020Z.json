@@ -1,0 +1,450 @@
+{
+  "observed_at": "2026-10-18T02:40:20.631510+00:00",
+  "candidate": "local-candidate-d4f4aad4be84d143",
+  "payload_sha256": "2720fc5c628cd23ab5252d5d2bfef9795a8820e96d99d43c82f8a4d0cd6b01d0",
+  "entry_sha256": "a2305b860c2e8e952bd9dd6c00d3e9cd1a192f3e306ebd72eaeac1773f97dba9",
+  "acceptance_sha256": "65573ae59a69e2ed1905ab14d9b5de49d797358c0542cf25d42fcea821a683e4",
+  "release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\release-manifest.json",
+    "sha256": "41825a80ae493a3154533cff6c99920f91d3f059928acc159867beede30ae808"
+  },
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\recovery-manifest-shadow-accepted.json",
+    "sha256": "734167754caae50c74e81b31ce348b4959dd4e97294653e3c843a276e8df8d2e"
+  },
+  "all_twelve_live_hashes_match": true,
+  "changed_files": [
+    {
+      "target": "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+      "expected": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95",
+      "actual": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95"
+    },
+    {
+      "target": "config/review_acceptances/options_opening_trend_reference_sources.json",
+      "expected": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a",
+      "actual": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a"
+    },
+    {
+      "target": "kquant/options_intraday_reference.py",
+      "expected": "7b95ebee1785e2bc3c2db2f2b9323692c431eaf1ef02503d67649b9745b5ac33",
+      "actual": "7b95ebee1785e2bc3c2db2f2b9323692c431eaf1ef02503d67649b9745b5ac33"
+    },
+    {
+      "target": "kquant/options_minute_decisions.py",
+      "expected": "71decc21f5245e76250f75852167c272796ea406ea4e0048d04679071aa52252",
+      "actual": "71decc21f5245e76250f75852167c272796ea406ea4e0048d04679071aa52252"
+    },
+    {
+      "target": "kquant/options_one_minute_recovery.py",
+      "expected": "8076d2e7711a23cc35dee2fc4a907c4e9361a6667ab3d164ab023966ffbb5ca0",
+      "actual": "8076d2e7711a23cc35dee2fc4a907c4e9361a6667ab3d164ab023966ffbb5ca0"
+    },
+    {
+      "target": "kquant/options_opening_momentum_journal.py",
+      "expected": "1d9a3b73febc118670b2b218bfa963f06b716ad4b1e35e991ef989ccf270fcdb",
+      "actual": "1d9a3b73febc118670b2b218bfa963f06b716ad4b1e35e991ef989ccf270fcdb"
+    },
+    {
+      "target": "kquant/options_opening_trend_pipeline.py",
+      "expected": "2df1244dd48f31dfe993a0622edef755f840c667e354f3a1f4b8ec20f8301d21",
+      "actual": "2df1244dd48f31dfe993a0622edef755f840c667e354f3a1f4b8ec20f8301d21"
+    },
+    {
+      "target": "kquant/options_opening_trend_recovery.py",
+      "expected": "1d3f0c78054fd38115fe965dfaa2467c1b2b46a2bbd84680945553649449a706",
+      "actual": "1d3f0c78054fd38115fe965dfaa2467c1b2b46a2bbd84680945553649449a706"
+    },
+    {
+      "target": "kquant/options_opening_trend_store.py",
+      "expected": "56b42d7d73ccb9ddafe12479a165b55b62de27d5fabc95a995634e7b16a2ae3b",
+      "actual": "56b42d7d73ccb9ddafe12479a165b55b62de27d5fabc95a995634e7b16a2ae3b"
+    },
+    {
+      "target": "kquant/options_source_updates.py",
+      "expected": "d44501befef557237aa9f6c8f5bddef4c6002aa540a319d014aec883c0a44fa1",
+      "actual": "d44501befef557237aa9f6c8f5bddef4c6002aa540a319d014aec883c0a44fa1"
+    },
+    {
+      "target": "kquant/recovery_preflight.py",
+      "expected": "cd69a6f1ba712398e6caf8d5ce8f0da86f79a54098c6a2cdb75bccd5111c5023",
+      "actual": "cd69a6f1ba712398e6caf8d5ce8f0da86f79a54098c6a2cdb75bccd5111c5023"
+    },
+    {
+      "target": "kquant/recovery_runtime_probe.py",
+      "expected": "c848e305f18d2e7cb9b3bfed15306dc10ce983c3dd2bb90ece2dfa22f97200a1",
+      "actual": "c848e305f18d2e7cb9b3bfed15306dc10ce983c3dd2bb90ece2dfa22f97200a1"
+    }
+  ],
+  "minute_method": {
+    "status": "ACCEPTED",
+    "semantics": "CLOSED_SNAPSHOT_ADOPTION",
+    "method": {
+      "version": "LOCAL_CLOSED_SNAPSHOT_V1",
+      "period": "1m",
+      "adjustment": "NoAdjust",
+      "session": "regular",
+      "selection": "LATEST_ELIGIBLE_POST_BOUNDARY_PULL",
+      "interface": "QuoteContext.candlesticks",
+      "clock_state": "VERIFIED_BOUND",
+      "maximum_clock_uncertainty_ms": 1000,
+      "clock_evidence_max_age_seconds": 900,
+      "request_boundary": "bar_end_plus_measured_clock_uncertainty",
+      "later_valid_contradiction": "REVIEW_AND_WITHDRAW",
+      "combine_ohlc": false,
+      "provider_permanently_final": false,
+      "extend_deadline": false,
+      "backfill_signal": false
+    },
+    "acceptance_path": "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+    "acceptance_sha256": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95"
+  },
+  "schema_index_sql": "CREATE INDEX trend_input_source ON two_hour_jobs(session,symbol,queued_at)",
+  "services": {
+    "state": "RUNNING",
+    "stage": "MAIN_LOOP",
+    "checked_at": "2026-10-18T02:40:11.3221716+00:00",
+    "launcher_identity": {
+      "pid": 32524,
+      "created_at": "2026-10-17T02:10:03.4769840Z",
+      "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    "run_session_id": "294513cf-a49f-4fcc-8806-d22966928030",
+    "listeners": [
+      {
+        "port": 8001,
+        "pid": 13792,
+        "identity": {
+          "pid": 13792,
+          "created_at": "2026-10-17T02:10:12.0827710Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      },
+      {
+        "port": 8020,
+        "pid": 31476,
+        "identity": {
+          "pid": 31476,
+          "created_at": "2026-10-17T02:10:12.2514580Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      }
+    ],
+    "backend_release": "local-candidate-d4f4aad4be84d143",
+    "recovery_count": 0
+  },
+  "worker": {
+    "state": "WAIT_MARKET",
+    "stage": "WAIT_MARKET",
+    "loop_count": 18539,
+    "last_cycle_at": "2026-10-18T02:40:15.446785+00:00",
+    "thread_alive": true,
+    "research_ready": true,
+    "runtime_health": "RESPONSIVE",
+    "session": "2026-10-16",
+    "qualified_alerts_enabled": false,
+    "paper_enabled": false,
+    "real_orders_enabled": false
+  },
+  "registered_items_count": 111,
+  "clock_state": "MEASUREMENT_UNAVAILABLE",
+  "query_transport": {
+    "records_available": 1376,
+    "last_denominator": {
+      "attempts": 98188,
+      "successes": 96812,
+      "failures": 1376,
+      "deadlines": 1242,
+      "scope": "PARENT_PROCESS"
+    },
+    "complete_attempts": false,
+    "lanes": {
+      "one_minute:status": {
+        "PROCESS_DEADLINE": 1234,
+        "CHILD_ERROR": 97
+      },
+      "opening_momentum:current": {
+        "CHILD_ERROR": 28,
+        "PROCESS_DEADLINE": 4
+      },
+      "opening_momentum:compact": {
+        "CHILD_ERROR": 9,
+        "PROCESS_DEADLINE": 4
+      }
+    },
+    "last_observed_at": "2026-10-18T02:33:38.466520+00:00",
+    "failure_samples": [
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 35444,
+        "request_id": "550f2217150644e088a77c4e8c6ea330",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2099.536,
+        "cleanup_ms": 50.367,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 0,
+        "stderr_truncated": false,
+        "last_phase": "spawn",
+        "last_phase_event": null,
+        "stages_ms": {
+          "spawn": 286.437,
+          "import": null,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": null,
+        "query_lane": "opening_momentum:compact",
+        "denominator": {
+          "attempts": 98179,
+          "successes": 96808,
+          "failures": 1371,
+          "deadlines": 1237,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 98179,
+        "observed_at": "2026-10-18T02:33:32.163193+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 35928,
+        "request_id": "6ac3fe77858647769ad9c412b304ff80",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2267.161,
+        "cleanup_ms": 257.125,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 65,
+        "stderr_truncated": false,
+        "last_phase": "import",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 88.711,
+          "import": null,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 1357.623,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 98181,
+          "successes": 96808,
+          "failures": 1373,
+          "deadlines": 1239,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 98181,
+        "observed_at": "2026-10-18T02:33:33.485758+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 23884,
+        "request_id": "fbbcc31c223644aaa5c3c42539381a1f",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2159.177,
+        "cleanup_ms": 157.84,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 65,
+        "stderr_truncated": false,
+        "last_phase": "import",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 47.944,
+          "import": null,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 1788.273,
+        "query_lane": "opening_momentum:current",
+        "denominator": {
+          "attempts": 98182,
+          "successes": 96808,
+          "failures": 1374,
+          "deadlines": 1240,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 98182,
+        "observed_at": "2026-10-18T02:33:34.433601+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 35036,
+        "request_id": "8c5ec04fb1b2446d86e0cc44b8367f20",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2211.018,
+        "cleanup_ms": 208.534,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 770,
+        "stderr_truncated": false,
+        "last_phase": "projection_delta",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 42.307,
+          "import": 544.868,
+          "query": null,
+          "universe": 19.441,
+          "policy": 2.749,
+          "current_cards": null,
+          "latest_status": 70.726,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 1317.289,
+        "query_lane": "opening_momentum:compact",
+        "denominator": {
+          "attempts": 98183,
+          "successes": 96808,
+          "failures": 1375,
+          "deadlines": 1241,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 98183,
+        "observed_at": "2026-10-18T02:33:35.917866+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 37584,
+        "request_id": "747c7638311d45e2955fd9990cc68ac7",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2022.79,
+        "cleanup_ms": 17.222,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 218,
+        "stderr_truncated": false,
+        "last_phase": "query",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 21.378,
+          "import": 286.041,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 407.332,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 98188,
+          "successes": 96812,
+          "failures": 1376,
+          "deadlines": 1242,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 98188,
+        "observed_at": "2026-10-18T02:33:38.466520+00:00"
+      }
+    ]
+  },
+  "logs": [
+    {
+      "name": "stock-options-foundation",
+      "kind": "stdout",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+      "bytes": 993904,
+      "sha256": "0eeed4f7441b63cc52782b1ef77dcf38cb9dca0377b56a2955ad80899f620f0a"
+    },
+    {
+      "name": "stock-options-foundation",
+      "kind": "stderr",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+      "bytes": 1991911,
+      "sha256": "2e5b4fc02c9e2582fbc18cfc4d5bb05b5eca21dc7bdf56882c283243463295f3"
+    },
+    {
+      "name": "gateway-options-foundation",
+      "kind": "stdout",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+      "bytes": 947002,
+      "sha256": "d1a93cc9caf9c669f9f50f828535f16e75468b3f368be015ebb314a15fe9f60d"
+    },
+    {
+      "name": "gateway-options-foundation",
+      "kind": "stderr",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+      "bytes": 202,
+      "sha256": "7a3f9585f0dc702b34bf1f1b0cd945b99c57b9e6d9c38d1ac32c6656b30c8583"
+    }
+  ],
+  "sdk_connections": 0,
+  "business_writes": 0,
+  "authenticated_ui_verified": false,
+  "live_reliability_pass": false,
+  "synthetic_hour_result_does_not_override_actual_failures": true
+}

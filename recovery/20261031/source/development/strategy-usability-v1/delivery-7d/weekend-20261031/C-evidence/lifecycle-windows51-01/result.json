@@ -1,0 +1,178 @@
+{
+    "schema":  "WEEKEND_C_LIFECYCLE_ISOLATION_V1",
+    "test_only":  true,
+    "observed_at":  "2026-10-31T14:13:32.4519243+00:00",
+    "host":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "ps_version":  "5.1.26100.4480",
+    "checks":  [
+                   {
+                       "name":  "ACTUAL_HOST_PARSE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:05.9394358+00:00"
+                   },
+                   {
+                       "name":  "ORIGINAL_ENTRY_HOST_CHECK_ONLY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:10.6891163+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_OWNER_IDENTITY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:18.0516471+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_DESCENDANT_OWNERSHIP",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:18.6473559+00:00"
+                   },
+                   {
+                       "name":  "UNRELATED_PROCESS_NOT_OWNED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:19.6423841+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_HEALTHY_MONITOR_CYCLE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:20.1656052+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:20.2933597+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE_UNKNOWN_NO_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:20.2973695+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE_OWNER_SURVIVED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:20.5442727+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE_OBSERVATION_RECOVERS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:21.0168547+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:21.0307025+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED_UNKNOWN_NO_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:21.0307025+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED_OWNER_SURVIVED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:21.2715335+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED_OBSERVATION_RECOVERS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:21.7826747+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:22.0340459+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE_UNKNOWN_NO_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:22.0350459+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE_OWNER_SURVIVED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:22.2726643+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE_OBSERVATION_RECOVERS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:22.7567924+00:00"
+                   },
+                   {
+                       "name":  "PID_REUSE_IDENTITY_REJECTED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:23.0190286+00:00"
+                   },
+                   {
+                       "name":  "MISMATCH_CLEANUP_PRESERVES_PROCESS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:23.2486410+00:00"
+                   },
+                   {
+                       "name":  "CLEANUP_ACCESS_UNKNOWN_REFUSED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:23.2496398+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_UNKNOWN_PRESERVES_PROCESS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:23.4824070+00:00"
+                   },
+                   {
+                       "name":  "OBSERVE_ALL_BEFORE_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:26.9780550+00:00"
+                   },
+                   {
+                       "name":  "UNKNOWN_SIBLING_NO_PARTIAL_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:26.9790636+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_EXIT_RECOVERY_LIMIT_RETAINED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:27.2475258+00:00"
+                   },
+                   {
+                       "name":  "OWNED_PARENT_CLEANED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:29.6041353+00:00"
+                   },
+                   {
+                       "name":  "OWNED_DESCENDANT_CLEANED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:29.8836931+00:00"
+                   },
+                   {
+                       "name":  "UNRELATED_PROCESS_SURVIVED_CLEANUP",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:13:30.1169314+00:00"
+                   }
+               ],
+    "failure":  null,
+    "process_identities":  [
+                               {
+                                   "pid":  1652,
+                                   "created_at":  "2026-10-31T14:13:10.8013240Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  28456,
+                                   "created_at":  "2026-10-31T14:13:14.0576800Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  36500,
+                                   "created_at":  "2026-10-31T14:13:13.2218030Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  888,
+                                   "created_at":  "2026-10-31T14:13:23.4881060Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               }
+                           ],
+    "remaining_test_children":  0,
+    "pass":  true,
+    "production_launch":  false,
+    "database_access":  false,
+    "fault_boundary":  "Real CIM invalid-namespace error; explicit access-denied/missing-field injection. No OS ACL or WMI service changes.",
+    "scope":  "Actual original HostCheckOnly entry, shared candidate monitor cycle and actual child ownership/cleanup. Not production recovery gates, HTTP, Worker or full topology acceptance."
+}

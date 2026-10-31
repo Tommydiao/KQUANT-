@@ -1,0 +1,34 @@
+{
+  "quote_multiplier_interface": {
+    "status": "APPROVED",
+    "source_kind": "OFFICIAL_INTERFACE_FACT",
+    "fact_type": "OPTION_QUOTE_MULTIPLIER",
+    "interface": "US_OPTION_QUOTE",
+    "reviewer": "KQUANT_CODEX_FULL_ROW_REVIEW_P7",
+    "review_method": "PROGRAMMATIC_DOCUMENT_REVIEW",
+    "reviewed_at": "2026-10-04T08:43:38.354962+00:00",
+    "valid_until": "2026-11-03T00:00:00+00:00",
+    "source_url": "https://open.longbridge.com/zh-CN/docs/quote/pull/option-quote",
+    "source_path": "outputs/r58/20261004/p7-source-facts/option-quote.html",
+    "source_sha256": "6deedb0b602cff44bac79d8cf8f01919c521fe9fe024f38f5a293309c797d1ee",
+    "excerpt": "<tr><td>∟∟ contract_multiplier</td><td>string</td><td>合约乘数</td></tr>",
+    "contract_version": "INTERFACE_FACT_V1",
+    "claim": {
+      "field_path": "option_quote.contract_multiplier",
+      "assertion": "NATIVE_QUOTE_MULTIPLIER",
+      "market_scope": "US",
+      "sdk_scope": "longbridge.openapi"
+    },
+    "claim_hash": "5b9d6cbc1d93bbf034b7b51a642c0a7123b324aca91e048452721f8b520afa1c",
+    "assertion_limits": [
+      "DOES_NOT_PROVE_PRICE_SCALE",
+      "DOES_NOT_PROVE_DEPTH_UNITS",
+      "NOT_OWNER_APPROVAL"
+    ],
+    "multiplier_field": "contract_multiplier"
+  },
+  "depth_units": null,
+  "deliverables": {},
+  "quote_multipliers": {},
+  "series_records": []
+}

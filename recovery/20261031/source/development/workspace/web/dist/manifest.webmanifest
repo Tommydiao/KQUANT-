@@ -1,0 +1,10 @@
+{
+  "name": "KQUANT US Stock Research",
+  "short_name": "KQUANT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050a10",
+  "theme_color": "#0c151d",
+  "icons": [{ "src": "/kquant-mark.svg", "sizes": "any", "type": "image/svg+xml" }],
+  "description": "Local, read-only US stock research and manual decision workspace."
+}

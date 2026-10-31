@@ -1,0 +1,6 @@
+{
+  "schema": "KQUANT_SAFE_RECOVERY_GUARD_V1",
+  "required": true,
+  "reason": "New epoch scope accepted; old business continuity UNKNOWN; exact runtime acceptance still required.",
+  "approved_runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime"
+}

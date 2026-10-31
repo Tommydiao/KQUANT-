@@ -1,0 +1,280 @@
+{
+  "schema": "KQUANT_MATCHED_HOUR_VERDICT_V1",
+  "observed_at": "2026-10-17T04:50:05.628985+00:00",
+  "candidate_id": "local-candidate-45492b7b0b7428ca",
+  "payload_sha256": "607f0bb3593f3679689ab8f4749e4d97e3f862afbb56b4a263f3c0ec9d0864e6",
+  "projection_sha256": "95159472898006281e807ca244ce36c4b0dd6ccf52794b85b50141a3778b671f",
+  "report_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\status-reliability-hour-4549-20261017\\topology_report.json",
+  "report_sha256": "50fff0d3a0c93f8785a0162ae11d47cf99a576b052fb510273289faa4d49455e",
+  "duration_seconds": 3600.4379999999946,
+  "continuous_60_minutes": true,
+  "source_match": true,
+  "frontend_match": true,
+  "original_harness_assembly_pass": true,
+  "comprehensive_reliability_pass": false,
+  "performance_pass": false,
+  "release_ready": false,
+  "approval_requested": false,
+  "production_writes": 0,
+  "test_only": true,
+  "totals": {
+    "records": 5426,
+    "success": 5424,
+    "failure": 2,
+    "deadline": 0
+  },
+  "query_lanes": {
+    "opening_momentum:current": {
+      "SUCCESS": 3483,
+      "CHILD_ERROR": 2
+    },
+    "opening_momentum:compact": {
+      "SUCCESS": 1237
+    },
+    "one_minute:status": {
+      "SUCCESS": 704
+    }
+  },
+  "failures": [
+    {
+      "request_id": "c96ba51d1ce8418a874156b392744ec0",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-17T03:52:06.978482+00:00",
+      "outcome": "CHILD_ERROR",
+      "returncode": 1,
+      "stages_ms": {
+        "spawn": 2.97,
+        "import": 137.37,
+        "query": 341.703,
+        "universe": 8.622,
+        "policy": 0.857,
+        "current_cards": 319.011,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": 0.053,
+        "ipc": 0.031
+      }
+    },
+    {
+      "request_id": "ec04ab47baa744ce86543f794df32604",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-17T03:52:08.667941+00:00",
+      "outcome": "CHILD_ERROR",
+      "returncode": 1,
+      "stages_ms": {
+        "spawn": 6.408,
+        "import": 385.847,
+        "query": 359.568,
+        "universe": 20.889,
+        "policy": 0.727,
+        "current_cards": 324.239,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": 0.06,
+        "ipc": 0.046
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-19T13:35:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03200000000651926
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03200000000651926
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000000325963
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.046999999991385266
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.280999999988126
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:40:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.046999999991385266
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.046999999991385266
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000000325963
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.046999999991385266
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.077999999979511
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:45:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999988125637
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031000000017229468
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.139999999984866
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.73499999998603
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:50:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.10899999999674037
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03200000000651926
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.062000000005355105
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.905999999988126
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:55:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09400000001187436
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 9.84299999999348
+        }
+      }
+    }
+  ],
+  "children_alive": [],
+  "recovery": [
+    {
+      "pending_before": 100,
+      "restored": 100,
+      "original_deadlines_preserved": true
+    }
+  ],
+  "manual": {
+    "test_only": true,
+    "synthetic_contract_not_live_qualification": true,
+    "login_status": 200,
+    "entry_status": 200,
+    "actual_http_handlers": true,
+    "production_user_login": false,
+    "duplicate_entry_same": true,
+    "changed_key_status": 400,
+    "partial_exit_status": 200,
+    "duplicate_exit_same": true,
+    "open_quantity": 1,
+    "paper_fill": false,
+    "real_order_created": false,
+    "expired_session_status": 401,
+    "relogin_quantity": 1,
+    "logout_status": 200,
+    "after_logout_status": 401
+  },
+  "browser": {
+    "three_real_pages": true,
+    "refreshes": [
+      116,
+      116,
+      116
+    ],
+    "problems": [],
+    "signal_delivery_accepted": false
+  },
+  "http_classifications": {
+    "EXPECTED_INJECTED_FAILURE": 9
+  },
+  "original_report_errors": [
+    {
+      "code": "BACKGROUND_QUERY_FAILURES",
+      "failures": 2,
+      "complete": true
+    }
+  ],
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "caveat": "Original assembly flag precedes background accounting. Combined verdict is FAIL. No real market or natural Signal claim."
+}

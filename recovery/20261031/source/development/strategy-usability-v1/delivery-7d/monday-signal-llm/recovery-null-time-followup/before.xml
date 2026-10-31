@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="7" skipped="0" tests="8" time="1.461" timestamp="2026-10-19T21:53:58.641401+08:00" hostname="PC-20260215FHYW"><testcase classname="" name="test_measured_push_is_ineligible_instead_of_crashing" time="0.013"><failure message="AttributeError: 'NoneType' object has no attribute 'replace'">decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+
+    def test_measured_push_is_ineligible_instead_of_crashing(decisions):
+&gt;       assert not decisions._local_candidate(native_row(push=True), {"method": decisions.LOCAL_METHOD})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:30: in _local_candidate
+    requested = common.timestamp(native["request_started_at"])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase><testcase classname="" name="test_invalid_time_is_not_a_usable_pull[request_started_at-None]" time="0.001"><failure message="AttributeError: 'NoneType' object has no attribute 'replace'">decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+field = 'request_started_at', value = None
+
+    @pytest.mark.parametrize("field,value", [
+        ("request_started_at", None), ("request_started_at", 123),
+        ("received_at", None), ("available_at", None), ("checked_at", None),
+    ])
+    def test_invalid_time_is_not_a_usable_pull(decisions, field, value):
+        row = deepcopy(native_row())
+        if field == "request_started_at":
+            row["sdk_evidence"][field] = value
+        elif field == "checked_at":
+            row["sdk_evidence"]["clock_evidence"][field] = value
+        else:
+            row[field] = value
+&gt;       assert not decisions._local_candidate(row, {"method": decisions.LOCAL_METHOD})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:30: in _local_candidate
+    requested = common.timestamp(native["request_started_at"])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase><testcase classname="" name="test_invalid_time_is_not_a_usable_pull[request_started_at-123]" time="0.001"><failure message="AttributeError: 'int' object has no attribute 'replace'">decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+field = 'request_started_at', value = 123
+
+    @pytest.mark.parametrize("field,value", [
+        ("request_started_at", None), ("request_started_at", 123),
+        ("received_at", None), ("available_at", None), ("checked_at", None),
+    ])
+    def test_invalid_time_is_not_a_usable_pull(decisions, field, value):
+        row = deepcopy(native_row())
+        if field == "request_started_at":
+            row["sdk_evidence"][field] = value
+        elif field == "checked_at":
+            row["sdk_evidence"]["clock_evidence"][field] = value
+        else:
+            row[field] = value
+&gt;       assert not decisions._local_candidate(row, {"method": decisions.LOCAL_METHOD})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:30: in _local_candidate
+    requested = common.timestamp(native["request_started_at"])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = 123
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'int' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase><testcase classname="" name="test_invalid_time_is_not_a_usable_pull[received_at-None]" time="0.002"><failure message="AttributeError: 'NoneType' object has no attribute 'replace'">decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+field = 'received_at', value = None
+
+    @pytest.mark.parametrize("field,value", [
+        ("request_started_at", None), ("request_started_at", 123),
+        ("received_at", None), ("available_at", None), ("checked_at", None),
+    ])
+    def test_invalid_time_is_not_a_usable_pull(decisions, field, value):
+        row = deepcopy(native_row())
+        if field == "request_started_at":
+            row["sdk_evidence"][field] = value
+        elif field == "checked_at":
+            row["sdk_evidence"]["clock_evidence"][field] = value
+        else:
+            row[field] = value
+&gt;       assert not decisions._local_candidate(row, {"method": decisions.LOCAL_METHOD})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:31: in _local_candidate
+    received = common.timestamp(row["received_at"])
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase><testcase classname="" name="test_invalid_time_is_not_a_usable_pull[available_at-None]" time="0.002"><failure message="AttributeError: 'NoneType' object has no attribute 'replace'">decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+field = 'available_at', value = None
+
+    @pytest.mark.parametrize("field,value", [
+        ("request_started_at", None), ("request_started_at", 123),
+        ("received_at", None), ("available_at", None), ("checked_at", None),
+    ])
+    def test_invalid_time_is_not_a_usable_pull(decisions, field, value):
+        row = deepcopy(native_row())
+        if field == "request_started_at":
+            row["sdk_evidence"][field] = value
+        elif field == "checked_at":
+            row["sdk_evidence"]["clock_evidence"][field] = value
+        else:
+            row[field] = value
+&gt;       assert not decisions._local_candidate(row, {"method": decisions.LOCAL_METHOD})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:39: in _local_candidate
+    and common.timestamp(row["available_at"]) + timedelta(milliseconds=uncertainty) &lt;= requested &lt;= received)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase><testcase classname="" name="test_invalid_time_is_not_a_usable_pull[checked_at-None]" time="0.001"><failure message="AttributeError: 'NoneType' object has no attribute 'replace'">decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+field = 'checked_at', value = None
+
+    @pytest.mark.parametrize("field,value", [
+        ("request_started_at", None), ("request_started_at", 123),
+        ("received_at", None), ("available_at", None), ("checked_at", None),
+    ])
+    def test_invalid_time_is_not_a_usable_pull(decisions, field, value):
+        row = deepcopy(native_row())
+        if field == "request_started_at":
+            row["sdk_evidence"][field] = value
+        elif field == "checked_at":
+            row["sdk_evidence"]["clock_evidence"][field] = value
+        else:
+            row[field] = value
+&gt;       assert not decisions._local_candidate(row, {"method": decisions.LOCAL_METHOD})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:32: in _local_candidate
+    age = (requested - common.timestamp(clock["checked_at"])).total_seconds()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase><testcase classname="" name="test_valid_pull_and_original_clock_boundary_unchanged" time="0.002" /><testcase classname="" name="test_real_recovery_observe_keeps_original_deadline" time="0.928"><failure message="AttributeError: 'NoneType' object has no attribute 'replace'">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1897/test_real_recovery_observe_kee0')
+decisions = &lt;module 'kquant.options_minute_decisions' from 'E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\recovery-null-time-followup\\patches\\kquant\\options_minute_decisions.py'&gt;
+
+    def test_real_recovery_observe_keeps_original_deadline(tmp_path, decisions):
+        minute = tmp_path / "epoch/minute.sqlite3"
+        research = tmp_path / "research/opening.sqlite3"
+        minute.parent.mkdir()
+        research.parent.mkdir()
+        common.initialize(minute)
+        lane = TrendRecoveryLane(minute, lambda *unused: pytest.fail("No SDK call expected"),
+            queue_path=research, clock=lambda: NOW)
+        try:
+            row = native_row(push=True)
+            opened = common.timestamp(row["open_at"])
+&gt;           lane.observe("TEST_ONLY", opened, {opened: row}, load_policy(), "TEST_ONLY_SCOPE")
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\test_null_request_time.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute_recovery.py:77: in observe
+    task = self.task(symbol, opened, bars, policy, scope_hash)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_opening_trend_recovery.py:71: in task
+    if not self.bar_ready(symbol, target, row):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_opening_trend_recovery.py:39: in bar_ready
+    if not _local_candidate(bar, {"method": LOCAL_METHOD}):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\monday-signal-llm\recovery-null-time-followup\patches\kquant\options_minute_decisions.py:30: in _local_candidate
+    requested = common.timestamp(native["request_started_at"])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None
+
+    def timestamp(value: str | datetime) -&gt; datetime:
+&gt;       parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                                                                  ^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'replace'
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\kquant\options_one_minute.py:83: AttributeError</failure></testcase></testsuite></testsuites>

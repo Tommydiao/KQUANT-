@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="1.910" timestamp="2026-10-31T23:10:17.359809+08:00" hostname="PC-20260215FHYW"><testcase classname="test_generation_handoff" name="test_minute_only_owner_update_preserves_same_scope_native_reference" time="1.196"><failure message="AssertionError: assert {} == {'raw_quote':...ilable', ...}}&#10;  &#10;  Right contains 1 more item:&#10;  {'raw_quote': {'currency': 'USD',&#10;                 'currency_evidence': {'currency': 'USD',&#10;                                       'provider_symbol': 'AI.US',&#10;                                       'received_at': '2026-10-22T13:30:00+00:00',&#10;                                       'source': 'LONGBRIDGE_SECURITY_STATIC_INFO',...&#10;  &#10;  ...Full output truncated (9 lines hidden), use '-vv' to show">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1971/test_minute_only_owner_update_0')
+
+    def test_minute_only_owner_update_preserves_same_scope_native_reference(tmp_path):
+        with actual_lane(tmp_path) as (lane, worker, now, key, job, bars, _):
+            original_reference = json.loads(json.dumps(job[4]))
+            worker.trend_references.pop('AI')
+            worker._record(bars[-1])
+            with lane.lock:
+&gt;               assert lane.latest_inputs[job[:2]][4] == original_reference
+E               AssertionError: assert {} == {'raw_quote':...ilable', ...}}
+E                 
+E                 Right contains 1 more item:
+E                 {'raw_quote': {'currency': 'USD',
+E                                'currency_evidence': {'currency': 'USD',
+E                                                      'provider_symbol': 'AI.US',
+E                                                      'received_at': '2026-10-22T13:30:00+00:00',
+E                                                      'source': 'LONGBRIDGE_SECURITY_STATIC_INFO',...
+E                 
+E                 ...Full output truncated (9 lines hidden), use '-vv' to show
+
+..\test_generation_handoff.py:168: AssertionError</failure></testcase><testcase classname="test_generation_handoff" name="test_missing_reference_never_crosses_scope_or_overrides_explicit_failure" time="0.145" /></testsuite></testsuites>

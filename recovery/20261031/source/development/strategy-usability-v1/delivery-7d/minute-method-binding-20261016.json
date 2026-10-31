@@ -1,0 +1,17 @@
+{
+  "schema": "KQUANT_PENDING_METHOD_BINDING_V1",
+  "accepted_parent_candidate": "local-candidate-6ac8a5653d14a392",
+  "parent_config_sha256": "63415c2eeac6ce564527c760ce3a9a2f5d318abd8247bbbb9110655bd6ed49b0",
+  "pending_config_sha256": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a",
+  "acceptance_path": "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+  "acceptance_sha256": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95",
+  "method_hash": "37b7b37759b2ae8a1021f85fa5d9dce3286999a646ce9ff55a8ace17fb4f01b2",
+  "approved_at": "2026-10-16T15:24:33Z",
+  "valid_until": "2026-10-23T14:30:22Z",
+  "only_changed_key": "canonical_resolution_method",
+  "production_config_modified": false,
+  "production_restarted": false,
+  "new_candidate_launch_approved": false,
+  "real_clock_measurement_proven": false,
+  "strict_s0_source_facts_proven": false
+}

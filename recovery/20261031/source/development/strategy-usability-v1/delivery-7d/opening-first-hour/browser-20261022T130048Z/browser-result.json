@@ -1,0 +1,18 @@
+{
+  "test_only": true,
+  "natural_signal": false,
+  "errors": [
+    "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('article', { name: 'TEST CALL S0 S1', exact: true }) to be visible\u001b[22m\n\n    at E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\opening-first-hour\\browser_short.cjs:20:16"
+  ],
+  "api_failures": [
+    {
+      "url": "http://127.0.0.1:64808/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503
+    },
+    {
+      "url": "http://127.0.0.1:64808/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503
+    }
+  ],
+  "page_errors": []
+}

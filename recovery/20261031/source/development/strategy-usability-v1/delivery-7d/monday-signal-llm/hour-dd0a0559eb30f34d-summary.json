@@ -1,0 +1,545 @@
+{
+  "schema": "KQUANT_MATCHED_HOUR_VERDICT_V2",
+  "observed_at": "2026-10-18T07:43:54.509934+00:00",
+  "candidate_id": "local-candidate-dd0a0559eb30f34d",
+  "payload_sha256": "031bc2632972c8e6f078c34fa31c99a3bb66d468d9e7fe5492b90ce154fd57f5",
+  "projection_sha256": "5744cd3130f085f21463abd2c915f8cb43c7d5dc7dd59d92c5962e400c913344",
+  "report_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\monday-sol61-hour-dd0a-20261018\\topology_report.json",
+  "report_sha256": "ce6667f55943222b5b5bbc36f5ba6ffe2cb3eb02d296b28d78d927b3bba660fc",
+  "duration_seconds": 3600.3129999999655,
+  "continuous_60_minutes": true,
+  "source_match": true,
+  "frontend_match": true,
+  "original_harness_assembly_pass": true,
+  "comprehensive_reliability_pass": false,
+  "performance_pass": false,
+  "combined_pass": false,
+  "release_ready": false,
+  "approval_requested": false,
+  "production_writes": 0,
+  "test_only": true,
+  "totals": {
+    "records": 5345,
+    "success": 5334,
+    "failure": 11,
+    "deadline": 10
+  },
+  "query_lanes": {
+    "opening_momentum:current": {
+      "SUCCESS": 3431,
+      "CHILD_ERROR": 1,
+      "PROCESS_DEADLINE": 4
+    },
+    "opening_momentum:compact": {
+      "SUCCESS": 1206,
+      "PROCESS_DEADLINE": 4
+    },
+    "one_minute:status": {
+      "SUCCESS": 697,
+      "PROCESS_DEADLINE": 2
+    }
+  },
+  "failures": [
+    {
+      "request_id": "2fb3cf2129044e33b433944fbec2f25c",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-18T06:48:13.567715+00:00",
+      "outcome": "CHILD_ERROR",
+      "returncode": 1,
+      "process_ms": 784.14,
+      "stages_ms": {
+        "spawn": 8.534,
+        "import": 160.82,
+        "query": 331.929,
+        "universe": 7.491,
+        "policy": 0.755,
+        "current_cards": 309.602,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": 0.061,
+        "ipc": 0.055
+      },
+      "parent_pid": 35500,
+      "child_pid": 32860
+    },
+    {
+      "request_id": "543239c6ec344b6eb8186987a55728e2",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-18T06:57:34.487503+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2017.129,
+      "stages_ms": {
+        "spawn": 3.92,
+        "import": 359.838,
+        "query": null,
+        "universe": 7.838,
+        "policy": 0.767,
+        "current_cards": null,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 18840
+    },
+    {
+      "request_id": "ffd2d796159847eb89bf19cc01f24f96",
+      "query_lane": "opening_momentum:compact",
+      "observed_at": "2026-10-18T06:57:34.488487+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2019.288,
+      "stages_ms": {
+        "spawn": 3.87,
+        "import": 334.129,
+        "query": null,
+        "universe": 21.071,
+        "policy": 1.038,
+        "current_cards": null,
+        "latest_status": 962.921,
+        "checkpoint_audit": null,
+        "projection_delta": 12.509,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 22180
+    },
+    {
+      "request_id": "4d6d2f83f067422daea96684218cae2b",
+      "query_lane": "one_minute:status",
+      "observed_at": "2026-10-18T06:57:35.025254+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2035.775,
+      "stages_ms": {
+        "spawn": 3.903,
+        "import": 553.673,
+        "query": null,
+        "universe": null,
+        "policy": null,
+        "current_cards": null,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 13392
+    },
+    {
+      "request_id": "3af3f52d797343deb566302b00e92005",
+      "query_lane": "opening_momentum:compact",
+      "observed_at": "2026-10-18T06:57:37.668139+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2060.493,
+      "stages_ms": {
+        "spawn": 4.169,
+        "import": 258.809,
+        "query": 976.884,
+        "universe": 12.703,
+        "policy": 1.242,
+        "current_cards": null,
+        "latest_status": 703.972,
+        "checkpoint_audit": null,
+        "projection_delta": 5.918,
+        "qualification_stages": 235.657,
+        "clock": 17.764,
+        "encode": 1.574,
+        "ipc": 0.258
+      },
+      "parent_pid": 35500,
+      "child_pid": 26308
+    },
+    {
+      "request_id": "af1246a1101847fa9868fa750fbe01d1",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-18T06:57:38.447504+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2059.281,
+      "stages_ms": {
+        "spawn": 4.378,
+        "import": 381.901,
+        "query": null,
+        "universe": 24.243,
+        "policy": 0.838,
+        "current_cards": null,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 18188
+    },
+    {
+      "request_id": "0954e16021bc4282812c85d7b395ca72",
+      "query_lane": "one_minute:status",
+      "observed_at": "2026-10-18T06:57:40.282448+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2049.409,
+      "stages_ms": {
+        "spawn": 3.913,
+        "import": 355.119,
+        "query": null,
+        "universe": null,
+        "policy": null,
+        "current_cards": null,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 25540
+    },
+    {
+      "request_id": "c97face6e198427f86d05c7db42d65a7",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-18T06:57:40.523320+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2019.538,
+      "stages_ms": {
+        "spawn": 5.13,
+        "import": 310.471,
+        "query": 857.009,
+        "universe": 12.022,
+        "policy": 0.877,
+        "current_cards": 809.028,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": 3.48,
+        "encode": 1.332,
+        "ipc": 0.224
+      },
+      "parent_pid": 35500,
+      "child_pid": 35352
+    },
+    {
+      "request_id": "9674de894bbc41e79729b3e9f0842d28",
+      "query_lane": "opening_momentum:compact",
+      "observed_at": "2026-10-18T06:57:40.805689+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2048.387,
+      "stages_ms": {
+        "spawn": 4.235,
+        "import": 323.593,
+        "query": null,
+        "universe": 10.758,
+        "policy": 0.991,
+        "current_cards": null,
+        "latest_status": 835.804,
+        "checkpoint_audit": null,
+        "projection_delta": 22.996,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 27972
+    },
+    {
+      "request_id": "cd4e99370f134ba6a6e0c5e710bc3cfe",
+      "query_lane": "opening_momentum:compact",
+      "observed_at": "2026-10-18T06:57:43.968941+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2023.907,
+      "stages_ms": {
+        "spawn": 4.319,
+        "import": 329.725,
+        "query": null,
+        "universe": 42.213,
+        "policy": 0.801,
+        "current_cards": null,
+        "latest_status": 988.199,
+        "checkpoint_audit": null,
+        "projection_delta": 13.632,
+        "qualification_stages": null,
+        "clock": null,
+        "encode": null,
+        "ipc": null
+      },
+      "parent_pid": 35500,
+      "child_pid": 27984
+    },
+    {
+      "request_id": "881ab3f865c741a283b8c34ca8564502",
+      "query_lane": "opening_momentum:current",
+      "observed_at": "2026-10-18T06:57:44.472702+00:00",
+      "outcome": "PROCESS_DEADLINE",
+      "returncode": 1,
+      "process_ms": 2011.482,
+      "stages_ms": {
+        "spawn": 4.73,
+        "import": 298.497,
+        "query": 857.84,
+        "universe": 10.361,
+        "policy": 0.54,
+        "current_cards": 821.279,
+        "latest_status": null,
+        "checkpoint_audit": null,
+        "projection_delta": null,
+        "qualification_stages": null,
+        "clock": 3.027,
+        "encode": 2.273,
+        "ipc": 0.2
+      },
+      "parent_pid": 35500,
+      "child_pid": 33668
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-19T13:35:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03200000000651926
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000000325963
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.17199999996228144
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.079000000027008
+        }
+      },
+      "source_and_enqueue_seconds": 1.25,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 1.1560000000172295,
+        "p95": 0.15600000001722947
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:40:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.045999999972991645
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000000325963
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.26600000000326
+        }
+      },
+      "source_and_enqueue_seconds": 1.422000000020489,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 1.312999999965541,
+        "p95": 0.1720000000204891
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:45:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999996554106
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09399999998277053
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.062000000034458935
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.062000000034458935
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 10.21899999998277
+        }
+      },
+      "source_and_enqueue_seconds": 4.0310000000172295,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 3.640000000130385,
+        "p95": 0.31200000003445894
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:50:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.32900000002700835
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1720000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999996554106
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.17199999996228144
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 12.327999999979511
+        }
+      },
+      "source_and_enqueue_seconds": 6.23399999999674,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 5.327000000048429,
+        "p95": 0.6089999999967404
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:55:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09299999999348074
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09399999998277053
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999996554106
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.4380000000237487
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 8.89100000000326
+        }
+      },
+      "source_and_enqueue_seconds": 3.23499999998603,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 2.7680000000982545,
+        "p95": 0.2809999999590218
+      }
+    }
+  ],
+  "children_alive": [],
+  "recovery": [
+    {
+      "pending_before": 100,
+      "restored": 100,
+      "original_deadlines_preserved": true
+    }
+  ],
+  "manual": {
+    "test_only": true,
+    "synthetic_contract_not_live_qualification": true,
+    "login_status": 200,
+    "entry_status": 200,
+    "actual_http_handlers": true,
+    "production_user_login": false,
+    "duplicate_entry_same": true,
+    "changed_key_status": 400,
+    "partial_exit_status": 200,
+    "duplicate_exit_same": true,
+    "open_quantity": 1,
+    "paper_fill": false,
+    "real_order_created": false,
+    "expired_session_status": 401,
+    "relogin_quantity": 1,
+    "logout_status": 200,
+    "after_logout_status": 401
+  },
+  "browser": {
+    "three_real_pages": true,
+    "refreshes": [
+      116,
+      116,
+      116
+    ],
+    "problems": [],
+    "signal_delivery_accepted": false
+  },
+  "http_classifications": {
+    "EXPECTED_INJECTED_FAILURE": 9
+  },
+  "original_report_errors": [
+    {
+      "code": "BACKGROUND_QUERY_FAILURES",
+      "failures": 11,
+      "complete": true
+    }
+  ],
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "limits": "All background failures retained; wall-time overlap is not an exemption. TEST_ONLY source/clock/model transport is not actual SDK, model capability, market latency, or natural signal acceptance."
+}

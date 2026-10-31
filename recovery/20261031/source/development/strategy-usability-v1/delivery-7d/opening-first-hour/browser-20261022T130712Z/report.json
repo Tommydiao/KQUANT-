@@ -1,0 +1,261 @@
+{
+  "test_only": true,
+  "synthetic_transport": true,
+  "natural_signal": false,
+  "production_writes": 0,
+  "sdk_calls": 0,
+  "supervisor_assembly": false,
+  "process_topology": "real API and Gateway TCP threads; separate headless browser",
+  "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+  "policy_hashes": {
+    "S0": "64f81552292e5637957ebbea235f0486e59b96895a96276281b5b55765371a4e",
+    "S1": "9fe383b069b7623429be471b2f9b78aa85c6b8b1f68bf1d480ab90451d3e19f4"
+  },
+  "selection_stages": [
+    {
+      "phase": "EXPIRIES",
+      "revision": null
+    },
+    {
+      "phase": "CHAIN",
+      "revision": null
+    },
+    {
+      "phase": "GREEKS",
+      "revision": null
+    },
+    {
+      "phase": "CONTRACT",
+      "revision": null
+    },
+    {
+      "phase": "REVIEW",
+      "revision": null
+    },
+    {
+      "phase": "REFRESH_EVENT",
+      "revision": {
+        "state": "PENDING",
+        "checked_at": "2026-10-02T14:25:01+00:00",
+        "reasons": [
+          "FIRST_HOUR_RESEARCH_NOT_QUALIFIED_ENTRY"
+        ],
+        "reference_contract": {
+          "ask": 1.01,
+          "bid": 1,
+          "contract_id": "TEST261006C155000.US",
+          "delta": 0.525,
+          "expiry_date": "2026-10-06",
+          "inspected_at": "2026-10-02T14:25:01+00:00",
+          "quote_currency": "USD",
+          "right": "CALL",
+          "snapshot": {
+            "bbo_received_at": "2026-10-02T14:25:01+00:00",
+            "calc_received_at": "2026-10-02T14:25:01+00:00"
+          },
+          "strike": 155,
+          "underlying": "TEST",
+          "dte": 4,
+          "reference_only": true
+        },
+        "reference_contract_status": "UNVERIFIED_REFERENCE",
+        "contract_id": "TEST261006C155000.US",
+        "option_cost": {
+          "role": "DIAGNOSTIC_ONLY",
+          "state": "PARTIAL",
+          "reasons": [
+            "AMOUNT_BASIS_UNVERIFIED",
+            "FEES_OR_SLIPPAGE_UNKNOWN"
+          ],
+          "spread": 0.010000000000000009,
+          "spread_pct_mid": 0.009950248756218916,
+          "spread_pct_ask": 0.00990099009900991,
+          "premium_cash_reference": null,
+          "spread_cash_reference": null,
+          "spread_equivalent_underlying_move": 0.019047619047619063,
+          "round_trip_cost_per_unit": null,
+          "cost_equivalent_underlying_move": null,
+          "interpretation": "DELTA_LOCAL_FRICTION_EQUIVALENT_NOT_TARGET",
+          "quote_received_at": "2026-10-02T14:25:01+00:00",
+          "currency": "USD",
+          "receipt_age_seconds": 0.0,
+          "source_freshness": "UNVERIFIED"
+        },
+        "expiry_comparison": {
+          "groups": {
+            "short": {
+              "status": "BLOCKED",
+              "selected": null,
+              "rejected": [
+                {
+                  "contract_id": "TEST261006C155000.US",
+                  "reasons": [
+                    "NO_MATCHING_CALENDAR_DTE",
+                    "STANDARD_CONTRACT_NOT_VERIFIED",
+                    "MULTIPLIER_NOT_VERIFIED",
+                    "CONTRACT_TRADING_STATUS_NOT_VALID",
+                    "DEPTH_NOT_AVAILABLE",
+                    "CONTRACT_QUANTITY_UNIT_UNVERIFIED",
+                    "BID_SIZE_INSUFFICIENT",
+                    "ASK_SIZE_INSUFFICIENT"
+                  ]
+                }
+              ],
+              "checked_at": "2026-10-02T14:25:01+00:00",
+              "strict_fill_eligible": false,
+              "paper_enabled": false,
+              "real_orders_enabled": false
+            },
+            "extended": {
+              "status": "BLOCKED",
+              "selected": null,
+              "rejected": [
+                {
+                  "contract_id": "TEST261006C155000.US",
+                  "reasons": [
+                    "STANDARD_CONTRACT_NOT_VERIFIED",
+                    "MULTIPLIER_NOT_VERIFIED",
+                    "CONTRACT_TRADING_STATUS_NOT_VALID",
+                    "DEPTH_NOT_AVAILABLE",
+                    "CONTRACT_QUANTITY_UNIT_UNVERIFIED",
+                    "BID_SIZE_INSUFFICIENT",
+                    "ASK_SIZE_INSUFFICIENT"
+                  ]
+                }
+              ],
+              "checked_at": "2026-10-02T14:25:01+00:00",
+              "strict_fill_eligible": false,
+              "paper_enabled": false,
+              "real_orders_enabled": false
+            }
+          },
+          "unique_selected_contracts": [],
+          "overlapping_selected_contracts": [],
+          "conflicting_snapshot_contracts": [],
+          "checked_at": "2026-10-02T14:25:01+00:00",
+          "selected_expiry_group": null,
+          "research_only": true,
+          "qualified_signal": false,
+          "option_return": null,
+          "return_status": "REAL_SAME_CONTRACT_HISTORY_REQUIRED"
+        },
+        "event_decision": {
+          "decision": "WARN"
+        },
+        "current_trend": {
+          "symbol": "TEST",
+          "session": "2026-10-02",
+          "policy_hash": "9fe383b069b7623429be471b2f9b78aa85c6b8b1f68bf1d480ab90451d3e19f4",
+          "scope_hash": "scope",
+          "checked_at": "2026-10-02T14:25:01+00:00",
+          "bar_end": "2026-10-02T14:25:00+00:00",
+          "valid_until": "2026-10-02T14:26:00+00:00",
+          "state": "VALID",
+          "factors": {
+            "day_open": 100,
+            "previous_close": null,
+            "trend_bar": {
+              "open_at": "2026-10-02T14:20:00+00:00",
+              "available_at": "2026-10-02T14:25:00+00:00",
+              "open": 150,
+              "close": 154.9,
+              "high": 155,
+              "low": 149.9,
+              "source_hashes": [
+                "4d5688093950b333a3d7dd08a6b07c9259c52753214ee89fcfb365e19c2be80c",
+                "8c508dd4dc9b8205af91b618ab4123f5e3283c77b2fd3f6b6d6607da5b2a5473",
+                "3c686bd005970f6ecda4b0af9835b9ffca3bab84314f9106143fe0ca45d14c0f",
+                "8b5b86518851953a75d03336c1bd41b8251c0baa828482d2e58d6a421ac42769",
+                "4d390a3d08f83e7a5f7fe5111d33ae347db49df3f93a4882baa7bde51119ad0e"
+              ]
+            }
+          },
+          "minute_evidence_hashes": [
+            "c901956a95f6ee79da20411c49e4ebe9962781df74423b61b4e05791b842d487",
+            "83beba5fbe5887235de31ab643d10d92542caba05d89d99d7b12c43cc6efaa7c",
+            "ded3cefdff6c9a778bb9cf2a5d7e5fb88630b2926e1f92023d2bfe0fc27092e2",
+            "ccd579b7b10c60d566696a1c66d5ae4a684873515d4af8ffd1b5a0026cfc6c2b",
+            "5adde77de91040dd5d25d50d1ff8d3e3cb9532d6f9517cfc77916c4c799ffb73",
+            "97271388ec4bd7687111c5474ee0842832981a08dd48a35ecb02bd8ed0b96d58",
+            "12fe59ed45c310f05747886b4e4d3509cc6e47dde1ab0b612b345b5b3a3907e4",
+            "35c5b9c1e20a48c93d3dc8142cc21cc6a54df35c7bc38e87aacca109374a6467",
+            "bae404700522ae212b19a75ff490883bc1e2ce6633bfcb2fd7bd1d6445cacdb2",
+            "cba2ed89d927f26cf807d62ed976c343138b0f0df92063dbf494fb3216c7153a",
+            "355272a3d49a27d29b5b88e9d8d4da8ff81598d6650f2700c72e52c71f47ebc9",
+            "9fa9725ece47035390e52d7c5be578fb7377dd4441e6745629a0e29bbfd36fa0",
+            "67a6528504915e347c509422fd94c3834b28b4f6fae3be0aa2df4b4b21a74f69",
+            "7fe674cd4bf9e736d1a855873f8b96c1a179e5e499002a343fe4e8bd3d5f81bd",
+            "544fa947ab7fc97bae66831ccc9b27e615c8e0b7ee2d1ed0d1cc2772d6e5532e",
+            "781104177c0f2e6aac9700c4589d51d26ef253bedadbcabc557f9da07b6fb803",
+            "3d309798984975d7b82950e25eb0cb32cdbb99bc9bcc0bf50b1c26ac16db9804",
+            "dc8869f96e5c3921e61de898b1f7d989230ad52e42b8adae39f946f84deebf8e",
+            "d22dea0fea4bd0136fb29d6d3f4cb19d3a5bcd5d6fd3727910a9ce88988b16a5",
+            "f37d47a208b5bf18d72b0cf3cd3aafb078f34155e277670f9909b40dde4878f4",
+            "7b615dbcccda41104a8a46829a6efc30484255de85ff2cbe83d889835727a296",
+            "1cd309c6e80eaea5869a80f1c760726c40ef8229e7e3c1bf7f57dbcfa895849b",
+            "31d29db9276f3d7ffaad715d241352ab888ba5095dd8c53ac984ce52024a6826",
+            "d7475c16dbbcb0804ea57af0890291fce2318d4295b09c21f0360da99c9247c0",
+            "ba88a37d6b0a96a6ade06e0716a65e64a0812351fe95fe5b8d99947d55f79051",
+            "2c0adc53bc12aa5eb9460a81973c8a303e2a2ee1d5391db4ebeded8267ed9638",
+            "6942bee78f751dfc8b824620f247494e1418676a2e69d6e84be9c855df3366a6",
+            "e7fe2b397b70510fbb81a613a2485eef984801b026162f4649852cc7d276f7a9",
+            "afc7eec81c54059e672407e2cc3f0b6568d89806d8e29a6c417cd6b10f43621b",
+            "3d066f3a5e5f9c8a76374033ca9316e9efb1d2e915cf032e0afe657b7d8a8307",
+            "57b340560e104fd040ecd64e3b8ec247d656156e7ed096e6b3d8b2a507944bbd",
+            "c312ee751040fcb5b2f84ca580cffe10f9fc2e78df5ab5312c2341840bdb7adc",
+            "329d3808f3090cdac5018df568a6fcf94c96799c39c5b5a08d1e3d1ba4f8cd28",
+            "4409396818ab033c57db4e1a235e906816e3c97e7507d5152081d9d53db6b0d7",
+            "9e241e551614b95aae5e03260d55bddfc4eca7e065f3cc06e31555614f1d1d0d",
+            "762a5ea9e35b25664cce4a54bc8b1ef07677293571a37eda03f5cc3b89b71d54",
+            "007e1135dbf5678b9313a18abbbbd4894e651360a90f9734abc3117e30535a55",
+            "4401f09da2a2786d85041e0d48c6f30ad432c073aec830c04795a74ecf661126",
+            "eb2827f69fe540413ee066b8cccac25185e9b7c2cee6c88b48dde7592f388c8c",
+            "41ee714332d7d8b671b99755d51b1641f55ce06809a6ad31f58f270ed7305a28",
+            "45bb3495bf1832a2f8e7706e10612458de10895523141d1924abd788bce0018b",
+            "0a7328d7dab630fe8863d76153fbf1e6b384c79d24270702008fdee17f7d5ebc",
+            "d4ccd7e480259db409edeee37ecaf51a22987773705ad417898cf03b48fb62f3",
+            "39669ffc12fe44deb329a3324a866ced763c32bf998df32c8d23a347c8a47a04",
+            "47bf640c5e48e81835826abfe13511ed91819d44a8e9688c24015524b5603cbb",
+            "ab8bb6d35e850f95d95fb642e7784a3bbd32c45ee7b06cc1847f786bd9f8fe46",
+            "e673a14c0821670a83f9acaa55174d230344ca51f456f1a7345d900f26d1ca48",
+            "ecbbb6b2ada4ca35b2e917e691a0e96eae391ea507fa2c893b5b22105b26c690",
+            "04970943fdef4e57404456034552defb5ede002f5034f23366c603500b6de2bc",
+            "592b19efecccc8d55e9494785af2b3a1783cd8ffe45ba56d2862b987497d9949",
+            "4d5688093950b333a3d7dd08a6b07c9259c52753214ee89fcfb365e19c2be80c",
+            "8c508dd4dc9b8205af91b618ab4123f5e3283c77b2fd3f6b6d6607da5b2a5473",
+            "3c686bd005970f6ecda4b0af9835b9ffca3bab84314f9106143fe0ca45d14c0f",
+            "8b5b86518851953a75d03336c1bd41b8251c0baa828482d2e58d6a421ac42769",
+            "4d390a3d08f83e7a5f7fe5111d33ae347db49df3f93a4882baa7bde51119ad0e"
+          ],
+          "reasons": []
+        },
+        "underlying_quote": {
+          "last": 154.9,
+          "received_at": "2026-10-02T14:25:01+00:00"
+        },
+        "research_only": true,
+        "qualified_signal": false,
+        "approval": {
+          "qualified_signal_pipeline_enabled": false
+        }
+      }
+    }
+  ],
+  "frontend_hashes": {
+    "kq-mark.svg": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d",
+    "manifest.webmanifest": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac",
+    "service-worker.js": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0",
+    "unified.html": "f7203723857de5caa6e2964f6859bd2a759debbd47bb28150ed40fb96050f27c",
+    "assets\\unified-BE33Baq-.css": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad",
+    "assets\\unified-Ng8CZhsB.js": "222db17a21528185aab475e072d8da44dd8af7849e7fd29547d8978ff46032fa"
+  },
+  "current_preflight": {
+    "evaluations": 1
+  },
+  "compact_preflight": {
+    "evaluations": 2
+  },
+  "returncode": 1,
+  "stdout": "",
+  "stderr": ""
+}

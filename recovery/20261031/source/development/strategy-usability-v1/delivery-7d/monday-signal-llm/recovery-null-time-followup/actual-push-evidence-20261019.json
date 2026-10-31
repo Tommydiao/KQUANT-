@@ -1,0 +1,31 @@
+{
+  "observed_at": "2026-10-19T13:59:42Z",
+  "observation_basis": "FIRST_TOOL_CLOCK_AFTER_BOUNDED_READ_ONLY_QUERY",
+  "role": "minute",
+  "symbol": "ASTS",
+  "session": "2026-10-19",
+  "rows_read": 29,
+  "query_limit": 30,
+  "read_only": true,
+  "sdk_requests": 0,
+  "business_writes": 0,
+  "examples": [
+    {
+      "open_at": "2026-10-19T13:58:00+00:00",
+      "received_at": "2026-10-19T13:59:00.469604+00:00",
+      "interface": "QuoteContext.set_on_candlestick",
+      "native_request_started_at": null,
+      "clock_state": "VERIFIED_BOUND",
+      "clock_source_hash": "bad7884faed5cf92cc1ff2fd906a857e726631a0cae71000444087e5fe7ced85"
+    },
+    {
+      "open_at": "2026-10-19T13:57:00+00:00",
+      "received_at": "2026-10-19T13:58:00.464490+00:00",
+      "interface": "QuoteContext.set_on_candlestick",
+      "native_request_started_at": null,
+      "clock_state": "VERIFIED_BOUND",
+      "clock_source_hash": "84498c574ef8524f61b4cd0d987d600fd4c1792e450897a5bf4a89bc62ecff6f"
+    }
+  ],
+  "limits": "Later raw examples confirm the persisted input shape; they are not claimed to be the exact first row that threw the earlier saved runtime stack. These pushes remain ineligible for local snapshot adoption."
+}

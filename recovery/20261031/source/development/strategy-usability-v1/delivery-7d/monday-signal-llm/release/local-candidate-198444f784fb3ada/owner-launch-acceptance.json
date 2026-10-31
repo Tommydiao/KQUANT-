@@ -1,0 +1,52 @@
+{
+  "status": "APPROVED",
+  "approved_by": "OWNER",
+  "gate": "O-LAUNCH",
+  "candidate_id": "local-candidate-198444f784fb3ada",
+  "candidate_payload_sha256": "161d16456720f0f9f406766278ff02c4ae999629fdee00641e45db76aa1e5891",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "continuity_receipt_sha256": "7bdc73884919ae0d73ef8efa5e95ce59662ffc05166473305cab671c1c1d07a2",
+  "accepted_at": "2026-10-19T13:44:19Z",
+  "accepted_at_basis": "FIRST_TOOL_OBSERVED_UTC_AFTER_DIRECT_REPLY_NOT_MESSAGE_TIMESTAMP",
+  "human_decision_evidence": {
+    "source": "DIRECT_USER_REPLY",
+    "reference": "[\"request_user_input_async\",\"call_e167f2d452b04f9f91a2ff22ac298843\",0]",
+    "answer": "\u6279\u51c6\u8be5\u51c6\u786e\u6709\u9650\u7814\u7a76\u6062\u590d\uff0c\u4fdd\u7559\u5168\u90e8\u9650\u5236",
+    "scope_document": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\O_LAUNCH_IDLE_RECOVERY_DECISION_20261019.md",
+    "scope_document_sha256": "d900d81bc4e22597454e74bd96bd3a3fe88ef9acac757155748ad42b0b0ff407"
+  },
+  "scope": "SHADOW_STARTUP_RESEARCH_OBSERVATIONS_ONLY",
+  "accepted_projection_sha256": "bf30207380487b58c895da502f098a564b8e1b1698fd5a4a373dea2ca867e547",
+  "already_stopped_recovery_authorized": true,
+  "already_stopped_recovery_tool": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\apply_stopped_candidate.py",
+    "sha256": "cdf859052c48ba5791e810e8af9cda0a04386f49d515fb98db0a48abe591b648"
+  },
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "limitations_accepted": [
+    "PERFORMANCE_NOT_PASSED",
+    "COMBINED_ACCEPTANCE_NOT_PASSED",
+    "SOURCE_AND_CONTRACT_FACTS_PENDING",
+    "MARKET_ACCEPTANCE_PENDING",
+    "REAL_LLM_CAPABILITY_PENDING_PRIVATE_KEY_CHANGE",
+    "DECLARED_EXISTING_STORE_WAL_INDEX_AND_AI_METADATA_PREPARATION",
+    "ADDITIVE_SCHEMA_OLD_GATE_ROLLBACK_MAY_BE_INCOMPATIBLE",
+    "OLD_RECORDS_CONTINUITY_UNKNOWN",
+    "OCTOBER_19_0935_AND_0940_ET_NOT_RUN_NO_BACKFILL",
+    "HISTORICAL_TRANSPORT_FAILURE_ROOT_CAUSE_NOT_PROVEN"
+  ],
+  "llm_readonly_research_authorized": true,
+  "routine_model": "gpt-6.1-sol",
+  "reasoning_effort": "medium",
+  "on_request_review_model": "gpt-6-astra",
+  "existing_shared_daily_limit_usd": 5,
+  "existing_whole_task_limit_usd": 1,
+  "existing_initial_capability_total_usd": 1,
+  "budget_allowance_reset": false,
+  "qualified_signal_authorized": false,
+  "source_facts_approved": false,
+  "orders_authorized": false,
+  "system_clock_change_authorized": false,
+  "s1_manual_policy_authorized": false,
+  "system_autostart_authorized": false
+}

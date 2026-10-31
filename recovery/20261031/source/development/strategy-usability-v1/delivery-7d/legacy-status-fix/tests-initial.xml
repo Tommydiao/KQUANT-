@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="23" time="2.425" timestamp="2026-10-17T11:00:32.525797+08:00" hostname="PC-20260215FHYW"><testcase classname="" name="test_full_legacy_response_equivalence[2-None]" time="1.111"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...2026-10-16T14:00:02+00:00', 'evaluation_id': '488', 'factor_evidence': {'m': 0.5}, 'observation_expired': False, ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...factor_evidence': {'m': 0.5}, 'policy_hash': '0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi0')
+scope = None, seed = 2
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...2026-10-16T14:00:02+00:00', 'evaluation_id': '488', 'factor_evidence': {'m': 0.5}, 'observation_expired': False, ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...factor_evidence': {'m': 0.5}, 'policy_hash': '0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[2-scope]" time="0.082"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...2026-10-16T14:00:02+00:00', 'evaluation_id': '488', 'factor_evidence': {'m': 0.5}, 'observation_expired': False, ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...factor_evidence': {'m': 0.5}, 'policy_hash': '0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi1')
+scope = 'scope', seed = 2
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...2026-10-16T14:00:02+00:00', 'evaluation_id': '488', 'factor_evidence': {'m': 0.5}, 'observation_expired': False, ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...factor_evidence': {'m': 0.5}, 'policy_hash': '0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[2-other]" time="0.061"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...2026-10-16T14:00:02+00:00', 'evaluation_id': '488', 'factor_evidence': {'m': 0.5}, 'observation_expired': False, ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...factor_evidence': {'m': 0.5}, 'policy_hash': '0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi2')
+scope = 'other', seed = 2
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...2026-10-16T14:00:02+00:00', 'evaluation_id': '488', 'factor_evidence': {'m': 0.5}, 'observation_expired': False, ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '490', 'factor_evidence': {'m':...factor_evidence': {'m': 0.5}, 'policy_hash': '0613265be35d2fe5a4ff49cdaf136f2305387b5577603395498dbba1a0868447', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[7-None]" time="0.064"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi3')
+scope = None, seed = 7
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[7-scope]" time="0.070"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi4')
+scope = 'scope', seed = 7
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[7-other]" time="0.069"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi5')
+scope = 'other', seed = 7
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '487', 'factor_evidence': {'m':...line_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '477', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[41-None]" time="0.068"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi6')
+scope = None, seed = 41
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[41-scope]" time="0.070"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi7')
+scope = 'scope', seed = 41
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_full_legacy_response_equivalence[41-other]" time="0.083"><failure message="AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}&#10;  &#10;  Omitting 16 identical items, use -vv to show&#10;  Differing items:&#10;  {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-1861/test_full_legacy_response_equi8')
+scope = 'other', seed = 41
+
+    @pytest.mark.parametrize('scope', [None, 'scope', 'other'])
+    @pytest.mark.parametrize('seed', [2, 7, 41])
+    def test_full_legacy_response_equivalence(tmp_path, scope, seed):
+        path = tmp_path/'minute.sqlite3'
+        original.initialize(path)
+        policy = original.load_policy()
+        now = datetime(2026, 10, 16, 14, 0, tzinfo=UTC)
+        rng = random.Random(seed)
+        with sqlite3.connect(path) as connection:
+            for symbol in ('AAA', 'BBB', 'CCC'):
+                connection.execute('INSERT INTO one_minute_prewarm VALUES (?,?,?,?,?,?)',
+                    ('2026-10-16', symbol, 'READY', None, now.isoformat(), '{}'))
+            for index in range(500):
+                symbol, right = rng.choice(('AAA', 'BBB', 'CCC')), rng.choice(('CALL', 'PUT'))
+                bar = (now-timedelta(minutes=rng.choice((1, 2, 3)))).isoformat()
+                created = (now+timedelta(seconds=rng.randrange(8))).isoformat()
+                state = rng.choice(('NO_TRIGGER', 'INCOMPLETE', 'NUMERIC_PASS', 'NUMERIC_PASS_EVENT_PENDING'))
+                payload = {'evaluation_id': str(index), 'symbol': symbol, 'right': right,
+                    'policy_hash': rng.choice((policy['policy_hash'], 'previous')),
+                    'scope_hash': rng.choice(('scope', 'other')), 'state': state,
+                    'factor_evidence': {'m': .5} if state != 'INCOMPLETE' else {},
+                    'deadline_at': (now+timedelta(seconds=rng.choice((-2, 2)))).isoformat()}
+                connection.execute('INSERT INTO one_minute_evaluations VALUES (?,?,?,?,?,?,?,?,?)',
+                    (str(index), str(index), '2026-10-16', symbol, right, bar, state, json.dumps(payload), created))
+&gt;       assert revised.status(path, now=now, scope_hash=scope) == original.status(path, now=now, scope_hash=scope)
+E       AssertionError: assert {'approvals':...tes': [], ...} == {'approvals':...tes': [], ...}
+E         
+E         Omitting 16 identical items, use -vv to show
+E         Differing items:
+E         {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]} != {'current_evaluations': [{'deadline_at': '2026-10-16T14:00:02+00:00', 'evaluation_id': '328', 'factor_evidence': {'m':...line_at': '2026-10-16T13:59:58+00:00', 'evaluation_id': '429', 'factor_evidence': {}, 'policy_hash': 'previous', ...}]}
+E         Use -v to get more diff
+
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_legacy_status.py:38: AssertionError</failure></testcase><testcase classname="" name="test_empty_status_and_unrelated_session" time="0.045" /><testcase classname="" name="test_single_metadata_pass_decodes_only_needed_rows" time="0.058" /><testcase classname="" name="test_background_calendar_context_matches_existing_policy[2026-10-16]" time="0.004" /><testcase classname="" name="test_background_calendar_context_matches_existing_policy[2026-10-17]" time="0.004" /><testcase classname="" name="test_background_calendar_context_matches_existing_policy[2026-11-26]" time="0.003" /><testcase classname="" name="test_background_calendar_context_matches_existing_policy[2026-11-27]" time="0.003" /><testcase classname="" name="test_background_calendar_context_matches_existing_policy[2026-11-02]" time="0.004" /><testcase classname="" name="test_invalid_calendar_context_rejected[None]" time="0.001" /><testcase classname="" name="test_invalid_calendar_context_rejected[values1]" time="0.001" /><testcase classname="" name="test_invalid_calendar_context_rejected[values2]" time="0.001" /><testcase classname="" name="test_invalid_calendar_context_rejected[values3]" time="0.001" /><testcase classname="" name="test_invalid_calendar_context_rejected[values4]" time="0.001" /><testcase classname="" name="test_invalid_calendar_context_rejected[values5]" time="0.001" /><testcase classname="" name="test_old_bar_revision_does_not_replace_maximum_bar" time="0.044" /></testsuite></testsuites>

@@ -1,0 +1,15 @@
+{
+  "scope": "ISOLATED_RELATED_REGRESSION_BEFORE_COMPATIBILITY_CORRECTION",
+  "command": "run_tests.py --related",
+  "result": "FAIL",
+  "passed": 116,
+  "failed": 1,
+  "test": "test_s1_reference_uses_actual_lane_without_claims",
+  "error": "RuntimeError: EXPIRY_SOURCE_UNAVAILABLE",
+  "cause": "The first patch required provider_status=available for all S1 expiry responses, including existing positive legacy fixture responses",
+  "correction": "Require positive provider availability only before terminating an empty filtered expiry result as no-match; preserve existing positive reference contract path",
+  "assertions_removed": 0,
+  "tests_skipped": 0,
+  "subsequent_report": "related-tests.xml",
+  "production_effect": "NONE; patch never deployed"
+}

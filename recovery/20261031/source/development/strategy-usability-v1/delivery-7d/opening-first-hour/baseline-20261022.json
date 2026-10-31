@@ -1,0 +1,437 @@
+{
+  "captured_at": "2026-10-22T12:34:43.438425+00:00",
+  "deadline": {
+    "schema": "KQUANT_FIXED_SEVEN_CALENDAR_DAY_DELIVERY_V1",
+    "t0_utc": "2026-10-16T14:30:22Z",
+    "deadline_utc": "2026-10-23T14:30:22Z",
+    "t0_local": "2026-10-16T22:30:22+08:00",
+    "deadline_local": "2026-10-23T22:30:22+08:00",
+    "initial_blockers_due_local": "2026-10-17T04:30:22+08:00",
+    "deadline_reset_allowed": false,
+    "source": "DIRECT_USER_SEVEN_DAY_CONSTRAINT_20261016",
+    "existing_protocol": "KQ-S0-S1-RESEARCH-20261015-V1",
+    "existing_candidate_at_t0": "local-candidate-6ac8a5653d14a392",
+    "deliverable": "Runnable opening research workbench with fixed S0/S1 comparison and option cost diagnostics",
+    "minimum_real_opening_windows": 3,
+    "minimum_completion_ratio_per_variant": 0.9,
+    "denominator_policy": "Freeze applicable identities before new windows; retain all registered objects and failures; never exclude after outcomes",
+    "completion_units": [
+      "instrument_complete_at_all_five_checkpoints_both_directions",
+      "direction_checkpoint"
+    ],
+    "first_pass_and_revised_results_separate": true,
+    "late_computation_not_timely_completion": true,
+    "no_progress_work_periods_before_alternative": 2,
+    "work_period_definition": "A bounded active execution with measured attempts and evidence, not passive overnight waiting",
+    "replacement_scope": "Smallest local module within existing authorization; no changed strategy/source method/release/fee without required exact choice",
+    "unavailable_counts": null,
+    "background_coding_guaranteed": false,
+    "existing_heartbeat": "kquant-2",
+    "new_orders_paper_llm_models_fees": false
+  },
+  "archive_evidence": [
+    {
+      "entry": "GPT_REVIEW_REPORT_20261020.md",
+      "sha256": "864517b9fd1e76cc4812642a7ca14daab8107ef28a6bdabcc61e3a8a6ced9388"
+    },
+    {
+      "entry": "CURRENT_STATE.json",
+      "sha256": "40eb770f766487c1489743cb6b06f9447f7dacb0a6e11c8953b6f1f689acd79e"
+    },
+    {
+      "entry": "VERSION_FILES.json",
+      "sha256": "2b2202edb9f780506eadcbadd60ed919f7f093cab7bdd3664d4e4dfcfc8cd59d"
+    },
+    {
+      "entry": "project/source/development/strategy-usability-v1/delivery-7d/audit-20261020T140022Z.json",
+      "sha256": "a9e79c8957e1201bf612abc5b31d631620ce8bcef5e3588d8aea15af71b0828f",
+      "text": "{\r\n  \"captured_at\": \"2026-10-20T14:00:22.287901+00:00\",\r\n  \"session\": \"2026-10-20\",\r\n  \"constraint\": {\r\n    \"schema\": \"KQUANT_FIXED_SEVEN_CALENDAR_DAY_DELIVERY_V1\",\r\n    \"t0_utc\": \"2026-10-16T14:30:22Z\",\r\n    \"deadline_utc\": \"2026-10-23T14:30:22Z\",\r\n    \"t0_local\": \"2026-10-16T22:30:22+08:00\",\r\n    \"deadline_local\": \"2026-10-23T22:30:22+08:00\",\r\n    \"initial_blockers_due_local\": \"2026-10-17T04:30:22+08:00\",\r\n    \"deadline_reset_allowed\": false,\r\n    \"source\": \"DIRECT_USER_SEVEN_DAY_CONSTRAINT_20261016\",\r\n    \"existing_protocol\": \"KQ-S0-S1-RESEARCH-20261015-V1\",\r\n    \"existing_candidate_at_t0\": \"local-candidate-6ac8a5653d14a392\",\r\n    \"deliverable\": \"Runnable opening research workbench with fixed S0/S1 comparison and option cost diagnostics\",\r\n    \"minimum_real_opening_windows\": 3,\r\n    \"minimum_completion_ratio_per_variant\": 0.9,\r\n    \"denominator_policy\": \"Freeze applicable identities before new windows; retain all registered objects and failures; never exclude after outcomes\",\r\n    \"completion_units\": [\r\n      \"instrument_complete_at_all_five_checkpoints_both_directions\",\r\n      \"direction_checkpoint\"\r\n    ],\r\n    \"first_pass_and_revised_results_separate\": true,\r\n    \"late_computation_not_timely_completion\": true,\r\n    \"no_progress_work_periods_before_alternative\": 2,\r\n    \"work_period_definition\": \"A bounded active execution with measured attempts and evidence, not passive overnight waiting\",\r\n    \"replacement_scope\": \"Smallest local module within existing authorization; no changed strategy/source method/release/fee without required exact choice\",\r\n    \"unavailable_counts\": null,\r\n    \"background_coding_guaranteed\": false,\r\n    \"existing_heartbeat\": \"kquant-2\",\r\n    \"new_orders_paper_llm_models_fees\": false\r\n  },\r\n  \"scope_sha256\": \"964aaa5ada2f53f17844284d5c873c7cb73c755bfe144b4b483545dc5dc84cab\",\r\n  \"scope_registered\": 111,\r\n  \"scope_applicable\": 100,\r\n  \"scope_identity_unconfirmed\": [\r\n    \"$COMP\",\r\n    \"$DJI\",\r\n    \"/ES[Z26]\",\r\n    \"/NQ[Z26]\",\r\n    \"/RTY[Z26]\",\r\n    \"/YM[Z26]\",\r\n    \"DAXAUD:DBI\",\r\n    \"HBM:XETA\",\r\n    \"SOX\",\r\n    \"SPX\",\r\n    \"VIX\"\r\n  ],\r\n  \"runtime\": {\r\n    \"launcher_pid\": 34668,\r\n    \"launcher_identity\": {\r\n      \"pid\": 34668,\r\n      \"created_at\": \"2026-10-19T13:47:59.2293520Z\",\r\n      \"executable\": \"C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\"\r\n    },\r\n    \"run_session_id\": \"8f36daed-de2c-47b0-aed1-a97ffc434f52\",\r\n    \"system_boot\": {\r\n      \"state\": \"VERIFIED\",\r\n      \"started_at\": \"2026-10-14T13:15:47.9306040Z\",\r\n      \"source\": \"WIN32_OPERATING_SYSTEM\"\r\n    },\r\n    \"stage\": \"MAIN_LOOP\",\r\n    \"started_at\": \"20261019T134803640Z\",\r\n    \"checked_at\": \"2026-10-20T14:00:10.5897010+00:00\",\r\n    \"mode\": \"options_foundation\",\r\n    \"launches\": [\r\n      {\r\n        \"name\": \"stock-options-foundation\",\r\n        \"pid\": 24520,\r\n        \"identity\": {\r\n          \"pid\": 24520,\r\n          \"created_at\": \"2026-10-19T13:48:09.0776860Z\",\r\n          \"executable\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\.venv\\\\Scripts\\\\python.exe\"\r\n        },\r\n        \"executable\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\.venv\\\\Scripts\\\\python.exe\",\r\n        \"arguments\": \"-m kquant.dashboard --host 127.0.0.1 --port 8001\",\r\n        \"working_directory\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\source\\\\development\\\\workspace\",\r\n        \"stdout\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\runtime\\\\work\\\\logs\\\\stock-options-foundation.20261019T134803640Z.out.log\",\r\n        \"stderr\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\runtime\\\\work\\\\logs\\\\stock-options-foundation.20261019T134803640Z.err.log\"\r\n      },\r\n      {\r\n        \"name\": \"gateway-options-foundation\",\r\n        \"pid\": 25032,\r\n        \"identity\": {\r\n          \"pid\": 25032,\r\n          \"created_at\": \"2026-10-19T13:48:09.2803380Z\",\r\n          \"executable\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\.venv\\\\Scripts\\\\python.exe\"\r\n        },\r\n        \"executable\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\.venv\\\\Scripts\\\\python.exe\",\r\n        \"arguments\": \"-m kquant_crypto gateway\",\r\n        \"working_directory\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\source\\\\development\\\\workspace\\\\crypto\",\r\n        \"stdout\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\runtime\\\\work\\\\logs\\\\gateway-options-foundation.20261019T134803640Z.out.log\",\r\n        \"stderr\": \"E:\\\\kquant 1007\\\\KQUANT-Resume-Latest\\\\runtime\\\\work\\\\logs\\\\gateway-options-foundation.20261019T134803640Z.err.log\"\r\n      }\r\n    ],\r\n    \"listeners\": [\r\n      {\r\n        \"port\": 8001,\r\n        \"pid\": 30976,\r\n        \"identity\": {\r\n          \"pid\": 30976,\r\n          \"created_at\": \"2026-10-19T13:48:09.1293720Z\",\r\n          \"executable\": \"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\"\r\n        },\r\n        \"command_verified\": true\r\n      },\r\n      {\r\n        \"port\": 8020,\r\n        \"pid\": 27008,\r\n        \"identity\": {\r\n          \"pid\": 27008,\r\n          \"created_at\": \"2026-10-19T13:48:09.3339930Z\",\r\n          \"executable\": \"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\"\r\n        },\r\n        \"command_verified\": true\r\n      }\r\n    ],\r\n    \"health_verified\": true,\r\n    \"state\": \"RUNNING\",\r\n    \"exit_reason\": null,\r\n    \"recovery_count\": 0,\r\n    \"backend_release\": \"local-candidate-198444f784fb3ada\",\r\n    \"backend_manifest_sha256\": \"b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9\",\r\n    \"research_health_is_separate\": true\r\n  },\r\n  \"worker\": {\r\n    \"state\": \"SHADOW_MONITORING\",\r\n    \"stage\": \"WAIT_NEXT_CYCLE\",\r\n    \"loop_count\": 296170,\r\n    \"first_loop_at\": \"2026-10-19T13:48:13.079191+00:00\",\r\n    \"last_cycle_at\": \"2026-10-20T14:00:18.402511+00:00\",\r\n    \"thread_alive\": true,\r\n    \"runtime_health\": \"RESPONSIVE\",\r\n    \"subscribed_symbols\": 100,\r\n    \"last_bar_age_seconds\": 18.458685,\r\n    \"research_progress\": \"BAR_PROGRESSING\"\r\n  },\r\n  \"live_entry_candidate\": \"local-candidate-198444f784fb3ada\",\r\n  \"entry_sha256\": \"2336e5a56a10e13a220383e621ff9e03e7a864414ca0c0b097853b1bc4e47ab8\",\r\n  \"production_writes\": 0,\r\n  \"sdk_requests\": 0,\r\n  \"metrics\": {\r\n    \"S0\": {\r\n      \"expected_direction_checkpoints\": 1000,\r\n      \"recorded_direction_checkpoints\": 0,\r\n      \"missing_direction_checkpoints\": 1000,\r\n      \"first_full\": 0,\r\n      \"latest_full_including_late\": 0,\r\n      \"full_timely\": 0,\r\n      \"completion_ratio\": 0.0,\r\n      \"complete_objects_all_checkpoints\": 0,\r\n      \"object_completion_ratio\": 0.0,\r\n      \"technical_trigger_positions\": 0,\r\n      \"unique_technical_events\": 0,\r\n      \"latest_states\": {},\r\n      \"latest_reasons\": {},\r\n      \"checkpoints\": [\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:35:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:40:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:45:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:50:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:55:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        }\r\n      ],\r\n      \"reference_contract_events\": 0,\r\n      \"reference_contract_unit\": \"UNIQUE_SYMBOL_DIRECTION_WITH_REQUIRED_FIELDS_BEFORE_ORIGINAL_DEADLINE\",\r\n      \"page_delivered\": null,\r\n      \"page_delivery_reason\": \"NO_PERSISTENT_RENDER_ACK_PROOF\"\r\n    },\r\n    \"S1\": {\r\n      \"expected_direction_checkpoints\": 1000,\r\n      \"recorded_direction_checkpoints\": 0,\r\n      \"missing_direction_checkpoints\": 1000,\r\n      \"first_full\": 0,\r\n      \"latest_full_including_late\": 0,\r\n      \"full_timely\": 0,\r\n      \"completion_ratio\": 0.0,\r\n      \"complete_objects_all_checkpoints\": 0,\r\n      \"object_completion_ratio\": 0.0,\r\n      \"technical_trigger_positions\": 0,\r\n      \"unique_technical_events\": 0,\r\n      \"latest_states\": {},\r\n      \"latest_reasons\": {},\r\n      \"checkpoints\": [\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:35:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:40:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:45:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:50:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        },\r\n        {\r\n          \"checkpoint\": \"2026-10-20T13:55:00+00:00\",\r\n          \"expected\": 200,\r\n          \"recorded\": 0,\r\n          \"full_timely\": 0,\r\n          \"technical_triggers\": 0\r\n        }\r\n      ],\r\n      \"reference_contract_events\": 0,\r\n      \"reference_contract_unit\": \"UNIQUE_SYMBOL_DIRECTION_WITH_REQUIRED_FIELDS_BEFORE_ORIGINAL_DEADLINE\",\r\n      \"page_delivered\": null,\r\n      \"page_delivery_reason\": \"NO_PERSISTENT_RENDER_ACK_PROOF\"\r\n    }\r\n  },\r\n  \"errors\": [],\r\n  \"remaining_project_calendar_windows\": [\r\n    {\r\n      \"session\": \"2026-10-19\",\r\n      \"open_utc\": \"2026-10-19T13:30:00+00:00\",\r\n      \"close_utc\": \"2026-10-19T20:00:00+00:00\",\r\n      \"checkpoints_utc\": [\r\n        \"2026-10-19T13:35:00+00:00\",\r\n        \"2026-10-19T13:40:00+00:00\",\r\n        \"2026-10-19T13:45:00+00:00\",\r\n        \"2026-10-19T13:50:00+00:00\",\r\n        \"2026-10-19T13:55:00+00:00\"\r\n      ]\r\n    },\r\n    {\r\n      \"session\": \"2026-10-20\",\r\n      \"open_utc\": \"2026-10-20T13:30:00+00:00\",\r\n      \"close_utc\": \"2026-10-20T20:00:00+00:00\",\r\n      \"checkpoints_utc\": [\r\n        \"2026-10-20T13:35:00+00:00\",\r\n        \"2026-10-20T13:40:00+00:00\",\r\n        \"2026-10-20T13:45:00+00:00\",\r\n        \"2026-10-20T13:50:00+00:00\",\r\n        \"2026-10-20T13:55:00+00:00\"\r\n      ]\r\n    },\r\n    {\r\n      \"session\": \"2026-10-21\",\r\n      \"open_utc\": \"2026-10-21T13:30:00+00:00\",\r\n      \"close_utc\": \"2026-10-21T20:00:00+00:00\",\r\n      \"checkpoints_utc\": [\r\n        \"2026-10-21T13:35:00+00:00\",\r\n        \"2026-10-21T13:40:00+00:00\",\r\n        \"2026-10-21T13:45:00+00:00\",\r\n        \"2026-10-21T13:50:00+00:00\",\r\n        \"2026-10-21T13:55:00+00:00\"\r\n      ]\r\n    },\r\n    {\r\n      \"session\": \"2026-10-22\",\r\n      \"open_utc\": \"2026-10-22T13:30:00+00:00\",\r\n      \"close_utc\": \"2026-10-22T20:00:00+00:00\",\r\n      \"checkpoints_utc\": [\r\n        \"2026-10-22T13:35:00+00:00\",\r\n        \"2026-10-22T13:40:00+00:00\",\r\n        \"2026-10-22T13:45:00+00:00\",\r\n        \"2026-10-22T13:50:00+00:00\",\r\n        \"2026-10-22T13:55:00+00:00\"\r\n      ]\r\n    },\r\n    {\r\n      \"session\": \"2026-10-23\",\r\n      \"open_utc\": \"2026-10-23T13:30:00+00:00\",\r\n      \"close_utc\": \"2026-10-23T20:00:00+00:00\",\r\n      \"checkpoints_utc\": [\r\n        \"2026-10-23T13:35:00+00:00\",\r\n        \"2026-10-23T13:40:00+00:00\",\r\n        \"2026-10-23T13:45:00+00:00\",\r\n        \"2026-10-23T13:50:00+00:00\",\r\n        \"2026-10-23T13:55:00+00:00\"\r\n      ]\r\n    }\r\n  ],\r\n  \"live_http\": 200,\r\n  \"journal_states\": [\r\n    {\r\n      \"state\": \"COMPLETED\",\r\n      \"reason\": null,\r\n      \"n\": 6132\r\n    },\r\n    {\r\n      \"state\": \"EXPIRED\",\r\n      \"reason\": \"DATA_UNAVAILABLE_NO_MINUTE\",\r\n      \"n\": 500\r\n    }\r\n  ]\r\n}"
+    },
+    {
+      "entry": "project/source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/evidence/independent-hour-scope-7896-20261020.json",
+      "sha256": "3ea6464e1ee5910ee95f9a8e16dbf3211da11d15636cfbc6bf01112781672ed2",
+      "text": "{\n  \"schema\": \"KQUANT_INDEPENDENT_HOUR_SCOPE_V1\",\n  \"candidate_id\": \"local-candidate-7896a20b9c18c711\",\n  \"candidate_payload_sha256\": \"d6b91207d4027f844d808d48a32b8135859b71c5c3b69b5c7cb3ebae8f1daaa4\",\n  \"report_sha256\": \"ee020419fc64aa223f0e0ab9d32acbd811b684aa1afa02ee14c298c81a6233d0\",\n  \"duration_seconds\": 3600.0,\n  \"source_and_frontend_inventory_unchanged\": true,\n  \"background_queries\": {\n    \"records\": 5406,\n    \"success\": 5406,\n    \"failure\": 0,\n    \"deadline\": 0,\n    \"current\": 3474,\n    \"compact\": 1228,\n    \"legacy\": 704,\n    \"scope\": \"BACKGROUND_STATUS_QUERY_DENOMINATOR_NOT_ALL_BROWSER_REQUESTS\"\n  },\n  \"pending_recovery\": {\"pending_before\": 100, \"restored\": 100, \"original_deadlines_preserved\": true},\n  \"browser\": {\n    \"three_real_compiled_pages\": true,\n    \"refreshes\": [115, 115, 115],\n    \"render_problems\": 0,\n    \"test_only_unmounted_observations\": 4371,\n    \"unattributed_503_observations\": 4,\n    \"unattributed_request_ids\": [\"TEST_ONLY-browser-94\", \"TEST_ONLY-browser-95\", \"TEST_ONLY-browser-96\", \"TEST_ONLY-browser-97\"],\n    \"unattributed_observation_interval_utc\": [\"2026-10-20T13:57:47.035Z\", \"2026-10-20T13:57:47.836Z\"],\n    \"known_backend_crash_time_overlap\": true,\n    \"causal_attribution_proven\": false,\n    \"time_overlap_used_as_waiver\": false,\n    \"actual_production_browser_authenticated\": false,\n    \"full_browser_http_acceptance_pass\": false\n  },\n  \"source_identity\": {\n    \"nonblank_trace_records\": 4700,\n    \"recorded_pids\": 1696,\n    \"recorded_source_hash_mismatches\": 0,\n    \"blank_lines\": 1,\n    \"current_compact_query_records\": 4702,\n    \"queries_without_a_recorded_matching_pid\": 453,\n    \"direct_per_process_trace_complete\": false,\n    \"frozen_loader_rejects_wrong_module_before_query\": true,\n    \"postrun_equivalent_loader_probe\": \"GUARD_INSTALLED_STORE_NOT_PRELOADED_SELECTED_EXACT_9BFF_SOURCE\",\n    \"shared_append_stress\": {\"expected\": 1200, \"unique_records\": 563, \"missing\": 637, \"invalid_lines\": 105},\n    \"unique_file_stress\": {\"expected\": 1200, \"unique_records\": 1200, \"missing\": 0, \"invalid_lines\": 0},\n    \"demonstrated_trace_loss_mechanism\": \"WINDOWS_CONCURRENT_SHARED_APPEND\",\n    \"exact_historical_loss_per_row_reconstructed\": false,\n    \"original_trace_unchanged_by_diagnosis\": true,\n    \"no_missing_source_records_fabricated\": true\n  },\n  \"queue_to_result_p95_seconds\": [7.25, 11.657, 9.797, 12.828, 12.125],\n  \"performance_target_seconds\": 2,\n  \"performance_pass\": false,\n  \"original_harness_safe_assembly_pass\": true,\n  \"background_read_reliability_pass\": true,\n  \"comprehensive_acceptance_pass\": false,\n  \"actual_market_pass\": false,\n  \"actual_model_capability_pass\": false,\n  \"natural_signal_pass\": false,\n  \"legacy_summary_flag_scope\": \"comprehensive_reliability_pass in the existing closing tool covers its scripted HTTP/background denominator; it does not close the independent browser or complete direct-trace gaps above\",\n  \"owner_approval_created\": false,\n  \"production_applied\": false,\n  \"production_writes\": 0,\n  \"sdk_requests\": 0,\n  \"fixed_deadline_utc\": \"2026-10-23T14:30:22Z\"\n}\n"
+    },
+    {
+      "entry": "project/source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/TODAY_OPENING_INCIDENT_20261020.md",
+      "sha256": "0acf3990c1c03aee3016dbccd82fabb361688a46fa5257d1d5a8574d1502b61a",
+      "text": "# October20 Actual Opening Incident\n\nRecorded after the10:00ET original entry cutoff. This is an incident record, not\na replacement plan, new approval, completed release or retrospective signal.\nFixed delivery deadline remains2026-10-23T14:30:22Z.\n\n## Actual Result\n\nInstalled and genuinely accepted runtime is198444f784fb3ada, not a pending repair.\nBackend30976/Gateway27008 retained their October19 creation identities/session.\nRaw native minutes continued through the opening; HTTP/listeners alone do not\nestablish working research. At21:36:53BJT the actual worker was DEGRADED with\nresearch_ready=false. The real stack is run -> process_trend_recovery -> observe\n-> task -> bar_ready -> local_candidate -> timestamp, ending in AttributeError.\nThis matches the separately reproduced missing native request-time failure. The\nfirst offending October20 raw row has not independently been identified here.\n\nThe read-only audit at14:00:22Z has no query errors and reports:\n\n| Variant | Expected Direction Positions | Recorded | Complete | Reference Events |\n| --- | ---: | ---: | ---: | ---: |\n| S0 |1000|0|0|0|\n| S1 |1000|0|0|0|\n\nBoth all-five-checkpoint object completion ratios are0/100. All five original\ncheckpoints have0evaluations. The journal contains500expired instrument tasks\nand6132prepared binding records; these records are NOT completed calculations.\nIts DATA_UNAVAILABLE_NO_MINUTE label does not prove a supplier outage: actual raw\nbars and a local recovery exception coexist. Recorded trigger count0 is therefore\nnot a NO_TRIGGER market verdict. Global browser delivery remainsnull/no render\nacknowledgement, not a fabricated zero. No historical instant signal is replayed.\n\nEvidence: ../audit-20261020T140022Z.json and ../checkpoint-presence-20261020-*.json.\nThe first premature09:45presence command refused FUTURE_CHECKPOINT and created no\nevidence; only the later after-point file is counted.\n\n## User's Page\n\nScreenshot shows stocks/today/NVDA. At13:32:52Z actual protected routes returned401;\npublic session reported configured=true/authenticated=false/restart_required=false.\nBrowser cookie METADATA was empty. App checks authentication only on initial mount,\nso an old logged-in view incorrectly presents auth loss as backend data absence.\nA bounded memory health read simultaneously returned200, fresh heartbeat/verified\nprocesses and progressing raw bars, with one transient STALE service snapshot.\n\nReloaded the original options/signals entry to its actual login screen. No service\nrestart, password reset, authentication bypass, secret reuse or configuration\nchange was performed. The user submits privately. Do not inspect/capture login\ninputs or archive browser profiles/.playwright-mcp artifacts. Windows Computer Use\nhad already stopped because it could not verify the current URL; it was not retried.\nSanitized evidence: evidence/user-today-incident-20261020.json.\n\n## Repair And Validation Boundaries\n\nThree runtime repairs are frozen UNACCEPTED as7896a20b9c18c711:\n\n- Reject unsupported push rows before parsing native pull timestamps.\n- Select the same visible research subset before materializing full JSON/revisions;\n  preserve totals, generations, original deadline and a coherent read watermark.\n- Prepare live reference facts read-only, then persist facts/evaluation together\n  only after accepted CAS; prewarm retains persistent bounded retry.\n\nActual constructor/CAS/concurrent-withdrawal tests and saved-input equivalence\nsupport these changes, not a market or publication PASS. No running payload was\nedited. Old b874 attempt failed after914.985s/1471of1472reads/18unexplained HTTP\nfailures; it was not an hour. Its raw failures remain preserved.\n\nThe first7896hour was canceled at13:40Z: short-lived status interpreters imported\nold BASE store2bd9... instead of intended9bff... . This invalidates that candidate\nmatching claim, not all historical hours without separate examination. No final\nreport/PASS is fabricated. Test ports and known backend/Gateway PIDs exited; actual\n1984process identities remained unchanged.\n\nA separate TEST_ONLY child bootstrap now verifies actual source path/hash. Its\nfirst short stopped before serving because the exact test role map was installed\nafter interpreter startup; this failure is retained. Moving installation BEFORE\nspawn preserves the original binding checks. The corrected120.360s short completed\n257/257background queries/errors[], with230exact proofs across209distinct processes\nand no live children. A real disposable CLI returned8materialized rows/99total at\nthe original300ms SQL/2s process budgets. This is not full-hour or market proof.\n\nValid matching hour93895 is running in monday-live-fact-child-hour-7896-20261020\nsince approximately13:57Z. Freeze its source/build/harness. No O-LAUNCH decision is\nissued until the final full denominator, source/child identity and cleanup result\nare known. Performance2s remains a separate failing target unless proven otherwise.\n\n## Remaining Limits\n\nAt14:07:23-33Z a new bounded memory-only check returned two200responses and one\nConnectionError. The expected8001/8020listeners retained their actual30976/27008\nowners. Do not erase the failed sample or claim continuous HTTP availability.\nThe worker was SHADOW_MONITORING after the original entry cutoff and raw bars\nprogressed through14:08Z; this does not repair or relabel the failed opening.\nThe worker snapshot also retains a qualification CLOCK_DISCONTINUITY detected\nat11:16:08Z (2.1486s wall jump, requires_restart=true), separately from a newly\nvalid measured two-source bound. A fresh NTP attachment does not clear that\nlatched qualification fault. No system clock was changed by this execution.\nThe generic historical OperationalError/provider-failure label is not a proven\nsupplier cause; the actual saved frames point to local clock-position processing.\nEvidence: evidence/live-preserved-20261020T140733Z.json and the existing worker\nsnapshot. The first exact October20 offending raw row remains unisolated.\n\nCandidate7896read-only deployment validation passed without an OWNER receipt,\napply=false/production_writes=0. A single9-entry code-only rollback archive is\n51151bytes, SHA256e70bdff8d8620ef27478e6211a75ccec96a0aa69bfa2049a0029a2abad2c370f.\nArchive entries and round-trip bytes were checked locally; no cloud upload or\ncloud redownload is claimed. This archive and dry-run do not authorize deployment.\n\nStrict S0 cross-day facts, strict contract quantity/deliverable/source-time proof,\nnatural signal delivery and model capability are not thereby established. The\npostponed API key was not requested/probed again. LLM failure cannot explain or\nblock deterministic S0/S1 computation. Existing source/method/budget approvals are\npreserved; no new launch approval is invented. Safe collection remains on, without\norders/Paper/F-drive access/new fees/system changes or business database rollback.\n"
+    }
+  ],
+  "manifest_structure": "dict",
+  "services": {
+    "launcher_pid": 34668,
+    "launcher_identity": {
+      "pid": 34668,
+      "created_at": "2026-10-19T13:47:59.2293520Z",
+      "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    "run_session_id": "8f36daed-de2c-47b0-aed1-a97ffc434f52",
+    "system_boot": {
+      "state": "VERIFIED",
+      "started_at": "2026-10-14T13:15:47.9306040Z",
+      "source": "WIN32_OPERATING_SYSTEM"
+    },
+    "stage": "MAIN_LOOP",
+    "started_at": "20261019T134803640Z",
+    "checked_at": "2026-10-22T12:34:35.5185503+00:00",
+    "mode": "options_foundation",
+    "launches": [
+      {
+        "name": "stock-options-foundation",
+        "pid": 24520,
+        "identity": {
+          "pid": 24520,
+          "created_at": "2026-10-19T13:48:09.0776860Z",
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+        },
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "arguments": "-m kquant.dashboard --host 127.0.0.1 --port 8001",
+        "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+        "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261019T134803640Z.out.log",
+        "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261019T134803640Z.err.log"
+      },
+      {
+        "name": "gateway-options-foundation",
+        "pid": 25032,
+        "identity": {
+          "pid": 25032,
+          "created_at": "2026-10-19T13:48:09.2803380Z",
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+        },
+        "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+        "arguments": "-m kquant_crypto gateway",
+        "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto",
+        "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261019T134803640Z.out.log",
+        "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261019T134803640Z.err.log"
+      }
+    ],
+    "listeners": [
+      {
+        "port": 8001,
+        "pid": 30976,
+        "identity": {
+          "pid": 30976,
+          "created_at": "2026-10-19T13:48:09.1293720Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      },
+      {
+        "port": 8020,
+        "pid": 27008,
+        "identity": {
+          "pid": 27008,
+          "created_at": "2026-10-19T13:48:09.3339930Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      }
+    ],
+    "health_verified": true,
+    "state": "RUNNING",
+    "exit_reason": null,
+    "recovery_count": 0,
+    "backend_release": "local-candidate-198444f784fb3ada",
+    "backend_manifest_sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9",
+    "research_health_is_separate": true
+  },
+  "live": {
+    "status": "online",
+    "backend": "kquant.dashboard.fastapi",
+    "api_contract_version": "kquant-api-2026-09-14-options-tracking-v2",
+    "started_at_utc": "2026-10-19T13:48:10.058464+00:00",
+    "read_only_research": true,
+    "backend_release": "local-candidate-198444f784fb3ada",
+    "backend_manifest_sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9",
+    "market_data_checked": false,
+    "order_submission_enabled": false,
+    "service_observation": {
+      "state": "RUNNING",
+      "reported_state": "RUNNING",
+      "observed_at": "2026-10-22T12:34:39.076883+00:00",
+      "run_session_id": "8f36daed-de2c-47b0-aed1-a97ffc434f52",
+      "system_boot": {
+        "state": "VERIFIED",
+        "started_at": "2026-10-14T13:15:47.930604+00:00",
+        "source": "WIN32_OPERATING_SYSTEM",
+        "host": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "recorded_system_boot": {
+        "state": "VERIFIED",
+        "started_at": "2026-10-14T13:15:47.9306040Z",
+        "source": "WIN32_OPERATING_SYSTEM"
+      },
+      "recovery_reason": null,
+      "exit_reason_source": "UNKNOWN",
+      "observation_sources": [
+        "PROCESS_CREATION_IDENTITY",
+        "TCP_LISTENERS",
+        "HEARTBEAT",
+        "SYSTEM_BOOT"
+      ],
+      "heartbeat_at": "2026-10-22T12:34:35.5185503+00:00",
+      "heartbeat_age_seconds": 3.558,
+      "process_identity_verified": true,
+      "listeners": [
+        {
+          "port": 8001,
+          "pid": 30976
+        },
+        {
+          "port": 8020,
+          "pid": 27008
+        }
+      ],
+      "reasons": [],
+      "exit_reason": null,
+      "backend_release": "local-candidate-198444f784fb3ada",
+      "backend_manifest_sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9",
+      "market_data_checked": false,
+      "database_accessed": false,
+      "enforced": true,
+      "snapshot": {
+        "state": "FRESH",
+        "as_of": "2026-10-22T12:34:39.071101+00:00",
+        "refresh_pending": false,
+        "generation_requested": 0,
+        "generation_computed": 0,
+        "error_type": null,
+        "error_detail": null
+      },
+      "snapshot_pump": {
+        "last_tick_at": "2026-10-22T12:34:43.505273+00:00",
+        "error_type": null
+      },
+      "event_loop": {
+        "state": "OBSERVED",
+        "samples": 509268,
+        "checked_at": "2026-10-22T12:34:43.535480+00:00",
+        "lag_seconds": 0.015000000013969839,
+        "max_lag_seconds": 60285.296999999904,
+        "anyio_thread_pool": {
+          "borrowed_tokens": 0,
+          "total_tokens": 40,
+          "tasks_waiting": 0
+        }
+      },
+      "projection_tasks": {
+        "state": "OBSERVED",
+        "projection_worker_limit": 2,
+        "tasks": [
+          {
+            "strategy": "opening_momentum",
+            "kind": "current",
+            "enabled": true,
+            "unavailable_reason": "POLICY_CONFIG_MISSING",
+            "inflight": true,
+            "inflight_age_seconds": 0.0,
+            "error_type": null
+          },
+          {
+            "strategy": "opening_momentum",
+            "kind": "compact",
+            "enabled": true,
+            "unavailable_reason": "POLICY_CONFIG_MISSING",
+            "inflight": false,
+            "inflight_age_seconds": null,
+            "error_type": null
+          },
+          {
+            "strategy": "opening_trend",
+            "kind": "current",
+            "enabled": false,
+            "unavailable_reason": "POLICY_CONFIG_MISSING",
+            "inflight": false,
+            "inflight_age_seconds": null,
+            "error_type": null
+          },
+          {
+            "strategy": "opening_trend",
+            "kind": "compact",
+            "enabled": false,
+            "unavailable_reason": "POLICY_CONFIG_MISSING",
+            "inflight": false,
+            "inflight_age_seconds": null,
+            "error_type": null
+          }
+        ]
+      },
+      "research_worker": {
+        "state": "PREWARM",
+        "thread_alive": true,
+        "research_ready": true,
+        "first_loop_at": "2026-10-19T13:48:13.079191+00:00",
+        "loop_count": 921121,
+        "error_id": null,
+        "error_type": "TimeoutError",
+        "failed_stage": null,
+        "runtime_health": "RESPONSIVE",
+        "health_checked_at": "2026-10-22T12:34:43.505273+00:00",
+        "stage": "WAIT_NEXT_CYCLE",
+        "stage_started_at": "2026-10-22T12:34:42.667187+00:00",
+        "last_cycle_at": "2026-10-22T12:34:42.667187+00:00",
+        "research_progress": "NOT_EXPECTED_IN_CURRENT_PHASE",
+        "last_persisted_bar": null,
+        "stage_age_seconds": 0.838086,
+        "snapshot_age_seconds": 0.1559999999590218
+      }
+    }
+  },
+  "last_completed_window": {
+    "session": "2026-10-21",
+    "captured_at": "2026-10-21T14:37:16.386418+00:00",
+    "metrics": {
+      "S0": {
+        "expected_direction_checkpoints": 1000,
+        "recorded_direction_checkpoints": 0,
+        "missing_direction_checkpoints": 1000,
+        "first_full": 0,
+        "latest_full_including_late": 0,
+        "full_timely": 0,
+        "completion_ratio": 0.0,
+        "complete_objects_all_checkpoints": 0,
+        "object_completion_ratio": 0.0,
+        "technical_trigger_positions": 0,
+        "unique_technical_events": 0,
+        "latest_states": {},
+        "latest_reasons": {},
+        "checkpoints": [
+          {
+            "checkpoint": "2026-10-21T13:35:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:40:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:45:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:50:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:55:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          }
+        ],
+        "reference_contract_events": 0,
+        "reference_contract_unit": "UNIQUE_SYMBOL_DIRECTION_WITH_REQUIRED_FIELDS_BEFORE_ORIGINAL_DEADLINE",
+        "page_delivered": null,
+        "page_delivery_reason": "NO_PERSISTENT_RENDER_ACK_PROOF"
+      },
+      "S1": {
+        "expected_direction_checkpoints": 1000,
+        "recorded_direction_checkpoints": 0,
+        "missing_direction_checkpoints": 1000,
+        "first_full": 0,
+        "latest_full_including_late": 0,
+        "full_timely": 0,
+        "completion_ratio": 0.0,
+        "complete_objects_all_checkpoints": 0,
+        "object_completion_ratio": 0.0,
+        "technical_trigger_positions": 0,
+        "unique_technical_events": 0,
+        "latest_states": {},
+        "latest_reasons": {},
+        "checkpoints": [
+          {
+            "checkpoint": "2026-10-21T13:35:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:40:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:45:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:50:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          },
+          {
+            "checkpoint": "2026-10-21T13:55:00+00:00",
+            "expected": 200,
+            "recorded": 0,
+            "full_timely": 0,
+            "technical_triggers": 0
+          }
+        ],
+        "reference_contract_events": 0,
+        "reference_contract_unit": "UNIQUE_SYMBOL_DIRECTION_WITH_REQUIRED_FIELDS_BEFORE_ORIGINAL_DEADLINE",
+        "page_delivered": null,
+        "page_delivery_reason": "NO_PERSISTENT_RENDER_ACK_PROOF"
+      }
+    },
+    "journal": [
+      {
+        "state": "COMPLETED",
+        "reason": null,
+        "n": 496
+      },
+      {
+        "state": "DONE",
+        "reason": null,
+        "n": 101
+      },
+      {
+        "state": "EXPIRED",
+        "reason": "DATA_UNAVAILABLE_NO_MINUTE",
+        "n": 400
+      },
+      {
+        "state": "EXPIRED",
+        "reason": "MISSED_BEFORE_DURABLE_ENQUEUE",
+        "n": 1
+      },
+      {
+        "state": "MISSED_EVALUATION_WINDOW",
+        "reason": "ORIGINAL_DEADLINE_EXCEEDED",
+        "n": 1
+      }
+    ],
+    "selection_started": null,
+    "qualification_passed": null,
+    "invalidations": null,
+    "missing_stage_reason": "NOT_ESTABLISHED_BY_EXISTING_AUDIT",
+    "largest_proven_loss": "1000_EXPECTED_TO_ZERO_RECORDED_EVALUATIONS_PER_VARIANT",
+    "root_cause": "NOT_FULLY_ATTRIBUTED"
+  },
+  "today": {
+    "session": "2026-10-22",
+    "verdict": "NOT_YET_AUDITED_NO_ZERO_INFERENCE"
+  },
+  "deployment_changes": 0
+}

@@ -1,0 +1,16 @@
+{
+  "test_only": true,
+  "schema": "KQUANT_REPRODUCED_CANONICAL_RESURRECTION_V1",
+  "production_modified": false,
+  "production_method_enabled": false,
+  "test": "test_method_binding.py::test_real_resolver_pair_and_cas_with_pending_method",
+  "before_fix_result": "1_FAILED_24_PASSED",
+  "sequence": [
+    "Real resolve selects an eligible whole post-boundary pull",
+    "A later eligible conflicting push invalidates accepted(old_decision)",
+    "Repeated resolve unexpectedly appends a new decision selecting the same older pull"
+  ],
+  "failure": "Expected zero new decisions; actual returned one CLOSED_SNAPSHOT_ADOPTION decision",
+  "minimal_fix": "Do not produce a local adoption decision when an eligible later contradictory version exists after the selected pull",
+  "method_contract_hash_unchanged": "37b7b37759b2ae8a1021f85fa5d9dce3286999a646ce9ff55a8ace17fb4f01b2"
+}

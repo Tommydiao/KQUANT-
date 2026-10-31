@@ -1,0 +1,5 @@
+.strategy-comparison > div { min-width: 0; }
+.strategy-comparison small { display: block; margin-top: 4px; line-height: 1.5; overflow-wrap: anywhere; }
+.strategy-comparison th, .strategy-comparison td { text-align: left; vertical-align: top; }
+.strategy-comparison details { grid-column: 1 / -1; }
+.strategy-comparison .ops-row-actions { grid-column: 1 / -1; }

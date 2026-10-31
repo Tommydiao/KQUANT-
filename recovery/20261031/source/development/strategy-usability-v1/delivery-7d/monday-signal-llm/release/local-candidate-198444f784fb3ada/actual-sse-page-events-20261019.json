@@ -1,0 +1,36 @@
+{
+  "started_at": "2026-10-19T13:51:20.633Z",
+  "ended_at": "2026-10-19T13:51:35.637Z",
+  "existing_page_only": true,
+  "new_eventsource_created": false,
+  "new_sdk_connection": false,
+  "events": [
+    {
+      "at": "2026-10-19T13:51:25.342Z",
+      "type": "kquant:operations-update",
+      "path": null
+    },
+    {
+      "at": "2026-10-19T13:51:30.356Z",
+      "type": "kquant:operations-update",
+      "path": null
+    },
+    {
+      "at": "2026-10-19T13:51:35.361Z",
+      "type": "kquant:operations-update",
+      "path": null
+    }
+  ],
+  "connection_labels": [
+    {
+      "title": null,
+      "text": "KQ\nKQUANT\n统一研究工作台\nEnter\n股票\n期权\nCrypto\n网页服务已连接\n3"
+    },
+    {
+      "title": "网页消息流状态（不代表设备提醒已送达）",
+      "text": "网页消息已连接"
+    }
+  ],
+  "research_card_count": 0,
+  "limits": "Page events and labels only; not a global delivery count or market P95."
+}

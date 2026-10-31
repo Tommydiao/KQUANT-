@@ -1,0 +1,442 @@
+{
+  "observed_at": "2026-10-17T02:22:15.035219+00:00",
+  "candidate": "local-candidate-d4f4aad4be84d143",
+  "payload_sha256": "2720fc5c628cd23ab5252d5d2bfef9795a8820e96d99d43c82f8a4d0cd6b01d0",
+  "entry_sha256": "a2305b860c2e8e952bd9dd6c00d3e9cd1a192f3e306ebd72eaeac1773f97dba9",
+  "acceptance_sha256": "65573ae59a69e2ed1905ab14d9b5de49d797358c0542cf25d42fcea821a683e4",
+  "release_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\release-manifest.json",
+    "sha256": "41825a80ae493a3154533cff6c99920f91d3f059928acc159867beede30ae808"
+  },
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\release\\local-candidate-d4f4aad4be84d143\\recovery-manifest-shadow-accepted.json",
+    "sha256": "734167754caae50c74e81b31ce348b4959dd4e97294653e3c843a276e8df8d2e"
+  },
+  "all_twelve_live_hashes_match": true,
+  "changed_files": [
+    {
+      "target": "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+      "expected": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95",
+      "actual": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95"
+    },
+    {
+      "target": "config/review_acceptances/options_opening_trend_reference_sources.json",
+      "expected": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a",
+      "actual": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a"
+    },
+    {
+      "target": "kquant/options_intraday_reference.py",
+      "expected": "7b95ebee1785e2bc3c2db2f2b9323692c431eaf1ef02503d67649b9745b5ac33",
+      "actual": "7b95ebee1785e2bc3c2db2f2b9323692c431eaf1ef02503d67649b9745b5ac33"
+    },
+    {
+      "target": "kquant/options_minute_decisions.py",
+      "expected": "71decc21f5245e76250f75852167c272796ea406ea4e0048d04679071aa52252",
+      "actual": "71decc21f5245e76250f75852167c272796ea406ea4e0048d04679071aa52252"
+    },
+    {
+      "target": "kquant/options_one_minute_recovery.py",
+      "expected": "8076d2e7711a23cc35dee2fc4a907c4e9361a6667ab3d164ab023966ffbb5ca0",
+      "actual": "8076d2e7711a23cc35dee2fc4a907c4e9361a6667ab3d164ab023966ffbb5ca0"
+    },
+    {
+      "target": "kquant/options_opening_momentum_journal.py",
+      "expected": "1d9a3b73febc118670b2b218bfa963f06b716ad4b1e35e991ef989ccf270fcdb",
+      "actual": "1d9a3b73febc118670b2b218bfa963f06b716ad4b1e35e991ef989ccf270fcdb"
+    },
+    {
+      "target": "kquant/options_opening_trend_pipeline.py",
+      "expected": "2df1244dd48f31dfe993a0622edef755f840c667e354f3a1f4b8ec20f8301d21",
+      "actual": "2df1244dd48f31dfe993a0622edef755f840c667e354f3a1f4b8ec20f8301d21"
+    },
+    {
+      "target": "kquant/options_opening_trend_recovery.py",
+      "expected": "1d3f0c78054fd38115fe965dfaa2467c1b2b46a2bbd84680945553649449a706",
+      "actual": "1d3f0c78054fd38115fe965dfaa2467c1b2b46a2bbd84680945553649449a706"
+    },
+    {
+      "target": "kquant/options_opening_trend_store.py",
+      "expected": "56b42d7d73ccb9ddafe12479a165b55b62de27d5fabc95a995634e7b16a2ae3b",
+      "actual": "56b42d7d73ccb9ddafe12479a165b55b62de27d5fabc95a995634e7b16a2ae3b"
+    },
+    {
+      "target": "kquant/options_source_updates.py",
+      "expected": "d44501befef557237aa9f6c8f5bddef4c6002aa540a319d014aec883c0a44fa1",
+      "actual": "d44501befef557237aa9f6c8f5bddef4c6002aa540a319d014aec883c0a44fa1"
+    },
+    {
+      "target": "kquant/recovery_preflight.py",
+      "expected": "cd69a6f1ba712398e6caf8d5ce8f0da86f79a54098c6a2cdb75bccd5111c5023",
+      "actual": "cd69a6f1ba712398e6caf8d5ce8f0da86f79a54098c6a2cdb75bccd5111c5023"
+    },
+    {
+      "target": "kquant/recovery_runtime_probe.py",
+      "expected": "c848e305f18d2e7cb9b3bfed15306dc10ce983c3dd2bb90ece2dfa22f97200a1",
+      "actual": "c848e305f18d2e7cb9b3bfed15306dc10ce983c3dd2bb90ece2dfa22f97200a1"
+    }
+  ],
+  "minute_method": {
+    "status": "ACCEPTED",
+    "semantics": "CLOSED_SNAPSHOT_ADOPTION",
+    "method": {
+      "version": "LOCAL_CLOSED_SNAPSHOT_V1",
+      "period": "1m",
+      "adjustment": "NoAdjust",
+      "session": "regular",
+      "selection": "LATEST_ELIGIBLE_POST_BOUNDARY_PULL",
+      "interface": "QuoteContext.candlesticks",
+      "clock_state": "VERIFIED_BOUND",
+      "maximum_clock_uncertainty_ms": 1000,
+      "clock_evidence_max_age_seconds": 900,
+      "request_boundary": "bar_end_plus_measured_clock_uncertainty",
+      "later_valid_contradiction": "REVIEW_AND_WITHDRAW",
+      "combine_ohlc": false,
+      "provider_permanently_final": false,
+      "extend_deadline": false,
+      "backfill_signal": false
+    },
+    "acceptance_path": "config/review_acceptances/local_closed_snapshot_owner_20261016.json",
+    "acceptance_sha256": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95"
+  },
+  "schema_index_sql": "CREATE INDEX trend_input_source ON two_hour_jobs(session,symbol,queued_at)",
+  "services": {
+    "state": "RUNNING",
+    "stage": "MAIN_LOOP",
+    "checked_at": "2026-10-17T02:22:12.9116206+00:00",
+    "launcher_identity": {
+      "pid": 32524,
+      "created_at": "2026-10-17T02:10:03.4769840Z",
+      "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    "run_session_id": "294513cf-a49f-4fcc-8806-d22966928030",
+    "listeners": [
+      {
+        "port": 8001,
+        "pid": 13792,
+        "identity": {
+          "pid": 13792,
+          "created_at": "2026-10-17T02:10:12.0827710Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      },
+      {
+        "port": 8020,
+        "pid": 31476,
+        "identity": {
+          "pid": 31476,
+          "created_at": "2026-10-17T02:10:12.2514580Z",
+          "executable": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        },
+        "command_verified": true
+      }
+    ],
+    "backend_release": "local-candidate-d4f4aad4be84d143",
+    "recovery_count": 0
+  },
+  "worker": {
+    "state": "MARKET_CLOSED",
+    "stage": "WAIT_NEXT_CYCLE",
+    "loop_count": 705,
+    "last_cycle_at": "2026-10-17T02:22:14.065801+00:00",
+    "thread_alive": true,
+    "research_ready": true,
+    "runtime_health": "RESPONSIVE",
+    "session": "2026-10-16",
+    "qualified_alerts_enabled": false,
+    "paper_enabled": false,
+    "real_orders_enabled": false
+  },
+  "registered_items_count": 111,
+  "clock_state": "VERIFIED_BOUND",
+  "query_transport": {
+    "records_available": 139,
+    "last_denominator": {
+      "attempts": 1056,
+      "successes": 917,
+      "failures": 139,
+      "deadlines": 121,
+      "scope": "PARENT_PROCESS"
+    },
+    "complete_attempts": false,
+    "lanes": {
+      "one_minute:status": {
+        "PROCESS_DEADLINE": 121,
+        "CHILD_ERROR": 18
+      }
+    },
+    "last_observed_at": "2026-10-17T02:22:10.599045+00:00",
+    "failure_samples": [
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 29912,
+        "request_id": "4bcd80a10ca34a1e9a95b6309cee133e",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2006.817,
+        "cleanup_ms": 4.396,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 215,
+        "stderr_truncated": false,
+        "last_phase": "query",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 2.838,
+          "import": 89.118,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 75.71,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 1025,
+          "successes": 890,
+          "failures": 135,
+          "deadlines": 117,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 1025,
+        "observed_at": "2026-10-17T02:21:49.789552+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 14976,
+        "request_id": "5323f5f66a71425181724426d770e1b6",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2005.298,
+        "cleanup_ms": 4.011,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 217,
+        "stderr_truncated": false,
+        "last_phase": "query",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 4.074,
+          "import": 105.208,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 117.612,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 1033,
+          "successes": 897,
+          "failures": 136,
+          "deadlines": 118,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 1033,
+        "observed_at": "2026-10-17T02:21:54.961913+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 31308,
+        "request_id": "7d3e4cdbd3e24175a23d696f7523bebb",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2008.275,
+        "cleanup_ms": 4.426,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 215,
+        "stderr_truncated": false,
+        "last_phase": "query",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 3.521,
+          "import": 85.147,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 83.626,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 1040,
+          "successes": 903,
+          "failures": 137,
+          "deadlines": 119,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 1040,
+        "observed_at": "2026-10-17T02:22:00.151963+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 31896,
+        "request_id": "05abeb418dac456eb4c082d0063c17f9",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2004.621,
+        "cleanup_ms": 3.548,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 218,
+        "stderr_truncated": false,
+        "last_phase": "query",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 2.716,
+          "import": 185.341,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 170.877,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 1048,
+          "successes": 910,
+          "failures": 138,
+          "deadlines": 120,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 1048,
+        "observed_at": "2026-10-17T02:22:05.372846+00:00"
+      },
+      {
+        "schema": "STATUS_TRANSPORT_V1",
+        "child_pid": 26484,
+        "request_id": "cbe0395704354ce2af651f858a57380c",
+        "returncode": 1,
+        "deadline_ms": 2000.0,
+        "decode_ms": null,
+        "process_ms": 2009.813,
+        "cleanup_ms": 6.84,
+        "child_reaped": true,
+        "ipc_complete": true,
+        "response_bytes": 0,
+        "response_truncated": false,
+        "stderr_bytes": 218,
+        "stderr_truncated": false,
+        "last_phase": "query",
+        "last_phase_event": "start",
+        "stages_ms": {
+          "spawn": 2.777,
+          "import": 105.989,
+          "query": null,
+          "universe": null,
+          "policy": null,
+          "current_cards": null,
+          "latest_status": null,
+          "checkpoint_audit": null,
+          "projection_delta": null,
+          "qualification_stages": null,
+          "clock": null,
+          "encode": null,
+          "ipc": null
+        },
+        "first_stdout_ms": null,
+        "first_stderr_ms": 72.433,
+        "query_lane": "one_minute:status",
+        "denominator": {
+          "attempts": 1056,
+          "successes": 917,
+          "failures": 139,
+          "deadlines": 121,
+          "scope": "PARENT_PROCESS"
+        },
+        "outcome": "PROCESS_DEADLINE",
+        "parent_pid": 13792,
+        "attempt_id": 1056,
+        "observed_at": "2026-10-17T02:22:10.599045+00:00"
+      }
+    ]
+  },
+  "logs": [
+    {
+      "name": "stock-options-foundation",
+      "kind": "stdout",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.out.log",
+      "bytes": 5100,
+      "sha256": "dbd26c3923fb9a7d704df60505638a7fcf433ada3ccdbb142574bbafc1717cbd"
+    },
+    {
+      "name": "stock-options-foundation",
+      "kind": "stderr",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261017T021007573Z.err.log",
+      "bytes": 159829,
+      "sha256": "ea645813c55b4707d4aff38c064b8fd4400a02f1d10db65cc580c784b16640ff"
+    },
+    {
+      "name": "gateway-options-foundation",
+      "kind": "stdout",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.out.log",
+      "bytes": 10397,
+      "sha256": "3d82cf9dbbe627feb4e275b483b4568a45528bfe87fa61b4b5ebb53f6b8332de"
+    },
+    {
+      "name": "gateway-options-foundation",
+      "kind": "stderr",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261017T021007573Z.err.log",
+      "bytes": 202,
+      "sha256": "7a3f9585f0dc702b34bf1f1b0cd945b99c57b9e6d9c38d1ac32c6656b30c8583"
+    }
+  ],
+  "sdk_connections": 0,
+  "business_writes": 0,
+  "authenticated_ui_verified": false,
+  "live_reliability_pass": false,
+  "synthetic_hour_result_does_not_override_actual_failures": true
+}

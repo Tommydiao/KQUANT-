@@ -1,0 +1,180 @@
+{
+  "hour_complete": true,
+  "rows": [
+    {
+      "target": "kquant/options_intraday_comparison.py",
+      "expected": "0af1e12b4f64016e09f41244ab6a7c8a894c00186638f750a8c0a964e3a9a2d4",
+      "tested": "0af1e12b4f64016e09f41244ab6a7c8a894c00186638f750a8c0a964e3a9a2d4",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_intraday_reference.py",
+      "expected": "7ca5333ec82265eee613ae0ece7337d13521c1aea6e632a97c1ff9ed434be9b9",
+      "tested": "7ca5333ec82265eee613ae0ece7337d13521c1aea6e632a97c1ff9ed434be9b9",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_one_minute_runtime.py",
+      "expected": "bcd0d9bf32a9b33474e49147fc50c8ca614de6acf5538748bd49d47fdbc8cf40",
+      "tested": "bcd0d9bf32a9b33474e49147fc50c8ca614de6acf5538748bd49d47fdbc8cf40",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_opening_trend_current.py",
+      "expected": "370687f372f4de88a54d57bae45d7cd49892739bd9de7ea32220949357f31ade",
+      "tested": "370687f372f4de88a54d57bae45d7cd49892739bd9de7ea32220949357f31ade",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_opening_trend_pipeline.py",
+      "expected": "fde2710bdf867ea5394423fd59a491eda097edc3bf5f15916444cd12783c274f",
+      "tested": "fde2710bdf867ea5394423fd59a491eda097edc3bf5f15916444cd12783c274f",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_opening_trend_runtime.py",
+      "expected": "9af3f9cbfe56672deb6d713ebd4e70e34513f4092b4011cb56045d5f19ba267c",
+      "tested": "9af3f9cbfe56672deb6d713ebd4e70e34513f4092b4011cb56045d5f19ba267c",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_opening_trend_store.py",
+      "expected": "c5db4302fa7b1e563869fb88d88f78b7bc23bdbf4650febc173abce84e9ba359",
+      "tested": "c5db4302fa7b1e563869fb88d88f78b7bc23bdbf4650febc173abce84e9ba359",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_opening_trend_summary.py",
+      "expected": "4ae8777b89cd2dc8657cccf4a0d78c6cc363b79747b5dcf441bf8b8b5d00bd20",
+      "tested": "4ae8777b89cd2dc8657cccf4a0d78c6cc363b79747b5dcf441bf8b8b5d00bd20",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_research_availability.py",
+      "expected": "8bc335c565eb63e388ea8fca58568faf980b02d7a0c5b754970f7380bd16bf91",
+      "tested": "8bc335c565eb63e388ea8fca58568faf980b02d7a0c5b754970f7380bd16bf91",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "kquant/options_research_diagnostics.py",
+      "expected": "b2d7975882d94051c01d49bd6cbe3b6fade20133118bbce6f1f5c645a7840c4c",
+      "tested": "b2d7975882d94051c01d49bd6cbe3b6fade20133118bbce6f1f5c645a7840c4c",
+      "scope": "HOUR_RUNTIME_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "web/dist-stock/assets/index-8MnraLHw.css",
+      "expected": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956",
+      "tested": null,
+      "scope": "BUILD_HASH_ONLY",
+      "matches": null
+    },
+    {
+      "target": "web/dist-stock/assets/index-Dx1YIUO6.js",
+      "expected": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d",
+      "tested": null,
+      "scope": "BUILD_HASH_ONLY",
+      "matches": null
+    },
+    {
+      "target": "web/dist-stock/index.html",
+      "expected": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604",
+      "tested": null,
+      "scope": "BUILD_HASH_ONLY",
+      "matches": null
+    },
+    {
+      "target": "web/dist-stock/kquant-mark.svg",
+      "expected": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a",
+      "tested": null,
+      "scope": "BUILD_HASH_ONLY",
+      "matches": null
+    },
+    {
+      "target": "web/dist-stock/manifest.webmanifest",
+      "expected": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19",
+      "tested": null,
+      "scope": "BUILD_HASH_ONLY",
+      "matches": null
+    },
+    {
+      "target": "web/dist-stock/service-worker.js",
+      "expected": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40",
+      "tested": null,
+      "scope": "BUILD_HASH_ONLY",
+      "matches": null
+    },
+    {
+      "target": "web/dist-unified/assets/unified-BE33Baq-.css",
+      "expected": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad",
+      "tested": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad",
+      "scope": "HOUR_SERVED_BUILD",
+      "matches": true
+    },
+    {
+      "target": "web/dist-unified/assets/unified-C0aHT8vS.js",
+      "expected": "e272d10719dcaec56475057356909f94e7d874e911fab0522fec27b9cbe98bd4",
+      "tested": "e272d10719dcaec56475057356909f94e7d874e911fab0522fec27b9cbe98bd4",
+      "scope": "HOUR_SERVED_BUILD",
+      "matches": true
+    },
+    {
+      "target": "web/dist-unified/kq-mark.svg",
+      "expected": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d",
+      "tested": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d",
+      "scope": "HOUR_SERVED_BUILD",
+      "matches": true
+    },
+    {
+      "target": "web/dist-unified/manifest.webmanifest",
+      "expected": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac",
+      "tested": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac",
+      "scope": "HOUR_SERVED_BUILD",
+      "matches": true
+    },
+    {
+      "target": "web/dist-unified/service-worker.js",
+      "expected": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0",
+      "tested": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0",
+      "scope": "HOUR_SERVED_BUILD",
+      "matches": true
+    },
+    {
+      "target": "web/dist-unified/unified.html",
+      "expected": "f5efb04e5bbfe16b4897bd7f82de8679a7ccb6240f24d10a51804e0b5556a618",
+      "tested": "f5efb04e5bbfe16b4897bd7f82de8679a7ccb6240f24d10a51804e0b5556a618",
+      "scope": "HOUR_SERVED_BUILD",
+      "matches": true
+    },
+    {
+      "target": "web/src/unified/OptionsOperations.tsx",
+      "expected": "a3de9af02dc992ee31356c84448c49e51f6a5d990f41e1ab0accd555fc5c33af",
+      "tested": "a3de9af02dc992ee31356c84448c49e51f6a5d990f41e1ab0accd555fc5c33af",
+      "scope": "HOUR_FRONTEND_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "web/src/unified/StrategyComparisonCard.tsx",
+      "expected": "5a0e37089eb91fc138270f7178efa9d9a6ae81380488e8a02b821e3a3a50b512",
+      "tested": "5a0e37089eb91fc138270f7178efa9d9a6ae81380488e8a02b821e3a3a50b512",
+      "scope": "HOUR_FRONTEND_SOURCE",
+      "matches": true
+    },
+    {
+      "target": "web/src/unified/strategyComparison.css",
+      "expected": "a886756ede796d658ee1d632ac8ed086910e5fd14b9ef91c4c81c153e7da295f",
+      "tested": "a886756ede796d658ee1d632ac8ed086910e5fd14b9ef91c4c81c153e7da295f",
+      "scope": "HOUR_FRONTEND_SOURCE",
+      "matches": true
+    }
+  ]
+}

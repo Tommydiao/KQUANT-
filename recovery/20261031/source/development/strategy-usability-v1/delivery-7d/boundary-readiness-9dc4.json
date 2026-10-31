@@ -1,0 +1,11 @@
+{
+  "test_only": true,
+  "no_sdk_calls": true,
+  "production_writes": 0,
+  "request_after_close_ms": 20,
+  "measured_uncertainty_ms": 50,
+  "recovery_reports_ready": true,
+  "canonical_method_accepts": false,
+  "recovery_task_created": false,
+  "classification": "READINESS_BOUNDARY_COMPARISON_NOT_REAL_MARKET_EVIDENCE"
+}

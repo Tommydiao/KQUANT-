@@ -1,0 +1,211 @@
+{
+  "schema": "KQUANT_MINIMAL_DELIVERY_BLOCKERS_V1",
+  "latest_reconciliation": {
+    "observed_at": "2026-10-22T14:55:08Z",
+    "resume": "opening-first-hour/MATCHED_HOUR_CLOSEOUT_20261022.md",
+    "historical_items_warning": "October20 item details below are retained history; the7896hour is finished, not still running.",
+    "latest_eleven_point_hour": "FINISHED_OVERALL_FAIL",
+    "remaining": ["4 background failures", "4 browser HTTP503 attribution gaps", "enqueue-to-commit P95 10.875-36.281seconds", "new-window detail routing not verified"],
+    "production_candidate": "local-candidate-198444f784fb3ada",
+    "production_switch": false,
+    "deadline_utc": "2026-10-23T14:30:22Z"
+  },
+  "constraint": "constraint.json",
+  "active_work_period": "D7-HB-20261020T122522Z",
+  "status": "IN_PROGRESS_NOT_ACCEPTED_AS_COMPLETE",
+  "items": [
+    {
+      "id": "D7-I02",
+      "blocker": "Actual recovery observation crashes when a measured-clock push has null pull request time",
+      "status": "OCT20_OPENING_FAIL_7896_HOUR_FINISHED_COMBINED_FAIL_EXACT_LAUNCH_PENDING",
+      "evidence": [
+        "monday-signal-llm/release/local-candidate-198444f784fb3ada/live-worker-degraded-20261019T1352Z.json",
+        "monday-signal-llm/recovery-null-time-followup/before.xml",
+        "monday-signal-llm/recovery-null-time-followup/strict-regressions.xml",
+        "audit-20261019T135517Z.json",
+        "audit-20261020T140022Z.json",
+        "monday-signal-llm/TODAY_OPENING_INCIDENT_20261020.md",
+        "monday-signal-llm/evidence/live-preserved-20261020T140733Z.json"
+      ],
+      "observed_scope": "October20 final audit at14:00:22Z: S0/S1 each0of1000complete, all500original instrument tasks expired despite actual raw minutes. Actual local stack run/process_trend_recovery/observe/task/bar_ready/local_candidate/timestamp. After-cutoff ready/raw progress does not erase opening FAIL. Memory check14:07 retained2HTTP200 plus1ConnectionError, actual PID owners unchanged. Qualification clock-jump latch is separate from fresh NTP; no system time change. Do not call NO_TRIGGER or source-only failure.",
+      "action_completed": "Separate one-file helper rejects unsupported push before parsing pull times and fails closed on malformed native time. Original reproduction7fail/1pass;17 cases pass including actual Worker construction, measured pushes/native recovery/durable wakeup/S1 and original deadline. Actual persisted ASTS pushes confirm null request time shape. Running accepted source remains unchanged.",
+      "next_action": "Actual21:36 recovery AttributeError confirmed; HTTP/raw bars survive but research DEGRADED. Hour99893 canceled INVALID_CHILD_IDENTITY: disposable CLI loaded old BASE store, so its356ms failure is not proof against new store. New TEST_ONLY child bootloader + pre-spawn exact role map installed. First short93373 stopped before serving/root ordering failure retained. Corrected short88079 FINISHED120.360s/errors[]/257of257reads/no children;230source proofs/209processes exact9bff store. Actual disposable current CLI materializes8of99. Valid matching3600s93895 RUNNING since13:57Z in monday-live-fact-child-hour-7896-20261020. Freeze exact source/build/live-fact-child-tools; finish SAME, preserve all failures, only then prepare accurate launch decision if warranted. No production hot edits or borrowed approval.",
+      "last_progress_period": "D7-HB-20261020T122522Z",
+      "consecutive_active_periods_without_progress": 0,
+      "fallback_if_two_periods_stall": "Replace only the recovery input validation adapter with explicit invalid-input-to-pending behavior; never accept pushes as native pulls or change original deadline."
+    },
+    {
+      "id": "D7-I01",
+      "blocker": "S1 native input collection falsely treats a closed push-only cache as completed recovery",
+      "evidence": [
+        "audit-20261016T145528Z.json",
+        "blocker-probe-20261016.json"
+      ],
+      "observed_scope": "624 S1 direction-checkpoint latest results lack native price basis; APLD first eligible NoAdjust pull arrives after the first original deadline",
+      "action_completed": "Replace the existence-only recovery readiness predicate with explicit native post-boundary readiness; actual shared pull is required when missing",
+      "status": "EXACT_LAUNCH_ACCEPTED_DEPLOYED_REAL_WINDOW_PENDING",
+      "last_progress_period": "D7-W02-20261016T152433Z",
+      "consecutive_active_periods_without_progress": 0,
+      "next_action": "Current accurately accepted1984 stays running. Actual09:45 S1 native computation succeeded, but09:50/55 recovery crashed; follow D7-I02 minimal fix rather than repeating the old d4f4 approval.",
+      "fallback_if_two_periods_stall": "Replace only the recovery eligibility/cache adapter with explicit pending-input queue routing; retain shared lane, original deadline, source versions and admission"
+    },
+    {
+      "id": "D7-M01",
+      "blocker": "Accepted minute method is deployed; each measured clock bound and next real window remain to be verified",
+      "evidence": [
+        "audit-20261016T145528Z.json",
+        "O_SETUP_MINUTE_METHOD_20261016.md",
+        "browser-observation-20261016.json",
+        "minute-method-binding-20261016.json",
+        "patches/config/review_acceptances/local_closed_snapshot_owner_20261016.json"
+      ],
+      "observed_scope": "338 latest direction-checkpoints per variant are SOURCE_CONFLICT; current source configuration has canonical_resolution_method=null",
+      "action_completed": "Genuine direct OWNER method acceptance recorded at first observed UTC 2026-10-16T15:24:33Z and subsequently deployed under exact d4f4 launch acceptance. The prior baseline scope below is historical, not current configuration. Fixed deadline retained",
+      "status": "EXACT_METHOD_DEPLOYED_IN_ACCEPTED_D4F4_REAL_WINDOW_PENDING",
+      "last_progress_period": "D7-W02-20261016T152433Z",
+      "consecutive_active_periods_without_progress": 0,
+      "next_action": "Continue verifying each actual two-source clock attachment and next-window canonical decisions, not merely method approval",
+      "fallback_if_two_periods_stall": "Continue nonconflicting input calculation and raw collection; retain unknown conflict outcomes. A different source method cannot be silently substituted"
+    },
+    {
+      "id": "D7-R01",
+      "blocker": "Strict S0 cross-day PriceReference remains unverified",
+      "evidence": [
+        "audit-20261016T145528Z.json"
+      ],
+      "observed_scope": "636 latest S0 direction-checkpoints are PRICE_REFERENCE_UNVERIFIED; strict S0 timely full count is 0/1000",
+      "action_completed": "Kept S0 INCOMPLETE, preserved the fixed baseline and retained independent S1 input lane; no false comparable flag or complete corporate-action coverage",
+      "status": "DELIVERY_AT_RISK_SOURCE_FACTS_NOT_PROVEN",
+      "last_progress_period": null,
+      "consecutive_active_periods_without_progress": null,
+      "prior_blocker_history": "Known before T0; do not reset its history or claim the new deadline solved it",
+      "next_action": "Inspect only the missing coverage/reference consumer contract and actual available response; complete provable facts or propose one bounded method delta with separate labels",
+      "fallback_if_two_periods_stall": "Use the already-authorized independent S1 research lane and paired comparable subset, without counting them as strict S0 completion. If strict 90 percent is not achieved, report FAIL, not an exemption",
+      "local_alternative_executed": "Existing independent S1 computation and separate comparable-input cohort remain enabled; this is not a strict S0 pass or removal from denominator."
+    },
+    {
+      "id": "D7-Q01",
+      "blocker": "Technical triggers have no persisted matching 3-7DTE reference and an empty selection lane kept refreshing",
+      "evidence": [
+        "blocker-probe-20261016.json",
+        "related-tests.xml"
+      ],
+      "observed_scope": "DGP CALL qualification attempted 203 times with persisted NO_MATCHING_CALENDAR_DTE; DXYZ CALL has the same no-expiry result. Historical rows lack the new raw response summary, so neither proves market-wide contract absence. Both are technical observations, not buys",
+      "action_completed": "Verified available empty expiry results now terminate the research collection job with original reason; preserve expiry response summary/hash. Unknown or failed response is not converted to no-match",
+      "status": "REAL_ASTS_REFERENCE_BEFORE_DEADLINE_OBSERVED_STRICT_CONTRACT_FACTS_STILL_PENDING",
+      "last_progress_period": "D7-W02-20261016T152433Z",
+      "consecutive_active_periods_without_progress": 0,
+      "next_action": "Preserve actual ASTS261023C43000.US before13:50Z October19 expiry and browser proof; reference is NOT strict qualification. Keep independent quantity/deliverable/source-time facts unresolved rather than repeating empty-chain guesses.",
+      "fallback_if_two_periods_stall": "Replace only the empty-result state transition; never expand DTE or invent a contract to raise counts"
+    },
+    {
+      "id": "D7-U01",
+      "blocker": "Timely page delivery lacks durable evidence; actual page had a transient stale snapshot and original performance remains over target",
+      "evidence": [
+        "browser-observation-20261016.json",
+        "../WRITER_AND_MATCHED_HOUR_20261016.md"
+      ],
+      "observed_scope": "User confirmed visible Signals/records/closed-market page; measured SSE delivery unknown. At03:25:02Z live parent6579attempts/5687successes/892failures/797deadlines, including873legacy and19current/compact failures. Actual mainDB DELETE mode and universe SQLITE_BUSY are documented; writer identity UNKNOWN. Prior d4f4 hour omitted legacy on_tick; its five queue P95 values6.657/7.844/8.688/8.532/10.719s remain FAIL. Real receive-to-compute is unmeasured.",
+      "action_completed": "Separate seven-module delta implements calendar-context reuse, single metadata scan/covering index, exact index restart gate, real isolated legacy background lane, and startup-only main WAL preparation. Actual CLI synthetic75900-row index test5/5 passes; separate-process WAL mitigation passes;114affected tests pass,2explicit skips. Live unindexed failures preserved; no hot edits or SDK connections",
+      "status": "1984_MATCHED_HOUR_READ_RELIABILITY_PASS_PERFORMANCE_FAIL_EXACT_ACCEPTED_RUNNING_ACTUAL_PAGE_VERIFIED_NEW_RECOVERY_FAULT",
+      "matching_hour_evidence": "monday-signal-llm/hour-198444f784fb3ada-summary.json",
+      "matching_candidate": "local-candidate-198444f784fb3ada",
+      "matching_hour_result": "3600.235seconds, exact source/build,5409/5409 background reads,0unexplained HTTP failures,100/100pending restored original deadlines, no children. Five queue P955.766/6.344/6.625/7.187/7.922s FAIL. Safety/reliability PASS; combined FAIL. Exact genuine approval and deployment followed; real worker null-time case was missed by that hour.",
+      "prior_matching_hour_preserved": "legacy-status-fix/hour-4549-summary.json:5424/5426reads, two current SQL budget failures, queue P954.281/5.078/6.735/7.906/9.843s FAIL; not superseded as historical evidence.",
+      "last_progress_period": "D7-W07-20261018T101112Z",
+      "consecutive_active_periods_without_progress": 0,
+      "next_action": "1984 genuinely accepted and original gate deployed;600.078s service continuity confirmed and actual authenticated page/stream recorded. Preserve prior cc97/4998 failures and performance FAIL. No unchanged hour retry. New opening recovery AttributeError needs only separate one-file D7-I02 candidate/actual assembly/hour then one exact launch decision. Keep HTTP/raw monitoring alive, no hot edit. Fixed deadline unchanged.",
+      "fallback_if_two_periods_stall": "Replace only snapshot publication/cache or page delivery observer implicated by measured traces, not the UI framework or research rules"
+    }
+  ],
+  "owner_choices": {
+    "new_fees": "GENUINE_LIMITED_LLM_BUDGET_ACCEPTED_USD5_DAY_USD1_TASK_USD1_SHARED_INITIAL_THROUGH_FIXED_DEADLINE",
+    "llm_models": "DIRECT_USER_SELECTED_GPT_6_1_SOL_MEDIUM_AND_REQUESTED_GPT_6_ASTRA_NO_SILENT_SUBSTITUTION",
+    "private_api_key": "BOUNDED_MODEL_GET_401_USER_POSTPONED_PRIVATE_CONFIGURATION_CONTINUE_INDEPENDENT_WORK",
+    "minute_method": "OWNER_ACCEPTED_20261016T152433Z_DEPLOYED_IN_EXACT_D4F4",
+    "release": "1984_GENUINELY_ACCEPTED_CALL_E167_ORIGINAL_FIVE_ROLE_ENTRY_DEPLOYED_ACTUAL_MAIN_LOOP_HTTP_AND_AUTHENTICATED_PAGE_VERIFIED_RESEARCH_DEGRADED_NEW_RECOVERY_FAULT",
+    "data_cycle_login_watchlist_ntp": "ALREADY_ACCEPTED_DO_NOT_REPEAT"
+  },
+  "new_payload_frozen": true,
+  "new_payload_matched_hour": "1984_COMPLETED_3600_235_SECONDS_5409_OF_5409_QUERIES_100_PENDING_RECOVERED_0_UNEXPLAINED_HTTP_ASSEMBLY_RELIABILITY_PASS_PERFORMANCE_COMBINED_FAIL",
+  "latest_overlay": {
+    "path": "monday-signal-llm/RESUME.md",
+    "candidate_id": "local-candidate-198444f784fb3ada",
+    "payload_sha256": "161d16456720f0f9f406766278ff02c4ae999629fdee00641e45db76aa1e5891",
+    "launch_accepted": true,
+    "deployed": true,
+    "matched_hour": "1984_SAFETY_RELIABILITY_PASS_PERFORMANCE_AND_COMBINED_FAIL_CC97_AND4998_FAILURES_PRESERVED",
+    "readiness": "ACTUAL_600_078_SECOND_SERVICE_CONTINUITY_PASS_OPENING_WORKER_READY_FAIL_RECOVERY_ATTRIBUTEERROR_AFTER_CUTOFF_READY_AGAIN_WINDOW_FAIL_S1_186_OF_1000_S0_0_OF_1000",
+    "prior_release_incident": "0f41 genuinely accepted by call_e6b570ea22c64c52975dea4c4fcb8bd0:0; original entry rejected conflicting frontend HTML hashes before workers. Code-only verified recovery restored exact d4f4 and600.062s21samples passed; no database rollback.",
+    "real_model_response": "PENDING_PRIVATE_KEY_CHANGE_DO_NOT_REPEAT_SAME_KEY_401",
+    "positive_engineering": [
+      "Saved real BTDR input gives complete independent S1 NO_TRIGGER and NUMERIC_PASS; retrospective only",
+      "Existing copilot durable outbox, asynchronous read-only worker and shared fee reservations are implemented in frozen candidate",
+      "Both actual frontend builds and90 affected regressions complete; not model or market acceptance",
+      "Pure AI read dependency replaces paid/legacy execution imports; new actual cold start120.406s257/257reads and matching hour passed reliability",
+      "Actual compiled browser late TEST_ONLY AI update1645.205ms, one fresh snapshot event, no manual reload; eight desktop variants passed; not real market P95",
+      "Eight actual TCP/browser desktop variants display TEST_ONLY AI section and retain expired/unknown distinctions",
+      "Authenticated actual TCP/Gateway Astra request queues once; duplicate idempotent, invalid role422, missing reference409, anonymous401; no paid/model call"
+    ],
+    "latest_evidence": [
+      "monday-signal-llm/hour-0f4190e07e36ec96-summary.json",
+      "monday-signal-llm/evidence/late-ai-browser-20261018-101607/report.json",
+      "monday-signal-llm/evidence/astra-tcp-20261018-084854/report.json",
+      "monday-signal-llm/O_LAUNCH_MONDAY_RESEARCH_DECISION_20261018.md"
+    ]
+  },
+  "production_restart_this_period": false,
+  "history": [
+    {
+      "period": "D7-W04-20261017T025303Z",
+      "real_progress": [
+        "user confirmed Signals page visibility without password reset",
+        "legacy actual CLI failures reproduced and covering-index mitigation verified in isolation",
+        "actual main-store DELETE mode and current/compact SQLITE_BUSY separated from legacy budgets",
+        "independent-process universe lock reproduction and startup WAL mitigation passed",
+        "exact seven-file delta and failure evidence preserved; current runtime unchanged"
+      ],
+      "production_changes": false
+    },
+    {
+      "period": "D7-W02-20261016T152433Z",
+      "real_progress": [
+        "genuine minute-method acceptance integrated into pending config",
+        "real Worker recovery/CAS/S1 isolation verified",
+        "canonical contradiction regression fixed",
+        "atomic decision batch and indexed lookup profiled",
+        "exact index restart guard and source lock fix passed"
+      ],
+      "production_changes": false
+    }
+  ],
+  "pending_candidate": "local-candidate-b8742253742df53c",
+  "running_candidate": "local-candidate-198444f784fb3ada",
+  "running_payload_sha256": "161d16456720f0f9f406766278ff02c4ae999629fdee00641e45db76aa1e5891",
+  "last_running_candidate": "local-candidate-d4f4aad4be84d143",
+  "selected_entry_candidate": "local-candidate-198444f784fb3ada",
+  "latest_evidence": [
+    "hour-9dc4-summary.json",
+    "hour-9dc4-partial-query-evidence.json",
+    "short-d4f4-summary.json",
+    "METHOD_ACCEPTANCE_AND_RECOVERY_PROGRESS_20261017.md",
+    "hour-d4f4-summary.json",
+    "patch-snapshot-20261016T182532Z.json",
+    "next-complete-windows-fixed-deadline-v2.json",
+    "MATCHED_HOUR_AND_RELEASE_READINESS_20261017.md",
+    "O_LAUNCH_D7_RESEARCH_DECISION_20261017.md",
+    "release/local-candidate-d4f4aad4be84d143/owner-launch-acceptance.json",
+    "release/local-candidate-d4f4aad4be84d143/deployment-state.json",
+    "legacy-status-probe-20261017.json",
+    "legacy-status-components-20261017.json",
+    "D7_DEPLOYMENT_20261017.md",
+    "LEGACY_STATUS_ACTUAL_FAILURE_20261017.md",
+    "release/local-candidate-d4f4aad4be84d143/live-observation-20261017-summary.json",
+    "release/local-candidate-d4f4aad4be84d143/runtime-evidence-20261017T022215Z.json",
+    "STATUS_RELIABILITY_PROGRESS_20261017.md",
+    "user-page-confirmation-20261017.json",
+    "legacy-status-fix/delta-review-20261017T032542Z.json",
+    "legacy-status-fix/universe-lock-20261017T032123Z.json",
+    "release/local-candidate-d4f4aad4be84d143/runtime-evidence-20261017T032504Z.json"
+  ]
+}

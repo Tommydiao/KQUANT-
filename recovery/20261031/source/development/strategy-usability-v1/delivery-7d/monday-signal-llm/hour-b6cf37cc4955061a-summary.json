@@ -1,0 +1,259 @@
+{
+  "schema": "KQUANT_MATCHED_HOUR_VERDICT_V2",
+  "observed_at": "2026-10-18T12:38:39.677717+00:00",
+  "candidate_id": "local-candidate-b6cf37cc4955061a",
+  "payload_sha256": "72d8a036b952b261909ac7f4fe6a84d3a6621dba7626a9e097c6d36e20168371",
+  "projection_sha256": "acc282787ae8e46f683d3467248d8afcc7147ba68f1052dbfaca820eda055306",
+  "report_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\monday-release-hour-b6cf-20261018\\topology_report.json",
+  "report_sha256": "dd9b8ea3dfafba5edc0f453853dc9721e483f6283f0a724a338d1f030feab2d4",
+  "duration_seconds": 3600.1720000000205,
+  "continuous_60_minutes": true,
+  "source_match": true,
+  "frontend_match": true,
+  "original_harness_assembly_pass": true,
+  "comprehensive_reliability_pass": true,
+  "performance_pass": false,
+  "combined_pass": false,
+  "release_ready": false,
+  "approval_requested": false,
+  "production_writes": 0,
+  "test_only": true,
+  "totals": {
+    "records": 5411,
+    "success": 5411,
+    "failure": 0,
+    "deadline": 0
+  },
+  "query_lanes": {
+    "opening_momentum:current": {
+      "SUCCESS": 3478
+    },
+    "opening_momentum:compact": {
+      "SUCCESS": 1229
+    },
+    "one_minute:status": {
+      "SUCCESS": 704
+    }
+  },
+  "failures": [],
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-19T13:35:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031000000017229468
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000000325963
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.14100000000326
+        }
+      },
+      "source_and_enqueue_seconds": 1.0310000000172295,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 1.0310000000172295,
+        "p95": 0.125
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:40:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000002374873
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031000000017229468
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09299999999348074
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.546999999962281
+        }
+      },
+      "source_and_enqueue_seconds": 1.0150000000139698,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 0.9679999999934807,
+        "p95": 0.13999999995576218
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:45:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000002374873
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03200000000651926
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.9060000000172295
+        }
+      },
+      "source_and_enqueue_seconds": 1.7339999999967404,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 1.6229999999632128,
+        "p95": 0.23399999999674037
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:50:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1720000000204891
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09399999998277053
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15700000000651926
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 9.64100000000326
+        }
+      },
+      "source_and_enqueue_seconds": 2.5619999999762513,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 2.3589999999385327,
+        "p95": 0.25
+      }
+    },
+    {
+      "checkpoint": "2026-10-19T13:55:00+00:00",
+      "registered_directions": 222,
+      "identity_excluded": 22,
+      "evaluated_directions": 200,
+      "unexplained_missing": [],
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999996554106
+        },
+        "input_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.10899999999674037
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031000000017229468
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.811999999976251
+        }
+      },
+      "source_and_enqueue_seconds": 1.562999999965541,
+      "source_fact_seconds": {
+        "n": 100,
+        "sum": 1.3759999998728745,
+        "p95": 0.18799999996554106
+      }
+    }
+  ],
+  "children_alive": [],
+  "recovery": [
+    {
+      "pending_before": 100,
+      "restored": 100,
+      "original_deadlines_preserved": true
+    }
+  ],
+  "manual": {
+    "test_only": true,
+    "synthetic_contract_not_live_qualification": true,
+    "login_status": 200,
+    "entry_status": 200,
+    "actual_http_handlers": true,
+    "production_user_login": false,
+    "duplicate_entry_same": true,
+    "changed_key_status": 400,
+    "partial_exit_status": 200,
+    "duplicate_exit_same": true,
+    "open_quantity": 1,
+    "paper_fill": false,
+    "real_order_created": false,
+    "expired_session_status": 401,
+    "relogin_quantity": 1,
+    "logout_status": 200,
+    "after_logout_status": 401
+  },
+  "browser": {
+    "three_real_pages": true,
+    "refreshes": [
+      116,
+      116,
+      116
+    ],
+    "problems": [],
+    "signal_delivery_accepted": false
+  },
+  "http_classifications": {
+    "EXPECTED_INJECTED_FAILURE": 9
+  },
+  "original_report_errors": [],
+  "fixed_deadline_utc": "2026-10-23T14:30:22Z",
+  "limits": "All background failures retained; wall-time overlap is not an exemption. TEST_ONLY source/clock/model transport is not actual SDK, model capability, market latency, or natural signal acceptance."
+}

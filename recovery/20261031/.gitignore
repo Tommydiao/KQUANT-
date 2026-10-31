@@ -1,0 +1,22 @@
+.venv/
+node_modules/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env*
+*.dpapi
+*.sqlite*
+*.db
+*-wal
+*-shm
+*.key
+*.pem
+local-only/
+
+# These reviewed historical builds are part of this code handoff, not a new release.
+!source/development/workspace/web/dist/
+!source/development/workspace/web/dist/**
+!source/development/workspace/web/dist-stock/
+!source/development/workspace/web/dist-stock/**
+!source/development/workspace/web/dist-unified/
+!source/development/workspace/web/dist-unified/**

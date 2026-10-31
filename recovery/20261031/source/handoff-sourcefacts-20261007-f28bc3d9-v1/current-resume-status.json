@@ -1,0 +1,290 @@
+{
+  "observed_at": "2026-10-07T17:32:27.709077+08:00",
+  "candidate": "r58-p10-resume-sourcefacts-20261007-f28bc3d9391d181b",
+  "migration_archives_verified": 3,
+  "development_files_verified": 2370,
+  "recovered_database_files_verified": 10,
+  "preserved_candidate_database_sets": 4,
+  "minute_full_business_database_recovered": false,
+  "minute_probe_status": "PROBE_PASSED",
+  "minute_probe_accepted_rows": 780,
+  "latest_provider_probe_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\minute-history-probe\\probe-receipt-20261007T071709735749Z.json",
+  "credentials_configured": true,
+  "historical_provider_access_demonstrated": true,
+  "latest_minute_batch_status": "BATCH_FINISHED",
+  "minute_rows_downloaded": 778771,
+  "minute_window_missing_slots": 1229,
+  "minute_coverage": {
+    "accepted_unique_minutes": 778771,
+    "coverage_basis": "ATOMIC_INDEX_REPORTING_PROJECTION",
+    "eligible_symbols": 100,
+    "missing_minutes": 1229,
+    "production_admission_verified": false,
+    "sessions_newest_first": [
+      "2026-10-06",
+      "2026-10-05",
+      "2026-10-02",
+      "2026-10-01",
+      "2026-09-30",
+      "2026-09-29",
+      "2026-09-28",
+      "2026-09-25",
+      "2026-09-24",
+      "2026-09-23",
+      "2026-09-22",
+      "2026-09-21",
+      "2026-09-18",
+      "2026-09-17",
+      "2026-09-16",
+      "2026-09-15",
+      "2026-09-14",
+      "2026-09-11",
+      "2026-09-10",
+      "2026-09-09"
+    ],
+    "task_count": 2000,
+    "task_states": {
+      "COMPLETE": 1939,
+      "EMPTY": 3,
+      "PARTIAL": 58
+    },
+    "theoretical_slots": 780000,
+    "unresolved_symbols": [
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "$COMP"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "$DJI"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "/ES[Z26]"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "/NQ[Z26]"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "/RTY[Z26]"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "/YM[Z26]"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "DAXAUD:DBI"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "HBM:XETA"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "SOX"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "SPX"
+      },
+      {
+        "state": "IDENTITY_UNRESOLVED",
+        "symbol": "VIX"
+      }
+    ]
+  },
+  "latest_minute_batch_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\minute-rebuild\\native-20261007-v1\\receipts\\20261007T080845636096Z.json",
+  "minute_series_finished": true,
+  "minute_series_final_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\minute-series-20261007T080810291317Z\\final.json",
+  "minute_rebuild_offline_tests_passed": 40,
+  "frontend_tests_passed": 119,
+  "sdk_timestamp_contract_verified": true,
+  "production_started": false,
+  "old_business_continuity": "UNKNOWN",
+  "hour_topology_status": "SOURCEFACTS_MATCHED_HOUR_RUNNING_NOT_FINAL",
+  "missing_original_materials": [
+    "config/options_opening_trend_v1.json",
+    "docs/R58_S1_PREREGISTRATION.md"
+  ],
+  "verified_original_materials_restored": [
+    "config/options_full_watch_research_v1.json",
+    "config/options_research_profiles_v1.json",
+    "config/options_signal_copilot_v1.json"
+  ],
+  "plan": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\CONTINUE_PLAN_20261007.md",
+  "next_step": "SOURCEFACTS_REGRESSION_AND_MATCHED_HOUR_THEN_INCREMENTAL_CLOUD_HANDOFF_BEFORE_MACHINE_CHANGE",
+  "plan_sha256": "a3de3d8432013bbf1bb9ce949f36e6bb6e026c94cf7384dbee05c6ba0247d75f",
+  "hour_topology_evidence": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\frontend-resume-topology-hour-20261007-155423",
+  "final_candidate_id": null,
+  "backend_tests_passed": 167,
+  "backend_regression_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\backend-candidate-regression-20261007T075209411147Z-pid9332\\receipt.json",
+  "cloud_original_restoration": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\frontend-resume-cloud-original-restoration.json",
+  "host_clock_state": "KNOWN_OFFSET_UNREPAIRED",
+  "host_clock_diagnosis": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\clock-diagnosis-20261007T074502363829Z-636cb1e5e8e3ed859d44517a26bd3ef5fcc7efa5967345f057824fe3db9a3ab4.json",
+  "minute_full_validation_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\minute-audits\\20261007T081016463042Z-2bf68ba161b03909b830e0417d5aea1e0557e8e72c81ce9bc5c545437f81d627.json",
+  "live_readiness_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\market-readiness\\20261007T080541100598Z-73464aaad1bbf1f4a0cf0defc4cf0071e706500a919d439e157a681df5d4658b.json",
+  "minute_full_audit_status": "AUDIT_VERIFIED_WITH_GAPS",
+  "minute_retry_limit_exhausted_for_partial_empty": true,
+  "system_time_repair_approval": "PENDING_USER_REPLY",
+  "candidate_archive_status": "PARENT_ARCHIVES_VERIFIED_CURRENT_SOURCEFACTS_DELTA_PENDING",
+  "candidate_archive_path": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\archives\\KQUANT_Continuation_20261007_7ff4101a.zip",
+  "candidate_archive_sha256": "df4f0962949355a9d7b2e9a88921a6482de54bbe5a85e5a97f2818345d7fea6e",
+  "candidate_archive_bytes": 294689354,
+  "cloud_roundtrip_verified": false,
+  "cloud_folder": "KQUANT_Move_2026-10-07/Resume_20261007_7ff4101a",
+  "minute_gap_review": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\minute-audits\\20261007T081334423205Z-gap-review-2295a41c6aa03861dc142aabbbf337f45917b724f3b659dba8e754871d12c6fc.json",
+  "quote_source_review": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\quote-source-review\\20261007T082735524203Z-source-review-c02f7781757032c0a9c522b24edb0e8080b7f044e01ab115b10accb30a6ac60a.json",
+  "observed_at_host_clock_precision_verified": false,
+  "cloud_upload_observed_percent": 100.0,
+  "cloud_upload_observation_source": "QUARK_NATIVE_UI_CURRENT_PROGRESS_TEXT",
+  "legacy_stock_gap_audit": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\minute-audits\\legacy-stock-gap-intersection-20261007-ae2e2f36ffcf5546c2e0512aa4240bc5533f0d5a9ca26698dbcacef0918aa0b2.json",
+  "hour_duration_seconds": 3600.453,
+  "hour_browser_duration_seconds": 3613.374,
+  "hour_health_transport_errors": {
+    "ReadError": 88,
+    "RemoteProtocolError": 75,
+    "total": 163
+  },
+  "hour_terminal_review": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\frontend-resume-hour-terminal-audit-20261007.json",
+  "hour_terminal_seal": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\frontend-resume-hour-terminal-seal-20261007.json",
+  "core_cloud_roundtrip_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\core-cloud-roundtrip-20261007-0a95d7c6a363d9b6c521740a6959a192320a1bd4e65352ad362b1a426a318370.json",
+  "core_cloud_restore_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\candidate-cloud-roundtrip-20261007-v1-verification.json",
+  "actual_watchlist_quote_series_status": "FINAL_SOURCE_FACTS_AUDITED_NOT_ELIGIBILITY",
+  "actual_watchlist_quote_assets_terminal": 100,
+  "actual_watchlist_quote_identity_unresolved_no_query": 11,
+  "actual_watchlist_quote_eligible_assets_proven": 0,
+  "actual_watchlist_quote_provider_requests": 584,
+  "actual_watchlist_quote_provider_errors": 0,
+  "actual_watchlist_quote_native_normal": 99,
+  "actual_watchlist_quote_native_code_moved": 1,
+  "actual_watchlist_quote_candidate_assets": 14,
+  "actual_watchlist_quote_candidate_contracts": 28,
+  "actual_watchlist_quote_final_audit": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\watchlist-quote-audits\\20261007T091104723778Z-final-audit-35a608fefedb5d2e26bc289762efb073c548908f25708d7913daa95494d18761.json",
+  "host_clock_latest_diagnosis": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\clock-diagnosis-20261007T094313248500Z-cc2568a3f904c424a582fa8a471c2a104e3dcdbb24fe18643277a94aa62499e4.json",
+  "final_candidate_review_directory": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\final-candidate-review-20261007-v1",
+  "engineering_backup_closeout_verified": false,
+  "cloud_companion_roundtrip_verified": true,
+  "companion_archive_path": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\archives\\KQUANT_Continuation_Evidence_20261007_7ff4101a.zip",
+  "companion_archive_sha256": "ea0ca4dbdd87148159ab28d5df67178479a1b338e98bac978da230ee387bf470",
+  "companion_archive_bytes": 1855910,
+  "companion_manifest_sha256": "2113cabbc88edda513ce108575575887de0234cb033a68bc9fb92aaf1a344bea",
+  "companion_cloud_roundtrip_receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\companion-cloud-roundtrip-20261007-2a3697cdcb7e43affc41d80262070e092bf245f3b827414ba04d21da2ea03b37.json",
+  "companion_files_verified": 266,
+  "production_acceptance": false,
+  "market_acceptance": false,
+  "owner_acceptance_written": false,
+  "full_adopted_plan_complete": false,
+  "final_cloud_readme": {
+    "sha256": "af3ce3f18a551d7c7b1680bf9484d3585039db2f8c91c4d27f448b3086ce6120",
+    "archive_roundtrips_already_verified_separately": true,
+    "cloud_upload_running_count": 0,
+    "native_upload_completed": true,
+    "path": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\KQUANT_Continuation_README_20261007_7ff4101a.md",
+    "readme_cloud_download_not_performed": true,
+    "native_upload_completed_row_original_label": "2026/10/07 17:34",
+    "cloud_upload_completed_count": 4
+  },
+  "official_source_originals_restored": {
+    "count": 4,
+    "status": "SOURCES_RESTORED_EXACT_ORIGINAL_BYTES",
+    "receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\source-material-recovery-20261007-v1\\exact-source-restoration-fd32176385af666e68402d3d9927ba79f0bad13cdc77a64c274b153419018788.json",
+    "included_in_previously_frozen_cloud_archives": false
+  },
+  "actual_new_minute_epoch_precheck": {
+    "receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\new-minute-epoch-review-20261007-v1\\ACTUAL_NEW_EPOCH_PRECHECK.json",
+    "status": "EXACT_DATA_SCOPE_ACCEPTANCE_REQUIRED",
+    "human_scope_decision": "PENDING_USER_REPLY",
+    "minute_database_created": false
+  },
+  "tonight_readiness_plan": {
+    "path": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\TONIGHT_READINESS_PLAN_20261007.md",
+    "engineering_target_local": "2026-10-07T20:30:00+08:00",
+    "regular_market_open_local": "2026-10-07T21:30:00+08:00",
+    "targets_are_not_completion_or_market_acceptance": true
+  },
+  "current_contract_source_review": {
+    "receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\source-material-recovery-20261007-v1\\current-contract-source-review-20261007-v2.json",
+    "assets": [
+      "AAPL",
+      "AMD",
+      "AMZN",
+      "AVGO",
+      "GOOGL",
+      "IBIT",
+      "META",
+      "MSFT",
+      "MU",
+      "NVDA",
+      "SMH",
+      "SOXL",
+      "SPCX",
+      "TSLA"
+    ],
+    "saved_native_contracts": 28,
+    "new_primary_document_facts_reviewed": 16,
+    "standard_delivery_and_quote_multiplier_source_roles_verified": true,
+    "full_contract_sources_status": "BLOCKED_DEPTH_UNITS_SOURCE_MISSING",
+    "live_source_config_modified": true,
+    "new_market_requests": 0,
+    "market_eligibility_proven": false,
+    "included_in_previously_frozen_cloud_archives": false
+  },
+  "prior_current_contract_source_review": {
+    "receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\source-material-recovery-20261007-v1\\current-contract-source-review-20261007-v1.json",
+    "assets": [
+      "NVDA",
+      "AMD",
+      "IBIT"
+    ],
+    "saved_native_contracts": 6,
+    "new_primary_document_facts_reviewed": 5,
+    "standard_delivery_and_quote_multiplier_source_roles_verified": true,
+    "full_contract_sources_status": "BLOCKED_DEPTH_UNITS_SOURCE_MISSING",
+    "live_source_config_modified": false,
+    "new_market_requests": 0,
+    "market_eligibility_proven": false,
+    "included_in_previously_frozen_cloud_archives": false
+  },
+  "provider_semantics_questions_draft": {
+    "path": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\LONGBRIDGE_PROVIDER_SOURCE_QUESTIONS_20261007.md",
+    "sent": false,
+    "formal_provider_reply": false
+  },
+  "prior_frozen_candidate": "r58-p10-resume-20261007-7ff4101a4962ecc1",
+  "current_working_candidate_state": "SOURCE_CONFIG_CHANGED_FINAL_VERSION_VALIDATION_PENDING",
+  "prior_hour_topology_status": "FINAL_ENGINEERING_HOUR_AND_INDEPENDENT_REVIEW_PASSED_WITH_DISCLOSED_TRANSPORT_LIMITATIONS",
+  "prior_engineering_backup_closeout_verified": true,
+  "prior_cloud_roundtrip_verified": true,
+  "source_config_integration": {
+    "receipt": "D:\\Documents\\New project\\KQUANT-Resume-20261007\\evidence\\source-config-integration-20261007-v1\\receipt.json",
+    "sha256": "c1c19fa7f0ec37198e0934cac7b868b9cc96677569fc64f5ea34a99a8d2c599b",
+    "candidate": "r58-p10-resume-sourcefacts-20261007-f28bc3d9391d181b",
+    "document_facts_installed": 16,
+    "actual_saved_native_contracts_verified": 28,
+    "old_hour_and_cloud_archives_apply_to_parent_only": true
+  },
+  "computer_change_handoff": {
+    "user_remaining_time_hours_at_request": 2,
+    "strategy": "VERIFIED_PARENT_CORE_PLUS_SMALL_SOURCEFACTS_DELTA",
+    "latest_delta_uploaded": false,
+    "production_started": false
+  },
+  "observed_at_host_wall_unverified": "2026-10-07T10:31:45.185414+00:00",
+  "current_hour_controller": {
+    "pid": 23680,
+    "started_receipt": "evidence/sourcefacts-hour-controller-20261007-v1/started.json",
+    "output": "evidence/sourcefacts-topology-hour-20261007-v1",
+    "planned_seconds": 3600,
+    "terminal_verified": false
+  },
+  "sourcefacts_regression": {
+    "receipt": "evidence/sourcefacts-regression-20261007-v2/receipt.json",
+    "passed": 52,
+    "failures": 0,
+    "errors": 0,
+    "scope": "FOUR_RELEVANT_MODULES"
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "schema": "KQUANT_STRATEGY_USABILITY_EXECUTION_CHECKPOINT_V1",
+  "date": "2026-10-15",
+  "status": "IMPLEMENTED_DEVELOPMENT_CHECKPOINT_NOT_RELEASED",
+  "root": "E:/kquant 1007/KQUANT-Resume-Latest/source/development/strategy-usability-v1",
+  "accepted_runtime": "local-candidate-4ae28624d9e0d41b",
+  "production_changed": false,
+  "production_sdk_requests": 0,
+  "tasks": [
+    {
+      "id": "T0",
+      "status": "VERIFIED",
+      "evidence": "IMPLEMENTATION_CHECKPOINT_20261015.md#runtime-boundary"
+    },
+    {
+      "id": "T1",
+      "status": "IMPLEMENTED_TARGETED_TESTED",
+      "remaining": "Final release integration and current-market acceptance pending"
+    },
+    {
+      "id": "T2",
+      "status": "IMPLEMENTED_PARTIAL_DIAGNOSTICS",
+      "remaining": "ATR and same-slot history diagnostics are explicitly unavailable; no hard threshold added"
+    },
+    {
+      "id": "T3",
+      "status": "IMPLEMENTED_TARGETED_TESTED",
+      "remaining": "No verified historical option quote for the real BTDR event; synthetic contract is not real qualification"
+    },
+    {
+      "id": "T4",
+      "status": "BOUNDED_EARLIEST_RECORD_REPLAY_COMPLETE",
+      "remaining": "All-window revisions, complete-day cohorts, holdout and real primary labels pending; exact historical readiness absent"
+    },
+    {
+      "id": "T5",
+      "status": "ISOLATED_COMPILED_BROWSER_VERIFIED",
+      "remaining": "Not deployed to 8020; S1 manual-policy registration not introduced; existing manual action explicitly S0"
+    },
+    {
+      "id": "T6",
+      "status": "SHORT_ACTUAL_ASSEMBLY_COMPLETE_HOUR_PENDING",
+      "remaining": "Profiled writer failures unresolved; enqueue-to-commit P95 above 2 seconds; final release integration and matching full hour pending"
+    },
+    {
+      "id": "T7",
+      "status": "NOT_STARTED",
+      "remaining": "No new exact candidate or OWNER acceptance; live old payload preserved"
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "A01",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A02",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A03",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A04",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A05",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A06",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A07",
+      "verdict": "PASS_TARGETED_AND_SHORT_RECOVERY"
+    },
+    {
+      "id": "A08",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A09",
+      "verdict": "PASS_MISSING_DATA_BEHAVIOR"
+    },
+    {
+      "id": "A10",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A11",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A12",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A13",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A14",
+      "verdict": "PARTIAL_SYNTHETIC_LABEL_TEST_REAL_READY_TIME_MISSING"
+    },
+    {
+      "id": "A15",
+      "verdict": "PASS_LIMITED_REPLAY_COHORT_SEPARATION"
+    },
+    {
+      "id": "A16",
+      "verdict": "PASS_TARGETED"
+    },
+    {
+      "id": "A17",
+      "verdict": "NOT_RUN_COMPLETE_DAY_HOLDOUT"
+    },
+    {
+      "id": "A18",
+      "verdict": "PARTIAL_ALL_POSITIONS_EARLIEST_RECORD_ONLY"
+    },
+    {
+      "id": "A19",
+      "verdict": "PASS_ISOLATED_BROWSER"
+    },
+    {
+      "id": "A20",
+      "verdict": "PASS_TARGETED_AND_ISOLATED_PIPELINE"
+    },
+    {
+      "id": "A21",
+      "verdict": "PARTIAL_FULL_DENOMINATOR_AND_REAL_BTDR_PAGE"
+    },
+    {
+      "id": "A22",
+      "verdict": "PASS_SHORT_ASSEMBLY_NOT_RELEASE"
+    },
+    {
+      "id": "A23",
+      "verdict": "NOT_RUN_MATCHING_FULL_HOUR"
+    },
+    {
+      "id": "A24",
+      "verdict": "PARTIAL_BOUNDARIES_PRESERVED_RELEASE_PENDING"
+    }
+  ],
+  "verification": {
+    "targeted_tests": 57,
+    "existing_regressions": 44,
+    "builds": [
+      "unified",
+      "stock"
+    ],
+    "desktop_combinations_per_browser_run": 8,
+    "manifest_files_verified": 31,
+    "manifest_mismatches": [],
+    "full_hour_pass": false,
+    "performance_pass": false,
+    "real_market_pass": false,
+    "natural_signal_pass": false
+  },
+  "replay": {
+    "path": "evidence/replay-2026-10-15-145659",
+    "expected_direction_positions": 1110,
+    "identity_unresolved": 110,
+    "s1_incomplete": 998,
+    "s1_only_complete": 2,
+    "paired_complete": 0,
+    "first_s1_technical_events": 1,
+    "errors": 0,
+    "live_delivered_signals": null,
+    "primary_label_status": "READY_COMMIT_TIME_UNAVAILABLE",
+    "note": "BTDR 09:35 ET PUT retrospective NUMERIC_PASS; no option PnL or live signal claim"
+  },
+  "assembly": {
+    "report": "../../evidence/new-machine-20261008/strategy-usability-assembly-short-20261015-v5/topology_report.json",
+    "seconds": 60.328,
+    "checkpoint_interval_seconds": 1,
+    "unexplained_http_failures": 0,
+    "pending_before": 100,
+    "pending_recovered": 100,
+    "original_deadlines_preserved": true,
+    "test_children_remaining": 0,
+    "enqueue_commit_p95_seconds": [
+      3.235,
+      4.406,
+      4.969,
+      6.641,
+      5.797
+    ],
+    "s1_synthetic_revision_counts": {
+      "INCOMPLETE": 152,
+      "NO_TRIGGER": 493,
+      "NUMERIC_PASS": 493
+    },
+    "post_commit_records": 493,
+    "s1_qualified_claims": 0,
+    "limitations": [
+      "Not a full hour",
+      "Compressed cadence",
+      "Synthetic transport/source/clock evidence",
+      "Earlier profiled writer failures retained; no claim of resolved causality"
+    ]
+  },
+  "evidence": [
+    "IMPLEMENTATION_CHECKPOINT_20261015.md",
+    "evidence/development_manifest.json",
+    "evidence/backend-tests.xml",
+    "evidence/integration-regression.xml",
+    "evidence/replay-2026-10-15-145659",
+    "evidence/browser-20261015-145207",
+    "evidence/browser-20261015-150123"
+  ]
+}

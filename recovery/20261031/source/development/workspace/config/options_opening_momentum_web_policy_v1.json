@@ -1,0 +1,16 @@
+{
+  "policy_id": "OPENING-MOMENTUM-WEB-AND-REPORTED-TRACKING-V1",
+  "status": "PROPOSAL_ONLY",
+  "strategy_id": "STRAT-OPENING-MOMENTUM-5M-V1",
+  "qualified_entries": "EXACT_APPROVAL_AND_FRESH_DYNAMIC_ELIGIBILITY",
+  "research_rows": "OBSERVATION_NOT_ENTRY",
+  "auxiliary_data": "VOLUME_AND_VWAP_WARNINGS_NOT_PRICE_GATES",
+  "disconnect": "INVALIDATE_ACTIONABLE_APPEARANCE",
+  "reconnect": "SNAPSHOT_BEFORE_PRESENTATION_NO_EXPIRED_REPLAY",
+  "reported_trades": "AUTHENTICATED_USER_REPORTED_NOT_BROKER_VERIFIED",
+  "partial_exit": "APPEND_ONLY_NEVER_AUTO_CLOSE",
+  "windows_notifications_enabled": false,
+  "llm_enabled": false,
+  "paper_enabled": false,
+  "real_orders_enabled": false
+}

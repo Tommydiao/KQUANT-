@@ -1,0 +1,750 @@
+[
+  {
+    "path": "source/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/evidence/",
+    "reason": "raw_historical_evidence_not_public_code"
+  },
+  {
+    "path": "source/development/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/handoff/evidence/",
+    "reason": "raw_historical_evidence_not_public_code"
+  },
+  {
+    "path": "source/development/handoff/tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/evidence/",
+    "reason": "raw_historical_evidence_not_public_code"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/legacy-status-fix/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/legacy-status-fix/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/legacy-status-fix/patches/kquant/dashboard/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/legacy-status-fix/tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/evidence/",
+    "reason": "raw_historical_evidence_not_public_code"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/budget-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/current-card-followup/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/current-card-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/delivery-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/fact-commit-followup/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/fact-commit-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/live-fact-child-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/live-fact-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/metadata-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/metadata-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/patches/crypto/kquant_crypto/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/patches/kquant/dashboard/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/projection-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/read-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/recovery-null-time-followup/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/recovery-null-time-followup/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/recovery-null-time-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/recovery-trace-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/transport-followup/patches/crypto/kquant_crypto/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/transport-idle-followup/patches/crypto/kquant_crypto/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/transport-idle-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/transport-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/next-patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/next-tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/assembly/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/preflight-reject-data/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-02/preflight-reject-data/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/preflight-reject-data/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/calendar/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/dashboard/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/tests/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/tools/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/outputs/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/crypto/kquant_crypto/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/crypto/tests/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/kquant/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/kquant/dashboard/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/kquant/db/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/scripts/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/tests/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/workspace/web/node_modules/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/legacy-status-fix/TEST_ONLY-volume/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/legacy-status-fix/TEST_ONLY-volume/TEST_ONLY-minute.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-0e82729d104b47ce/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-0f4190e07e36ec96/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-198444f784fb3ada/actual-signals-20261019.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-198444f784fb3ada/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-4998d113d64b3570/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-596fb94352b60195/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-7896a20b9c18c711/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-868ede9e22516b3e/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-b6cf37cc4955061a/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-b8742253742df53c/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/monday-signal-llm/release/local-candidate-cc97f95a84a01704/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130048Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130048Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130048Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130048Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130048Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130143Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130143Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130143Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130143Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130143Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130311Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130311Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130311Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130311Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130712Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130712Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130712Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130712Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130712Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130712Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/TEST_ONLY-main.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/TEST_ONLY-main.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T130822Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T131116Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T132659Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/browser-20261022T134137Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/release/local-candidate-9dc4f06160f48b0f/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/release/local-candidate-d4f4aad4be84d143/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/entry-rejection.stderr.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/entry-rejection.stdout.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/gateway-options-foundation.20261031T141835747Z.err.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/gateway-options-foundation.20261031T141835747Z.out.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/lifecycle.20261031T141835747Z.jsonl",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-core76-01/owned-parent.child.json.leaf",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-01/lifecycle.20261031T141304230Z.jsonl",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-01/owned-parent.child.json.leaf",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-02/entry-rejection.stderr.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-02/entry-rejection.stdout.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-02/lifecycle.20261031T141551995Z.jsonl",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-02/owned-parent.child.json.leaf",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/entry-rejection.stderr.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/entry-rejection.stdout.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/gateway-options-foundation.20261031T141721359Z.err.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/gateway-options-foundation.20261031T141721359Z.out.log",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/lifecycle.20261031T141721359Z.jsonl",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/C-evidence/lifecycle-windows51-03/owned-parent.child.json.leaf",
+    "reason": "not_public_source_format"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-1440-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-1440-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-1440-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-1440-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-2560-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-2560-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-2560-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/weekend-2560-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/TEST_ONLY-main.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/TEST_ONLY-main.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-1440-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-1440-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-1440-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-1440-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-2560-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-2560-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-2560-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T144808Z/weekend-2560-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/release/local-candidate-6ac8a5653d14a392/changed-files-and-rollback.zip",
+    "reason": "not_public_source_format"
+  }
+]

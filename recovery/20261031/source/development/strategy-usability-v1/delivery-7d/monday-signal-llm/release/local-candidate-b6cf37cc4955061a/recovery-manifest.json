@@ -1,0 +1,1748 @@
+{
+  "schema": "KQUANT_SAFE_NEW_EPOCH_V1",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "approved_runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "epoch_declaration": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\epoch-declaration.json",
+    "sha256": "e75e56123b758da2c9335419dbaf3b8cde5e4531d800e7da090219eedb2b97a3"
+  },
+  "data_scope_acceptance": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\epoch-owner-acceptance.json",
+    "sha256": "0d9be36f39f4accc0b677231b0cc8d9c97b490d0723b93c740aee2eaa9801690"
+  },
+  "databases": [
+    {
+      "role": "main",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\kquant_us.sqlite3",
+      "recovery_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\preserved-stores\\main.sqlite3",
+      "recovery_state": "COMPLETE_VERIFIED",
+      "receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\main-portable-proof.json",
+        "sha256": "71082386915d18e3db1ddd650663d7d6fdd76d6ac7be6e599d077daa27cafaac"
+      },
+      "watermarks": [
+        {
+          "table": "audit_events",
+          "column": "rowid"
+        },
+        {
+          "table": "option_runtime_tasks",
+          "column": "rowid"
+        },
+        {
+          "table": "option_runtime_events",
+          "column": "rowid"
+        },
+        {
+          "table": "stock_watchlist_members",
+          "column": "rowid"
+        }
+      ],
+      "activation_receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\bound-9cecac4ccc5f768e\\main-activation.json",
+        "sha256": "a559a0901de3afda41480477ab09410a720cd1aebb68dfd46307ca99820b1b5e"
+      }
+    },
+    {
+      "role": "full_watch",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_full_watch\\full_watch.sqlite3",
+      "recovery_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\preserved-stores\\full_watch.sqlite3",
+      "recovery_state": "COMPLETE_VERIFIED",
+      "receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\full_watch-portable-proof.json",
+        "sha256": "0e84b2ed897a088da5620e96216018720fb1dd0c2f7100c2023ca6485a5c1170"
+      },
+      "watermarks": [
+        {
+          "table": "full_watch_runs",
+          "column": "rowid"
+        },
+        {
+          "table": "full_watch_quota_queue",
+          "column": "rowid"
+        }
+      ],
+      "activation_receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\bound-9cecac4ccc5f768e\\full_watch-activation.json",
+        "sha256": "b91806f6d0b125c73c002c93486b8f43efc36438183b5c76483dc8655342c62b"
+      }
+    },
+    {
+      "role": "opening_research",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute\\opening_trend_research.sqlite3",
+      "recovery_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\preserved-stores\\opening_research.sqlite3",
+      "recovery_state": "COMPLETE_VERIFIED",
+      "receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\opening_research-portable-proof.json",
+        "sha256": "1fa8e2f5a2c72bb35da3036c5096ada37ec34bb88c4a0c19e4b59058696df508"
+      },
+      "watermarks": [
+        {
+          "table": "revisions",
+          "column": "rowid"
+        },
+        {
+          "table": "qualification_jobs",
+          "column": "rowid"
+        },
+        {
+          "table": "publication_offsets",
+          "column": "rowid"
+        }
+      ],
+      "activation_receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\bound-9cecac4ccc5f768e\\opening_research-activation.json",
+        "sha256": "52d5078084c615eb9da7d088a2c5e71f68cb8f149f37218c64022e29f56e99ed"
+      },
+      "schema_extension": "OPENING_SOURCE_AND_CURRENT_INDEX_V1"
+    },
+    {
+      "role": "signal_copilot",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_signal_copilot\\signal_copilot.sqlite3",
+      "recovery_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\preserved-stores\\signal_copilot.sqlite3",
+      "recovery_state": "COMPLETE_VERIFIED",
+      "receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\signal_copilot-portable-proof.json",
+        "sha256": "7995e9ebf9e90fd7e8ac8bf74aff1c84d1a8386100f5072bfe6ea21b41d36b6b"
+      },
+      "watermarks": [
+        {
+          "table": "copilot_meta",
+          "column": "rowid"
+        },
+        {
+          "table": "signals",
+          "column": "rowid"
+        },
+        {
+          "table": "paper_events",
+          "column": "rowid"
+        }
+      ],
+      "activation_receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\bound-9cecac4ccc5f768e\\signal_copilot-activation.json",
+        "sha256": "46f5e613f056505eb92886374503e1c1cfcf15314cb83b9d298ca5827d7b8492"
+      },
+      "schema_extension": "COPILOT_AI_BUDGET_QUEUE_V1"
+    },
+    {
+      "role": "minute",
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute-epoch-20261008\\one_minute.sqlite3",
+      "recovery_state": "NEW_EPOCH_VERIFIED",
+      "watermarks": [
+        {
+          "table": "data_epoch_boundary",
+          "column": "id"
+        }
+      ],
+      "activation_receipt": {
+        "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\bound-9cecac4ccc5f768e\\minute-activation.json",
+        "sha256": "bd415779b4dd74b4ced3cf8fdacaeeb98e6eb19034d15ff6f3b43686ee7031f5"
+      },
+      "schema_extension": "MINUTE_STATUS_METADATA_INDEX_V1"
+    }
+  ],
+  "runtime_path_binding": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\config\\new-epoch-store-paths.json",
+    "sha256": "ecd7a693593c0a20e48e7d9cb3a2ca82c9179b2466cbcb2b828f8a11ef70b97a"
+  },
+  "continuity": {
+    "status": "NEW_EPOCH_OLD_RECORDS_UNKNOWN",
+    "reconciled_roles": [
+      "full_watch",
+      "main",
+      "opening_research",
+      "signal_copilot"
+    ],
+    "receipt": {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\portable-activation\\bound-9cecac4ccc5f768e\\continuity.json",
+      "sha256": "7bdc73884919ae0d73ef8efa5e95ce59662ffc05166473305cab671c1c1d07a2"
+    }
+  },
+  "can_launch": false,
+  "qualified_signal_authorized": false,
+  "final_runtime_accepted": false,
+  "candidate_id": "local-candidate-b6cf37cc4955061a",
+  "code_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+  "python_executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+  "required_source": [
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\build_candidate_archive_freeze.py",
+      "sha256": "df1cc19d8dbb3af7219a44bc16f1ffced21082b73148e71c2122c267e3fced20"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\capture_missing_asset_candidates.py",
+      "sha256": "ffd8395a2158d31fff6d8309acb06df718191c3c4f992c84b7a8b1dced265197"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\declare_unavailable_asset_facts.py",
+      "sha256": "18d183bea75d7de7488d80e43d2fcf7c895a3190ed708e0234f233ab49531b6c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_full_watch_research_v1.json",
+      "sha256": "be73152cb06b2ec9210108a477729a5be039f9f4ca51f8093e1d9c1de9614d21"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_one_minute_event_coverage_v1.json",
+      "sha256": "31eaba3212383491dd27f260c55113b2ceb7f5b52444a29296f50acef538bff5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_one_minute_momentum_v1.json",
+      "sha256": "6195fbb915e8d7e1efeea43c324b6d1d23b1cdbb4564235a0b5b2bd59f65759f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_opening_momentum_event_coverage_v1.json",
+      "sha256": "e9457f233c3e3dc0b3ea6ae1697693db148afff67650afa3e1d37d60ec1cc23c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_opening_momentum_v1.json",
+      "sha256": "52e542e2a0871a526e13657bda130e2316f53ea6e9db38c9bc6f25d506ab79a5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_opening_momentum_web_policy_v1.json",
+      "sha256": "6a5e896f25da0bf863c0ec00f87872182b7d575ae43a08cf9e4d2a93951312b7"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_research_profiles_v1.json",
+      "sha256": "10ac1fe399e3cb1ce2cb91647cdd4fe39961bc5f64ec96d805d5cad61f8044a8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_signal_copilot_v1.json",
+      "sha256": "d15ef82c87c0f9a0daa78a5a3ea9962144fcab16500dc9b7cdb2c1841581b05c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\clock_measurement_method.json",
+      "sha256": "22d69e554cc898d8a1c3662e748f9efc82fa989868ef990fae921efdef475499"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\clock_method_owner_acceptance_20261013.json",
+      "sha256": "788e21cdae352e8374b0bf27bdb7355d67e810583733c4ad8cefea887e41a02b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\options_contract_units_sources.json",
+      "sha256": "c351ca34a9b3407a8850f1d6ef0c5c5a54c78dfcb459a57e9e426cc286c0f75a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\options_opening_trend_reference_sources.json",
+      "sha256": "0f6829b752811fde33744538daa10883d1ec35cea81dede0bbc156a6b164591a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\safe_recovery_required.json",
+      "sha256": "d3afd2745756bf11fdd7c719b0021ebafc07e6bd904f5f17d1ba167d4cb46bf8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\stock_watchlist_groups_v1.json",
+      "sha256": "27da3210b4e7242e2d345e9f58fae8313f6cde514ad518f71d4af75861049879"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto\\kquant_crypto\\__main__.py",
+      "sha256": "a71bc620b41d3199c79395b5a457ff795fb2b40a39bd10107dcbb64dda8a975f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto\\kquant_crypto\\gateway.py",
+      "sha256": "b0ed0d3d63c82bed5897daed6d99227eab670e229f1a01c5e8dd0f130d007804"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto\\kquant_crypto\\security.py",
+      "sha256": "568b317be28f0b84ac99c4a1cc10d0b65b22838ee073e1121ecb6ab3416db656"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\__init__.py",
+      "sha256": "e9e85e323d2d387dda7297837814ea784678e3b2120ad8737f3c7e4d4baf35e1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\__main__.py",
+      "sha256": "ca54f020df35700d7ae4eb5ef261b62769194059dabf7eed6badd88e05a93623"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\backtest_audit.py",
+      "sha256": "b79f95a49761b8f3ab1b0ea570b809399b030486d93ecd0d6400b8fba97c7134"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\bounded_sqlite.py",
+      "sha256": "5c4d9f5975f52e67e6548675cfd8d63b6dbaed5ed444b8fa1cc1e260d3e5ab36"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\capital_rotation.py",
+      "sha256": "ee3e98c6b9bbc1d3ad46a5e0d895fb1b3965fe1db26b3c30208e01db3b5356cb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\config.py",
+      "sha256": "c68ae5fa0b691221c3f232289e0e19dca46b562c297b5aa89048dd28cc97372c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\dashboard\\__init__.py",
+      "sha256": "5abaf4212df43f25dcd2e0cef8da2b25a97b6756bdfe28f38f172d64f7c22a3e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\dashboard\\__main__.py",
+      "sha256": "3836c549d6eaa4c8e516ca6ea22691b2453900cf317dd384f988c4731f231f88"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\dashboard\\app.py",
+      "sha256": "040cf572dc4f93c002904a47c9a252b21e392e409f1ded8419517542f8741f0f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\data_coverage.py",
+      "sha256": "26092c4726c40457195465a8747b4d6b6595803559fc244d941aa2a59b0cd3be"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\data_quality.py",
+      "sha256": "74c029a8fe690323ba85a975e20515ef60402e952ecf520900abdc41f0e9054c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\data_snapshots.py",
+      "sha256": "b53e9a7f5dce3f56ff71431762d5fcceac305e02332b17f9d7a47c027a727055"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\database_migrations.py",
+      "sha256": "53f19341ee351000dc1c54ea951da079448c9c6e54189ad06041fec5a57bc2fc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\db\\__init__.py",
+      "sha256": "31a54734f033d210dc49da345c858d127561ad547a656d94c44e65d5422765fa"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\db\\migrations.py",
+      "sha256": "f5b572f851714857db692a1fc3daf13265fbab07067a90c84506bfa19f97bda9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\decision_ledger.py",
+      "sha256": "fcecb08a69473e35e951b0349ff3be9007c1d044440205994e5faff63395e47a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\early_trend.py",
+      "sha256": "350678662d622e18ed1f3ab0b3f9485d41887c8765484e4248644c1f32142bb9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\early_trend_service.py",
+      "sha256": "fea9dbb65426ca847defb3df1298f99ff702123fb6e53e9f6e56f412e60f03f7"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\entry_confirmation.py",
+      "sha256": "aa41f934c51bd90db18ea7e62379bba6e8e5afcda9641cbc37faf4cd08db0f50"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\execution_costs.py",
+      "sha256": "8024e85ceec302888da68f096608d3b60277366fc01e476968e1954c7c986625"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\factor_engine.py",
+      "sha256": "9c5c153e25a76354b47836e3eeb78e757e09612e07060ce4c47f05a4973ebd1c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\forward_pilot.py",
+      "sha256": "711e2e977ac461fd055b4d6655cf0822dd215dcd7869c36589a81d05f008476e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\hard_veto.py",
+      "sha256": "2c9bfcdc3cb52b17f9fcafd96b3f33c73721167cdb1c8f6a67280200473e63eb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\historical_replay.py",
+      "sha256": "1b5268372ce423f9b2214cf5d0585238dafe29c73509909fa0a620b4f33b02a7"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\leadership.py",
+      "sha256": "2f2a9b87155384015b5d8b4a95a6c7821dd00f54c0d4eb020aaad36bb3fc8f6f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\local_env.py",
+      "sha256": "f140e113b3959fd99cf8f6930e311b74b371359ac3061eb0c326f1d29ed96f42"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\longbridge_provider.py",
+      "sha256": "9c8e0d2fef4cb1a45ff6cee120e2b2f83a1604a4381e98e3c688eed6017bb2ec"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\manual_workflow.py",
+      "sha256": "ef9ff92ffeef1621015874a018a5de37185f8d2d76c9f11a38bb1fce23fda509"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_availability.py",
+      "sha256": "2e3135506c62ec0c7c9f7a992b7a0e637b4625d2d031f12ff2736e2d3448d2e2"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_calendar.py",
+      "sha256": "29e3f664272febbddb5023f6ff5d2935ad34ab4fe690399894ce5c6b4d24bbe5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_clock.py",
+      "sha256": "afb84eda2b0947643d91299f57632fc89fa195ff4ed694e1505df0e99f3fc30d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_data_backfill.py",
+      "sha256": "9848cac5f8023f5538c5b36e5e2213fc6d5d1e46f0edbf85031232b6a9a4e67c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_data_quota.py",
+      "sha256": "2b6e7243ee05c9dc24e5d21badf0f5fdb6eeb513c1b1ac20febf6a836818204f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\market_store.py",
+      "sha256": "c75ce29ff1cf9eac4f2a1e326f10cfaa94539a56e371530e61ae1768f3592e12"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\operations.py",
+      "sha256": "41857845985c97aadd3cb9b4c78de31edea7365af66dce6d64ba9149fe09a909"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_calendar_source.py",
+      "sha256": "65ff7b92b8a74bf720fc2c4487e57a7d5c7839e4959305cd75daa088410808b1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_clock_audit.py",
+      "sha256": "d5c6192328d3263fcd086ef29a02cdfae7f8ba455ed1ffca78e07598ab85e9de"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_event_coverage.py",
+      "sha256": "8470f57578e6da3f85edce6373a2eed89d2c936e3329b183427ca2d6a9a2d999"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_event_coverage_v3.py",
+      "sha256": "73aae73365786921288dd6f0055b7e67eafc13c9bd60d7443ecd25fc10850117"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_official_source.py",
+      "sha256": "76576f77199a99de2ae42399650a09f7aca88bec14e3ee819cb8b6a9a9285216"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_quote_evidence.py",
+      "sha256": "c418c51444d2cc3353ad2157bbf4b65ce1d1ae6b324a13bf11265d4cf8b664cc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_quote_stream.py",
+      "sha256": "980fbf94537b754241b23ada9fdb8e657b88d5b0e5e058f121dfffa1997442da"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\option_runtime.py",
+      "sha256": "21427014e619d7c506bd56288aaa62702205d54c9f86e07d1cb3f8f7d47da7a1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_api_budget.py",
+      "sha256": "e892620192cad4fc2587195e96c1d26beb9594ebed57331563b30f0866c2c874"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_astra.py",
+      "sha256": "da7402066a9e067a53d8f6e6d0105a5f5dc52eed7c1b55a664b5ed280bfacf1b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_breakout_math.py",
+      "sha256": "1d8975d0a5d22c946f54336f90d539ff4e59168678319c499deb7f0d1c67a8a2"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_cbrm_audit.py",
+      "sha256": "bf092682fe6667d1e44e03563b6ad202f5fc1069d8320a25dd75c898d3f5afe0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_cbrm_research.py",
+      "sha256": "ca262605e3a3c87e5d54aebf371914aaf529906a8420231b2f4cf4a97dcc0795"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_clock_measurement.py",
+      "sha256": "e01f2e8617c783e1776dbd177fb95e53856ddce5711cd803f276d90de2bc8ac5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_conditional_model.py",
+      "sha256": "4a37271db80dfbc3859a8bb63e413863d532eb98923b53d8723aa73a86059012"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_data_paths.py",
+      "sha256": "dd2e83703c21f03169701396e80dc80013f30e2bfc0bfdf34803f56a1302a21e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_expression.py",
+      "sha256": "11f28692c8f16f28ae6f128a78216e6799a92abaf6e4a94ce705be394ebfe865"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_forward_paper.py",
+      "sha256": "c1bc02ef7657444c7bbeadcd44c783228ae5f6988a99433783e89e7ba32c1d0a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_full_watch.py",
+      "sha256": "a98e977949bdc561cf71b35c81033ba6605ea1133b94313f565e4a9522f6c77c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_host_clock.py",
+      "sha256": "8cd8856df74fb4ae4052f6b517898f54c0774a64025f88e71ec3aab31a84dc00"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_intraday.py",
+      "sha256": "2154dc825515c3b4075b1a0a138fce96d2abf35d1d35becff6a0bcdf22d58dd8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_llm_credentials.py",
+      "sha256": "0aa4feac597dae0aa697d07bc0a2a8e31f10787ca2b58956b4e1c98959771302"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_minute_admission.py",
+      "sha256": "6bfce3a8ddc7816efd4265f92f8a01050a403dc51613ee83dd44ad04238e26d8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_minute_decisions.py",
+      "sha256": "983a730fc5b8f617cfb7a38d591bbc4c639ea50fa7611d25e2afb543d6ba07d1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_model_router.py",
+      "sha256": "e8582d035eda1749863e60615578a20ffe214d381300ce278b45b1edcef0b8eb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute.py",
+      "sha256": "dac725f6bded052453e064dff05e04fdae164bfac30a09803b6995eac72bd255"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_data.py",
+      "sha256": "ba52f16d9dd6f8eef8bad26776b469f001bd1e8e676bca64c48ea81b53fe9f39"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_eligibility.py",
+      "sha256": "cad32ca0a9ad98136b20e6a1c05d26cb636a051d3bbb283c57c7d2255e2e3ec2"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_events.py",
+      "sha256": "c8dd6f6c1ae94ed36b6301d793569ab4efda3f319df88597d1ef89469922f4b7"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_manual.py",
+      "sha256": "9fe27e184636153fa435ed9133827db2202f536963413291887904e9ec97d787"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_pipeline.py",
+      "sha256": "cfd0c1600c72c718fd24cc2e8b76da86c075fd267bd5b65cd01f4910788a008f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_publication.py",
+      "sha256": "591d6b526c452bc52bd5629c5fa2b3403bef793a0979770c5eac34a0f5f58000"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_qualification.py",
+      "sha256": "ff82f9cabfaf6ca7617769d49869babbdd13d318a0f5b664e744f245ae1d7428"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_recovery.py",
+      "sha256": "8076d2e7711a23cc35dee2fc4a907c4e9361a6667ab3d164ab023966ffbb5ca0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_runtime.py",
+      "sha256": "b7f57a50df3b0b8ccaf92b5b4b28bb91b743875286690661241a2590fe045887"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_momentum.py",
+      "sha256": "a16967829a403543a5123d684ad2b01473612a18d91319076615fb666e86509b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_momentum_journal.py",
+      "sha256": "1d9a3b73febc118670b2b218bfa963f06b716ad4b1e35e991ef989ccf270fcdb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_momentum_s1.py",
+      "sha256": "aff88bcdb817e007ea6d0020c5a1d0bf3d046c9dc4a2f7372c1629fe71db3a03"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend.py",
+      "sha256": "47e6900eea674a48767ae510cfaf4a2f84754a2879bc58c7c6a6a695417cb59f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_approval.py",
+      "sha256": "9fc723fe2428c31f9af1ae4df86782ad8b774c1dbd7edaec954dce57403a9ef8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_clock.py",
+      "sha256": "3a6cffdb082803c0d5a13664fc47a771a669889c4ed7018789a3bdaa3c82e964"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_contracts.py",
+      "sha256": "ec9e34f3de0252305363669de83227959c6c45251c69f148b2751e8d0e7d70a8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_coverage.py",
+      "sha256": "54e4d9fc4f5cd2c72460a4f6e7ceb1457400ab3ad497fce119d456cfcde092b7"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_current.py",
+      "sha256": "370687f372f4de88a54d57bae45d7cd49892739bd9de7ea32220949357f31ade"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_event_auto.py",
+      "sha256": "c138f1684ad06a61832966a61bf98e090624b8b5e34ab23dc5eebe1aee119d92"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_event_decision.py",
+      "sha256": "337497e63f73c7862a77726fcb52f998cc1cff9045e13c9dca23015bc2dcb48e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_event_parsers.py",
+      "sha256": "2476db6907953e110793c0000d1e62fb07c91fbff9bd79b7cdaab6edd5dd878e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_events.py",
+      "sha256": "6ce4e90bdd77b63067e6a8b6a08858e7a9311026370f8a9d45e5c6d0ebb4e8be"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_history.py",
+      "sha256": "f483b0a1ef45064e9d1baf88a3227f7651645f0d28b31965e83c321d06ad9e59"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_history_page.py",
+      "sha256": "de4daeb2ee23c1233de604eb539cfb2cfe833923ea1dd43b8b3cd981f0944e31"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_jobs.py",
+      "sha256": "974a3639c467a3a9a78814d46180b9dba2fc3320b980a0488e78d98dee5efd94"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_pipeline.py",
+      "sha256": "2df1244dd48f31dfe993a0622edef755f840c667e354f3a1f4b8ec20f8301d21"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_prewarm.py",
+      "sha256": "40106e1a73c38514c695ea26c0d6fe558e37e2cfd8c9cf1de723917853faa010"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_projection.py",
+      "sha256": "10486ed87837e697ec412dc05cb0d02b63d4ca070cf611d36a66da8d229d6b9e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_publication.py",
+      "sha256": "c7b0c1efd06adf7b3202d36e4f88f2fd9a85d6c0b3be1aead16524c3b9e4af8d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_recovery.py",
+      "sha256": "1d3f0c78054fd38115fe965dfaa2467c1b2b46a2bbd84680945553649449a706"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_reference.py",
+      "sha256": "7e39302eadac533be76242f4e4c5b79f015580e6914c67efa9906e7500142332"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_replay.py",
+      "sha256": "9a9b1144db04a5286f8c91af009161696b04baeb3b3dd79aec29be3d93ca4be0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_risk.py",
+      "sha256": "360f45802774f9acadd39467ec4b1f25df7bbd0645646b7b7ccb73f5d65b2173"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_runtime.py",
+      "sha256": "aa4eb62afa063cac665caa65d7191fb1794bf7af39acb0b27100651f9e2525d5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_sdk.py",
+      "sha256": "4e05c24b38df5bc1c884ee7a694c1264586a362f148d9d3cf4108be2896043ef"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_store.py",
+      "sha256": "2bd9afb7a46b763a080f34b6debc81a58945c8b1fa0248a19bef329986064f1c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_opening_trend_summary.py",
+      "sha256": "322b7cebac462b90838415871162101f48b94fb914d8e5964b7bf698d22bcd4d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_paper_engineering.py",
+      "sha256": "b9cb340bef9246cff11114ee2711baf95f8428aae5f9dcd34e89094527a2e24c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_price_action_rows.py",
+      "sha256": "6a571612cf0b6d16acb5904e7ef54275e8e950bd7f8ab267ab37f8a8c49f9270"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_price_action_source.py",
+      "sha256": "d88113c673b12df48ed0baa6b84332de02f63ee0e96b7465d5d83ea96d330c89"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_price_facts.py",
+      "sha256": "86a0add0530f9bd2fb4cd2dafbbf753b5209e2feabb34ff17a2546f6858c1bbc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_price_reference.py",
+      "sha256": "ef278c75ad78b3f708722d53b2ee585159952133d3c7659c860f266053ad1dbc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_profiles.py",
+      "sha256": "e58bad87bb4699d0f63f1ff6da73df48d19ada5fd589aaa8be0202d65593f062"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_provider_reference_research.py",
+      "sha256": "3c46474d83ff98966d91603f19b28b39e3558b34c113532220aeced19b443666"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_radar.py",
+      "sha256": "8d288e3ac3b88b9a6f2172cf6d6fb96e514934ea79f1a056c0bc41ad67df45b7"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_radar_supervisor.py",
+      "sha256": "b62ca503888fd9708e2c4e744c49ac99a617a8edb7d6b233ec6dd2b9794bffdc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_release_acceptance.py",
+      "sha256": "ebfb80c95b9253923848d407089b2eff03cc8f62b356f33283289a9c26128bab"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_reported_risk_quotes.py",
+      "sha256": "cba18b40c10f7ebfba82ea083a3f75e8e64344c922f27064ce9b28b734718135"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_features.py",
+      "sha256": "f9945eaf78cc838eb846cb0fec46af9262c5342d2adccfb93a467b347d405250"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_scenarios.py",
+      "sha256": "3efb4e6f80144989322ef0ba1b0ab8d078dd9d1b854b3165699203c96178dab0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_store.py",
+      "sha256": "f044f73412a39c06464c9c5f8a967d107aa4a5c36238a33236294fc5e1353a0d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_workbench.py",
+      "sha256": "a97de11d6baa5c0357cc03dff00f97c44171f8c92e77b41aa8ff08e9fbccd829"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_review_r1.py",
+      "sha256": "8d271b800bbf5d4a002c2ac03341235187c06b20e05d4bfc2333f6dc687a2755"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_review_r2.py",
+      "sha256": "a1085e425bbc8ff598fac21094236d590ea5aac4f6dff7d66427974f4898b319"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_review_r3.py",
+      "sha256": "c34d4c08dd333fb1e387cf585439a45535bce5aa5645df650a6e5b89f11e9891"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_review_r4.py",
+      "sha256": "53200c06f0828e4a63e659dfaf0a25e16cb4fbb9b7d70fe9706daa981262ae1d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_review_r5.py",
+      "sha256": "b3d6a78d4fc55816e8297a0cb145482f44e16a260cdb103cfc57e0ac05dbfbcf"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_review_r6.py",
+      "sha256": "2fded62bda999d174779254f3e205b56d892b318131f6706a40d6bedb6afdc04"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_scope_observation.py",
+      "sha256": "58c0b6e7fb2ec342392001adb12be9d02663e183bd799870b7ff2d2823c025c4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_service_observation.py",
+      "sha256": "768171b1882d56f2ff3f7ca2e253f3505a6568948611e9ba2ff9d8909bc1aa6b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_signal_copilot.py",
+      "sha256": "2f3cfb72e39fb53cb47e9652906cc4281913966e3eab5673e59cd04808c27691"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_signal_review.py",
+      "sha256": "58782361434f2064e7874ea3a84a03058653dff207364e65c7a93271af9b89ac"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_signal_tools.py",
+      "sha256": "c12619f5bc404c337eb62e625b85b7276a0ffb8b81363b4b80e0666b55d5eebb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_source_call.py",
+      "sha256": "78169534f411b2b6cb6a175dace2a3225f823280f54b5879dfd41a51072d68ff"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_source_updates.py",
+      "sha256": "d44501befef557237aa9f6c8f5bddef4c6002aa540a319d014aec883c0a44fa1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_two_hour.py",
+      "sha256": "04a2b6818da19a9b61a69f3f79e59fe1c0f74af802eb1dd448f402bfc44371b9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_two_hour_data.py",
+      "sha256": "b6fac32065ae987ae3104ad886c50501aaec5866dde359effa8b60033286dd03"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_two_hour_notification.py",
+      "sha256": "a3e3cec6374f2cdf0d48589a9cb9f75df82f73b4d4ba0ec8cfeb3704402942db"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_two_hour_runtime.py",
+      "sha256": "acade38f7c739871d9e44d0d1439c11e166279705b37b25abe66b03d87cfa98b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\policy_availability.py",
+      "sha256": "21c4330967bf1f71398096fa2adfec94576240e1ed1fe29aaa04b3bcc1143352"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\portfolio_backtest.py",
+      "sha256": "2b6b40c885fc2dde829061b14eb6bf9926b05250fa490d4fb0fffd613b17ad97"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\production_readiness.py",
+      "sha256": "63077896a4dee136c844c0704926c6943ca90d8c973ddfed976376abfb90e4a4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\provider_event_retention.py",
+      "sha256": "7555a41ffbac5dedbf4f681851bb9a5878f205da3ff71e78fb831d5edfb06028"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\quant_dataset.py",
+      "sha256": "528def05c8e0eb1c9fd1fbf5c7d05685437296a642e19727e9261761c2415277"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\realtime_instructions.py",
+      "sha256": "db0e793539e36ddeafe5931e36c716f0fff38f295574341dda7d588068b131af"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\realtime_supervisor.py",
+      "sha256": "465c26b27344318921bc761de8927e9342212fa948582079fef7af039343f49d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\recovery_activation.py",
+      "sha256": "55dc2f634af51100515d00a8852842162dee84af29933df5de074a1075c067c2"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\recovery_preflight.py",
+      "sha256": "bb8680839db4043691de0349087a1cab16fc99a3a95832d06a9ccad1bbfde4a4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\recovery_runtime_probe.py",
+      "sha256": "abb63947c65a3a48a4d803301a3de93bddde3d4ebcfb7169e874be41ffdd5b6d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\research_http_snapshots.py",
+      "sha256": "9628124aab14d031a88f2ae6b3a1e99cdbd232deb0562ad6d4b237d0ecfca046"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\research_runtime_health.py",
+      "sha256": "0576de2b2f7f49da2acedcf6f8e546ca9015b1b78645f29947a6cdbb869bab72"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\scoring.py",
+      "sha256": "b927730fe36de5714108c3dc40a04e2320a9bf6b6ad8a8f2e891476c44ba253b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\security.py",
+      "sha256": "8256481060d3d601222b5e878c0fa5282638e1f5c643358b7385194815763ac0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\shadow_observation.py",
+      "sha256": "0b8f0e6a643cf188a02f502288dbe5aef03390acdbcd19f734c541f419cb66c8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\signal_eligibility.py",
+      "sha256": "2a35aa6ce00669c5f22fc6f555001ebb39c8be9bd24dac426e0bbd94746555c3"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\status_child_telemetry.py",
+      "sha256": "e75f5f89e2d4d0085c52a828c709a401fa54551a269eb531d4f218af48fddaad"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\status_snapshot.py",
+      "sha256": "9e6f2cb1cca98dc6ba91aa69b4a835c6d6d940ca61bd2c9ba00bb6fd42ce9115"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\status_worker.py",
+      "sha256": "48ad0597192d07d5829fe82ba4e95605783c1570a1f7d4cbf6a9f26fa282da99"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_chart.py",
+      "sha256": "56b3db4d439d10535e8a1b8740113dac0df4fbf453de8c69f6a5d26365ec503e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_quant.py",
+      "sha256": "18d36d2d5c7a215c6b492e2aa89188f9f10c7646c370d486a7b8c2fe9c352c37"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_quant_readiness.py",
+      "sha256": "58ecdade152e8f761248548b3da5581928d07555e0b6bc0f6290c27049cfefce"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_quant_validation.py",
+      "sha256": "30456d8e4ebbf2558488fb95174616f738b24863292c9d4fd55cda81fa2e9e9d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_signals.py",
+      "sha256": "da12cdf7b8d41bf1eb7abc3d3a053a8ea8ad86faa2509bdb4fd0dd1913c10072"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_store.py",
+      "sha256": "18722ac950e4e1a2fcebb82700976edef8540a1d8ae9f37e38203eea843ad56c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_universe.py",
+      "sha256": "9ca52ecf5fa8f5a2000115f7568bb7f867bc3cf88f5cb4955f1d596e26f34207"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\stock_watchlist.py",
+      "sha256": "21ba7b792cacbad270ada36219368e20133b0875837e71c588f7877d82f4444e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\strategy_freeze.py",
+      "sha256": "2fff0547288b0a2a48aa68357ec9e61297f6c5f5bcd2ad82178b565564c672ad"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\strategy_registry.py",
+      "sha256": "3799b12c6c7493eb11df322b582b8a61848e19cc7ad1dfef74f79e31472cbbed"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\strategy_validation.py",
+      "sha256": "3e35f592a6295460bee392535e6bb485c9c5a6e4602df31e86e857f779a1f9cb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\technical_features.py",
+      "sha256": "5e5b62259058f73b607708b3de999601c4267c06911942f04533930ef8110717"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\theme_prediction.py",
+      "sha256": "147150cca7cb4a1da52e72327ad1b2cd3e19304c58c907400ba0040a2b29f550"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\theme_taxonomy.py",
+      "sha256": "b201d0464159a1599fbb1e6c9623e84aad78a0676f1b6636ca5b53fd2944c3da"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\today_workbench.py",
+      "sha256": "6ac6bc7ee209829e7912a1dfd6f061820c45b43e0676d380c5850cb50f0b5d16"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\trade_risk.py",
+      "sha256": "ce97376abe7968a903d732d48e7791cee5a7fb8a7480dc966353e85de7ae560f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\trend_analysis.py",
+      "sha256": "7771682fa5c8ef14e4348b7dc03de3fc697c9a292cb909c51ee61d76e366046e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\universe_registry.py",
+      "sha256": "cba1c935c6b0621cfeff522ee1144b3a9d207c97da38ec34375a3f31ccbd35ff"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\universe_store.py",
+      "sha256": "b8272342d06d4bc1d57038aceb4e78b78b36255d615027d7d8a533c4b2362a8a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\v2_overview.py",
+      "sha256": "b749b5f983f93323435a8dda18e32fc6884a5b37990de8af46aa25127ac9818c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\validation_robustness.py",
+      "sha256": "7c0fc9e7ba4cbea25a92689d45e58412871d68f7f0c31118877308efe284821c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\validation_service.py",
+      "sha256": "c7540f6bdf15f76a7765ddbcd57510dca207d1710a70ee894a0e5ae515977afa"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\web_push.py",
+      "sha256": "c58d032b6dd09eab28448e4a4fa6b52b6920a0ae8da3a9d5c7e48c19275387ca"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261004\\p7-source-facts\\option-quote.html",
+      "sha256": "6deedb0b602cff44bac79d8cf8f01919c521fe9fe024f38f5a293309c797d1ee"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261004\\p7-source-facts\\optionchain-date-strike.html",
+      "sha256": "f4940457a2dd0ed32bc58f67b0d230fd0c5898054da3e35d212fd316d66489d4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261004\\p7-source-facts\\quote.html",
+      "sha256": "38cda2384e704bce9edb971be51b75d570c1efe41954726c42ec14549745f788"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261004\\p8-source-facts-v2\\price_basis.html",
+      "sha256": "7020646bac2244911296b5024b8a78d71ae789cef3b9d28dc3cf596b72c5a436"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\AI-2fac396902f995f8ee218e7031d3c21d5c4e9226b5986262865f1f40b3fa3f01.html",
+      "sha256": "2fac396902f995f8ee218e7031d3c21d5c4e9226b5986262865f1f40b3fa3f01"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\AMDL-e9dd5ee1d7565a2a96b5af596f5fa174ef0fa57ab810832675e76c3bb0a299dc.html",
+      "sha256": "e9dd5ee1d7565a2a96b5af596f5fa174ef0fa57ab810832675e76c3bb0a299dc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\APLD-4da99aa64e5155930e2bb4b6d46aefb576da819f3e9d962a40f63084e8706810.html",
+      "sha256": "4da99aa64e5155930e2bb4b6d46aefb576da819f3e9d962a40f63084e8706810"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\APP-711d4ed9226004a8ed099ae72664a8bf0c1bf860e59728f87afbb219b794c5ec.html",
+      "sha256": "711d4ed9226004a8ed099ae72664a8bf0c1bf860e59728f87afbb219b794c5ec"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ARM-3c961dc9b97a90dccd2a18897db4d3ea2fcf40aa38c49659c127023d3b705c76.html",
+      "sha256": "3c961dc9b97a90dccd2a18897db4d3ea2fcf40aa38c49659c127023d3b705c76"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ARQQ-2c6504266deff7bcb190313630a4b2ac842d39c38fd276de029f05a627289f8c.html",
+      "sha256": "2c6504266deff7bcb190313630a4b2ac842d39c38fd276de029f05a627289f8c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ASTS-099f5702449d34630ca5dffd7bac96a595c946a19fc8c4c8505334ab2584a183.html",
+      "sha256": "099f5702449d34630ca5dffd7bac96a595c946a19fc8c4c8505334ab2584a183"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\BE-7d1e719c0ce2f50a3c76a9d81619cb89529e0d6aaeb5d970c2ce1de1e532cc93.html",
+      "sha256": "7d1e719c0ce2f50a3c76a9d81619cb89529e0d6aaeb5d970c2ce1de1e532cc93"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\BITU-00d4f18410284f94dfa1c58b8626184db6e8823994abec14c3603bd3d99bf756.html",
+      "sha256": "00d4f18410284f94dfa1c58b8626184db6e8823994abec14c3603bd3d99bf756"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\BMNG-6e6a948212c3c5b4e485d449bbb75380ab4c87a3ceb226867ce9805f19aa6430.html",
+      "sha256": "6e6a948212c3c5b4e485d449bbb75380ab4c87a3ceb226867ce9805f19aa6430"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\BMNR-1bf51fff8943460ff6cacc65026e3aa08f7aec1cf77d48fae2428ee54eb6a416.html",
+      "sha256": "1bf51fff8943460ff6cacc65026e3aa08f7aec1cf77d48fae2428ee54eb6a416"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\BNC-65666b91c9040788b3535137f016327b5f691d247c78fe1adcad336fdadf54bf.html",
+      "sha256": "65666b91c9040788b3535137f016327b5f691d247c78fe1adcad336fdadf54bf"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\BTDR-a8cc43a1b09174c39d3dcc4afb84bcd465f83e50aa15a560d20c525310875712.html",
+      "sha256": "a8cc43a1b09174c39d3dcc4afb84bcd465f83e50aa15a560d20c525310875712"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CIFR-5022d938b93575f8ac1679b1fdcd55478ccdaec4c1397beec894e5c4116853f0.html",
+      "sha256": "5022d938b93575f8ac1679b1fdcd55478ccdaec4c1397beec894e5c4116853f0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CLSK-4914cbffba36bbdb080035ab269801ceb5f200072d8ee00047d733c4b8f3b4ec.html",
+      "sha256": "4914cbffba36bbdb080035ab269801ceb5f200072d8ee00047d733c4b8f3b4ec"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\COIN-de7ef8a43b85f17cc93589efdde20bd044785fed9ac209f1f80c7d7804f5dd6b.html",
+      "sha256": "de7ef8a43b85f17cc93589efdde20bd044785fed9ac209f1f80c7d7804f5dd6b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CONL-1f9c688595aad49d0b93d9aa1f409de7ff19d9baa49584948b5e5bfa6bbf9804.html",
+      "sha256": "1f9c688595aad49d0b93d9aa1f409de7ff19d9baa49584948b5e5bfa6bbf9804"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\COPZ-e8390c9736444f4ce77605910d5b2ad601b88cd2f99098ea7575074abb64d829.html",
+      "sha256": "e8390c9736444f4ce77605910d5b2ad601b88cd2f99098ea7575074abb64d829"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CORZ-564f68a6db263c84e8183dba70907d150f525b65ea31cbaa59ac0df0dce48572.html",
+      "sha256": "564f68a6db263c84e8183dba70907d150f525b65ea31cbaa59ac0df0dce48572"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CRCG-a2c93dcfe1d8fa5235c2d366f3c81abf28d63bd82c531d2214d91f1b61d4a0a1.html",
+      "sha256": "a2c93dcfe1d8fa5235c2d366f3c81abf28d63bd82c531d2214d91f1b61d4a0a1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CRCL-a35f9136a54434f66dfc7ae9dae3571ebc680a77ab28f9541eb4d382eb090c65.html",
+      "sha256": "a35f9136a54434f66dfc7ae9dae3571ebc680a77ab28f9541eb4d382eb090c65"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CRWV-07efe743d8e394955d68b519507868d231f7630b594194eae24b21188dae3b12.html",
+      "sha256": "07efe743d8e394955d68b519507868d231f7630b594194eae24b21188dae3b12"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\CYN-8f7792cc96d9c6812ea091bb48898d0d31871f967ba81b83b2692733c845dac4.html",
+      "sha256": "8f7792cc96d9c6812ea091bb48898d0d31871f967ba81b83b2692733c845dac4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\DGP-f3b2f842fbc63571449b142386bfee361101b64cc7cc37780777d6e123c43661.html",
+      "sha256": "f3b2f842fbc63571449b142386bfee361101b64cc7cc37780777d6e123c43661"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\DUK-47c54577c370c752b12f5f7357d380837b23f2e6de2ab6a1b4fb31ef7b409bdf.html",
+      "sha256": "47c54577c370c752b12f5f7357d380837b23f2e6de2ab6a1b4fb31ef7b409bdf"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ERO-f13a84c5bda05806b2b5d85a0c2f6a6a0e914b51c88e002692d174ee33f3458e.html",
+      "sha256": "f13a84c5bda05806b2b5d85a0c2f6a6a0e914b51c88e002692d174ee33f3458e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ETHU-3117bd9fa0956cf0de0200e1529934149b622975f81f7cbcb26638ae0e35d908.html",
+      "sha256": "3117bd9fa0956cf0de0200e1529934149b622975f81f7cbcb26638ae0e35d908"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\FCX-38d4da841c2b1412cca6294e2e4db915b1e041a9c7b20f40deb5f9bb07719b78.html",
+      "sha256": "38d4da841c2b1412cca6294e2e4db915b1e041a9c7b20f40deb5f9bb07719b78"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\FLNC-e2a2043e856b7dfa5c49876c08aeae8ae4552e360e21a65c440c1721553b14df.html",
+      "sha256": "e2a2043e856b7dfa5c49876c08aeae8ae4552e360e21a65c440c1721553b14df"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\GDXU-eea6b10cf4dacf360b42627771ea567117669a8f3e3ea368f87d02388b63cddf.html",
+      "sha256": "eea6b10cf4dacf360b42627771ea567117669a8f3e3ea368f87d02388b63cddf"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\HIVE-124cd1db531b85742bdac126315b8305392cc62a4d25f7d6179a1e337adaba5f.html",
+      "sha256": "124cd1db531b85742bdac126315b8305392cc62a4d25f7d6179a1e337adaba5f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\HOOD-4de17955201cc0573c30e89d4c621b0c75b2acb5ea9e1a2747cb1f3d87df08e2.html",
+      "sha256": "4de17955201cc0573c30e89d4c621b0c75b2acb5ea9e1a2747cb1f3d87df08e2"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\HOOG-fa4688ab266ec56e610f5c0670290e3012d154cb072f17708a8868ca6ae31281.html",
+      "sha256": "fa4688ab266ec56e610f5c0670290e3012d154cb072f17708a8868ca6ae31281"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\HUT-219590983e48a5c8f9b8c784cc256024f88b1aedf86f25065e9b28b7c563e1fe.html",
+      "sha256": "219590983e48a5c8f9b8c784cc256024f88b1aedf86f25065e9b28b7c563e1fe"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\IONQ-b5bc66470fe3a214ec4faab0d00d8ad255b32fd1615ff98195b3e6547df6144d.html",
+      "sha256": "b5bc66470fe3a214ec4faab0d00d8ad255b32fd1615ff98195b3e6547df6144d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\IREN-bdd60fb32aac65d041fa01aa65cc4cdd1e6adf8059eec46aa6a0f9bf26cac6b5.html",
+      "sha256": "bdd60fb32aac65d041fa01aa65cc4cdd1e6adf8059eec46aa6a0f9bf26cac6b5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\JNUG-d3c28f6764f67e444b9aff024c92a6e5bf2396f105e68293ff9d2f1bbd8d1847.html",
+      "sha256": "d3c28f6764f67e444b9aff024c92a6e5bf2396f105e68293ff9d2f1bbd8d1847"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\JOBY-04e3f774050035bd5eb4290c46525c2f29afdc50f8e4c77bfdc403b2f8a4d22c.html",
+      "sha256": "04e3f774050035bd5eb4290c46525c2f29afdc50f8e4c77bfdc403b2f8a4d22c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\LUNR-0677a3eb671fbb4292ce68c85f1fee05f90b8705197ee2724ed716338e31a1bc.html",
+      "sha256": "0677a3eb671fbb4292ce68c85f1fee05f90b8705197ee2724ed716338e31a1bc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\MARA-d51b5b0e8835a27b1ccc76ffa6cc679002eac8050eae68b83b20e91a3727421e.html",
+      "sha256": "d51b5b0e8835a27b1ccc76ffa6cc679002eac8050eae68b83b20e91a3727421e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\MSTR-cf37c54cbc47d6894486c94a8453c1f530a9189ec66e94c39caa9cd2ffa5b850.html",
+      "sha256": "cf37c54cbc47d6894486c94a8453c1f530a9189ec66e94c39caa9cd2ffa5b850"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\MSTU-04b8b357c0c83d83da270f4e6b1aa0f113dde2cbce4603d0177420b91faf894f.html",
+      "sha256": "04b8b357c0c83d83da270f4e6b1aa0f113dde2cbce4603d0177420b91faf894f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\MSTX-2dbcf6db0fc7c01f90bc4728c38ec3d6e536c0555e1c490bf2a2ade63f2f80bf.html",
+      "sha256": "2dbcf6db0fc7c01f90bc4728c38ec3d6e536c0555e1c490bf2a2ade63f2f80bf"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\MSTZ-d0744536e1d785b0383d39de7799cfda42b6130dc59227503b37589be550ea14.html",
+      "sha256": "d0744536e1d785b0383d39de7799cfda42b6130dc59227503b37589be550ea14"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\NBIS-9309b97777fd164608f8283aae06f98b28669b0e87f51f2fc26601e3a467834c.html",
+      "sha256": "9309b97777fd164608f8283aae06f98b28669b0e87f51f2fc26601e3a467834c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\NNE-263178d71d81b18fb5a2ad70d926257e8e175fd695d6964fc543f40b9e9ba4fa.html",
+      "sha256": "263178d71d81b18fb5a2ad70d926257e8e175fd695d6964fc543f40b9e9ba4fa"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\NUGT-0aeca0b6e08c9b4d8efbb1fa4a955e7564cc3bf15f94320e794ea918b0cfc400.html",
+      "sha256": "0aeca0b6e08c9b4d8efbb1fa4a955e7564cc3bf15f94320e794ea918b0cfc400"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\NVDL-0356d6668e9a29488f46b867524da5071f17796070bf3aac1ab2c9892227b5e8.html",
+      "sha256": "0356d6668e9a29488f46b867524da5071f17796070bf3aac1ab2c9892227b5e8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\NVTS-6038c02ebdfcb996e517bd6e516b5d095b69235288e8678d22dcf5cf6c7f641d.html",
+      "sha256": "6038c02ebdfcb996e517bd6e516b5d095b69235288e8678d22dcf5cf6c7f641d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\OKLO-7948c8a1a484d6f0b56e1363a573fd35bb53817e98543f73ad65a5db268c4903.html",
+      "sha256": "7948c8a1a484d6f0b56e1363a573fd35bb53817e98543f73ad65a5db268c4903"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ORCL-e016831e2a4f681e1d2b24744ca9e226ba0e3e6364c75be9e6ee15ffc55a43f2.html",
+      "sha256": "e016831e2a4f681e1d2b24744ca9e226ba0e3e6364c75be9e6ee15ffc55a43f2"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\PLTR-85f3a0389e79f0d6332b757ebb738dd4673b4f61d04c2eff081a7b5fe098f072.html",
+      "sha256": "85f3a0389e79f0d6332b757ebb738dd4673b4f61d04c2eff081a7b5fe098f072"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\QBTS-49ed7566d71ee7fa92d70070c2aa309d618ff8b8783cd3e06fcab59c6f06ffe3.html",
+      "sha256": "49ed7566d71ee7fa92d70070c2aa309d618ff8b8783cd3e06fcab59c6f06ffe3"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\QMCO-b6f3beae30abf91fe57b8c26658fca06e639b257f97acf6993299aede5d11926.html",
+      "sha256": "b6f3beae30abf91fe57b8c26658fca06e639b257f97acf6993299aede5d11926"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\QS-75001b92f770133d0321454c41eda11a98eabc1cb2948dfbf76d5e43564466df.html",
+      "sha256": "75001b92f770133d0321454c41eda11a98eabc1cb2948dfbf76d5e43564466df"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\QUBT-e0298eb4007818faa057dd2d212bffd1f0f69f932aad3f2dc677b1b37c8d784f.html",
+      "sha256": "e0298eb4007818faa057dd2d212bffd1f0f69f932aad3f2dc677b1b37c8d784f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\RDW-fd24ce226eeb64da1455b904ea3ee5d4caa5f5272503b689f902f9ab975e5411.html",
+      "sha256": "fd24ce226eeb64da1455b904ea3ee5d4caa5f5272503b689f902f9ab975e5411"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\RGTI-91135edde6e43b23d94ee004292c63f30b216c0ccf0688114a1090f4d02872ba.html",
+      "sha256": "91135edde6e43b23d94ee004292c63f30b216c0ccf0688114a1090f4d02872ba"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\RIOT-7d16baf85e5a0ce134fa98b4a8370de56e492caa2b6e0808487b41fcd5c1f952.html",
+      "sha256": "7d16baf85e5a0ce134fa98b4a8370de56e492caa2b6e0808487b41fcd5c1f952"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\RKLB-75c165aecaf0ea9d7c0f46b77a41b34fbc59928bd90cd1acdcc9f037a8591e21.html",
+      "sha256": "75c165aecaf0ea9d7c0f46b77a41b34fbc59928bd90cd1acdcc9f037a8591e21"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\RKLX-2315d9911871e6de6e08763a52ce6a4b450a624561911457d67af59f38c76cf3.html",
+      "sha256": "2315d9911871e6de6e08763a52ce6a4b450a624561911457d67af59f38c76cf3"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\ROBN-5b8917bc8401f02ebe9898be8a3159aba04b2b5f66178057857f5eba7b2262c4.html",
+      "sha256": "5b8917bc8401f02ebe9898be8a3159aba04b2b5f66178057857f5eba7b2262c4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SBIT-73bc33490122ad10bbf2d8bf57afc09338d8e5b9b05433899accac9dbc8b63bb.html",
+      "sha256": "73bc33490122ad10bbf2d8bf57afc09338d8e5b9b05433899accac9dbc8b63bb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SCCO-c5c6d4ce5380ea64d6664429ec76291ce30b1c2103ec5a2f4b7c8a238187cbae.html",
+      "sha256": "c5c6d4ce5380ea64d6664429ec76291ce30b1c2103ec5a2f4b7c8a238187cbae"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SIL-d94cd3808fcf5263b35c0ef107f12b01167b87c865b8effb3cfe8c542e3b6715.html",
+      "sha256": "d94cd3808fcf5263b35c0ef107f12b01167b87c865b8effb3cfe8c542e3b6715"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SMCI-d109eba7e343b10e89c7367063447fa6009ee061bb802ae49efd90c3b91bb688.html",
+      "sha256": "d109eba7e343b10e89c7367063447fa6009ee061bb802ae49efd90c3b91bb688"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SMR-2f0644735caf24c7439b52000bee48aec8daffd02d0e6a3f390981afc01a42bc.html",
+      "sha256": "2f0644735caf24c7439b52000bee48aec8daffd02d0e6a3f390981afc01a42bc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SNDK-ea06434ec9dc49cb69568f6cb20e7428d2638450fee09fccabec00e8fc90634d.html",
+      "sha256": "ea06434ec9dc49cb69568f6cb20e7428d2638450fee09fccabec00e8fc90634d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SOLT-07872520c81aadb01a35d4b4794f6ee220105b6c22609a199ddc4411a8d63c42.html",
+      "sha256": "07872520c81aadb01a35d4b4794f6ee220105b6c22609a199ddc4411a8d63c42"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SPAL-ca7dd8c6ca5cc0802254a13ef605e8948a1e5f09b1f384faec7d82d5cbed0b57.html",
+      "sha256": "ca7dd8c6ca5cc0802254a13ef605e8948a1e5f09b1f384faec7d82d5cbed0b57"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\SPCE-18a6a509ddd7ce50ca6332fb1a7591b934fc4ada20c4dbd76509f052c05ba265.html",
+      "sha256": "18a6a509ddd7ce50ca6332fb1a7591b934fc4ada20c4dbd76509f052c05ba265"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\STRC-c05370653a40de152d500a0f1ef7ca9124156c301e413914cca6b52cdd565003.html",
+      "sha256": "c05370653a40de152d500a0f1ef7ca9124156c301e413914cca6b52cdd565003"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\TSLL-9ee97a63a0caf461490c166620faa12a66d506a92038dbb69e7ecf972a2c4882.html",
+      "sha256": "9ee97a63a0caf461490c166620faa12a66d506a92038dbb69e7ecf972a2c4882"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\VIST-6c51d34fa862e311684d6c1be63f427e0a69e488f87a989cbb33996a3dd235e4.html",
+      "sha256": "6c51d34fa862e311684d6c1be63f427e0a69e488f87a989cbb33996a3dd235e4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\VRSK-9ba6cdb4c45436888f60e0370e0c87d2016f22ea8a9a24d51014536b5770eb9a.html",
+      "sha256": "9ba6cdb4c45436888f60e0370e0c87d2016f22ea8a9a24d51014536b5770eb9a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\VST-32d466e45f5042338e4f307f327f1f4d6f811a06f9af6730eb015a586db457be.html",
+      "sha256": "32d466e45f5042338e4f307f327f1f4d6f811a06f9af6730eb015a586db457be"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\WDC-fd201d0488917468377062476d868eb102c822ffccabaaa11f9920c02ecbabcd.html",
+      "sha256": "fd201d0488917468377062476d868eb102c822ffccabaaa11f9920c02ecbabcd"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\WOLF-6697b0e53d04cf4ba97e5bf9fccf334ebd4acf1b1330fadb88524fd0779fd0ac.html",
+      "sha256": "6697b0e53d04cf4ba97e5bf9fccf334ebd4acf1b1330fadb88524fd0779fd0ac"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\20261010\\recaptured-assets\\WULF-d859d2bdaacff128f3577b3b506d344d5e3af811fda246f0d714c6ac3ec237ae.html",
+      "sha256": "d859d2bdaacff128f3577b3b506d344d5e3af811fda246f0d714c6ac3ec237ae"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-reader-20261013\\aapl-identity.txt",
+      "sha256": "05c97760cb9ec914d2cdd5bf08c35c5a5779e8d30827ba851c9ef99b280aa7f0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-reader-20261013\\equity-standard.txt",
+      "sha256": "cb8b2acca64630a90dcaa0a5e88d89c94e04742008ec8bd92d9e8c59cda7acfe"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-reader-20261013\\etf-standard.txt",
+      "sha256": "3cf4f7a601f72e437154fa9cf40abb4bf81da29634b7f8bb2657d3e0d6098152"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-reader-20261013\\msft-identity.txt",
+      "sha256": "f532b5e33f64b30dfef2d0e3e189107f362179b148bb5f5a6b40243e1f14efc4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-reader-20261013\\tsla-identity.txt",
+      "sha256": "1fa757d98092cadca4f41e233857ac39c0f1233e5daacea095fb317e2260d4cb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\1e9107b834f11a517a07b06e4caa2c68e5df2c3915ce72f7c3c1d8aa3deed7a0.html",
+      "sha256": "1e9107b834f11a517a07b06e4caa2c68e5df2c3915ce72f7c3c1d8aa3deed7a0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\2e7583efdf80c7f82ce68067646d3d09dd17aacda193ea7ece677352f88dd8b9.html",
+      "sha256": "2e7583efdf80c7f82ce68067646d3d09dd17aacda193ea7ece677352f88dd8b9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\310ad54364068d068d21d5db39bdce1c4c12ae3da0472585db704bb594da11b4.html",
+      "sha256": "310ad54364068d068d21d5db39bdce1c4c12ae3da0472585db704bb594da11b4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\32a23ea9a0226f3d027ad061222c2c8c6b93371d60ce11123a55420dd0362d21.html",
+      "sha256": "32a23ea9a0226f3d027ad061222c2c8c6b93371d60ce11123a55420dd0362d21"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\66f4e75fb85985b4acc387829e8868f6fe42a600a36857b155b694ad87d0e307.html",
+      "sha256": "66f4e75fb85985b4acc387829e8868f6fe42a600a36857b155b694ad87d0e307"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\75eba8eebb268c9b78dd2cf4245ce95ad3582e39b7f1f1e0734cafa3a5b62e60.html",
+      "sha256": "75eba8eebb268c9b78dd2cf4245ce95ad3582e39b7f1f1e0734cafa3a5b62e60"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\948994c152bd82f75be65f1fd28624e3ade3f4573d5ebe022f620eac0b0c1021.html",
+      "sha256": "948994c152bd82f75be65f1fd28624e3ade3f4573d5ebe022f620eac0b0c1021"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\c9593417b7ddb9b9539d0b2302b7d63e8f2d04823793baa0011138f9f8d11075.html",
+      "sha256": "c9593417b7ddb9b9539d0b2302b7d63e8f2d04823793baa0011138f9f8d11075"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\ce32c123d0b046a08aa405ce7958f114f3b8de979dace2f4eda503dcf2e80754.html",
+      "sha256": "ce32c123d0b046a08aa405ce7958f114f3b8de979dace2f4eda503dcf2e80754"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\db88f58bf6892f4f23bb131ae30cfffb1bf352f8fa9e99182615c62295e55ec9.html",
+      "sha256": "db88f58bf6892f4f23bb131ae30cfffb1bf352f8fa9e99182615c62295e55ec9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\outputs\\r58\\p14-source-revalidation-20261013\\f0449e928a4c2d9487be2591a532065ab1fdb9ff9d81287de6f0b2696579aa4c.html",
+      "sha256": "f0449e928a4c2d9487be2591a532065ab1fdb9ff9d81287de6f0b2696579aa4c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\pyproject.toml",
+      "sha256": "b35730d984721e77a3a4a8d5c2cc9e7976186b71482274076b602dd632d0bdbd"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\capture_r58_p9_incident.py",
+      "sha256": "809254fcd33b50f9861d5c47877b6512729192dfb3b1413a6930e9fa006fa82a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_gateway_idle_transport.py",
+      "sha256": "a864064bd78070ad2b297b81e994ad8be12254a6c2ae12f7ec0762bce5190f9d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_p12_bootstrap.py",
+      "sha256": "122e013b53437bfc013e98e06af472d0e153263e0fa2e92c415e55ff929574c5"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_p14_capacity.py",
+      "sha256": "fba4b1aa667c219788f51bbf3e58f66ca28bb295ce2977d45b5a26563d0f7475"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_positive_contract_browser.py",
+      "sha256": "083dec253b8dd256b002ee830ab913dfbbf2a3044521445156d2632c68ae176e"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_r58_p10_pending_recovery.py",
+      "sha256": "27510e9e921caf914771c2eb961990dcce3a539737d483ba6b0a443703a4dbb9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_r58_p10_topology.py",
+      "sha256": "c1fa759b7ed8687c266ec6d345f5de9b256c6b2e1d241cd2e93a0dab0f39e7f1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_r58_p9_mixed.py",
+      "sha256": "690503190f1cafb008f37c9bbf4985b1c23ef6dc83b636433b846fa6eeda7c79"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\check_safe_recovery.py",
+      "sha256": "2b0ed949f6873db56b3af7ed048bb4f32ddf587bd32bd283925a9631ac5d4b15"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\collect_r58_p9_readiness.py",
+      "sha256": "a56136590b15bf542782bd649f8757fa38bbe19f03abf6afa3845253a6abfa8c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\configure_local_access.py",
+      "sha256": "ffaf4e872e47e3fdc721e1e6a12143f34f99ad9fc251969a741f5ada30c27fa3"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\finalize_r58_p9_acceptance.py",
+      "sha256": "a2cc413bba3d040e51fc00da7805a305caca007873365d7c8c123eeb70b51f40"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\FoundationLifecycle.ps1",
+      "sha256": "60f286f342d9316ce18014b85e2bc82a51b8e0f254e864074a98b072b7764f50"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\Invoke-FoundationDetached.ps1",
+      "sha256": "6928f348d17fb9035e1a44887dec2f75c06d4e3e2b71b755ec72ef318829da5a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\Launch-FoundationDetached.ps1",
+      "sha256": "f32d8668d8c742cf918fd7485476e01a4ecd7214b956b903f8404d3fc0864bd4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\package_r58_p9_review.py",
+      "sha256": "8538763052e800ff42c8a84a87c72be09b306ac6c46ff00bee13e701faf8804b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\PrepareFrontendBuildCandidate.ps1",
+      "sha256": "503fe955135b3418102c52150aa5b5b66a228ee31456298a9fedef8941580277"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\PrepareFrontendStaticCandidate.ps1",
+      "sha256": "d0dd190d31f42296b12f430f178a0e9a559f628badc1e26a0791f9bb9597d4e0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\probe_r58_p9_live.py",
+      "sha256": "362c4d4d8c5f27b5bac81656f6baf553e9b92e19b668709f6b85b4dd0cf24f54"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\profile_r58_p9_calculation.py",
+      "sha256": "d96605bd74ae7472cea23baefa7567ac58ea88ec9c6f24d9c4c3a26a27263649"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\reconcile_r58_p9_incident.py",
+      "sha256": "dd19040b3d9abb52be23fbe598cb98a437aabd5b62fdc2e4082eb26a78cf6fb8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\record_recovery_activation.py",
+      "sha256": "0f01cad27b9fead6b6e9bfe1840da0444575f27027b52270fac7188c75b3ac43"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\RecordFrontendBuildCandidate.ps1",
+      "sha256": "623771537c7b2233ea646a0c09c6d6179fefecb8c31f58bf88baa3a053578fc3"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\RecoverFrontendMetadataCandidate.ps1",
+      "sha256": "f9c6ced3aa106da27fca30b5466fd32924b1f60ea7de075871b07a38d3ff0cec"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\replay_r58_p9_inputs.py",
+      "sha256": "318fb14fe3b1988f5fa152a0675dc0bcdf1e688adb0c33352177fef0448a5c7c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\requeue_price_action_source.py",
+      "sha256": "326b743e28bf5fe3a52cf679a43aa47ce46eef3a58878c2edca921afe6c4bca9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\Stop-Foundation.ps1",
+      "sha256": "88133977ab9df1af0674cd90948194cbf8b2117dc2227f9b73259996129caa8c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\scripts\\test_clock_transport.py",
+      "sha256": "982e185c7a716913b7d62407c61c9f7528df9c53669f8a048eba72415c97ff88"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\start_kquant_workspace.ps1",
+      "sha256": "0be9e31e0c918c1e6b5f356dbef0f8b7310fde729814d1e8a5b266625920ce73"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\diagnose_clock_read_only.py",
+      "sha256": "b5852dd1b745d91134f58a97132db0be0df1a6f2c8943de29a07cf9cf63ae602"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\execute_candidate_packaging.py",
+      "sha256": "d951dbb71333dd3491744289534e58156ee4c3ace6b975e2b371ead8182eddf8"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\integrate_recaptured_assets.py",
+      "sha256": "0c9ea4ad1c9d725c1496d2cc95408fd96f65ee8e9cb7a4da4945abb4581c42dc"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\minute_rebuild.py",
+      "sha256": "8cec80136cc220a85d6a29b210fe5e035aba8422e32180c07e7d3102e7e0f9ec"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\prepare_candidate_archive.py",
+      "sha256": "f6b020b88b4e97903b1b72b778c498bf40a91be07c0f343bbd5f583279da634d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\prepare_local_epoch.py",
+      "sha256": "e510c1a08940b9545b9cea700026cf317252782371d385bd433fbf85bb91db26"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\prepare_local_runtime.py",
+      "sha256": "56bc2ab2e80d3c554760ef08996d170d519af06d82f936f3af951dc516a3dd90"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\prepare_portable_activation.py",
+      "sha256": "0d32eecc9b73fe74db5db3378933bfe0e9db3a18e8157dd9982cd295da71ef06"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\probe_market_readiness.py",
+      "sha256": "37499e0dfd819b1f2d41ec3138691b7f8e269957bb52b5cf4b624a78d297f62b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\probe_minute_history.py",
+      "sha256": "8460a2df43c9e1a2b0065f3eb32ee153cad501dfe6f11a4415e4a82daf98b79c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\run_minute_backfill.py",
+      "sha256": "dee09a8a11ab537e716dc0f1e5f8a31d33b821912e93ea195cc9cf97175f1b54"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\run_minute_backfill_series.py",
+      "sha256": "6d3394710d9d342b05a8c35cbb8bc972739fd4ec372ac6c96171c6c055ee935a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\run_quote_facts.py",
+      "sha256": "9123216994d0b399291a47cb17d7995386820e3e58be995f52700735ee731574"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\run_watchlist_quote_facts_series.py",
+      "sha256": "74540f21923e854c87359df1d41e0c94801f213f56aa3a62884d9952d374c966"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\verify_sdk_timestamp.py",
+      "sha256": "2c5984bf6b1c1247f8aa8c209fd20d7a40c8bd0244dbafcb26d7af36dcd81da1"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\write_quote_source_review.py",
+      "sha256": "65c715265cec162eda3d3846d25baa521c349404544f15ec7d316666f95593bb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\Start-Local-KQUANT.ps1",
+      "sha256": "acaa369eeefd85db30c107b68aa0732f9b88f04c628e65fe579310b5dccd2987"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\prepare_local_entry.py",
+      "sha256": "850d4b8e5f2aea0947510f9954c42796fa2826cebd037eda80aeabb1ca01b6bb"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\pyvenv.cfg",
+      "sha256": "36785a00f67c6096b1735d4f901156ef2a981afd981b8ed8b82d347ab583ddea"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_intraday_comparison.py",
+      "sha256": "f74c4cf81ddea011d0d18b1d7b5cb20bd03f56e55145ac5155b54afa08ff1865"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_intraday_reference.py",
+      "sha256": "d6572dbe9ac7a19eb5e37289c55cbb911e60f745bcf00ec85669f9995dfdf6f9"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_availability.py",
+      "sha256": "8bc335c565eb63e388ea8fca58568faf980b02d7a0c5b754970f7380bd16bf91"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_diagnostics.py",
+      "sha256": "b2d7975882d94051c01d49bd6cbe3b6fade20133118bbce6f1f5c645a7840c4c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-stock\\assets\\index-8MnraLHw.css",
+      "sha256": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-stock\\assets\\index-Dx1YIUO6.js",
+      "sha256": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-stock\\index.html",
+      "sha256": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-stock\\kquant-mark.svg",
+      "sha256": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-stock\\manifest.webmanifest",
+      "sha256": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-stock\\service-worker.js",
+      "sha256": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\src\\unified\\OptionsOperations.tsx",
+      "sha256": "a3de9af02dc992ee31356c84448c49e51f6a5d990f41e1ab0accd555fc5c33af"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\src\\unified\\StrategyComparisonCard.tsx",
+      "sha256": "6ff82c9712d4592c656928121065c1b1cc24e00914a646190bf945f93bf7d01b"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\src\\unified\\strategyComparison.css",
+      "sha256": "a886756ede796d658ee1d632ac8ed086910e5fd14b9ef91c4c81c153e7da295f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\local_closed_snapshot_owner_20261016.json",
+      "sha256": "5471371579556171685106c018565e755b4e3e118a32dd6d7bfa490458348e95"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\options_opening_research_ai.json",
+      "sha256": "485783c13200b53821585e597866b9070e904ac55dab1cd1c0bb89a4c8948639"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\config\\review_acceptances\\opening_ai_budget.json",
+      "sha256": "1de86b8a16fe99f6331998f4e95d1d7701e3d84bb320fee824e3021c5ad5cf61"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\main_store_runtime.py",
+      "sha256": "6ea9d210afb156adafcaad82be81d475850b792a2c89e419ce7ef05a7301c7f3"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_one_minute_status.py",
+      "sha256": "700acb4d93c7dcd1d2964aef36d2ce6ad1c252546726dafeb4d6a93670bdeca0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_ai.py",
+      "sha256": "5c56116d6224fd85400d01146dc88ed437c088549015cada338dc4eb8d75b5fa"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_ai_evidence.py",
+      "sha256": "b58ca127069bba887f1fcde7090cd729f0a1508665ce6051237c20969020b891"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_ai_lane.py",
+      "sha256": "3db0611716bffca340518e647534f725b3b8f0ae3529479532ff62f687abe256"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_ai_store.py",
+      "sha256": "99b2152b7717af514af58792af5a3702f49edd82a0cdac22abbfebf64a4a4070"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\kquant\\options_research_ai_worker.py",
+      "sha256": "33ed12662a60d0f122555d4fd7007e68353760bc6d21e2471ccbede488d5750f"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\assets\\unified-BE33Baq-.css",
+      "sha256": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\assets\\unified-Ng8CZhsB.js",
+      "sha256": "222db17a21528185aab475e072d8da44dd8af7849e7fd29547d8978ff46032fa"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\kq-mark.svg",
+      "sha256": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\manifest.webmanifest",
+      "sha256": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\service-worker.js",
+      "sha256": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\unified.html",
+      "sha256": "f7203723857de5caa6e2964f6859bd2a759debbd47bb28150ed40fb96050f27c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\assets\\index-8MnraLHw.css",
+      "sha256": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\assets\\index-Dx1YIUO6.js",
+      "sha256": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\index.html",
+      "sha256": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\kquant-mark.svg",
+      "sha256": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\manifest.webmanifest",
+      "sha256": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\service-worker.js",
+      "sha256": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-b6cf37cc4955061a\\release-manifest.json",
+      "sha256": "b21b25cedc2e5d31db7dd1fed28f13afe47266bde62883c5bee3499829b58bd9"
+    }
+  ],
+  "frontend": [
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\assets\\unified-BE33Baq-.css",
+      "sha256": "69c6aa61c41ff942e8d26180a3c49dbe12ea4f96c6ef279d3c0798e3c6ed84ad"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\assets\\unified-C0aHT8vS.js",
+      "sha256": "e272d10719dcaec56475057356909f94e7d874e911fab0522fec27b9cbe98bd4"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\kq-mark.svg",
+      "sha256": "25e32dfacde5946a21794e1c222ac2959a0bae718f4c9f973f6f0f1469a58c8d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\manifest.webmanifest",
+      "sha256": "ba5b97599e74f2043149a8fd6fd128480579dcd7d7844adc022a27f3227a65ac"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\service-worker.js",
+      "sha256": "e95295dffccc994f0682fb6de18223fbab45429beb7a455ea2f5e2b02c894eb0"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\unified.html",
+      "sha256": "f7203723857de5caa6e2964f6859bd2a759debbd47bb28150ed40fb96050f27c"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified\\assets\\unified-Ng8CZhsB.js",
+      "sha256": "222db17a21528185aab475e072d8da44dd8af7849e7fd29547d8978ff46032fa"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\assets\\index-8MnraLHw.css",
+      "sha256": "cf6c8488f95a9e64203e492be12a2c52f99816929e66032b8c6898c111851956"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\assets\\index-Dx1YIUO6.js",
+      "sha256": "120368e047e9e78715c9dbf8ffaf53981294dd652cf51d943b5f5e6eca08e74d"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\index.html",
+      "sha256": "8044a1002d46c9c9d234fadb4eac3f375d8101b7b7fa47d53146af4e1a52f604"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\kquant-mark.svg",
+      "sha256": "984c11dcfff4bc97b7ff23a51431df1401f5ddee4b6b01d21cbc6e89e30a824a"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\manifest.webmanifest",
+      "sha256": "b863276eb9644c5babd9c7b06c803a5b23ccebbb7904fc08d56e48299561fe19"
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist\\service-worker.js",
+      "sha256": "a4ad14d4418e3e382c90e00278e313f9f4ab29ea77b16933bf09b6e90da53e40"
+    }
+  ],
+  "dependencies": {
+    "verified_versions": {
+      "longbridge": "4.4.1",
+      "fastapi": "0.119.0",
+      "uvicorn": "0.38.0",
+      "httpx": "0.28.1",
+      "starlette": "0.48.0",
+      "anyio": "4.15.1",
+      "python": "3.12.10"
+    },
+    "active_paths": [
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+      "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Lib\\site-packages",
+      "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312"
+    ],
+    "receipt": {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\releases\\local-candidate-4ae28624d9e0d41b\\dependencies.json",
+      "sha256": "1c1ac12304800737c2d61271f2f7ba39e147d20e4b2699c63edd419225d52dc8"
+    }
+  }
+}

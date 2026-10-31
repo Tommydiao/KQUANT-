@@ -1,0 +1,10 @@
+{
+  "scope": "OFFLINE_CODE_HANDOFF_ONLY",
+  "files": 1297,
+  "python_syntax_checked": 650,
+  "redacted_files": 1,
+  "staged_files_checked": 1308,
+  "failures": [],
+  "production_start": false,
+  "business_database_read": false
+}

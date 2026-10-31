@@ -1,0 +1,16 @@
+{
+  "schema": "KQUANT_NEW_EPOCH_RUNTIME_PATHS_V1",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "epoch_id": "KQUANT-LOCAL-20261008-01",
+  "session": "2026-10-08",
+  "minute_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute-epoch-20261008\\one_minute.sqlite3",
+  "opening_research_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute\\opening_trend_research.sqlite3",
+  "stores": {
+    "main": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\kquant_us.sqlite3",
+    "full_watch": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_full_watch\\full_watch.sqlite3",
+    "opening_research": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute\\opening_trend_research.sqlite3",
+    "signal_copilot": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_signal_copilot\\signal_copilot.sqlite3",
+    "minute": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute-epoch-20261008\\one_minute.sqlite3"
+  },
+  "data_scope_acceptance_sha256": "e51e6431f3a465ece2e0aeed2bf9e2b6e4547fc9090a0bd62d22e43641cd7a1d"
+}

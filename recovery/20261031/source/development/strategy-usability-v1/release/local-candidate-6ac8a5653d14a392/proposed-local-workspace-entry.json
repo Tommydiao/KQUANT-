@@ -1,0 +1,19 @@
+{
+  "schema": "KQUANT_LOCAL_WORKSPACE_ENTRY_V1",
+  "candidate_id": "local-candidate-6ac8a5653d14a392",
+  "code_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+  "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+  "python_executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+  "python_base_root": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312",
+  "frontend": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified",
+  "recovery_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\release\\local-candidate-6ac8a5653d14a392\\recovery-manifest.json",
+    "sha256": "25e47d9e9f38549d94e5f0a7dc509c35125e2aa05233cd980bc4a38149310af0"
+  },
+  "runtime_manifest": {
+    "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\release\\local-candidate-6ac8a5653d14a392\\release-manifest.json",
+    "sha256": "20be71878ccb8c4df4919978bf46035fdaaabd8189ab723206b65eebec61aaa8"
+  },
+  "production_accepted": false,
+  "shadow_runtime_accepted": false
+}

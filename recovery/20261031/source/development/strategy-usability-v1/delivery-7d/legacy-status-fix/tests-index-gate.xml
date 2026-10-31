@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.505" timestamp="2026-10-17T11:11:14.821568+08:00" hostname="PC-20260215FHYW"><testcase classname="" name="" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_minute_index_restart.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\legacy-status-fix\test_minute_index_restart.py:13: in &lt;module&gt;
+    from test_new_epoch_runtime import epoch_candidate
+E:\kquant 1007\KQUANT-Resume-Latest\source\development\workspace\tests\test_new_epoch_runtime.py:16: in &lt;module&gt;
+    from new_data_epoch import initialize
+E   ModuleNotFoundError: No module named 'new_data_epoch'</error></testcase></testsuite></testsuites>

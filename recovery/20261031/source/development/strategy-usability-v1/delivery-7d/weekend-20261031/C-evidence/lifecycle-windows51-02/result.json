@@ -1,0 +1,203 @@
+{
+    "schema":  "WEEKEND_C_LIFECYCLE_ISOLATION_V1",
+    "test_only":  true,
+    "observed_at":  "2026-10-31T14:16:22.9810032+00:00",
+    "host":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "ps_version":  "5.1.26100.4480",
+    "checks":  [
+                   {
+                       "name":  "ACTUAL_HOST_PARSE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:15:53.4465679+00:00"
+                   },
+                   {
+                       "name":  "ORIGINAL_ENTRY_HOST_CHECK_ONLY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:15:57.3062042+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_CANDIDATE_ENTRY_REJECTS_MISSING_RECOVERY_GATE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:01.5368180+00:00"
+                   },
+                   {
+                       "name":  "PREFLIGHT_FAILURE_SAVED_IN_DATAROOT",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:01.5881073+00:00"
+                   },
+                   {
+                       "name":  "ENTRY_REJECTION_NO_SERVICE_STARTED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:01.5914777+00:00"
+                   },
+                   {
+                       "name":  "ENTRY_REJECTION_NO_DATABASE_CREATED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:01.6183600+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_OWNER_IDENTITY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:08.5015996+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_DESCENDANT_OWNERSHIP",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:09.0138390+00:00"
+                   },
+                   {
+                       "name":  "UNRELATED_PROCESS_NOT_OWNED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:10.0607937+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_HEALTHY_MONITOR_CYCLE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:10.6395001+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:10.7286706+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE_UNKNOWN_NO_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:10.7306704+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE_OWNER_SURVIVED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:10.9707103+00:00"
+                   },
+                   {
+                       "name":  "REAL_INVALID_NAMESPACE_OBSERVATION_RECOVERS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:11.4520172+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:11.4640033+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED_UNKNOWN_NO_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:11.4651739+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED_OWNER_SURVIVED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:11.6922141+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_DENIED_OBSERVATION_RECOVERS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:12.1635520+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:12.4025001+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE_UNKNOWN_NO_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:12.4034998+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE_OWNER_SURVIVED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:12.6499093+00:00"
+                   },
+                   {
+                       "name":  "MISSING_EXECUTABLE_OBSERVATION_RECOVERS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:13.1080340+00:00"
+                   },
+                   {
+                       "name":  "PID_REUSE_IDENTITY_REJECTED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:13.3650139+00:00"
+                   },
+                   {
+                       "name":  "MISMATCH_CLEANUP_PRESERVES_PROCESS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:13.5890898+00:00"
+                   },
+                   {
+                       "name":  "CLEANUP_ACCESS_UNKNOWN_REFUSED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:13.5916081+00:00"
+                   },
+                   {
+                       "name":  "ACCESS_UNKNOWN_PRESERVES_PROCESS",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:13.8264906+00:00"
+                   },
+                   {
+                       "name":  "OBSERVE_ALL_BEFORE_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:17.2066592+00:00"
+                   },
+                   {
+                       "name":  "UNKNOWN_SIBLING_NO_PARTIAL_RECOVERY",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:17.2076581+00:00"
+                   },
+                   {
+                       "name":  "ACTUAL_EXIT_RECOVERY_LIMIT_RETAINED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:17.4604405+00:00"
+                   },
+                   {
+                       "name":  "OWNED_PARENT_CLEANED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:19.7946934+00:00"
+                   },
+                   {
+                       "name":  "OWNED_DESCENDANT_CLEANED",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:20.0391258+00:00"
+                   },
+                   {
+                       "name":  "UNRELATED_PROCESS_SURVIVED_CLEANUP",
+                       "pass":  true,
+                       "at":  "2026-10-31T14:16:20.2882573+00:00"
+                   }
+               ],
+    "failure":  null,
+    "process_identities":  [
+                               {
+                                   "pid":  31892,
+                                   "created_at":  "2026-10-31T14:15:57.3375950Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  26040,
+                                   "created_at":  "2026-10-31T14:16:01.6822790Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  39540,
+                                   "created_at":  "2026-10-31T14:16:04.6996700Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  36972,
+                                   "created_at":  "2026-10-31T14:16:03.9993110Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               },
+                               {
+                                   "pid":  45728,
+                                   "created_at":  "2026-10-31T14:16:13.8321510Z",
+                                   "executable":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                               }
+                           ],
+    "remaining_test_children":  0,
+    "pass":  true,
+    "production_launch":  false,
+    "database_access":  false,
+    "fault_boundary":  "Real CIM invalid-namespace error; explicit access-denied/missing-field injection. No OS ACL or WMI service changes.",
+    "scope":  "Actual original HostCheckOnly entry, candidate File entry recovery-gate rejection, shared candidate monitor cycle and actual child ownership/cleanup. Not successful production recovery gates, HTTP, Worker or full topology acceptance."
+}

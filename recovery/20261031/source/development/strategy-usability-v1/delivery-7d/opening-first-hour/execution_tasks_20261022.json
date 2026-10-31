@@ -1,0 +1,42 @@
+{
+  "schema": "KQUANT_FIRST_HOUR_EXECUTION_TASKS_V1",
+  "plan": "EXECUTION_PLAN_20261022.md",
+  "root": "E:\\kquant 1007\\KQUANT-Resume-Latest",
+  "t0_utc": "2026-10-16T14:30:22Z",
+  "deadline_utc": "2026-10-23T14:30:22Z",
+  "deadline_reset_allowed": false,
+  "baseline_observed_at": "2026-10-22T12:38:31.4244895Z",
+  "accepted_runtime": "local-candidate-198444f784fb3ada",
+  "unaccepted_existing_candidate": "local-candidate-7896a20b9c18c711",
+  "new_release_identity": null,
+  "new_window_implemented_end_to_end": false,
+  "runtime_modified_by_this_plan": false,
+  "denominators": {
+    "registered": 111,
+    "applicable": 100,
+    "unresolved": 11,
+    "old_five_point_positions_per_variant": 1000,
+    "new_eleven_point_positions_per_variant": 2200,
+    "old_denominator_file_mutable": false
+  },
+  "tasks": [
+    {"id":"F01","status":"ACTIVE","depends_on":[],"work":"Current funnel and bounded causal trace","existing":"October21 ASTS saved pushes reproduce installed AttributeError; all-position attribution and downstream denominators remain incomplete","done_when":"Every funnel value has unit/time/evidence; real missing task cause reproduced or explicitly unclassified"},
+    {"id":"F02","status":"WAIT_DEPENDENCY","depends_on":["F01"],"work":"Fix actual recovery/input failure in separate candidate","existing":"7896 null-time repair unaccepted; sufficiency not assumed","done_when":"Actual offending input handled without full-pool escape; generation/CAS/deadline preserved"},
+    {"id":"F03","status":"ACTIVE","depends_on":[],"work":"Wire distinct eleven-point policies through scheduler/journal/consumers","existing":"Journal and actual TrendLane constructor/background persistence integrated and tested; Worker/consumer/resolver/selection/page wiring still pending","done_when":"Real isolated Worker construction persists all11points with separate policy identity and original deadlines; old history compatible"},
+    {"id":"F04","status":"WAIT_DEPENDENCY","depends_on":["F02","F03"],"work":"Durable math-to-selection handoff and unchanged contract checks","done_when":"Traceable idempotent queue produces genuine reference or specific rejection; crash does not lose work or renew deadlines"},
+    {"id":"F05","status":"WAIT_DEPENDENCY","depends_on":["F03","F04"],"work":"Actual Signals rendering and versioned delivery evidence","done_when":"Compiled browser shows and invalidates same event; render/SSE/HTTP counted separately"},
+    {"id":"F06","status":"READY","depends_on":[],"work":"Profile state transport and targeted performance repair","done_when":"Measured bottleneck addressed without enlarged budgets; failures and performance verdict remain explicit"},
+    {"id":"F07","status":"BLOCKED_EXTERNAL","depends_on":[],"work":"Existing real Sol tool roundtrip and async failure isolation","blocker":"User postponed private API configuration; no newer successful evidence found","unblock":"User confirms local configuration changed; existing exact budget checks pass","done_when":"Real returned model/tool/source/latency/cost evidence plus version/deadline and nonblocking behavior"},
+    {"id":"F08","status":"WAIT_DEPENDENCY","depends_on":["F02","F03","F04","F05","F06"],"work":"Short penetration then frozen matching11point3600s assembly","done_when":"Full scenario and request denominators recorded; scoped PASS/FAIL separated; no old5point substitution"},
+    {"id":"F09","status":"WAIT_DEPENDENCY","depends_on":["F08"],"external_gate":"Genuine exact O-LAUNCH","work":"One consolidated release choice and controlled launch","done_when":"Manifest/OWNER/source/build identity match plus600s actual observation; no business-data rollback"},
+    {"id":"F10","status":"WAIT_DEPENDENCY","depends_on":["F09"],"work":"Actual first-hour window and fixed-deadline adjudication","done_when":"Real per-point records and all scoped verdicts delivered; unavailable stages remain null/NOT_RUN/FAIL"}
+  ],
+  "final_adjudication": {
+    "must_run_even_if_tasks_blocked": true,
+    "at": "2026-10-23T14:30:22Z",
+    "incomplete_usable_flow": "FAIL",
+    "late_or_unmatured_samples": "NOT_COMPLETE_BY_DEADLINE",
+    "natural_opportunity_guaranteed": false,
+    "continuous_background_coding_guaranteed": false
+  }
+}
