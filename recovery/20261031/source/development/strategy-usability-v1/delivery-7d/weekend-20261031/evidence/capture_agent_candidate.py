@@ -18,7 +18,13 @@ def proof(path):
 
 
 def main():
-    mapping_path = HERE/'evidence/agent-source-map-20261101.json'
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mapping', default='agent-source-map-20261101.json')
+    args = parser.parse_args()
+    if Path(args.mapping).name != args.mapping:
+        raise ValueError('LOCAL_SOURCE_MAP_FILENAME_REQUIRED')
+    mapping_path = HERE/'evidence'/args.mapping
     mapping = json.loads(mapping_path.read_text())
     if mapping['blockers']:
         raise ValueError('RUNTIME_TEST_LOADER_DEPENDENCY')
@@ -37,8 +43,10 @@ def main():
     configuration = proof(HERE/'config/agent_iteration.json')
     builds = [proof(p) for p in sorted((FIRST/'build').rglob('*')) if p.is_file()]
     frontend_sources = [proof(p) for p in sorted((FIRST/'patches/web').rglob('*')) if p.is_file()]
+    lifecycle = [dict(target=name, source=proof(FIRST/'lifecycle-candidate'/name))
+                 for name in ('start_kquant_workspace.ps1', 'scripts/FoundationLifecycle.ps1')]
     material = dict(sources=sources, builds=builds, frontend_sources=frontend_sources,
-                    configuration=configuration, accepted_parent_manifests=parents)
+                    lifecycle=lifecycle, configuration=configuration, accepted_parent_manifests=parents)
     identity = sha256(json.dumps(material, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     result = dict(schema='KQUANT_AGENT_DEVELOPMENT_CANDIDATE_V1', observed_at=datetime.now(UTC).isoformat(),
         candidate_id='agent-development-'+identity[:16], payload_sha256=identity,

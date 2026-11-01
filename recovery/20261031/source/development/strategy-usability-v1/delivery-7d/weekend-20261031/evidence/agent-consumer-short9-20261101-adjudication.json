@@ -1,0 +1,176 @@
+{
+  "schema": "ITERATION_SUPPLEMENTAL_ADJUDICATION_V1",
+  "run": "agent-consumer-short9-20261101",
+  "test_only": true,
+  "original_report_unchanged": true,
+  "source_sha256": {
+    "topology_report.json": "094305ba3f8898f2c2e23684bf0cc179417329e072afdc2ddbc1589d1dca5568",
+    "TEST_ONLY-scope.json": "d5f3ab69660111d755ee07b13f6bd03cf2f2a8c1baede919f2a775df882383d4",
+    "TEST_ONLY-progress-12600.jsonl": "a8e214e665edb27f347608d30742ba3217e118954068f1464992f76a57fe6e5e",
+    "TEST_ONLY-progress-29600.jsonl": "b3bb718803aa75a08e766296fad58b2c77495a130cf8a83bf17bc879cccb9224"
+  },
+  "original_seven_day_verdict": "FAIL_UNCHANGED",
+  "variants": {
+    "S0": {
+      "expected_positions": 2200,
+      "observed_positions": 2200,
+      "missing_positions": [],
+      "ever_full_positions": 2182,
+      "latest_full_positions": 2180,
+      "objects_ever_full_all_points": 99,
+      "applicable_objects": 100,
+      "incomplete_reasons": {
+        "('AAPL', ('SOURCE_CONFLICT',))": 20
+      },
+      "timely_full_positions": null,
+      "timely_objects_all_points": null,
+      "timeliness_limit": "CONTROLLED_TEST_CLOCK_NOT_REAL_MARKET_TIMELINESS"
+    },
+    "S1": {
+      "expected_positions": 2200,
+      "observed_positions": 2200,
+      "missing_positions": [],
+      "ever_full_positions": 2178,
+      "latest_full_positions": 2178,
+      "objects_ever_full_all_points": 99,
+      "applicable_objects": 100,
+      "incomplete_reasons": {
+        "('AAPL', ('INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED',))": 2,
+        "('AAPL', ('SOURCE_CONFLICT',))": 20
+      },
+      "timely_full_positions": null,
+      "timely_objects_all_points": null,
+      "timeliness_limit": "CONTROLLED_TEST_CLOCK_NOT_REAL_MARKET_TIMELINESS"
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-22T13:35:00+00:00",
+      "committed_attempts": 225,
+      "all_committed_attempts_p95_seconds": 6.2030000002123415,
+      "all_committed_attempts_max_seconds": 7.078999999910593,
+      "original_first_result_p95_seconds": 6.4530000002123415,
+      "first_full_by_variant": {
+        "S0": 6.4530000002123415,
+        "S1": 6.4530000002123415
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:40:00+00:00",
+      "committed_attempts": 101,
+      "all_committed_attempts_p95_seconds": 4.469000000040978,
+      "all_committed_attempts_max_seconds": 9.469000000040978,
+      "original_first_result_p95_seconds": 4.469000000040978,
+      "first_full_by_variant": {
+        "S0": 4.469000000040978,
+        "S1": 4.469000000040978
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:45:00+00:00",
+      "committed_attempts": 100,
+      "all_committed_attempts_p95_seconds": 4.9060000001918525,
+      "all_committed_attempts_max_seconds": 5.141000000061467,
+      "original_first_result_p95_seconds": 4.9060000001918525,
+      "first_full_by_variant": {
+        "S0": 4.9060000001918525,
+        "S1": 4.9060000001918525
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:50:00+00:00",
+      "committed_attempts": 102,
+      "all_committed_attempts_p95_seconds": 6.062000000150874,
+      "all_committed_attempts_max_seconds": 6.202999999979511,
+      "original_first_result_p95_seconds": 6.062000000150874,
+      "first_full_by_variant": {
+        "S0": 6.062000000150874,
+        "S1": 6.062000000150874
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:55:00+00:00",
+      "committed_attempts": 102,
+      "all_committed_attempts_p95_seconds": 5.405999999959022,
+      "all_committed_attempts_max_seconds": 5.530999999959022,
+      "original_first_result_p95_seconds": 5.405999999959022,
+      "first_full_by_variant": {
+        "S0": 5.405999999959022,
+        "S1": 5.405999999959022
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:00:00+00:00",
+      "committed_attempts": 100,
+      "all_committed_attempts_p95_seconds": 5.234000000171363,
+      "all_committed_attempts_max_seconds": 5.375,
+      "original_first_result_p95_seconds": 5.234000000171363,
+      "first_full_by_variant": {
+        "S0": 5.234000000171363,
+        "S1": 5.234000000171363
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:05:00+00:00",
+      "committed_attempts": 101,
+      "all_committed_attempts_p95_seconds": 6.077999999979511,
+      "all_committed_attempts_max_seconds": 6.327999999979511,
+      "original_first_result_p95_seconds": 6.077999999979511,
+      "first_full_by_variant": {
+        "S0": 6.077999999979511,
+        "S1": 6.077999999979511
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:10:00+00:00",
+      "committed_attempts": 101,
+      "all_committed_attempts_p95_seconds": 5.656999999890104,
+      "all_committed_attempts_max_seconds": 5.844000000040978,
+      "original_first_result_p95_seconds": 5.656999999890104,
+      "first_full_by_variant": {
+        "S0": 5.656999999890104,
+        "S1": 5.656999999890104
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:15:00+00:00",
+      "committed_attempts": 103,
+      "all_committed_attempts_p95_seconds": 6.983999999938533,
+      "all_committed_attempts_max_seconds": 7.265000000130385,
+      "original_first_result_p95_seconds": 6.983999999938533,
+      "first_full_by_variant": {
+        "S0": 6.983999999938533,
+        "S1": 6.983999999938533
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:20:00+00:00",
+      "committed_attempts": 100,
+      "all_committed_attempts_p95_seconds": 8.031000000191852,
+      "all_committed_attempts_max_seconds": 8.188000000081956,
+      "original_first_result_p95_seconds": 8.031000000191852,
+      "first_full_by_variant": {
+        "S0": 8.031000000191852,
+        "S1": 8.031000000191852
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:25:00+00:00",
+      "committed_attempts": 100,
+      "all_committed_attempts_p95_seconds": 7.733999999938533,
+      "all_committed_attempts_max_seconds": 7.733999999938533,
+      "original_first_result_p95_seconds": 7.733999999938533,
+      "first_full_by_variant": {
+        "S0": 7.733999999938533,
+        "S1": 7.733999999938533
+      }
+    }
+  ],
+  "all_committed_attempts_under_10s": true,
+  "original_first_result_performance_pass": true,
+  "first_full_latency_proven": true,
+  "measurement_gap": null,
+  "page_latency_p95_seconds": null,
+  "live_market_acceptance": false,
+  "publication_approved": false
+}

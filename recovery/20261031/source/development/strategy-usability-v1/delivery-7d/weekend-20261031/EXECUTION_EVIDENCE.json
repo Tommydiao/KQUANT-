@@ -1,6 +1,6 @@
 {
   "schema": "WEEKEND_EXECUTION_EVIDENCE_INDEX_V1",
-  "captured_at": "2026-11-01T12:47:29.151692+00:00",
+  "captured_at": "2026-11-01T14:20:15.874599+00:00",
   "old_seven_day_verdict": "FAIL_UNCHANGED",
   "candidate_accepted": false,
   "production_started": false,
@@ -41,6 +41,22 @@
   ],
   "external_capability_gate_pass": null,
   "tests": [
+    {
+      "path": "evidence\\agent-consumer-attribution-20261101.xml",
+      "sha256": "d1f5df30a6e28a38c59cf03f31b3628e200fb0b1d3ee0528a8cb2f8e77939788",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\agent-consumer-sources-20261101.xml",
+      "sha256": "c6fa6eb3cebafef22bf56bbe05bb41dc9d5306bc9db115c4d4a02e7395a8d859",
+      "tests": 175,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
     {
       "path": "evidence\\agent-iteration-engine-20261101.xml",
       "sha256": "79ee527c481b82abfd50974addcdb78d3d3237872cbb9bb522b0353d85529e85",
@@ -567,6 +583,230 @@
         "totals": {
           "records": 488,
           "success": 488,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-hour3-20261101\\topology_report.json",
+      "sha256": "132dc28da86ef6f497d84145e4024f7a341e7f348665352487a150b1e828cc78",
+      "duration_seconds": 3600.2039999999106,
+      "errors": [],
+      "admission_diagnostic_profile": false,
+      "tested_sources_unchanged": true,
+      "performance_pass": false,
+      "limited_research_performance_pass": true,
+      "child_processes_alive": [],
+      "queue_p95": [
+        4.344000000040978,
+        5.218000000109896,
+        4.609999999869615,
+        4.938000000081956,
+        5.561999999918044,
+        7.234000000171363,
+        6.75,
+        6.938000000081956,
+        9.391000000061467,
+        9.641000000061467,
+        9.577999999979511
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-hour3-20261101\\TEST_ONLY-query-transport-24208.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-hour3-20261101\\TEST_ONLY-query-transport-28996.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-hour3-20261101\\TEST_ONLY-query-transport-35328.jsonl"
+        ],
+        "processes": {
+          "24208": {
+            "records": 20,
+            "success": 20,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 20,
+            "last_denominator": {
+              "attempts": 20,
+              "successes": 20,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "28996": {
+            "records": 5501,
+            "success": 5501,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 5501,
+            "last_denominator": {
+              "attempts": 5501,
+              "successes": 5501,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 5521,
+          "success": 5521,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short8-20261101\\topology_report.json",
+      "sha256": "e4ee4d4fceaebe75013521425bc64969d982ca976434539d235927fb1855bbb5",
+      "duration_seconds": 240.26499999989755,
+      "errors": [],
+      "admission_diagnostic_profile": false,
+      "tested_sources_unchanged": true,
+      "performance_pass": false,
+      "limited_research_performance_pass": true,
+      "child_processes_alive": [],
+      "queue_p95": [
+        4.922000000020489,
+        4.5149999998975545,
+        4.4530000002123415,
+        5.844000000040978,
+        5.608999999938533,
+        7.405999999959022,
+        6.108999999938533,
+        5.265000000130385,
+        6.077999999979511,
+        7.469000000040978,
+        7.577999999979511
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short8-20261101\\TEST_ONLY-query-transport-29688.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short8-20261101\\TEST_ONLY-query-transport-36028.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short8-20261101\\TEST_ONLY-query-transport-43288.jsonl"
+        ],
+        "processes": {
+          "36028": {
+            "records": 18,
+            "success": 18,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 18,
+            "last_denominator": {
+              "attempts": 18,
+              "successes": 18,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "43288": {
+            "records": 481,
+            "success": 481,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 481,
+            "last_denominator": {
+              "attempts": 481,
+              "successes": 481,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 499,
+          "success": 499,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short9-20261101\\topology_report.json",
+      "sha256": "094305ba3f8898f2c2e23684bf0cc179417329e072afdc2ddbc1589d1dca5568",
+      "duration_seconds": 240.4220000000205,
+      "errors": [
+        {
+          "code": "UNEXPLAINED_HTTP_FAILURES",
+          "count": 3
+        }
+      ],
+      "admission_diagnostic_profile": false,
+      "tested_sources_unchanged": true,
+      "performance_pass": false,
+      "limited_research_performance_pass": true,
+      "child_processes_alive": [],
+      "queue_p95": [
+        6.4530000002123415,
+        4.469000000040978,
+        4.9060000001918525,
+        6.062000000150874,
+        5.405999999959022,
+        5.234000000171363,
+        6.077999999979511,
+        5.656999999890104,
+        6.983999999938533,
+        8.031000000191852,
+        7.733999999938533
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short9-20261101\\TEST_ONLY-query-transport-12600.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short9-20261101\\TEST_ONLY-query-transport-13276.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-consumer-short9-20261101\\TEST_ONLY-query-transport-29600.jsonl"
+        ],
+        "processes": {
+          "12600": {
+            "records": 18,
+            "success": 18,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 18,
+            "last_denominator": {
+              "attempts": 18,
+              "successes": 18,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "29600": {
+            "records": 499,
+            "success": 499,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 499,
+            "last_denominator": {
+              "attempts": 499,
+              "successes": 499,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 517,
+          "success": 517,
           "failure": 0,
           "deadline": 0
         }
@@ -6427,6 +6667,81 @@
       "bytes": 63460
     },
     {
+      "path": "evidence\\agent-batch-profile-before-20261101\\batch_prepare.txt",
+      "sha256": "003cf83fb682dcb1763f35d1aab6e674ba521a888c2514801092632c262eb45b",
+      "bytes": 4403
+    },
+    {
+      "path": "evidence\\agent-batch-profile-before-20261101\\report.json",
+      "sha256": "261e0ccd1df40c4c8e05d2f72fbcfdac5612a12f1d2b7f60ae912b3428b02624",
+      "bytes": 461
+    },
+    {
+      "path": "evidence\\agent-consumer-attribution-20261101.xml",
+      "sha256": "d1f5df30a6e28a38c59cf03f31b3628e200fb0b1d3ee0528a8cb2f8e77939788",
+      "bytes": 2159
+    },
+    {
+      "path": "evidence\\agent-consumer-hour3-20261101-adjudication.json",
+      "sha256": "747082c77c568b44faa173fec8c2f169bc0278e7823e115a98472a42f444cb49",
+      "bytes": 6403
+    },
+    {
+      "path": "evidence\\agent-consumer-hour3-20261101-summary-v2.json",
+      "sha256": "03a90f6380a1352ec95522fa6ec32100d4d3663bef3c06f3bd91e1927583a31e",
+      "bytes": 63316
+    },
+    {
+      "path": "evidence\\agent-consumer-materialized-imports-20261101.json",
+      "sha256": "0be2afcc667a4bcf16590c5c2d170a6b1f5310e97344d95397ce93c42851688b",
+      "bytes": 339
+    },
+    {
+      "path": "evidence\\agent-consumer-result-20261101.json",
+      "sha256": "ebe582ec57bf18b198796769ab70f676e285a10ea4259840ec5ab1377497943c",
+      "bytes": 23578
+    },
+    {
+      "path": "evidence\\agent-consumer-short8-20261101-adjudication.json",
+      "sha256": "6429be01b2afe47cef3ac667de8f04a08d7f35f1544c7cf23a8ae9cf5432f54a",
+      "bytes": 6469
+    },
+    {
+      "path": "evidence\\agent-consumer-short8-20261101-summary-v2.json",
+      "sha256": "139c8b652c64d9ddea781ab5a9fc002fbb13f3069dcb95a1a0030880868793a2",
+      "bytes": 63574
+    },
+    {
+      "path": "evidence\\agent-consumer-short9-20261101-adjudication.json",
+      "sha256": "f35c3c3c38b5c5a34414126a7a045059418c792c69ad7cc752e62013e8d53d40",
+      "bytes": 6469
+    },
+    {
+      "path": "evidence\\agent-consumer-short9-20261101-summary-v2.json",
+      "sha256": "c77657283eba0a47e5a782d17a57e13a25e6ae27be76f45a0758c1b584f86bf5",
+      "bytes": 74053
+    },
+    {
+      "path": "evidence\\agent-consumer-source-map-20261101.json",
+      "sha256": "d8adc6ee799ab86e89fb55dabba37d9a46f1f46eb8d270f78e6b447927d79560",
+      "bytes": 64796
+    },
+    {
+      "path": "evidence\\agent-consumer-sources-20261101.xml",
+      "sha256": "c6fa6eb3cebafef22bf56bbe05bb41dc9d5306bc9db115c4d4a02e7395a8d859",
+      "bytes": 22366
+    },
+    {
+      "path": "evidence\\agent-development-candidate-507eafe85588f2d0.json",
+      "sha256": "dfcfa545474e8846d2627bf01ba1a052c42bf971a1db4e78ae1ef25dc9be5375",
+      "bytes": 70446
+    },
+    {
+      "path": "evidence\\agent-development-candidate-57334d08b59f2e8e.json",
+      "sha256": "507713e613badf599a64edd53d2b27eebab153c562517365bd28eec19efbdc3c",
+      "bytes": 69783
+    },
+    {
       "path": "evidence\\agent-development-candidate-7a75d4a6c3d157e3.json",
       "sha256": "b2386819eee53dc5a7f8b3e328b1d6729b92b847af7a7af0860bd0137a4ffd46",
       "bytes": 69774
@@ -6534,6 +6849,11 @@
     {
       "path": "evidence\\baseline-20261101T124721Z.json",
       "sha256": "bbe0c05b887f9d20da897e37a53efaabfb7c9543baa4f30300e1a04fecdaa6d7",
+      "bytes": 6694
+    },
+    {
+      "path": "evidence\\baseline-20261101T125216Z.json",
+      "sha256": "58dcc2a6e2055274f7592036e4eac283d0c2441719cdc9401a82411c1b016aaf",
       "bytes": 6694
     },
     {
@@ -8152,13 +8472,13 @@
     "opening-first-hour\\first_hour_policy.py": "649e82ce77f1ad621af9b8b504305f3b73aa979d62e15aa0dc94d15e5898a3bb",
     "opening-first-hour\\first_hour_projection.py": "5b85f406f865dae4c9cdca8664cb9d6153980ada7f8855ce065bd270fdbaafbb",
     "opening-first-hour\\first_hour_reference.py": "729773ddc9d620be423289e7eb29ee8f55da74058d868360c37eb9a87a3a446c",
-    "opening-first-hour\\first_hour_runtime.py": "426f5a256188ef51f946f4e4511a0bb4b3f2e212e16907d0d021ebefe9b8c7dd",
+    "opening-first-hour\\first_hour_runtime.py": "cae8c217f58a28c750e891717684c49a65e0485c02dc17b85624007909230e63",
     "opening-first-hour\\first_hour_status_worker.py": "084d8c4f851754ea4e1f471762350dbc4520ec2e72678bd8e161dafb933f5c54",
     "opening-first-hour\\first_hour_store.py": "1c77b56efcadec4b072bdd36ca49446faab132dacc7cb41651d8ceac811a2e7f",
     "opening-first-hour\\first_hour_summary.py": "19505defa899ea31425a8f7b557c92dc7e0b19a31872d3d85bc4a47d6b16f04e",
     "opening-first-hour\\gateway_candidate.py": "5ce6c083c264d244d39ab605b7d24fdfd3eae270b01b34ade5a42d7ad207bc91",
     "opening-first-hour\\generation_reads.py": "9d86a2e276e944b295cce1435f611654380d75a9bdd120bfef8932a83c5e2d5a",
-    "opening-first-hour\\method_snapshot.py": "2f942bf4ae7fcd7d9331e82ba2e887ebd0d09e38d8d3512d1cfdb3db806c077f",
+    "opening-first-hour\\method_snapshot.py": "14285106f73d417711975e2a136e169f6f34eb4b5a3151d1cdf22f0829dd5880",
     "opening-first-hour\\minute_resolution_plan.py": "e8f4e74da5c08c252db8601f766aca67418702af98b101e160c734e332ef2da5",
     "opening-first-hour\\prepared_generation.py": "e15b70e5a71d99758531f9392ff0269b38aa5156a2206f8d6bc7081ea5e0e5b9",
     "opening-first-hour\\prepared_minutes.py": "d03f206e30a59840e91f91ba59fa7f0a4ad771af1052586eb5bcf5a29d115efa",
@@ -8175,7 +8495,7 @@
     "opening-first-hour\\test_first_hour_selection.py": "eed9e3f98ec2c1bcd2147d03b8d0a447a85a3992c21441466e64d2052f0258d0",
     "opening-first-hour\\test_first_hour_summary.py": "de24c93467f90bc1e87d519da111efd17b7d615d0e45d7bda24545b43ffdfec6",
     "opening-first-hour\\test_gateway_candidate.py": "6ccedc9bce37137c334d62323aa80aae5964372f34ce7d04c74c1e0f8f8d7a1e",
-    "opening-first-hour\\test_generation_handoff.py": "2edcc16925cda0c4f4b83f7f8f96c8451cb1c4c65f8f8110f677206c5a8017d5",
+    "opening-first-hour\\test_generation_handoff.py": "66cfaa8ae1618eab513e4540cfe4f9a5572bf048b82633b72181698c3b15e9c0",
     "opening-first-hour\\test_generation_reads.py": "b0c0f30ce6fadf08cb52ee9e44ee6f6e18d4637b267519a8fa16a20db4eaad0c",
     "opening-first-hour\\test_input_commit_fence.py": "41488dd4da866f2750fe37e91665e8f73306dfca9711a7b81ccc043d2426cf29",
     "opening-first-hour\\test_live_card_revisions.py": "22fd656758bcc3cc9214f3f7af4ada074ced05e7664fc79fd6735dcaf0e19409",
@@ -8187,7 +8507,7 @@
     "opening-first-hour\\test_research_timeliness.py": "ceea73aa492ec7fce1699a802d37a25979d5e6498223986359fc00a4220a7c6c",
     "opening-first-hour\\test_resolution_preparation.py": "dc9966ff749361a68888e8d5f6ca7bacc759eea11b4b1096fa671462ca7a146a",
     "opening-first-hour\\test_runtime_parent_binding.py": "180a9d5e33f64508b4f57dae7492f3b658b7c45687697648ad87a477cce84489",
-    "opening-first-hour\\test_source_preparation.py": "2fcb5739a5498a5025599d5bad079d921434702c6c3bc34713a33ba48b31bcdc",
+    "opening-first-hour\\test_source_preparation.py": "6a96fa8b9e4efeabd11011afdffd076c6731957dc315de930c4bf71ff27a1410",
     "opening-first-hour\\trace_missing_evaluation.py": "1171d81451a4b269b85999c4ea7b2578f4a774b83ab1de9235a1cde8f14f0089",
     "opening-first-hour\\assembly\\bootstrap.py": "cec896352f67b71654c603b29ade8592a61a0bb4abd151287c65186f1032054f",
     "opening-first-hour\\assembly\\browser_response_evidence.cjs": "041bb5659b6cda26e64ada5be01c8b06f408ae95c4127795ff6dff07e2ffb9ac",
@@ -8221,7 +8541,7 @@
     "weekend-20261031\\capture_execution.py": "6559a30cd3be4837b42412b30abcf8d754a6369890866cf5f1fc00186d355357",
     "weekend-20261031\\http_attribution.py": "6e91d321bafd4250c7983255118a094ec03705ff71fbd40a69bd51e6264a5250",
     "weekend-20261031\\prepare_authorization.py": "947b3aa3b247e9e74728948e07792cf71abe5a6358be64e5da361e8208fabfe8",
-    "weekend-20261031\\profile_generation.py": "3ce4b88b20102e14f9b2831d77a3c3b587fe46b07a7e8e5c5c83347388daf731",
+    "weekend-20261031\\profile_generation.py": "e1db5ed62bc9d030d757aedcccb783f769eb047fd04fb3b1825d75cb9886214f",
     "weekend-20261031\\replay_saved.py": "26b0bc4d92cc1bd55e5d049bd59bc23fd0ade4d98c45611836e7ea996b1df79b",
     "weekend-20261031\\run_real_capability.py": "4ed1a79a4e91c238e6d1ae491a966d2e8c72237e363449d3bda9c315b050d66a",
     "weekend-20261031\\run_topology.py": "911ac545150591c5910d6fb56964010d4ee72107c49f76c12963604f06765e1b",
@@ -8257,6 +8577,6 @@
     "weekend-20261031\\config\\owner_weekend_api.json": "e152442d6dde4faca77b973cc59e57e469ce9bf05b13a5bf2d40fa0d205913fd",
     "weekend-20261031\\config\\research_ai.json": "8ba472eadff15064d89f6b8c903fc03c473fe3f954a48c3b63cf300c92becb38"
   },
-  "source_identity": "462675064de312c535c6bd7d523aed6c2c5deffafa5bd281538031a9bbd2f75c",
+  "source_identity": "a715d725ab9a98310f526fb128880aae24e140eb15b47c35d3043b1257b4eaec",
   "consistency": "Sequential file observations, not an atomic runtime or database snapshot."
 }

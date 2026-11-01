@@ -1,0 +1,2071 @@
+{
+  "run": "agent-consumer-short8-20261101",
+  "test_only": true,
+  "original_verdict_unchanged": true,
+  "classifier_version": 3,
+  "os_network_root_claimed": false,
+  "source_sha256": {
+    "topology_report.json": "e4ee4d4fceaebe75013521425bc64969d982ca976434539d235927fb1855bbb5",
+    "TEST_ONLY-topology.json": "cc20fe91fc6a3deb8a62ec5d54a3f4b857e418d5b85708e9faa64689af82a876",
+    "TEST_ONLY-gateway-transport.json": "d1d9f6ba01b1d0a7389b6126371603475a3be25ffff86f20ab5b10735b93ea96",
+    "TEST_ONLY-projection-errors-36028.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "TEST_ONLY-projection-errors-43288.jsonl": "35f10d7f8831a97958a3aa35571d174aee456ad342f16b6a28b709be2a0bcb95",
+    "TEST_ONLY-http-0.jsonl": "59a0bbcf65077e1748bd84154e9d1c2f09d830952ee4010ebaac1e5db8aa9553",
+    "TEST_ONLY-http-1.jsonl": "34f7e039df45e714693a8b21708cb356b78211bbba19122ad1db48ad4d36332c",
+    "TEST_ONLY-http-2.jsonl": "de6e4d5167920592c5a58201cbd2f6db655402f40b81ff06146f6a8240e3fcb0"
+  },
+  "errors": [],
+  "background": {
+    "records": 499,
+    "success": 499,
+    "failure": 0,
+    "deadline": 0
+  },
+  "source_unchanged": true,
+  "children_alive": [],
+  "performance_pass": false,
+  "browser_classification": {
+    "TEST_ONLY_UNMOUNTED": 377
+  },
+  "browser_problems": [],
+  "http_attempts": 564,
+  "http_failure_count": 9,
+  "findings": {
+    "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET": 6,
+    "EXACT_REPLACEMENT_COLD_SNAPSHOT": 3
+  },
+  "failures": [
+    {
+      "request_id": "TEST_ONLY-40456-0-2",
+      "forwarded_request_id": "634a8489f2014e409e5156b52fcf322c",
+      "path": "/api/stocks/health/live",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 29688,
+      "killed_pid": 36028,
+      "backend_port": 8193,
+      "replacement_ready_monotonic": 1554050.843,
+      "connection_traces": [
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "request_id": "TEST_ONLY-40456-0-3",
+      "forwarded_request_id": "465fc65f472c4ae683bac2dffd25ca66",
+      "path": "/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 29688,
+      "killed_pid": 36028,
+      "backend_port": 8193,
+      "replacement_ready_monotonic": 1554050.843,
+      "connection_traces": [
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "request_id": "TEST_ONLY-40456-0-4",
+      "forwarded_request_id": "345b96d91302470aa015894391e162e6",
+      "path": "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503,
+      "error_code": "TREND_STATUS_UNAVAILABLE",
+      "stage": null,
+      "finding": "EXACT_REPLACEMENT_COLD_SNAPSHOT",
+      "replacement_pid": 43288,
+      "snapshot_fresh_seconds": 1.5939999998081475
+    },
+    {
+      "request_id": "TEST_ONLY-40456-1-2",
+      "forwarded_request_id": "634a8489f2014e409e5156b52fcf322c",
+      "path": "/api/stocks/health/live",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 29688,
+      "killed_pid": 36028,
+      "backend_port": 8193,
+      "replacement_ready_monotonic": 1554050.843,
+      "connection_traces": [
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "request_id": "TEST_ONLY-40456-1-3",
+      "forwarded_request_id": "465fc65f472c4ae683bac2dffd25ca66",
+      "path": "/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 29688,
+      "killed_pid": 36028,
+      "backend_port": 8193,
+      "replacement_ready_monotonic": 1554050.843,
+      "connection_traces": [
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "request_id": "TEST_ONLY-40456-1-4",
+      "forwarded_request_id": "345b96d91302470aa015894391e162e6",
+      "path": "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503,
+      "error_code": "TREND_STATUS_UNAVAILABLE",
+      "stage": null,
+      "finding": "EXACT_REPLACEMENT_COLD_SNAPSHOT",
+      "replacement_pid": 43288,
+      "snapshot_fresh_seconds": 1.5939999998081475
+    },
+    {
+      "request_id": "TEST_ONLY-40456-2-2",
+      "forwarded_request_id": "634a8489f2014e409e5156b52fcf322c",
+      "path": "/api/stocks/health/live",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 29688,
+      "killed_pid": 36028,
+      "backend_port": 8193,
+      "replacement_ready_monotonic": 1554050.843,
+      "connection_traces": [
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "634a8489f2014e409e5156b52fcf322c",
+          "path": "/api/health/live",
+          "domain": "stocks",
+          "started_monotonic": 1554049.281,
+          "ended_monotonic": 1554050.031,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "request_id": "TEST_ONLY-40456-2-3",
+      "forwarded_request_id": "465fc65f472c4ae683bac2dffd25ca66",
+      "path": "/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 29688,
+      "killed_pid": 36028,
+      "backend_port": 8193,
+      "replacement_ready_monotonic": 1554050.843,
+      "connection_traces": [
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        },
+        {
+          "request_id": "465fc65f472c4ae683bac2dffd25ca66",
+          "path": "/api/options/opening-trend/current",
+          "domain": "stocks",
+          "started_monotonic": 1554050.031,
+          "ended_monotonic": 1554050.796,
+          "error_code": "UPSTREAM_TIMEOUT",
+          "error_type": "TimeoutError",
+          "failure_stage": "CONNECT",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "request_id": "TEST_ONLY-40456-2-4",
+      "forwarded_request_id": "345b96d91302470aa015894391e162e6",
+      "path": "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503,
+      "error_code": "TREND_STATUS_UNAVAILABLE",
+      "stage": null,
+      "finding": "EXACT_REPLACEMENT_COLD_SNAPSHOT",
+      "replacement_pid": 43288,
+      "snapshot_fresh_seconds": 1.5939999998081475
+    }
+  ],
+  "checkpoints": [
+    {
+      "at": "2026-10-22T13:35:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 400,
+          "complete": 200,
+          "states": {
+            "NUMERIC_PASS": 100,
+            "NO_TRIGGER": 100
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 200,
+          "unexpected_results": [],
+          "first_full_timing_positions": 200,
+          "first_full_enqueue_to_commit_p95_seconds": 4.922000000020489
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 418,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 4.922000000020489
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1869999999180436
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.922000000020489
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.25
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 1.125
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.13999999989755452
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.922000000020489
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:40:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 200,
+          "states": {
+            "NUMERIC_PASS": 100,
+            "NO_TRIGGER": 100
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 200,
+          "unexpected_results": [],
+          "first_full_timing_positions": 200,
+          "first_full_enqueue_to_commit_p95_seconds": 4.5149999998975545
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 4.5149999998975545
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.17100000008940697
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.26599999982863665
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0940000000409782
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.5149999998975545
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.061999999918044
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2190000000409782
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15600000019185245
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09399999980814755
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.5149999998975545
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:45:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 207,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 4.4530000002123415
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 216,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 4.4530000002123415
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.10900000017136335
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.21800000010989606
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.4530000002123415
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 3.547000000020489
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.75
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1559999999590218
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000008195639
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.438000000081956
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:50:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 5.844000000040978
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 5.844000000040978
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2809999999590218
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04699999978765845
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23500000010244548
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.844000000040978
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 5.4850000001024455
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.3279999999795109
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2029999999795109
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.8280000002123415
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:55:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 5.608999999938533
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 5.608999999938533
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04600000008940697
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1410000000614673
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.34300000010989606
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.608999999938533
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.718000000109896
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.8120000001508743
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.3119999999180436
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23400000017136335
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.593000000109896
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:00:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 7.405999999959022
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 7.405999999959022
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06199999991804361
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.375
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06200000015087426
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.39099999982863665
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.405999999959022
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 6.233999999938533
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.8910000000614673
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.31299999984912574
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1410000000614673
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15625
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.391000000061467
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:05:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 201,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 6.108999999938533
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 202,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 6.108999999938533
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000008195639
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1720000000204891
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.31200000015087426
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.108999999938533
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 5.280999999959022
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.9850000001024455
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2339999999385327
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0940000000409782
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.061999999918044
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:10:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 202,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 5.265000000130385
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 204,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 5.265000000130385
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04699999978765845
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2649999998975545
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2190000000409782
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.265000000130385
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.672000000020489
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.25
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.18700000015087426
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.11000000010244548
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.265000000130385
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:15:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 207,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 6.077999999979511
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 216,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 6.077999999979511
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23499999986961484
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06199999991804361
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.375
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.077999999979511
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 5.686999999918044
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.3440000000409782
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2809999999590218
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0940000000409782
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.077999999979511
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:20:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 7.469000000040978
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 7.469000000040978
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.375
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.375
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.469000000040978
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 7.093000000109896
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.5309999999590218
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2809999999590218
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.469000000040978
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:25:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 201,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 7.577999999979511
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 202,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": [],
+          "expected_legal_full": 198,
+          "unexpected_results": [],
+          "first_full_timing_positions": 198,
+          "first_full_enqueue_to_commit_p95_seconds": 7.577999999979511
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.07800000021234155
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.40699999989010394
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.45300000021234155
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06200000015087426
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.577999999979511
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 7.0310000001918525
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.4220000000204891
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.4220000000204891
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23499999986961484
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.140625
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.563000000081956
+        }
+      }
+    }
+  ]
+}

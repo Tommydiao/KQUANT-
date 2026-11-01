@@ -3,6 +3,7 @@ import argparse
 from collections import Counter
 from hashlib import sha256
 import json
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -20,6 +21,33 @@ def connect_recovery_match(trace, forwarded, upstream, code, fault):
             <= fault['replacement_ready_monotonic']
         and trace['started_monotonic'] <= trace.get('ended_monotonic', -1)
             <= fault['snapshot_ready_monotonic'])
+
+
+def cold_receive_match(row, trace, proof, fault):
+    try:
+        returned = datetime.fromisoformat(proof['observed_at'])
+        timed_out = datetime.fromisoformat(row['observed_at'])
+        return (row.get('status') == trace.get('status') == 503
+            and row.get('response_error_code') == trace.get('error_code') == 'UPSTREAM_TIMEOUT'
+            and row.get('response_failure_stage') == trace.get('failure_stage') == 'RECEIVE'
+            and row.get('response_error_origin') == 'GATEWAY_UPSTREAM'
+            and trace.get('domain') == 'stocks'
+            and row.get('server_request_id') == trace.get('request_id') == proof.get('request_id')
+            and bool(row.get('server_request_id'))
+            and urlsplit(row['path']).path == trace.get('path') == proof.get('path')
+            and proof.get('pid') == fault['replacement_pid']
+            and proof.get('stage') == 'HTTP_503' and proof.get('error') is None
+            and any(c.get('kind') == 'compact' and c.get('strategy') == 'opening_momentum'
+                    and c.get('has_value') is False and c.get('generation') == 0
+                    and c.get('pending_key') is not None and c.get('error') is None
+                    for c in proof.get('caches', []))
+            and fault['fault_monotonic_start'] <= trace['started_monotonic']
+                <= fault['replacement_ready_monotonic']
+            and trace['started_monotonic'] <= trace['ended_monotonic']
+                <= fault['snapshot_ready_monotonic']
+            and 0 <= (returned - timed_out).total_seconds() <= .1)
+    except (KeyError, TypeError, ValueError):
+        return False
 
 
 def summarize(name):
@@ -87,8 +115,15 @@ def summarize(name):
                 item.update(finding='EXACT_REPLACEMENT_COLD_SNAPSHOT', replacement_pid=fault['replacement_pid'],
                             snapshot_fresh_seconds=recovered['seconds'])
                 break
+            receive = [trace for trace in transport.get('records', [])
+                       if any(cold_receive_match(row, trace, proof, fault) for proof in cold)]
+            if receive and transport.get('pid') == topology['gateway']['pid']:
+                item.update(finding='EXACT_REPLACEMENT_COLD_RESPONSE_AFTER_GATEWAY_TIMEOUT',
+                            replacement_pid=fault['replacement_pid'], gateway_pid=transport['pid'],
+                            connection_traces=receive, projection_proofs=cold)
+                break
         failures.append(item)
-    result = dict(run=name, test_only=True, original_verdict_unchanged=True, classifier_version=2,
+    result = dict(run=name, test_only=True, original_verdict_unchanged=True, classifier_version=3,
         os_network_root_claimed=False, source_sha256=inputs, errors=report.get('errors'),
         background=report.get('legacy_included_transport_accounting', {}).get('totals'),
         source_unchanged=report.get('tested_sources_unchanged'),

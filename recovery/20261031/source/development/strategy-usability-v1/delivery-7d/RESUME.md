@@ -2,6 +2,16 @@
 
 ## November1 Phased Agent Work: Latest Pointer
 
+LATEST14:15UTC: read weekend-20261031/AGENT_CONSUMER_CLOSEOUT_20261101.md
+and evidence/agent-consumer-result-20261101.json first. Per-consumer transitive
+source isolation fixed,175 engine tests pass. Two identical short runs followed
+by completed3600.204s hour:5521/5521 reads,100pending original deadlines,children[].
+11 first-full P95 values all<=10s, max9.641s; excellent2s remainsFAIL.
+All attempts including revisions still exceed10s at five points, and hour Signal
+page delivery is unproven; full acceptance remainsfalse. No production restart.
+Development inventory507eafe85588f2d0 is not executable publication approval.
+The older summary immediately below is preserved historical evidence.
+
 Read `weekend-20261031/AGENT_ITERATION_EXECUTION_20261101.md` and the FIRST section
 of its RESUME.md. Researchv2, as-of tools, task records and responsive card are
 implemented in isolation.61 AI/172 engine tests pass;12 browser layouts pass.

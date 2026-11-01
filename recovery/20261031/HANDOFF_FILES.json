@@ -568,9 +568,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/RESUME.md",
-    "source_sha256": "fbd2e8bf1256f7f8e91b790f84e5f330c67b626b8e67ae7ced5808b6bf4fecb9",
-    "export_sha256": "fbd2e8bf1256f7f8e91b790f84e5f330c67b626b8e67ae7ced5808b6bf4fecb9",
-    "bytes": 57164,
+    "source_sha256": "dfb556e161510e9ff967ac1f6a9052f4b6531cedfe041c9d0e98fc3c132a5fa7",
+    "export_sha256": "dfb556e161510e9ff967ac1f6a9052f4b6531cedfe041c9d0e98fc3c132a5fa7",
+    "bytes": 57864,
     "redactions": []
   },
   {
@@ -4028,9 +4028,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_runtime.py",
-    "source_sha256": "426f5a256188ef51f946f4e4511a0bb4b3f2e212e16907d0d021ebefe9b8c7dd",
-    "export_sha256": "426f5a256188ef51f946f4e4511a0bb4b3f2e212e16907d0d021ebefe9b8c7dd",
-    "bytes": 58895,
+    "source_sha256": "cae8c217f58a28c750e891717684c49a65e0485c02dc17b85624007909230e63",
+    "export_sha256": "cae8c217f58a28c750e891717684c49a65e0485c02dc17b85624007909230e63",
+    "bytes": 59145,
     "redactions": []
   },
   {
@@ -4070,9 +4070,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/method_snapshot.py",
-    "source_sha256": "2f942bf4ae7fcd7d9331e82ba2e887ebd0d09e38d8d3512d1cfdb3db806c077f",
-    "export_sha256": "2f942bf4ae7fcd7d9331e82ba2e887ebd0d09e38d8d3512d1cfdb3db806c077f",
-    "bytes": 2499,
+    "source_sha256": "14285106f73d417711975e2a136e169f6f34eb4b5a3151d1cdf22f0829dd5880",
+    "export_sha256": "14285106f73d417711975e2a136e169f6f34eb4b5a3151d1cdf22f0829dd5880",
+    "bytes": 3502,
     "redactions": []
   },
   {
@@ -4203,9 +4203,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_generation_handoff.py",
-    "source_sha256": "2edcc16925cda0c4f4b83f7f8f96c8451cb1c4c65f8f8110f677206c5a8017d5",
-    "export_sha256": "2edcc16925cda0c4f4b83f7f8f96c8451cb1c4c65f8f8110f677206c5a8017d5",
-    "bytes": 30482,
+    "source_sha256": "66cfaa8ae1618eab513e4540cfe4f9a5572bf048b82633b72181698c3b15e9c0",
+    "export_sha256": "66cfaa8ae1618eab513e4540cfe4f9a5572bf048b82633b72181698c3b15e9c0",
+    "bytes": 31605,
     "redactions": []
   },
   {
@@ -4294,9 +4294,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_source_preparation.py",
-    "source_sha256": "2fcb5739a5498a5025599d5bad079d921434702c6c3bc34713a33ba48b31bcdc",
-    "export_sha256": "2fcb5739a5498a5025599d5bad079d921434702c6c3bc34713a33ba48b31bcdc",
-    "bytes": 2442,
+    "source_sha256": "6a96fa8b9e4efeabd11011afdffd076c6731957dc315de930c4bf71ff27a1410",
+    "export_sha256": "6a96fa8b9e4efeabd11011afdffd076c6731957dc315de930c4bf71ff27a1410",
+    "bytes": 4194,
     "redactions": []
   },
   {
@@ -4979,6 +4979,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/AGENT_CONSUMER_CLOSEOUT_20261101.md",
+    "source_sha256": "1f20a6a02329347220ee0e3ffb5c24e8005bd66c6c443048bce2136249787d39",
+    "export_sha256": "1f20a6a02329347220ee0e3ffb5c24e8005bd66c6c443048bce2136249787d39",
+    "bytes": 4292,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/AGENT_ITERATION_EXECUTION_20261101.md",
     "source_sha256": "2db30d8b295c5194961b35b2aa1d6b2ca38a1fe0db35cc7bfc9647b339c3b634",
     "export_sha256": "2db30d8b295c5194961b35b2aa1d6b2ca38a1fe0db35cc7bfc9647b339c3b634",
@@ -4994,9 +5001,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/EXECUTION_EVIDENCE.json",
-    "source_sha256": "d3940c4f1581ce026895efe54095c5365a3354981dbab94c56f8dd3d10fc2046",
-    "export_sha256": "d3940c4f1581ce026895efe54095c5365a3354981dbab94c56f8dd3d10fc2046",
-    "bytes": 316078,
+    "source_sha256": "235ac6be485289e2862a40400a3b0b85ed3af8af0d98db6ae41dd8a5d7fec795",
+    "export_sha256": "235ac6be485289e2862a40400a3b0b85ed3af8af0d98db6ae41dd8a5d7fec795",
+    "bytes": 327431,
     "redactions": []
   },
   {
@@ -5029,9 +5036,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/RESUME.md",
-    "source_sha256": "a3295328f611e7bfd7cffff7f2c9116ef763fa8bcd9ce4f6ba50ab1f68a134c6",
-    "export_sha256": "a3295328f611e7bfd7cffff7f2c9116ef763fa8bcd9ce4f6ba50ab1f68a134c6",
-    "bytes": 21004,
+    "source_sha256": "dc05471770d85b011ab6c59c9d0bc6694de246ebbf14b5541d1146e2abb3fa4d",
+    "export_sha256": "dc05471770d85b011ab6c59c9d0bc6694de246ebbf14b5541d1146e2abb3fa4d",
+    "bytes": 23555,
     "redactions": []
   },
   {
@@ -5120,9 +5127,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/profile_generation.py",
-    "source_sha256": "3ce4b88b20102e14f9b2831d77a3c3b587fe46b07a7e8e5c5c83347388daf731",
-    "export_sha256": "3ce4b88b20102e14f9b2831d77a3c3b587fe46b07a7e8e5c5c83347388daf731",
-    "bytes": 8609,
+    "source_sha256": "e1db5ed62bc9d030d757aedcccb783f769eb047fd04fb3b1825d75cb9886214f",
+    "export_sha256": "e1db5ed62bc9d030d757aedcccb783f769eb047fd04fb3b1825d75cb9886214f",
+    "bytes": 8655,
     "redactions": []
   },
   {
@@ -5490,6 +5497,97 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-attribution-20261101.xml",
+    "source_sha256": "d1f5df30a6e28a38c59cf03f31b3628e200fb0b1d3ee0528a8cb2f8e77939788",
+    "export_sha256": "d1f5df30a6e28a38c59cf03f31b3628e200fb0b1d3ee0528a8cb2f8e77939788",
+    "bytes": 2159,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-hour3-20261101-adjudication.json",
+    "source_sha256": "747082c77c568b44faa173fec8c2f169bc0278e7823e115a98472a42f444cb49",
+    "export_sha256": "747082c77c568b44faa173fec8c2f169bc0278e7823e115a98472a42f444cb49",
+    "bytes": 6403,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-hour3-20261101-summary-v2.json",
+    "source_sha256": "03a90f6380a1352ec95522fa6ec32100d4d3663bef3c06f3bd91e1927583a31e",
+    "export_sha256": "03a90f6380a1352ec95522fa6ec32100d4d3663bef3c06f3bd91e1927583a31e",
+    "bytes": 63316,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-materialized-imports-20261101.json",
+    "source_sha256": "0be2afcc667a4bcf16590c5c2d170a6b1f5310e97344d95397ce93c42851688b",
+    "export_sha256": "0be2afcc667a4bcf16590c5c2d170a6b1f5310e97344d95397ce93c42851688b",
+    "bytes": 339,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-result-20261101.json",
+    "source_sha256": "ebe582ec57bf18b198796769ab70f676e285a10ea4259840ec5ab1377497943c",
+    "export_sha256": "ebe582ec57bf18b198796769ab70f676e285a10ea4259840ec5ab1377497943c",
+    "bytes": 23578,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-short8-20261101-adjudication.json",
+    "source_sha256": "6429be01b2afe47cef3ac667de8f04a08d7f35f1544c7cf23a8ae9cf5432f54a",
+    "export_sha256": "6429be01b2afe47cef3ac667de8f04a08d7f35f1544c7cf23a8ae9cf5432f54a",
+    "bytes": 6469,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-short8-20261101-summary-v2.json",
+    "source_sha256": "139c8b652c64d9ddea781ab5a9fc002fbb13f3069dcb95a1a0030880868793a2",
+    "export_sha256": "139c8b652c64d9ddea781ab5a9fc002fbb13f3069dcb95a1a0030880868793a2",
+    "bytes": 63574,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-short9-20261101-adjudication.json",
+    "source_sha256": "f35c3c3c38b5c5a34414126a7a045059418c792c69ad7cc752e62013e8d53d40",
+    "export_sha256": "f35c3c3c38b5c5a34414126a7a045059418c792c69ad7cc752e62013e8d53d40",
+    "bytes": 6469,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-short9-20261101-summary-v2.json",
+    "source_sha256": "c77657283eba0a47e5a782d17a57e13a25e6ae27be76f45a0758c1b584f86bf5",
+    "export_sha256": "c77657283eba0a47e5a782d17a57e13a25e6ae27be76f45a0758c1b584f86bf5",
+    "bytes": 74053,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-source-map-20261101.json",
+    "source_sha256": "d8adc6ee799ab86e89fb55dabba37d9a46f1f46eb8d270f78e6b447927d79560",
+    "export_sha256": "d8adc6ee799ab86e89fb55dabba37d9a46f1f46eb8d270f78e6b447927d79560",
+    "bytes": 64796,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-sources-20261101.xml",
+    "source_sha256": "c6fa6eb3cebafef22bf56bbe05bb41dc9d5306bc9db115c4d4a02e7395a8d859",
+    "export_sha256": "c6fa6eb3cebafef22bf56bbe05bb41dc9d5306bc9db115c4d4a02e7395a8d859",
+    "bytes": 22366,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-development-candidate-507eafe85588f2d0.json",
+    "source_sha256": "dfcfa545474e8846d2627bf01ba1a052c42bf971a1db4e78ae1ef25dc9be5375",
+    "export_sha256": "dfcfa545474e8846d2627bf01ba1a052c42bf971a1db4e78ae1ef25dc9be5375",
+    "bytes": 70446,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-development-candidate-57334d08b59f2e8e.json",
+    "source_sha256": "507713e613badf599a64edd53d2b27eebab153c562517365bd28eec19efbdc3c",
+    "export_sha256": "507713e613badf599a64edd53d2b27eebab153c562517365bd28eec19efbdc3c",
+    "bytes": 69783,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-development-candidate-7a75d4a6c3d157e3.json",
     "source_sha256": "b2386819eee53dc5a7f8b3e328b1d6729b92b847af7a7af0860bd0137a4ffd46",
     "export_sha256": "b2386819eee53dc5a7f8b3e328b1d6729b92b847af7a7af0860bd0137a4ffd46",
@@ -5644,6 +5742,20 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T125216Z.json",
+    "source_sha256": "58dcc2a6e2055274f7592036e4eac283d0c2441719cdc9401a82411c1b016aaf",
+    "export_sha256": "58dcc2a6e2055274f7592036e4eac283d0c2441719cdc9401a82411c1b016aaf",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T142022Z.json",
+    "source_sha256": "d370a7a1f2a2c37749a4ba3e24b85f0971b6469a7b5156c85c9f4430c7c4501d",
+    "export_sha256": "d370a7a1f2a2c37749a4ba3e24b85f0971b6469a7b5156c85c9f4430c7c4501d",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/benchmark_summary.py",
     "source_sha256": "86b9bd91f45ffa80b4d6624df97d90409047e356e0e8a2aefc29ba6dfa24f2c5",
     "export_sha256": "86b9bd91f45ffa80b4d6624df97d90409047e356e0e8a2aefc29ba6dfa24f2c5",
@@ -5659,9 +5771,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/capture_agent_candidate.py",
-    "source_sha256": "d6394c59b6ec56bb94130c87119eb57f460898c9a4a5be9ea6276a232b0a5fd2",
-    "export_sha256": "d6394c59b6ec56bb94130c87119eb57f460898c9a4a5be9ea6276a232b0a5fd2",
-    "bytes": 3095,
+    "source_sha256": "f204be9dc3ad8c3954eaa5ee5fb3458cb5e0892cd56ed56109ea942bca053ed3",
+    "export_sha256": "f204be9dc3ad8c3954eaa5ee5fb3458cb5e0892cd56ed56109ea942bca053ed3",
+    "bytes": 3557,
     "redactions": []
   },
   {
@@ -5669,6 +5781,13 @@
     "source_sha256": "6848966ee0b881efcaa329171db8cbbb9415140742686ee8461b8b570d00471c",
     "export_sha256": "6848966ee0b881efcaa329171db8cbbb9415140742686ee8461b8b570d00471c",
     "bytes": 4152,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/capture_consumer_result.py",
+    "source_sha256": "861dcebb9ee3eaafd6b02fc7641ca75862a5c7212f62cbb582991cb866e187e4",
+    "export_sha256": "861dcebb9ee3eaafd6b02fc7641ca75862a5c7212f62cbb582991cb866e187e4",
+    "bytes": 4142,
     "redactions": []
   },
   {
@@ -6233,9 +6352,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/summarize_sunday.py",
-    "source_sha256": "e347afaa367c0318ab07e9537ff7da7dd0b845cffc9d0a7f21c797bdb7732052",
-    "export_sha256": "e347afaa367c0318ab07e9537ff7da7dd0b845cffc9d0a7f21c797bdb7732052",
-    "bytes": 6895,
+    "source_sha256": "1e9e54aec9b5f4bc5aba2e16f34badb3e451c822a9a271546f833889e331da4d",
+    "export_sha256": "1e9e54aec9b5f4bc5aba2e16f34badb3e451c822a9a271546f833889e331da4d",
+    "bytes": 9101,
     "redactions": []
   },
   {
@@ -6401,9 +6520,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/test_transport_attribution.py",
-    "source_sha256": "0a60e2e23251889c05fca78bf2ea422b0470bc53887bccd3a9243132f951a5f2",
-    "export_sha256": "0a60e2e23251889c05fca78bf2ea422b0470bc53887bccd3a9243132f951a5f2",
-    "bytes": 935,
+    "source_sha256": "23e7d3ebba8d6ed3e74a6a357a447f2da86820250530b16f6b3dc662379419b9",
+    "export_sha256": "23e7d3ebba8d6ed3e74a6a357a447f2da86820250530b16f6b3dc662379419b9",
+    "bytes": 2339,
     "redactions": []
   },
   {
@@ -6453,6 +6572,20 @@
     "source_sha256": "6faa9212b1f579bcbe24e11c15b629db53a8225b57447baecab430a35568182d",
     "export_sha256": "6faa9212b1f579bcbe24e11c15b629db53a8225b57447baecab430a35568182d",
     "bytes": 3553,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-batch-profile-before-20261101/batch_prepare.txt",
+    "source_sha256": "003cf83fb682dcb1763f35d1aab6e674ba521a888c2514801092632c262eb45b",
+    "export_sha256": "003cf83fb682dcb1763f35d1aab6e674ba521a888c2514801092632c262eb45b",
+    "bytes": 4403,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-batch-profile-before-20261101/report.json",
+    "source_sha256": "261e0ccd1df40c4c8e05d2f72fbcfdac5612a12f1d2b7f60ae912b3428b02624",
+    "export_sha256": "261e0ccd1df40c4c8e05d2f72fbcfdac5612a12f1d2b7f60ae912b3428b02624",
+    "bytes": 461,
     "redactions": []
   },
   {
@@ -10905,6 +11038,27 @@
     "source_sha256": "4dadcbd1cda5a1a675e1608cd7cb8f4f1947d1f03cf7b642eeca5c1b9f76b6ee",
     "export_sha256": "4dadcbd1cda5a1a675e1608cd7cb8f4f1947d1f03cf7b642eeca5c1b9f76b6ee",
     "bytes": 988691,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/agent-consumer-hour3-20261101/topology_report.json",
+    "source_sha256": "132dc28da86ef6f497d84145e4024f7a341e7f348665352487a150b1e828cc78",
+    "export_sha256": "132dc28da86ef6f497d84145e4024f7a341e7f348665352487a150b1e828cc78",
+    "bytes": 3212385,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/agent-consumer-short8-20261101/topology_report.json",
+    "source_sha256": "e4ee4d4fceaebe75013521425bc64969d982ca976434539d235927fb1855bbb5",
+    "export_sha256": "e4ee4d4fceaebe75013521425bc64969d982ca976434539d235927fb1855bbb5",
+    "bytes": 988296,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/agent-consumer-short9-20261101/topology_report.json",
+    "source_sha256": "094305ba3f8898f2c2e23684bf0cc179417329e072afdc2ddbc1589d1dca5568",
+    "export_sha256": "094305ba3f8898f2c2e23684bf0cc179417329e072afdc2ddbc1589d1dca5568",
+    "bytes": 988076,
     "redactions": []
   }
 ]

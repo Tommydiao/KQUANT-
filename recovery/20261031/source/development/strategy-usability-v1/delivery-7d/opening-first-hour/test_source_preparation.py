@@ -2,6 +2,44 @@ import pytest
 from method_snapshot import calculation_scope, source_reader, SourceSnapshotChanged
 
 
+def test_consumer_dependencies_exclude_prior_consumer_but_include_cached_method(tmp_path):
+    from method_snapshot import checked, source_usage, observed_source_paths
+    for name in ('a.txt', 'b.txt', 'method.txt'):
+        (tmp_path/name).write_bytes(name.encode())
+    read = source_reader(lambda relative, digest, root: (root/relative).read_bytes())
+    calls = []
+    def method():
+        calls.append('method')
+        return read('method.txt', 'TEST_ONLY', tmp_path)
+    with calculation_scope():
+        with source_usage():
+            read('a.txt', 'TEST_ONLY', tmp_path)
+            checked(('TEST_ONLY_METHOD',), method)
+            assert set(observed_source_paths()) == {tmp_path/'a.txt', tmp_path/'method.txt'}
+        with source_usage():
+            read('b.txt', 'TEST_ONLY', tmp_path)
+            checked(('TEST_ONLY_METHOD',), method)
+            assert set(observed_source_paths()) == {tmp_path/'b.txt', tmp_path/'method.txt'}
+        assert calls == ['method']
+    assert len(calls) == 2  # Scope exit still invokes the original method validator.
+
+
+def test_other_consumer_changed_bytes_still_discards_whole_batch(tmp_path):
+    from method_snapshot import source_usage, observed_source_paths
+    a, b = tmp_path/'a.txt', tmp_path/'b.txt'
+    a.write_bytes(b'aaaa')
+    b.write_bytes(b'bbbb')
+    read = source_reader(lambda relative, digest, root: (root/relative).read_bytes())
+    with pytest.raises(SourceSnapshotChanged):
+        with calculation_scope():
+            with source_usage():
+                read('a.txt', 'TEST_ONLY', tmp_path)
+            with source_usage():
+                read('b.txt', 'TEST_ONLY', tmp_path)
+                assert set(observed_source_paths()) == {b}
+            a.write_bytes(b'AAAA')
+
+
 def test_source_bytes_shared_only_inside_bounded_scope(tmp_path):
     calls = []
     path = tmp_path/'source.txt'

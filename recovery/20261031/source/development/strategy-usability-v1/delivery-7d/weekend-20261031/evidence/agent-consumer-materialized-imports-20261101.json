@@ -1,0 +1,9 @@
+{
+  "observed_at": "2026-11-01T13:14:47.035506+00:00",
+  "returncode": 0,
+  "stdout": "EXPLICIT_PARENT_IMPORTS_PASS\nAGENT_RUNTIME_IMPORTS_PASS_NO_CALLS\n",
+  "stderr": "",
+  "copied_python_files": 207,
+  "business_databases_opened": false,
+  "limitation": "Code-only cold imports, not Supervisor/Worker or release acceptance."
+}

@@ -5,6 +5,7 @@ from copy import deepcopy
 import json
 
 _active = ContextVar('first_hour_method_snapshot', default=None)
+_used = ContextVar('first_hour_source_dependencies', default=None)
 
 
 class SourceSnapshotChanged(ValueError):
@@ -31,20 +32,47 @@ def source_reader(reader):
 
 def checked(key, validate):
     entries = _active.get()
-    if entries is None:
-        return validate()
-    if key not in entries:
-        if len(entries) >= 128:
+    caller = _used.get()
+    if entries is None or key not in entries:
+        if entries is not None and len(entries) >= 128:
             raise SourceSnapshotChanged('METHOD_SNAPSHOT_BOUND_EXCEEDED')
-        value = validate()
-        entries[key] = (deepcopy(value), _identity(value), validate)
+        dependencies = {key} if key[0] == 'source-file' else set()
+        token = _used.set(dependencies)
+        try:
+            value = validate()
+        finally:
+            _used.reset(token)
+        if caller is not None:
+            caller.update(dependencies)
+        if entries is None:
+            return value
+        entries[key] = (deepcopy(value), _identity(value), validate, frozenset(dependencies))
+    elif caller is not None:
+        # A cached method may itself have consumed source files. Reusing its
+        # value must retain those transitive dependencies for this consumer.
+        caller.update(entries[key][3])
     return deepcopy(entries[key][0])
+
+
+@contextmanager
+def source_usage():
+    """Collect one consumer's dependencies without changing batch revalidation."""
+    parent = _used.get()
+    used = set()
+    token = _used.set(used)
+    try:
+        yield
+    finally:
+        _used.reset(token)
+        if parent is not None:
+            parent.update(used)
 
 
 def observed_source_paths():
     """Exact files used by this bounded preparation, including their actual root."""
     from pathlib import Path
-    keys = tuple(_active.get() or {})
+    used = _used.get()
+    keys = tuple(used if used is not None else (_active.get() or {}))
     return tuple(resolve_path(Path(key[1]) / key[2]) for key in keys
                  if key[0] == 'source-file')
 
@@ -67,7 +95,7 @@ def calculation_scope():
         yield
         # Re-read original bytes through the original validator, not file stats.
         # A changed/revoked source discards this calculation before persistence.
-        for _, identity, validate in entries.values():
+        for _, identity, validate, _ in entries.values():
             if _identity(validate()) != identity:
                 raise SourceSnapshotChanged('METHOD_CHANGED_DURING_CALCULATION')
     finally:

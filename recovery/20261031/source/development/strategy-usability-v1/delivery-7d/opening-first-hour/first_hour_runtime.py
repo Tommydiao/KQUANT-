@@ -448,6 +448,11 @@ class TrendLane:
         return path
 
     def _prepare_generation(self, key, job, epoch, reviews, policy_pair):
+        from method_snapshot import source_usage
+        with source_usage():
+            return self._prepare_generation_inputs(key, job, epoch, reviews, policy_pair)
+
+    def _prepare_generation_inputs(self, key, job, epoch, reviews, policy_pair):
         from first_hour import prepare_inputs, s0
         from prepared_generation import build, source_files, method_authority, GenerationChanged, price_fact_token
         from kquant.options_opening_trend_reference import ROOT

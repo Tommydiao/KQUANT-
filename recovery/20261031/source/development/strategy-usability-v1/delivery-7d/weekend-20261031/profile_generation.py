@@ -105,7 +105,7 @@ def main():
                     reference(symbol) if args.full_sources else job[4])))
             def prepare_batch():
                 reviews_value, pair = lane._source_reviews(),first_hour.policies()
-                with lane._input_batch(entries=entries):
+                with lane._input_batch(entries=entries, reviews=reviews_value):
                     return [lane._prepare_generation(k,j,0,reviews_value,pair) for k,j in entries]
             operations = [('prepare',lambda:prepare(lane,key,job)),
                                      ('validate',lambda:validate(lane,generation)),
@@ -115,7 +115,7 @@ def main():
                 now[0] -= timedelta(minutes=5)
                 prior_entries = [((*k[:3], 10), j) for k,j in entries]
                 reviews_value, pair = lane._source_reviews(), first_hour.policies()
-                with lane._input_batch(entries=prior_entries):
+                with lane._input_batch(entries=prior_entries, reviews=reviews_value):
                     for k,j in prior_entries:
                         lane._prepare_generation(k,j,0,reviews_value,pair)
                 now[0] = final_now

@@ -1,5 +1,39 @@
 # Weekend Execution Resume
 
+## Completed follow-up: November1,14:15UTC
+
+Per-consumer source dependencies now preserve transitive cached proof files without
+inheriting unrelated securities from the eight-job batch. Whole-batch byte validation
+is unchanged.175 engine tests pass; prior failures remain below.
+Short8/9 use identical runtime/build hashes,499/499 and517/517 background reads,
+all11 first-full P95 below10s (last7.578/7.734), no missing positions or leaked children.
+Short9 original report retains3 unexplained receive timeouts; supplemental exact
+request-ID/Gateway/replacement-PID/cold-cache evidence attributes these to the injected
+crash recovery (one coalesced upstream request, three clients).14 attribution tests
+reject unrelated IDs/PIDs/401/errors. Original report is NOT overwritten.
+`agent-consumer-hour3-20261101` FINISHED3600.204s with300s cadence,5521/5521
+background reads,100pending restored with original deadlines,errors[],children[].
+All11 first-full P95 values are4.344,5.218,4.610,4.938,5.562,7.234,6.750,6.938,
+9.391,9.641,9.578s. Observation assembly and first-full limited performance pass.
+Excellent2s target FAIL. All-committed attempts including revisions still exceed10s
+at the first five points (maximum checkpoint P9571.47s). Do not drop this denominator.
+Hour browser signal_delivery_accepted=false, page latency samples absent; full_acceptance=false.
+Its9 transport failures have exact injected-crash links;4406 unmounted TEST_ONLY
+browser responses are separately classified, not counted as successful requests.
+Read evidence/agent-consumer-result-20261101.json and the run summary/adjudication.
+Source map:
+`evidence/agent-consumer-source-map-20261101.json`,207 files, code-only imports pass.
+Accepted1984 payload/business databases remain untouched; no paid calls or restart.
+Consolidated development inventory507eafe85588f2d0 adds the two lifecycle script
+proofs to207 Python files and both builds; still can_launch=false, not an executable
+release/OWNER receipt. Earlier57334 inventory omitted lifecycle metadata and remains
+historical; runtime bytes were unchanged across both short runs and the full hour.
+Next: distinguish revision age from active queue latency without resetting original
+enqueue/deadline; prove late records leave current opportunity display. Complete the
+positive Signal page path under the hour topology, then executable release manifests
+and exact consolidated recovery/method/budget acceptance. No unchanged expensive rerun.
+Read newest completed evidence before using any earlier performance conclusion.
+
 ## Agent iteration implemented in isolation, November1,12:44UTC evidence
 
 Read `AGENT_ITERATION_EXECUTION_20261101.md` first. New research_review_v2,

@@ -631,3 +631,27 @@ def test_restart_rebuilds_handoff_from_existing_lease(tmp_path):
             assert deadline == generation.deadline.isoformat()
         finally:
             restarted.close()
+
+
+def test_generation_identity_does_not_inherit_other_consumer_sources(tmp_path, monkeypatch):
+    from method_snapshot import source_reader
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, _):
+        names = ['consumer-a.txt', 'consumer-b.txt']
+        for name in names:
+            (tmp_path/name).write_bytes(name.encode())
+        selected = [names[0]]
+        read = source_reader(lambda relative, digest, root: (root/relative).read_bytes())
+        original = lane._checkpoint_inputs
+        def inputs(*args, **kwargs):
+            read(selected[0], 'TEST_ONLY', tmp_path)
+            return original(*args, **kwargs)
+        monkeypatch.setattr(lane, '_checkpoint_inputs', inputs)
+        with calculation_scope():
+            first = prepare(lane, key, job)
+            selected[0] = names[1]
+            second = prepare(lane, key, job)
+        alone = prepare(lane, key, job)
+        assert tmp_path/names[0] in dict(first.files)
+        assert tmp_path/names[0] not in dict(second.files)
+        assert tmp_path/names[1] in dict(second.files)
+        assert second.fingerprint == alone.fingerprint
