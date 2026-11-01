@@ -30,18 +30,8 @@ def input_fingerprint(job, source_decisions=()):
     symbol, day, bars, scope, reference = job
     # Repeated delivery timestamps do not create a new price version. Source,
     # OHLC, availability, and the accepted source decision do.
-    fields = ("symbol", "open_at", "close_at", "available_at", "provider_time",
-              "open", "high", "low", "close", "volume", "turnover", "amount", "confirmed")
-    versions = []
-    for bar in bars:
-        row = {name: bar.get(name) for name in fields if name in bar}
-        row["interface"] = bar.get("sdk_evidence", {}).get("interface")
-        try:
-            end, received = common.timestamp(bar["available_at"]), common.timestamp(bar["received_at"])
-            row["received_before_available"] = received < end
-        except (KeyError, TypeError, ValueError):
-            row["received_before_available"] = "UNVERIFIED"
-        versions.append(common.digest(row))
+    from prepared_minutes import PreparedMinute, semantic_identity
+    versions = [bar.semantic_identity if isinstance(bar, PreparedMinute) else semantic_identity(bar) for bar in bars]
     ignored = {"checked_at", "requested_at", "received_at", "reference_hash", "computed_at"}
     def stable(value):
         if isinstance(value, dict):

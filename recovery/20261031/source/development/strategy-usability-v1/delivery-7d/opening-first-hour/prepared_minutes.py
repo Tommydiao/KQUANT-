@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import json
 from threading import Lock
+from datetime import timedelta
 
 from kquant import options_one_minute as common
 
@@ -37,17 +38,96 @@ def freeze(value):
     return value
 
 
+def evidence_metadata(value):
+    """Parse immutable evidence structure, not its current eligibility."""
+    paths, boundaries, seen = set(), set(), set()
+    def visit(item):
+        if not isinstance(item, (dict, list, tuple)) or id(item) in seen:
+            return
+        seen.add(id(item))
+        if isinstance(item, dict):
+            for name, child in item.items():
+                if name in {'source_path', 'acceptance_path'} and isinstance(child, str):
+                    paths.add(child)
+                if name in {'valid_until', 'expires_at', 'known_at', 'valid_from',
+                            'received_at', 'available_at', 'reviewed_at', 'approved_at'}:
+                    try:
+                        boundaries.add(common.timestamp(child))
+                    except (ValueError, TypeError, AttributeError):
+                        pass
+                elif isinstance(child, (dict, list, tuple)):
+                    visit(child)
+            if item.get('state') == 'VERIFIED_BOUND' and item.get('checked_at'):
+                try:
+                    boundaries.add(common.timestamp(item['checked_at']) + timedelta(seconds=900))
+                except (ValueError, TypeError):
+                    pass
+        else:
+            for child in item:
+                visit(child)
+    visit(value)
+    return frozenset(paths), frozenset(boundaries)
+
+
+def semantic_identity(bar):
+    fields = ('symbol', 'open_at', 'close_at', 'available_at', 'provider_time',
+              'open', 'high', 'low', 'close', 'volume', 'turnover', 'amount', 'confirmed')
+    row = {name: bar.get(name) for name in fields if name in bar}
+    row['interface'] = bar.get('sdk_evidence', {}).get('interface')
+    try:
+        row['received_before_available'] = common.timestamp(bar['received_at']) < common.timestamp(bar['available_at'])
+    except (KeyError, TypeError, ValueError, AttributeError):
+        row['received_before_available'] = 'UNVERIFIED'
+    return common.digest(row)
+
+
 class PreparedMinute(FrozenDict):
-    __slots__ = ("_identity",)
+    __slots__ = ("_identity", "_evidence_metadata", "_semantic_identity", "_native_structure")
     __setattr__ = _readonly
 
     def __init__(self, value):
         dict.__init__(self, ((key, freeze(item)) for key, item in value.items()))
         object.__setattr__(self, "_identity", common.digest(value))
+        object.__setattr__(self, "_evidence_metadata", evidence_metadata(value))
+        object.__setattr__(self, "_semantic_identity", semantic_identity(value))
+        from kquant import options_minute_admission as admission
+        prepare_structure = getattr(admission, 'native_structure', None)
+        object.__setattr__(self, "_native_structure", prepare_structure(value) if prepare_structure else None)
 
     @property
     def identity(self):
         return self._identity
+
+    @property
+    def evidence_metadata(self):
+        return self._evidence_metadata
+
+    @property
+    def semantic_identity(self):
+        return self._semantic_identity
+
+    @property
+    def native_structure(self):
+        return self._native_structure
+
+
+class PreparedSources(FrozenDict):
+    """One fresh read's immutable source bundle, shared only by that read's users."""
+    __slots__ = ('_identity', '_evidence_metadata')
+    __setattr__ = _readonly
+
+    def __init__(self, value):
+        dict.__init__(self, ((key, freeze(item)) for key, item in value.items()))
+        object.__setattr__(self, '_identity', common.digest(value))
+        object.__setattr__(self, '_evidence_metadata', evidence_metadata(value))
+
+    @property
+    def identity(self):
+        return self._identity
+
+    @property
+    def evidence_metadata(self):
+        return self._evidence_metadata
 
 
 class MinutePreparation:
@@ -98,17 +178,22 @@ def decision_key(value):
 
 
 class PreparedDecision(FrozenDict):
-    __slots__ = ('_admission_key',)
+    __slots__ = ('_admission_key', '_evidence_metadata')
     __setattr__ = _readonly
 
     def __init__(self, envelope):
         value = envelope['decision']
         dict.__init__(self, ((key, freeze(item)) for key, item in value.items()))
         object.__setattr__(self, '_admission_key', decision_key(value))
+        object.__setattr__(self, '_evidence_metadata', evidence_metadata(value))
 
     @property
     def admission_key(self):
         return self._admission_key
+
+    @property
+    def evidence_metadata(self):
+        return self._evidence_metadata
 
 
 def partition(rows, *, symbol, opening, until, now):
@@ -119,7 +204,7 @@ def partition(rows, *, symbol, opening, until, now):
         try:
             if common.timestamp(row["received_at"]) > now:
                 continue
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError, AttributeError):
             continue
         start, reason = classify(row, symbol=symbol, opening=opening, until=until, now=now)
         if start is None or not opening <= start < until:

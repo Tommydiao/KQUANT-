@@ -83,6 +83,7 @@ def frozen_delta():
 def configure(cfg):
     global configured_out
     configured_out = Path(cfg['out'])
+    cfg.setdefault('admission_profile', os.environ.get('KQUANT_TEST_ADMISSION_PROFILE') == '1')
     frozen = os.environ.get('KQUANT_TEST_FROZEN_PROJECTION')
     weekend = os.environ.get('KQUANT_TEST_WEEKEND_OVERLAY')
     original_configure(cfg)

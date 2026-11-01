@@ -7,7 +7,7 @@ import os
 from contextlib import contextmanager, nullcontext
 from collections import Counter, OrderedDict
 from datetime import UTC, datetime, timedelta
-from time import monotonic
+from time import monotonic, thread_time
 from weakref import WeakSet
 
 from kquant import options_one_minute as common
@@ -17,6 +17,7 @@ from kquant.market_clock import session_bounds_utc
 from kquant.options_opening_trend_history import HistoryCache
 import first_hour_journal as journal
 from first_hour import WINDOW_END_MINUTES
+from generation_reads import read_scope
 
 _source_listeners = WeakSet()
 _source_listeners_lock = threading.Lock()
@@ -134,7 +135,7 @@ class TrendLane:
                 if strategy == "opening_trend" and not comparison:
                     continue
                 key = strategy, day.isoformat(), symbol, slot
-                self.timings.setdefault(key, {"enqueue_monotonic": monotonic()})
+                self.timings.setdefault(key, {}).setdefault("enqueue_monotonic", monotonic())
                 if key in self.pending or key in self.incoming:
                     self.state["coalesced"] += 1
                 target = self.incoming if strategy == "opening_momentum" else self.pending
@@ -237,7 +238,7 @@ class TrendLane:
                     job=self.latest_inputs[(row['symbol'],day)]
                     self.checkpoints.setdefault(key,job)
                     self.incoming.setdefault(key,job)
-                    self.timings.setdefault(key,{'enqueue_monotonic':monotonic()})
+                    self.timings.setdefault(key,{}).setdefault('enqueue_monotonic',monotonic())
                     self.clock_admitted.add(key)
             self.lock.notify_all()
 
@@ -369,7 +370,8 @@ class TrendLane:
                 self.timings.setdefault(key, {})["input_batch_read_seconds"] = elapsed
             try:
                 from method_snapshot import calculation_scope
-                with calculation_scope():
+                from generation_reads import read_scope
+                with calculation_scope(), read_scope(phase_checked=True):
                     yield
             finally:
                 self.input_read_context.versions = None
@@ -446,7 +448,7 @@ class TrendLane:
         fact = self.bound_fact_root / 'work/option_foundation/price-action-facts' / job[0] / (job[1].isoformat()+'.json')
         method = reviews.get('canonical_resolution_method')
         before = source_files(root, (method, job[4]),
-            extra=(source_path, fact, s0.CONFIG, *((binding_path,) if binding_path else ())))
+            extra=(source_path, fact, s0.CONFIG, *((binding_path,) if binding_path else ())), scoped=True)
         mark('files_before')
         facts_before = price_fact_token(self.path, job[0], job[1].isoformat(), now)
         mark('facts_before')
@@ -473,7 +475,7 @@ class TrendLane:
             checkpoint=opening+timedelta(minutes=key[-1]*5), now=now, source_decisions=decisions)
         mark('aggregate')
         after = source_files(root, (method, job[4], decisions),
-                             extra=(source_path, fact, *(p for p, _ in before), *observed_source_paths()))
+                             extra=(source_path, fact, *(p for p, _ in before), *observed_source_paths()), scoped=True)
         if any(dict(after).get(path) != token for path, token in before):
             raise GenerationChanged('SOURCE_CHANGED_DURING_PREPARATION')
         mark('files_after')
@@ -497,7 +499,7 @@ class TrendLane:
     def _validate_generation(self, generation, *, reviews, policy_pair):
         from prepared_generation import rows_token, GenerationChanged, price_fact_token
         from first_hour_minute_decisions import read_rows
-        from kquant.bounded_sqlite import read_connection
+        from generation_reads import read_connection
         key, job = generation.key, generation.job
         self._check_path_binding()
         now = self.clock()
@@ -511,7 +513,7 @@ class TrendLane:
         generation.check(now=now, epoch=epoch, clock_epoch=self._clock_epoch(),
             minute_token=rows_token(versions), decision_token=rows_token(decisions),
             fact_token=price_fact_token(self.path, job[0], job[1].isoformat(), now),
-            reviews=reviews, policy_pair=policy_pair, method_state=self._method_state(reviews, now))
+            reviews=reviews, policy_pair=policy_pair, method_state=self._method_state(reviews, now), scoped=True)
         self.state['generation_boundary_checks'] = self.state.get('generation_boundary_checks', 0)+1
 
     def _write_ready(self):
@@ -533,8 +535,13 @@ class TrendLane:
                     for key, job in batch:
                         try:
                             started = monotonic()
+                            cpu_started = thread_time()
+                            timing = self.timings.setdefault(key, {})
+                            timing['admission_queue_seconds'] = (started-timing['enqueue_monotonic']
+                                if 'enqueue_monotonic' in timing else None)
                             generation = self._prepare_generation(key, job, epochs[key], reviews, policy_pair)
-                            self.timings.setdefault(key, {})['generation_preparation_seconds'] = monotonic()-started
+                            timing['generation_preparation_seconds'] = monotonic()-started
+                            timing['generation_preparation_cpu_seconds'] = thread_time()-cpu_started
                             entries.append((key, generation.job, self.clock(), generation.fingerprint))
                             generations.append(generation)
                         except (sqlite3.Error, OSError, TimeoutError, ValueError) as exc:
@@ -589,7 +596,9 @@ class TrendLane:
 
     def _source_reviews(self):
         from kquant.options_opening_trend_reference import load_reviews
-        return load_reviews(self.source_reviews_path) if self.source_reviews_path is not None else load_reviews()
+        from prepared_minutes import PreparedSources
+        value = load_reviews(self.source_reviews_path) if self.source_reviews_path is not None else load_reviews()
+        return PreparedSources(value)
 
     def _readmit_current(self, key, previous):
         with self.lock:
@@ -624,30 +633,38 @@ class TrendLane:
                 handoffs = {}
                 for key in keys:
                     job = self.pending.pop(key)
+                    timing = self.timings.setdefault(key, {})
+                    selected_at = monotonic()
+                    timing['compute_queue_seconds'] = (selected_at-timing['durable_admission_monotonic']
+                        if 'durable_admission_monotonic' in timing else None)
                     batch.append((key, job, self.input_epochs.get((job[0], job[1]), 0)))
                     handoffs[key] = self.prepared_generations.pop(key, None)
             prepared, momentum = [], []
             try:
                 from first_hour import policies
+                from method_snapshot import calculation_scope
                 reviews, policy_pair = self._source_reviews(), policies()
-                for key, job, epoch in batch:
-                    try:
-                        now = self.clock()
-                        decisions = []
-                        if key[0] == 'opening_momentum':
-                            generation = handoffs[key]
-                            if generation is None:
-                                self._readmit_current(key, job)
-                                continue
-                            started = monotonic()
-                            self._validate_generation(generation, reviews=reviews, policy_pair=policy_pair)
-                            job, decisions, epoch = generation.job, generation.decisions, generation.input_epoch
-                            self.timings.setdefault(key, {})['generation_validation_seconds'] = monotonic()-started
-                            momentum.append((key, job, now, generation.fingerprint))
-                            self.state['generation_handoffs'] = self.state.get('generation_handoffs', 0)+1
-                        prepared.append((key, job, epoch, now, decisions))
-                    except Exception as exc:
-                        self._retry(key, job, exc)
+                with calculation_scope(), read_scope(phase_checked=True):
+                    for key, job, epoch in batch:
+                        try:
+                            now = self.clock()
+                            decisions = []
+                            if key[0] == 'opening_momentum':
+                                generation = handoffs[key]
+                                if generation is None:
+                                    self._readmit_current(key, job)
+                                    continue
+                                started = monotonic()
+                                cpu_started = thread_time()
+                                self._validate_generation(generation, reviews=reviews, policy_pair=policy_pair)
+                                job, decisions, epoch = generation.job, generation.decisions, generation.input_epoch
+                                self.timings.setdefault(key, {})['generation_validation_seconds'] = monotonic()-started
+                                self.timings[key]['generation_validation_cpu_seconds'] = thread_time()-cpu_started
+                                momentum.append((key, job, now, generation.fingerprint))
+                                self.state['generation_handoffs'] = self.state.get('generation_handoffs', 0)+1
+                            prepared.append((key, job, epoch, now, decisions))
+                        except Exception as exc:
+                            self._retry(key, job, exc)
             except Exception as exc:
                 for key, job, _ in batch:
                     self._retry(key, job, exc)
@@ -690,21 +707,27 @@ class TrendLane:
                 prepared_commits = [(lease, any(row["state"] == "INCOMPLETE" for row in rows),
                     store.prepare_evaluations(rows)) for _, _, _, _, lease, rows, _, _ in computed]
                 commit_started = monotonic()
+                commit_cpu_started = thread_time()
                 with commit_fence():
+                    fence_acquired = monotonic()
                     # Re-read after acquisition. File validation holds neither the
                     # SQL transaction nor lane condition; producers cannot commit.
                     current_reviews, current_policy = self._source_reviews(), policies()
                     valid_indices = []
-                    for i, item in enumerate(computed):
-                        try:
-                            generation = handoffs.get(item[0])
-                            if generation is not None:
-                                self._validate_generation(generation, reviews=current_reviews,
-                                                          policy_pair=current_policy)
-                            valid_indices.append(i)
-                        except Exception as exc:
-                            self.state['generation_invalidations'] = self.state.get('generation_invalidations', 0)+1
-                            self.state['generation_invalidation_reason'] = str(exc)
+                    # End the scope (including fresh byte checks) before any
+                    # journal transaction can commit the shared preparation.
+                    with calculation_scope(), read_scope(phase_checked=True):
+                        for i, item in enumerate(computed):
+                            try:
+                                generation = handoffs.get(item[0])
+                                if generation is not None:
+                                    self._validate_generation(generation, reviews=current_reviews,
+                                                              policy_pair=current_policy)
+                                valid_indices.append(i)
+                            except Exception as exc:
+                                self.state['generation_invalidations'] = self.state.get('generation_invalidations', 0)+1
+                                self.state['generation_invalidation_reason'] = str(exc)
+                    validation_finished = monotonic()
                     with self._journal_guard():
                         with self.lock:
                             indices = [i for i in valid_indices
@@ -714,7 +737,12 @@ class TrendLane:
                             outcomes = [False] * len(computed)
                             for i, result in zip(indices, accepted):
                                 outcomes[i] = result
-                commit_seconds = monotonic() - commit_started
+                committed_at = monotonic()
+                commit_seconds = committed_at - commit_started
+                commit_phases = dict(commit_fence_wait_seconds=fence_acquired-commit_started,
+                    commit_validation_seconds=validation_finished-fence_acquired,
+                    commit_journal_seconds=committed_at-validation_finished,
+                    commit_batch_cpu_seconds=thread_time()-commit_cpu_started)
             except Exception as exc:
                 for key, job, _, _, lease, _, _, _ in computed:
                     self._retry(key, job, exc, lease=lease)
@@ -769,9 +797,13 @@ class TrendLane:
                                   "at": now.isoformat(), "qualified_signal": False,
                                   "runtime_timing": {**{name: value for name, value in self.timings.get(key, {}).items()
                                       if name.endswith("_seconds")}, "commit_batch_seconds": commit_seconds,
+                                      **commit_phases,
                                       "availability_record_seconds": availability_seconds,
                                       "history_snapshot_batch_seconds": history_snapshot_seconds,
-                                      "enqueue_to_commit_seconds": monotonic() - self.timings.get(key, {}).get("enqueue_monotonic", monotonic())}})
+                                      "enqueue_to_durable_commit_seconds": (committed_at-self.timings[key]['enqueue_monotonic']
+                                          if 'enqueue_monotonic' in self.timings.get(key,{}) else None),
+                                      "enqueue_to_commit_seconds": (monotonic()-self.timings[key]['enqueue_monotonic']
+                                          if 'enqueue_monotonic' in self.timings.get(key,{}) else None)}})
 
     @contextmanager
     def _journal_guard(self):

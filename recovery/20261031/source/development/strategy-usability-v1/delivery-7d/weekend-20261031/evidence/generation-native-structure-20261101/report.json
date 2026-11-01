@@ -1,0 +1,22 @@
+{
+  "test_only": true,
+  "api_calls": 0,
+  "business_store_access": false,
+  "cases": [
+    {
+      "name": "batch_prepare",
+      "seconds": [
+        0.23398629995062947
+      ],
+      "sum": 0.23398629995062947,
+      "mean": 0.23398629995062947
+    }
+  ],
+  "source_files": 5,
+  "minute_count": 60,
+  "decision_count": 55,
+  "incomplete_minutes": [],
+  "baseline_handoff": false,
+  "full_sources": true,
+  "last_checkpoint_only": true
+}

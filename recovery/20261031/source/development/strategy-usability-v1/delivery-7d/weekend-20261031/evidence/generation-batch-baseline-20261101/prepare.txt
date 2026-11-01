@@ -1,0 +1,58 @@
+         441096 function calls (409577 primitive calls) in 0.765 seconds
+
+   Ordered by: cumulative time
+   List reduced from 383 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  271/269    0.001    0.000    0.319    0.001 pathlib.py:1228(resolve)
+  271/270    0.002    0.000    0.239    0.001 <frozen ntpath>:705(realpath)
+       20    0.001    0.000    0.215    0.011 prepared_generation.py:46(source_files)
+       10    0.001    0.000    0.202    0.020 first_hour_runtime.py:300(_checkpoint_inputs)
+  722/719    0.199    0.000    0.199    0.000 {built-in method nt._getfinalpathname}
+  694/654    0.001    0.000    0.157    0.000 {built-in method builtins.next}
+       10    0.006    0.001    0.135    0.013 first_hour_minute_decisions.py:140(resolve)
+      103    0.119    0.001    0.119    0.001 {method 'execute' of 'sqlite3.Connection' objects}
+    72/52    0.000    0.000    0.118    0.002 contextlib.py:132(__enter__)
+       20    0.001    0.000    0.107    0.005 first_hour_minute_decisions.py:244(read_with_token)
+      102    0.001    0.000    0.096    0.001 bounded_sqlite.py:8(read_connection)
+       20    0.000    0.000    0.089    0.004 first_hour_minute_decisions.py:234(read_rows)
+       20    0.000    0.000    0.079    0.004 first_hour_runtime.py:352(_input_batch)
+       20    0.000    0.000    0.078    0.004 prepared_generation.py:33(price_fact_token)
+  291/290    0.000    0.000    0.076    0.000 pathlib.py:835(stat)
+  305/304    0.068    0.000    0.076    0.000 {built-in method nt.stat}
+       20    0.000    0.000    0.059    0.003 first_hour_minute_decisions.py:63(<lambda>)
+       20    0.001    0.000    0.059    0.003 first_hour_minute_decisions.py:66(_method_uncached)
+       10    0.000    0.000    0.050    0.005 first_hour_minute_decisions.py:230(read)
+       30    0.001    0.000    0.047    0.002 <frozen ntpath>:656(_getfinalpathname_nonstrict)
+       10    0.000    0.000    0.047    0.005 prepared_generation.py:166(build)
+       10    0.000    0.000    0.043    0.004 first_hour.py:52(prepare_inputs)
+    72/62    0.000    0.000    0.041    0.001 contextlib.py:141(__exit__)
+       10    0.000    0.000    0.035    0.004 prepared_generation.py:76(next_boundary)
+  7550/10    0.019    0.000    0.035    0.004 prepared_generation.py:79(visit)
+       20    0.000    0.000    0.034    0.002 first_hour_minute_decisions.py:58(_method)
+     11/1    0.000    0.000    0.033    0.033 profile_generation.py:89(<lambda>)
+     11/1    0.000    0.000    0.033    0.033 test_generation_handoff.py:101(prepare)
+       20    0.000    0.000    0.032    0.002 method_snapshot.py:51(calculation_scope)
+      110    0.000    0.000    0.032    0.000 pathlib.py:1015(read_bytes)
+     1450    0.002    0.000    0.031    0.000 options_one_minute.py:78(digest)
+       20    0.000    0.000    0.031    0.002 method_snapshot.py:32(checked)
+      120    0.000    0.000    0.030    0.000 pathlib.py:1005(open)
+      120    0.028    0.000    0.030    0.000 {built-in method _io.open}
+     1200    0.008    0.000    0.030    0.000 options_minute_admission.py:12(classify)
+    13610    0.015    0.000    0.028    0.000 options_one_minute.py:82(timestamp)
+       10    0.006    0.001    0.028    0.003 options_opening_trend.py:42(complete_minutes)
+   148108    0.027    0.000    0.027    0.000 {built-in method builtins.isinstance}
+       10    0.000    0.000    0.027    0.003 prepared_generation.py:106(method_authority)
+       10    0.000    0.000    0.027    0.003 first_hour_runtime.py:387(_read_versions)
+  5830/20    0.016    0.000    0.026    0.001 prepared_generation.py:51(visit)
+     1590    0.001    0.000    0.026    0.000 options_one_minute.py:74(canonical)
+     1610    0.003    0.000    0.025    0.000 __init__.py:183(dumps)
+       10    0.000    0.000    0.023    0.002 first_hour_runtime.py:590(_source_reviews)
+       10    0.000    0.000    0.023    0.002 options_opening_trend_reference.py:116(load_reviews)
+      100    0.000    0.000    0.023    0.000 prepared_generation.py:73(<genexpr>)
+       80    0.001    0.000    0.023    0.000 prepared_generation.py:26(file_token)
+     1610    0.003    0.000    0.021    0.000 encoder.py:183(encode)
+       52    0.020    0.000    0.021    0.000 {built-in method _sqlite3.connect}
+     11/1    0.001    0.000    0.021    0.021 first_hour_runtime.py:424(_prepare_generation)
+
+

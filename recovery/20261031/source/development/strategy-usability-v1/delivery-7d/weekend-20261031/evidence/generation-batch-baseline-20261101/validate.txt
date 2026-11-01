@@ -1,0 +1,58 @@
+         52080 function calls (46640 primitive calls) in 0.203 seconds
+
+   Ordered by: cumulative time
+   List reduced from 159 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       10    0.000    0.000    0.203    0.020 profile_generation.py:90(<lambda>)
+       10    0.000    0.000    0.203    0.020 test_generation_handoff.py:107(validate)
+       10    0.000    0.000    0.166    0.017 first_hour_runtime.py:497(_validate_generation)
+       80    0.000    0.000    0.072    0.001 pathlib.py:1228(resolve)
+       60    0.067    0.001    0.067    0.001 {method 'execute' of 'sqlite3.Connection' objects}
+       60    0.000    0.000    0.051    0.001 {built-in method builtins.next}
+       60    0.000    0.000    0.051    0.001 bounded_sqlite.py:8(read_connection)
+       80    0.001    0.000    0.050    0.001 <frozen ntpath>:705(realpath)
+       30    0.000    0.000    0.046    0.002 contextlib.py:132(__enter__)
+      160    0.046    0.000    0.046    0.000 {built-in method nt._getfinalpathname}
+       10    0.000    0.000    0.042    0.004 first_hour_minute_decisions.py:234(read_rows)
+       10    0.000    0.000    0.037    0.004 prepared_generation.py:33(price_fact_token)
+       10    0.000    0.000    0.028    0.003 first_hour_runtime.py:403(_method_state)
+       10    0.000    0.000    0.028    0.003 first_hour_minute_decisions.py:58(_method)
+       10    0.000    0.000    0.026    0.003 method_snapshot.py:32(checked)
+       10    0.000    0.000    0.026    0.003 first_hour_minute_decisions.py:63(<lambda>)
+       10    0.000    0.000    0.026    0.003 first_hour_minute_decisions.py:66(_method_uncached)
+       10    0.000    0.000    0.023    0.002 first_hour_runtime.py:387(_read_versions)
+       10    0.000    0.000    0.022    0.002 first_hour_runtime.py:590(_source_reviews)
+       10    0.000    0.000    0.022    0.002 options_opening_trend_reference.py:116(load_reviews)
+      100    0.000    0.000    0.021    0.000 pathlib.py:835(stat)
+      100    0.018    0.000    0.021    0.000 {built-in method nt.stat}
+       60    0.000    0.000    0.015    0.000 pathlib.py:1005(open)
+       60    0.014    0.000    0.015    0.000 {built-in method _io.open}
+       50    0.000    0.000    0.014    0.000 pathlib.py:1015(read_bytes)
+       10    0.000    0.000    0.014    0.001 first_hour.py:20(policies)
+ 5740/410    0.006    0.000    0.013    0.000 copy.py:118(deepcopy)
+       10    0.000    0.000    0.012    0.001 prepared_generation.py:148(check)
+       40    0.000    0.000    0.012    0.000 prepared_generation.py:26(file_token)
+   170/80    0.002    0.000    0.012    0.000 copy.py:217(_deepcopy_dict)
+       30    0.010    0.000    0.011    0.000 {built-in method _sqlite3.connect}
+       30    0.002    0.000    0.006    0.000 prepared_generation.py:16(rows_token)
+       20    0.000    0.000    0.005    0.000 options_opening_momentum.py:26(load_policy)
+      240    0.000    0.000    0.005    0.000 pathlib.py:447(__fspath__)
+      360    0.001    0.000    0.005    0.000 pathlib.py:437(__str__)
+       10    0.000    0.000    0.005    0.001 options_intraday_comparison.py:26(load_policy)
+       30    0.000    0.000    0.004    0.000 contextlib.py:141(__exit__)
+       30    0.004    0.000    0.004    0.000 {method 'close' of 'sqlite3.Connection' objects}
+      280    0.000    0.000    0.004    0.000 pathlib.py:551(drive)
+      180    0.000    0.000    0.004    0.000 pathlib.py:407(_load_parts)
+       10    0.000    0.000    0.004    0.000 pathlib.py:1022(read_text)
+     2300    0.003    0.000    0.003    0.000 {method 'update' of '_hashlib.HASH' objects}
+       60    0.000    0.000    0.003    0.000 options_one_minute.py:78(digest)
+      180    0.001    0.000    0.003    0.000 pathlib.py:387(_parse_path)
+       70    0.000    0.000    0.002    0.000 options_one_minute.py:74(canonical)
+       80    0.000    0.000    0.002    0.000 {built-in method nt._path_normpath}
+       70    0.000    0.000    0.002    0.000 __init__.py:183(dumps)
+    11640    0.002    0.000    0.002    0.000 {method 'get' of 'dict' objects}
+      200    0.001    0.000    0.002    0.000 copy.py:191(_deepcopy_list)
+       70    0.000    0.000    0.002    0.000 encoder.py:183(encode)
+
+

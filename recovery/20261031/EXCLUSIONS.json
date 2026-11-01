@@ -212,6 +212,14 @@
     "reason": "runtime_dependency_cache_or_link"
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/.pytest_cache/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/__pycache__/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261031T142503Z/work/",
     "reason": "runtime_dependency_cache_or_link"
   },

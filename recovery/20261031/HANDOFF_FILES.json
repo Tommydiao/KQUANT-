@@ -3972,16 +3972,23 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_journal.py",
-    "source_sha256": "df656bf1af848e8ce4ee9fa53d76f9a110a0c3c54a289590b3cd85112895ec88",
-    "export_sha256": "df656bf1af848e8ce4ee9fa53d76f9a110a0c3c54a289590b3cd85112895ec88",
-    "bytes": 22272,
+    "source_sha256": "11109fa20d54c0a19e45f7ff9c6fc135763a836b93490d90d1058f7874d940ef",
+    "export_sha256": "11109fa20d54c0a19e45f7ff9c6fc135763a836b93490d90d1058f7874d940ef",
+    "bytes": 21772,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_minute_admission.py",
+    "source_sha256": "720f2abda8eb2341f12bd1fe3a25f6c809a0018caafa2ad399634be1565ad624",
+    "export_sha256": "720f2abda8eb2341f12bd1fe3a25f6c809a0018caafa2ad399634be1565ad624",
+    "bytes": 2576,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_minute_decisions.py",
-    "source_sha256": "ca8d91823fbe39aff5ade2447215238b84678cd3d1e0a59000a5161623fe224d",
-    "export_sha256": "ca8d91823fbe39aff5ade2447215238b84678cd3d1e0a59000a5161623fe224d",
-    "bytes": 13508,
+    "source_sha256": "e5cfc324ba1e68bd01bdc7a01fa5c529cda7e1c43e6a63ae1ff38ae476de8b0d",
+    "export_sha256": "e5cfc324ba1e68bd01bdc7a01fa5c529cda7e1c43e6a63ae1ff38ae476de8b0d",
+    "bytes": 13558,
     "redactions": []
   },
   {
@@ -4007,9 +4014,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_runtime.py",
-    "source_sha256": "cd7b210af95f5382723a34334c50bcd829d407822b2d588215b722a098dd91bc",
-    "export_sha256": "cd7b210af95f5382723a34334c50bcd829d407822b2d588215b722a098dd91bc",
-    "bytes": 52597,
+    "source_sha256": "eac579d432350ed04271ef70ee2c3383c5513ec2fd6c3e3e65cdcd6130621079",
+    "export_sha256": "eac579d432350ed04271ef70ee2c3383c5513ec2fd6c3e3e65cdcd6130621079",
+    "bytes": 55110,
     "redactions": []
   },
   {
@@ -4027,6 +4034,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_summary.py",
+    "source_sha256": "19505defa899ea31425a8f7b557c92dc7e0b19a31872d3d85bc4a47d6b16f04e",
+    "export_sha256": "19505defa899ea31425a8f7b557c92dc7e0b19a31872d3d85bc4a47d6b16f04e",
+    "bytes": 3309,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/gateway_candidate.py",
     "source_sha256": "5ce6c083c264d244d39ab605b7d24fdfd3eae270b01b34ade5a42d7ad207bc91",
     "export_sha256": "5ce6c083c264d244d39ab605b7d24fdfd3eae270b01b34ade5a42d7ad207bc91",
@@ -4034,10 +4048,17 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/generation_reads.py",
+    "source_sha256": "9d86a2e276e944b295cce1435f611654380d75a9bdd120bfef8932a83c5e2d5a",
+    "export_sha256": "9d86a2e276e944b295cce1435f611654380d75a9bdd120bfef8932a83c5e2d5a",
+    "bytes": 3292,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/method_snapshot.py",
-    "source_sha256": "525b5cf4060498a41c630fbd03a8ea1c24bc6fd31bc1070d6c08f373002929b2",
-    "export_sha256": "525b5cf4060498a41c630fbd03a8ea1c24bc6fd31bc1070d6c08f373002929b2",
-    "bytes": 2222,
+    "source_sha256": "2f942bf4ae7fcd7d9331e82ba2e887ebd0d09e38d8d3512d1cfdb3db806c077f",
+    "export_sha256": "2f942bf4ae7fcd7d9331e82ba2e887ebd0d09e38d8d3512d1cfdb3db806c077f",
+    "bytes": 2499,
     "redactions": []
   },
   {
@@ -4049,16 +4070,16 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/prepared_generation.py",
-    "source_sha256": "a06e13ed5fe9da5e0c42387faeedbdf483a24ac04e939f46c69fc8ba4819ccdc",
-    "export_sha256": "a06e13ed5fe9da5e0c42387faeedbdf483a24ac04e939f46c69fc8ba4819ccdc",
-    "bytes": 7469,
+    "source_sha256": "e15b70e5a71d99758531f9392ff0269b38aa5156a2206f8d6bc7081ea5e0e5b9",
+    "export_sha256": "e15b70e5a71d99758531f9392ff0269b38aa5156a2206f8d6bc7081ea5e0e5b9",
+    "bytes": 8912,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/prepared_minutes.py",
-    "source_sha256": "56caada6a8eee39242b8d95c332f54afaab64668c16025c74bf65658863a9664",
-    "export_sha256": "56caada6a8eee39242b8d95c332f54afaab64668c16025c74bf65658863a9664",
-    "bytes": 4377,
+    "source_sha256": "540957b8d6a8d81e8ade88dae622bd615e5ea006d442292ccb0750b4526ca245",
+    "export_sha256": "540957b8d6a8d81e8ade88dae622bd615e5ea006d442292ccb0750b4526ca245",
+    "bytes": 7954,
     "redactions": []
   },
   {
@@ -4139,6 +4160,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_first_hour_summary.py",
+    "source_sha256": "de24c93467f90bc1e87d519da111efd17b7d615d0e45d7bda24545b43ffdfec6",
+    "export_sha256": "de24c93467f90bc1e87d519da111efd17b7d615d0e45d7bda24545b43ffdfec6",
+    "bytes": 2655,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_gateway_candidate.py",
     "source_sha256": "6ccedc9bce37137c334d62323aa80aae5964372f34ce7d04c74c1e0f8f8d7a1e",
     "export_sha256": "6ccedc9bce37137c334d62323aa80aae5964372f34ce7d04c74c1e0f8f8d7a1e",
@@ -4147,9 +4175,16 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_generation_handoff.py",
-    "source_sha256": "0a88518c062e7cc5c503bc1151901a00aa3009f352da847718d614ef7c1cc85f",
-    "export_sha256": "0a88518c062e7cc5c503bc1151901a00aa3009f352da847718d614ef7c1cc85f",
-    "bytes": 22627,
+    "source_sha256": "81acb7a1005d1327fa3411a599b3b9595cae8d44713302af7f2dc52beb35a9a7",
+    "export_sha256": "81acb7a1005d1327fa3411a599b3b9595cae8d44713302af7f2dc52beb35a9a7",
+    "bytes": 28729,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_generation_reads.py",
+    "source_sha256": "b0c0f30ce6fadf08cb52ee9e44ee6f6e18d4637b267519a8fa16a20db4eaad0c",
+    "export_sha256": "b0c0f30ce6fadf08cb52ee9e44ee6f6e18d4637b267519a8fa16a20db4eaad0c",
+    "bytes": 5556,
     "redactions": []
   },
   {
@@ -4161,16 +4196,23 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_method_snapshot.py",
-    "source_sha256": "f716d26c0bde1aadf7deee46dd7eb4669e5001df7b234c63cac98d532f5f5e3d",
-    "export_sha256": "f716d26c0bde1aadf7deee46dd7eb4669e5001df7b234c63cac98d532f5f5e3d",
-    "bytes": 1395,
+    "source_sha256": "a7b755fcdf6eed5268900abd6415b590bd45ed4b61fd5a1d86110c4ca61e8250",
+    "export_sha256": "a7b755fcdf6eed5268900abd6415b590bd45ed4b61fd5a1d86110c4ca61e8250",
+    "bytes": 3020,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_native_structure.py",
+    "source_sha256": "6671374d9916207cfae1c9aa3444675435b8a900401bc02e53d8edecd939893b",
+    "export_sha256": "6671374d9916207cfae1c9aa3444675435b8a900401bc02e53d8edecd939893b",
+    "bytes": 4397,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_prepared_minutes.py",
-    "source_sha256": "f131eaa5c4c7c5b2b8aa1f870d854d093129a93542db1902bb6b1d4a3e2e6422",
-    "export_sha256": "f131eaa5c4c7c5b2b8aa1f870d854d093129a93542db1902bb6b1d4a3e2e6422",
-    "bytes": 2775,
+    "source_sha256": "05f4419ba2bcdf3b2e522a526c2873438746680fc8805a5c58c41712e97ec342",
+    "export_sha256": "05f4419ba2bcdf3b2e522a526c2873438746680fc8805a5c58c41712e97ec342",
+    "bytes": 6847,
     "redactions": []
   },
   {
@@ -4203,9 +4245,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/assembly/bootstrap.py",
-    "source_sha256": "5fc9907218c84b29259d8311e533345edc3d41098410f0f354781df37e135d54",
-    "export_sha256": "5fc9907218c84b29259d8311e533345edc3d41098410f0f354781df37e135d54",
-    "bytes": 2631,
+    "source_sha256": "f7aa7ff5eb1b3c88c887aabe6d507c5ead26e05b5fb37c286a1ef11357964bc2",
+    "export_sha256": "f7aa7ff5eb1b3c88c887aabe6d507c5ead26e05b5fb37c286a1ef11357964bc2",
+    "bytes": 2765,
     "redactions": []
   },
   {
@@ -4224,16 +4266,16 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/assembly/live_fact_topology.py",
-    "source_sha256": "133ee601966bb12fef81ba93be08f5698d0966e7a9964705fc49fc206cd9dc56",
-    "export_sha256": "133ee601966bb12fef81ba93be08f5698d0966e7a9964705fc49fc206cd9dc56",
-    "bytes": 80523,
+    "source_sha256": "98cf5495f04026f174dd31a232e8007f944160bdbedd6a301921fd7251801d03",
+    "export_sha256": "98cf5495f04026f174dd31a232e8007f944160bdbedd6a301921fd7251801d03",
+    "bytes": 82344,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/assembly/run_assembly.py",
-    "source_sha256": "cd50fcbd83d01af5111ddbe5a42f867e3a4c2347cf1b9648ae080cf581e526c1",
-    "export_sha256": "cd50fcbd83d01af5111ddbe5a42f867e3a4c2347cf1b9648ae080cf581e526c1",
-    "bytes": 14384,
+    "source_sha256": "2f236c42a6ea39dc4c4414e37054f3f6a26cdb19ed252d700d13e4039c7c206f",
+    "export_sha256": "2f236c42a6ea39dc4c4414e37054f3f6a26cdb19ed252d700d13e4039c7c206f",
+    "bytes": 14480,
     "redactions": []
   },
   {
@@ -4875,9 +4917,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/EXECUTION_EVIDENCE.json",
-    "source_sha256": "d65474cb11dd295f8970194d0ad6d63dfaeea269e9ae19c49889d8158121a52f",
-    "export_sha256": "d65474cb11dd295f8970194d0ad6d63dfaeea269e9ae19c49889d8158121a52f",
-    "bytes": 46961,
+    "source_sha256": "5740d77a48176331226e2c348cfdd899fbde818b2cc17c334750cdb6d8cbaf18",
+    "export_sha256": "5740d77a48176331226e2c348cfdd899fbde818b2cc17c334750cdb6d8cbaf18",
+    "bytes": 91626,
     "redactions": []
   },
   {
@@ -4889,9 +4931,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/RESUME.md",
-    "source_sha256": "aa412572fb894afe02f39fc01012e29c4709dd264b9f41de403c9156461edbb6",
-    "export_sha256": "aa412572fb894afe02f39fc01012e29c4709dd264b9f41de403c9156461edbb6",
-    "bytes": 7268,
+    "source_sha256": "22259c50b943842f459094947e1e43ae95a5636a3c0d0d4481ee207c1b5c18a9",
+    "export_sha256": "22259c50b943842f459094947e1e43ae95a5636a3c0d0d4481ee207c1b5c18a9",
+    "bytes": 9605,
     "redactions": []
   },
   {
@@ -4899,6 +4941,13 @@
     "source_sha256": "c0a68719e75b9aaba177ad179deb4f3c4c4578965021a7b475010119d8f0a060",
     "export_sha256": "c0a68719e75b9aaba177ad179deb4f3c4c4578965021a7b475010119d8f0a060",
     "bytes": 6133,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/SUNDAY_PERFORMANCE_CLOSEOUT_20261101.md",
+    "source_sha256": "f964ca6ec03a79570fe2edddcbca150d86dc1640ef26dc682c35c625b327945b",
+    "export_sha256": "f964ca6ec03a79570fe2edddcbca150d86dc1640ef26dc682c35c625b327945b",
+    "bytes": 5924,
     "redactions": []
   },
   {
@@ -4945,9 +4994,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/capture_execution.py",
-    "source_sha256": "314d1882a0072aa5b1a0603defacbd2e32fd462dd2c7fd058fbbfc9f4b0b6789",
-    "export_sha256": "314d1882a0072aa5b1a0603defacbd2e32fd462dd2c7fd058fbbfc9f4b0b6789",
-    "bytes": 4128,
+    "source_sha256": "5e70b9d6326e6f70b13c97a490c740b7f9506b9de8624d4f0d8d27abb04efb47",
+    "export_sha256": "5e70b9d6326e6f70b13c97a490c740b7f9506b9de8624d4f0d8d27abb04efb47",
+    "bytes": 4419,
     "redactions": []
   },
   {
@@ -4962,6 +5011,13 @@
     "source_sha256": "947b3aa3b247e9e74728948e07792cf71abe5a6358be64e5da361e8208fabfe8",
     "export_sha256": "947b3aa3b247e9e74728948e07792cf71abe5a6358be64e5da361e8208fabfe8",
     "bytes": 2449,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/profile_generation.py",
+    "source_sha256": "3ce4b88b20102e14f9b2831d77a3c3b587fe46b07a7e8e5c5c83347388daf731",
+    "export_sha256": "3ce4b88b20102e14f9b2831d77a3c3b587fe46b07a7e8e5c5c83347388daf731",
+    "bytes": 8609,
     "redactions": []
   },
   {
@@ -5301,10 +5357,38 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T021737Z.json",
+    "source_sha256": "5bf4c9f5747c1529f0d79003a1050f263fc23d2ae7c7a9c36cb48b82abd5b89a",
+    "export_sha256": "5bf4c9f5747c1529f0d79003a1050f263fc23d2ae7c7a9c36cb48b82abd5b89a",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T081227Z.json",
+    "source_sha256": "6a1a8cb57b5a704f56550cde5f8bf56a236f480334e65ed9eab4d5fab790a057",
+    "export_sha256": "6a1a8cb57b5a704f56550cde5f8bf56a236f480334e65ed9eab4d5fab790a057",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/benchmark_summary.py",
+    "source_sha256": "86b9bd91f45ffa80b4d6624df97d90409047e356e0e8a2aefc29ba6dfa24f2c5",
+    "export_sha256": "86b9bd91f45ffa80b4d6624df97d90409047e356e0e8a2aefc29ba6dfa24f2c5",
+    "bytes": 1714,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/bound-root-regression.xml",
     "source_sha256": "5fdb026ff1a4af9bc1cc47e154a5bfeaf4d0bd043d90387984d45f31581f32a0",
     "export_sha256": "5fdb026ff1a4af9bc1cc47e154a5bfeaf4d0bd043d90387984d45f31581f32a0",
     "bytes": 11186,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/filescope-regression-20261101.xml",
+    "source_sha256": "c3b344456064d0515eaee5778b0f05ec440f2ef9f71c19e1c3079d04d4f0fadb",
+    "export_sha256": "c3b344456064d0515eaee5778b0f05ec440f2ef9f71c19e1c3079d04d4f0fadb",
+    "bytes": 13657,
     "redactions": []
   },
   {
@@ -5350,10 +5434,66 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/metascope-regression-20261101.xml",
+    "source_sha256": "b76495b6af991bd95c05beb3b541bec4a4644958f417ab8b80784c5d52674222",
+    "export_sha256": "b76495b6af991bd95c05beb3b541bec4a4644958f417ab8b80784c5d52674222",
+    "bytes": 10571,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/native-structure-final-regression-20261101.xml",
+    "source_sha256": "338a7024fa79023a9983b80e1c654dbf7066f04f192a00f38061552e6e36487c",
+    "export_sha256": "338a7024fa79023a9983b80e1c654dbf7066f04f192a00f38061552e6e36487c",
+    "bytes": 16143,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/native-structure-regression-20261101.xml",
+    "source_sha256": "de67205f200fd6521913cd8eaace160c46a7bcdc06e0784b62504cced4aac3fa",
+    "export_sha256": "de67205f200fd6521913cd8eaace160c46a7bcdc06e0784b62504cced4aac3fa",
+    "bytes": 19206,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/passive-timing-regression.xml",
     "source_sha256": "dcbfea35c865f02a8bd20db74615245cf03ffcb78e5ea4880a4c8c8baf55f6fb",
     "export_sha256": "dcbfea35c865f02a8bd20db74615245cf03ffcb78e5ea4880a4c8c8baf55f6fb",
     "bytes": 2819,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/pathscope-regression-20261101.xml",
+    "source_sha256": "6ae0f41f981422a5769027727504e13dee6a6573b1fd5c7512071c885f5d6240",
+    "export_sha256": "6ae0f41f981422a5769027727504e13dee6a6573b1fd5c7512071c885f5d6240",
+    "bytes": 9419,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/phase-read-final-regression-20261101.xml",
+    "source_sha256": "744b95ebc1187eb010dbc5762e4e53586798e6b3ce0be1e1c81355998474e3e9",
+    "export_sha256": "744b95ebc1187eb010dbc5762e4e53586798e6b3ce0be1e1c81355998474e3e9",
+    "bytes": 14027,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/phase-read-regression-20261101.xml",
+    "source_sha256": "dc4819533e633766831e1794e0670cdf546ba98d3c01cf6228f869ab59bcd82b",
+    "export_sha256": "dc4819533e633766831e1794e0670cdf546ba98d3c01cf6228f869ab59bcd82b",
+    "bytes": 16974,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/readscope-final-regression-20261101.xml",
+    "source_sha256": "1d0790c49ea9018bad203a269a839989b01295838978d3b0d51c874c6edacde0",
+    "export_sha256": "1d0790c49ea9018bad203a269a839989b01295838978d3b0d51c874c6edacde0",
+    "bytes": 10298,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/readscope-regression-20261101.xml",
+    "source_sha256": "488193cecd768310b304352f7c7470bf12a7f1699583bc79b25a6fdb83b57f4e",
+    "export_sha256": "488193cecd768310b304352f7c7470bf12a7f1699583bc79b25a6fdb83b57f4e",
+    "bytes": 12893,
     "redactions": []
   },
   {
@@ -5410,6 +5550,132 @@
     "source_sha256": "8553e86c1f63790ed8976720f720341e8f8cd8a614b1f84813e1199885722062",
     "export_sha256": "8553e86c1f63790ed8976720f720341e8f8cd8a614b1f84813e1199885722062",
     "bytes": 10566,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sourcebundle-regression-20261101.xml",
+    "source_sha256": "f7b3bca0899a7e6069301dee435fe79aea4377d185b1881cff318b226166cc13",
+    "export_sha256": "f7b3bca0899a7e6069301dee435fe79aea4377d185b1881cff318b226166cc13",
+    "bytes": 10698,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/summarize_sunday.py",
+    "source_sha256": "f0d906f361794e6e6a849a850c87a6a49f02e9cdf9442c36bd7a34e4f6ee0621",
+    "export_sha256": "f0d906f361794e6e6a849a850c87a6a49f02e9cdf9442c36bd7a34e4f6ee0621",
+    "bytes": 6138,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/summary-benchmark-20261101.json",
+    "source_sha256": "7f31b168efe6b9006af488ea72d6c46ef64d5d6b76e85cca22d3a2a4f7b34e53",
+    "export_sha256": "7f31b168efe6b9006af488ea72d6c46ef64d5d6b76e85cca22d3a2a4f7b34e53",
+    "bytes": 2606,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/summary-fingerprint-final-regression-20261101.xml",
+    "source_sha256": "b5762ae2f27b1a4ddcba4fc2c30f1df0d6e46d210a6708414d148f75a2d052c8",
+    "export_sha256": "b5762ae2f27b1a4ddcba4fc2c30f1df0d6e46d210a6708414d148f75a2d052c8",
+    "bytes": 13261,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/summary-fingerprint-regression-20261101.xml",
+    "source_sha256": "527383c017d64b5c9e73719b1aebd17727ed5634346f7d57b2fc5821a2ace209",
+    "export_sha256": "527383c017d64b5c9e73719b1aebd17727ed5634346f7d57b2fc5821a2ace209",
+    "bytes": 13261,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/summary-selection-regression-20261101.xml",
+    "source_sha256": "71dfb82b74bae78ef5c90409911ac6d1bfa556a0c1624293428560db63807e91",
+    "export_sha256": "71dfb82b74bae78ef5c90409911ac6d1bfa556a0c1624293428560db63807e91",
+    "bytes": 1874,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-filescope-short5-20261101-summary.json",
+    "source_sha256": "878d4f8221c7fca458dabac70bea40f1d011d07e70535bdb57334346325a4974",
+    "export_sha256": "878d4f8221c7fca458dabac70bea40f1d011d07e70535bdb57334346325a4974",
+    "bytes": 39009,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-full-affected-regression-20261101.xml",
+    "source_sha256": "0dc092e979466991c741d5f9f1a3a497ad16ed5b0a876a62d075f983470bdb77",
+    "export_sha256": "0dc092e979466991c741d5f9f1a3a497ad16ed5b0a876a62d075f983470bdb77",
+    "bytes": 15271,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-metadata-short2-20261101-summary.json",
+    "source_sha256": "0da4180ed263e890d741df1446f02f846884a27e6688cb39e2aa71acaa5fdcdb",
+    "export_sha256": "0da4180ed263e890d741df1446f02f846884a27e6688cb39e2aa71acaa5fdcdb",
+    "bytes": 38999,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-native-structure-short8-20261101-analysis.json",
+    "source_sha256": "ad17bbf6aee29400f9c58899acded94cd66bf4a91f085f8087c0070aaa808625",
+    "export_sha256": "ad17bbf6aee29400f9c58899acded94cd66bf4a91f085f8087c0070aaa808625",
+    "bytes": 78124,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-native-structure-short8-20261101-summary.json",
+    "source_sha256": "514a1f24352d958a471a627ffbbbf19f737d48e289be5e779d34fca4511d9fa5",
+    "export_sha256": "514a1f24352d958a471a627ffbbbf19f737d48e289be5e779d34fca4511d9fa5",
+    "bytes": 50286,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-phase-read-short6-20261101-summary.json",
+    "source_sha256": "88c5047b09fc855a4c5f20733b3908af3fd2df36fa10456e764bbff0644ca4d0",
+    "export_sha256": "88c5047b09fc855a4c5f20733b3908af3fd2df36fa10456e764bbff0644ca4d0",
+    "bytes": 38964,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-phase-timing-short7-20261101-summary.json",
+    "source_sha256": "a54043b2cafe47a51318781c7b0124e809fc6e11262e40b31d6f167935339b2e",
+    "export_sha256": "a54043b2cafe47a51318781c7b0124e809fc6e11262e40b31d6f167935339b2e",
+    "bytes": 50138,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-readscope-short1-20261101-analysis.json",
+    "source_sha256": "1ee9998f60bef95b6fd91d9e47ad547c427500624a73cce78dfef002352d7619",
+    "export_sha256": "1ee9998f60bef95b6fd91d9e47ad547c427500624a73cce78dfef002352d7619",
+    "bytes": 66875,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-readscope-short1-20261101-summary.json",
+    "source_sha256": "4a27b8582e7f8242c2e1f9935a86db7cad01cbb901100bfd2ea805be268a7fea",
+    "export_sha256": "4a27b8582e7f8242c2e1f9935a86db7cad01cbb901100bfd2ea805be268a7fea",
+    "bytes": 39040,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-sourcebundle-short3-20261101-summary.json",
+    "source_sha256": "a914d92845506977e20d6dca9fd3d1a0d311551f9aa5dd2769a021c0a970c913",
+    "export_sha256": "a914d92845506977e20d6dca9fd3d1a0d311551f9aa5dd2769a021c0a970c913",
+    "bytes": 39005,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-summary-short4-20261101-summary.json",
+    "source_sha256": "5ee8a966fe93e544c18b386ca06975297bef6085b83b0e4063c162e0cf3ab22d",
+    "export_sha256": "5ee8a966fe93e544c18b386ca06975297bef6085b83b0e4063c162e0cf3ab22d",
+    "bytes": 39038,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/sunday-timing-boundary-regression-20261101.xml",
+    "source_sha256": "6b24211e5652f4d717818712e77a118c108e4c335abcb8b238d548e655d5dde3",
+    "export_sha256": "6b24211e5652f4d717818712e77a118c108e4c335abcb8b238d548e655d5dde3",
+    "bytes": 15524,
     "redactions": []
   },
   {
@@ -5508,6 +5774,328 @@
     "source_sha256": "2946dc092eb22f45ddf9c381f1b8ae33ada86e852079bb4b87aa98c16eeea769",
     "export_sha256": "2946dc092eb22f45ddf9c381f1b8ae33ada86e852079bb4b87aa98c16eeea769",
     "bytes": 12381,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-baseline-20261101/batch_prepare.txt",
+    "source_sha256": "1fd0f81beb7846c32fc88213964773b2f6b72cf8e6673a55bd028605ae9c21c1",
+    "export_sha256": "1fd0f81beb7846c32fc88213964773b2f6b72cf8e6673a55bd028605ae9c21c1",
+    "bytes": 4357,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-baseline-20261101/prepare.txt",
+    "source_sha256": "23be1f1766aaf4b657a955294c88cdc2bb20fc3783c17ab5d19d297f5844ca42",
+    "export_sha256": "23be1f1766aaf4b657a955294c88cdc2bb20fc3783c17ab5d19d297f5844ca42",
+    "bytes": 4466,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-baseline-20261101/report.json",
+    "source_sha256": "24635e5b590d819f3c75eacaa06d09acebad755867355209598d27f57c6b6b9c",
+    "export_sha256": "24635e5b590d819f3c75eacaa06d09acebad755867355209598d27f57c6b6b9c",
+    "bytes": 1545,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-baseline-20261101/validate.txt",
+    "source_sha256": "08226a141f022c98f02f86514aacca4c81bda1ac8ddbca9b733e3125ae05529e",
+    "export_sha256": "08226a141f022c98f02f86514aacca4c81bda1ac8ddbca9b733e3125ae05529e",
+    "bytes": 4324,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-pathscope-20261101/batch_prepare.txt",
+    "source_sha256": "8f8d51a473f5ed97b96d0e4b0c5e900971b2da06bd1d262098caf79df3ac4043",
+    "export_sha256": "8f8d51a473f5ed97b96d0e4b0c5e900971b2da06bd1d262098caf79df3ac4043",
+    "bytes": 4384,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-pathscope-20261101/prepare.txt",
+    "source_sha256": "9be2e827d9ac5935ac8f66d7cd2369e688a90f71398f356cce65251cda680ea8",
+    "export_sha256": "9be2e827d9ac5935ac8f66d7cd2369e688a90f71398f356cce65251cda680ea8",
+    "bytes": 4443,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-pathscope-20261101/report.json",
+    "source_sha256": "06cb3615ec28158f80c2334ba0204fabccb232a70d2a53d54c129895bc777e93",
+    "export_sha256": "06cb3615ec28158f80c2334ba0204fabccb232a70d2a53d54c129895bc777e93",
+    "bytes": 1547,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-batch-pathscope-20261101/validate.txt",
+    "source_sha256": "f3ac9e57fd5ae637ad48ab8b1e9b3e557bef1d05b059818841de67c8868a4d2f",
+    "export_sha256": "f3ac9e57fd5ae637ad48ab8b1e9b3e557bef1d05b059818841de67c8868a4d2f",
+    "bytes": 4333,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-before-20261101/prepare.txt",
+    "source_sha256": "325de4dfce9a05098234a675ddc7fe4330d4e54d22b1b5e7c9deec1ee7c21832",
+    "export_sha256": "325de4dfce9a05098234a675ddc7fe4330d4e54d22b1b5e7c9deec1ee7c21832",
+    "bytes": 4481,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-before-20261101/report.json",
+    "source_sha256": "57259960cf6f55abf4ddf73c9d854b6eb5845b6160a2ca78d2c694d8aa564a8b",
+    "export_sha256": "57259960cf6f55abf4ddf73c9d854b6eb5845b6160a2ca78d2c694d8aa564a8b",
+    "bytes": 1224,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-before-20261101/validate.txt",
+    "source_sha256": "9d98b10ccd7c527c7fbc9812b72afe2f04a458c7dd4bafc87793e272420912fd",
+    "export_sha256": "9d98b10ccd7c527c7fbc9812b72afe2f04a458c7dd4bafc87793e272420912fd",
+    "bytes": 4324,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-filescope-20261101/batch_prepare.txt",
+    "source_sha256": "9cbcfab447d16660e277c76d75f0f1052405e8aea75a18feaa82b9fddd8db96e",
+    "export_sha256": "9cbcfab447d16660e277c76d75f0f1052405e8aea75a18feaa82b9fddd8db96e",
+    "bytes": 4404,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-filescope-20261101/prepare.txt",
+    "source_sha256": "463b0357b06044b1ebab27528076d7457e7b08201852a7e92a9fd82132c84e81",
+    "export_sha256": "463b0357b06044b1ebab27528076d7457e7b08201852a7e92a9fd82132c84e81",
+    "bytes": 4436,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-filescope-20261101/report.json",
+    "source_sha256": "2753bcf11b165afb7bce6ca021f5f74e9d087a781726a44c9ce5069ae58e7eb5",
+    "export_sha256": "2753bcf11b165afb7bce6ca021f5f74e9d087a781726a44c9ce5069ae58e7eb5",
+    "bytes": 1579,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-filescope-20261101/validate.txt",
+    "source_sha256": "d39dda9d5906c693979bf32f2e294a6979d22a30a5ececfbfdad30842564daab",
+    "export_sha256": "d39dda9d5906c693979bf32f2e294a6979d22a30a5ececfbfdad30842564daab",
+    "bytes": 4366,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-before-20261101/batch_prepare.txt",
+    "source_sha256": "582ef013e3256c23366583625c929b5dbcdcb0d8d9821ffb3698ad8aa8655a5a",
+    "export_sha256": "582ef013e3256c23366583625c929b5dbcdcb0d8d9821ffb3698ad8aa8655a5a",
+    "bytes": 4387,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-before-20261101/prepare.txt",
+    "source_sha256": "c919b68b852e787fb45af3f84f9ce341c2f137179239b49a9f64037796555ea3",
+    "export_sha256": "c919b68b852e787fb45af3f84f9ce341c2f137179239b49a9f64037796555ea3",
+    "bytes": 4420,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-before-20261101/report.json",
+    "source_sha256": "5c0ad0f7c779d3d2cc97410e4967e8071fc5483551ad8359314930da150b007d",
+    "export_sha256": "5c0ad0f7c779d3d2cc97410e4967e8071fc5483551ad8359314930da150b007d",
+    "bytes": 1571,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-before-20261101/validate.txt",
+    "source_sha256": "5ee9638fcaa86802c2e61f8bf6b03a085cdfc7a636784318aa148cf280e23672",
+    "export_sha256": "5ee9638fcaa86802c2e61f8bf6b03a085cdfc7a636784318aa148cf280e23672",
+    "bytes": 4327,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-shared-20261101/batch_prepare.txt",
+    "source_sha256": "faaaa2fff1d251d73f59ce2116c7f4a2f2b367bd2894f01c09a2c11ce181a708",
+    "export_sha256": "faaaa2fff1d251d73f59ce2116c7f4a2f2b367bd2894f01c09a2c11ce181a708",
+    "bytes": 4402,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-shared-20261101/prepare.txt",
+    "source_sha256": "de0625187e42ed3bdd909eed68135c3a58c74369587a94ad21035e112e50ba97",
+    "export_sha256": "de0625187e42ed3bdd909eed68135c3a58c74369587a94ad21035e112e50ba97",
+    "bytes": 4400,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-shared-20261101/report.json",
+    "source_sha256": "2d909f2d94d334e46a5d54f0dfd81dfd050fc5fb5fd7bcad51b36592fdf287d9",
+    "export_sha256": "2d909f2d94d334e46a5d54f0dfd81dfd050fc5fb5fd7bcad51b36592fdf287d9",
+    "bytes": 1568,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-fullsources-shared-20261101/validate.txt",
+    "source_sha256": "64654cb3d630a72fab146b1085ec9be4ae153293911a0b0624bbcf3d826a2d81",
+    "export_sha256": "64654cb3d630a72fab146b1085ec9be4ae153293911a0b0624bbcf3d826a2d81",
+    "bytes": 4334,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-logicalpath-20261101/batch_prepare.txt",
+    "source_sha256": "ed83f87ce20df107e1fac7af199646505a20c30199f5ed095f3ca7a1076cfdf4",
+    "export_sha256": "ed83f87ce20df107e1fac7af199646505a20c30199f5ed095f3ca7a1076cfdf4",
+    "bytes": 4416,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-logicalpath-20261101/prepare.txt",
+    "source_sha256": "75e6a9402753cb93999bf979b86a58e3d1c0cc495c2b579276ea5b70dec129e7",
+    "export_sha256": "75e6a9402753cb93999bf979b86a58e3d1c0cc495c2b579276ea5b70dec129e7",
+    "bytes": 4408,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-logicalpath-20261101/report.json",
+    "source_sha256": "7eed520cac9668b119f81204ee53252b048b8143d4611b16139b07abe1c15544",
+    "export_sha256": "7eed520cac9668b119f81204ee53252b048b8143d4611b16139b07abe1c15544",
+    "bytes": 1549,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-logicalpath-20261101/validate.txt",
+    "source_sha256": "03d9479b42d8f4dde8bd16367e210cab53e20588c6712d36e29e17eac20d1526",
+    "export_sha256": "03d9479b42d8f4dde8bd16367e210cab53e20588c6712d36e29e17eac20d1526",
+    "bytes": 4333,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-metadata-20261101/batch_prepare.txt",
+    "source_sha256": "25faa1e15210b3e46b1b4bab93b29e250beebcfd4dcce18352430c8ffbfafdaa",
+    "export_sha256": "25faa1e15210b3e46b1b4bab93b29e250beebcfd4dcce18352430c8ffbfafdaa",
+    "bytes": 4399,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-metadata-20261101/prepare.txt",
+    "source_sha256": "d3019e2c04eaabbb171f79a356bf354ece8f3cde458f661433bb0086ac251a22",
+    "export_sha256": "d3019e2c04eaabbb171f79a356bf354ece8f3cde458f661433bb0086ac251a22",
+    "bytes": 4403,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-metadata-20261101/report.json",
+    "source_sha256": "a93233c191b9882e7cc70e7fe95dac1daa02ec9a0a618fc075d01dd4b2b5d63e",
+    "export_sha256": "a93233c191b9882e7cc70e7fe95dac1daa02ec9a0a618fc075d01dd4b2b5d63e",
+    "bytes": 1556,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-metadata-20261101/validate.txt",
+    "source_sha256": "943245f4b76f9a0f718ae9c48bb71acf88476b51bcc34a90f3ea0a67f4238ee6",
+    "export_sha256": "943245f4b76f9a0f718ae9c48bb71acf88476b51bcc34a90f3ea0a67f4238ee6",
+    "bytes": 4350,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-native-structure-20261101/batch_prepare.txt",
+    "source_sha256": "61f8b8aeef2500267f13882493e82f6c74523d0549c2f796a36cc166e6a91a02",
+    "export_sha256": "61f8b8aeef2500267f13882493e82f6c74523d0549c2f796a36cc166e6a91a02",
+    "bytes": 4459,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-native-structure-20261101/report.json",
+    "source_sha256": "aca11507103b1a3a99714368287ceac844e0bed5bc12e55a8abe85d826bd3860",
+    "export_sha256": "aca11507103b1a3a99714368287ceac844e0bed5bc12e55a8abe85d826bd3860",
+    "bytes": 461,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-new-five-minutes-20261101/batch_prepare.txt",
+    "source_sha256": "07e1d600561912055d3f3119bf9154e890b82e5ad78db94531ab6d43d4caa15f",
+    "export_sha256": "07e1d600561912055d3f3119bf9154e890b82e5ad78db94531ab6d43d4caa15f",
+    "bytes": 4431,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-new-five-minutes-20261101/report.json",
+    "source_sha256": "425b941d669d4d4ad3257a007734f84b57d739d4b177171add58f6b3d420ca49",
+    "export_sha256": "425b941d669d4d4ad3257a007734f84b57d739d4b177171add58f6b3d420ca49",
+    "bytes": 461,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-pathscope-20261101/prepare.txt",
+    "source_sha256": "967a56c436dac8079d8f6775c55aa8bfa511b8f630fdb4a2c280622ffd4b8b14",
+    "export_sha256": "967a56c436dac8079d8f6775c55aa8bfa511b8f630fdb4a2c280622ffd4b8b14",
+    "bytes": 4450,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-pathscope-20261101/report.json",
+    "source_sha256": "59922ad2ea734548b89a56e222d9d5e0ecf8cfb0c8e0d0e89e5161e7f2dbd240",
+    "export_sha256": "59922ad2ea734548b89a56e222d9d5e0ecf8cfb0c8e0d0e89e5161e7f2dbd240",
+    "bytes": 1079,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-pathscope-20261101/validate.txt",
+    "source_sha256": "771da49d09db56aee4f716d37b26f41a778d62ad6e13c706c28a11e3af7d195a",
+    "export_sha256": "771da49d09db56aee4f716d37b26f41a778d62ad6e13c706c28a11e3af7d195a",
+    "bytes": 4333,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-phase-read-20261101/batch_prepare.txt",
+    "source_sha256": "9ae8579f3e79a37b99d7e36146ab06f5b033ac5e35a2cc84b8b79a145d817a5e",
+    "export_sha256": "9ae8579f3e79a37b99d7e36146ab06f5b033ac5e35a2cc84b8b79a145d817a5e",
+    "bytes": 4426,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-phase-read-20261101/prepare.txt",
+    "source_sha256": "b3d33a30327c9c819e6d2dac4035984651b3ef8903e0b7ac52ae011044c60b20",
+    "export_sha256": "b3d33a30327c9c819e6d2dac4035984651b3ef8903e0b7ac52ae011044c60b20",
+    "bytes": 4422,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-phase-read-20261101/report.json",
+    "source_sha256": "6336935921240f470076837a9a6fc4a31200d82424ee0316e7be1676d96a2bb4",
+    "export_sha256": "6336935921240f470076837a9a6fc4a31200d82424ee0316e7be1676d96a2bb4",
+    "bytes": 1579,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-phase-read-20261101/validate.txt",
+    "source_sha256": "f213059811a1420707b39c03c7a752d02d6a81193d7dde33e0d30137e7785f0c",
+    "export_sha256": "f213059811a1420707b39c03c7a752d02d6a81193d7dde33e0d30137e7785f0c",
+    "bytes": 4366,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-readscope-20261101/batch_prepare.txt",
+    "source_sha256": "8365ac10d631faaf1c556ecde0a854dd7c064b1f233f633be69a2cf4721f1248",
+    "export_sha256": "8365ac10d631faaf1c556ecde0a854dd7c064b1f233f633be69a2cf4721f1248",
+    "bytes": 4403,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-readscope-20261101/prepare.txt",
+    "source_sha256": "ca28375ad5abb74ca460568e88149219fa7ac060bd1d7df6f6d0f3c896367a37",
+    "export_sha256": "ca28375ad5abb74ca460568e88149219fa7ac060bd1d7df6f6d0f3c896367a37",
+    "bytes": 4394,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-readscope-20261101/report.json",
+    "source_sha256": "82b72995dabbaac87b242cdeb533ff0e13336d6d5256a842a73b2e6f08c9090c",
+    "export_sha256": "82b72995dabbaac87b242cdeb533ff0e13336d6d5256a842a73b2e6f08c9090c",
+    "bytes": 1554,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/generation-readscope-20261101/validate.txt",
+    "source_sha256": "1437903486310506ca5875db51be95e3315dc5cade1bee3194dfa0071a7aff2f",
+    "export_sha256": "1437903486310506ca5875db51be95e3315dc5cade1bee3194dfa0071a7aff2f",
+    "bytes": 4350,
     "redactions": []
   },
   {
@@ -9078,6 +9666,76 @@
     "source_sha256": "e8c62ce6231cf10b12c5c6af92e1a4c5f106a92d073b59a648866e9716f621ac",
     "export_sha256": "e8c62ce6231cf10b12c5c6af92e1a4c5f106a92d073b59a648866e9716f621ac",
     "bytes": 912607,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-admission-diagnostic-20261101/topology_report.json",
+    "source_sha256": "3d8095c73c94e918d32c7ef574b87588bdc5df368b24580ba63e644a81f1d07d",
+    "export_sha256": "3d8095c73c94e918d32c7ef574b87588bdc5df368b24580ba63e644a81f1d07d",
+    "bytes": 909367,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-admission-diagnostic2-20261101/topology_report.json",
+    "source_sha256": "480abe8db361291068096bfc0dc7230eae44a27781905a7bf4caeac12952bcfa",
+    "export_sha256": "480abe8db361291068096bfc0dc7230eae44a27781905a7bf4caeac12952bcfa",
+    "bytes": 909440,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-filescope-short5-20261101/topology_report.json",
+    "source_sha256": "c6f19b77d2587b28baafe7b4550d58e91a2370c4e8156c0e7ed7706b7fd7e1fe",
+    "export_sha256": "c6f19b77d2587b28baafe7b4550d58e91a2370c4e8156c0e7ed7706b7fd7e1fe",
+    "bytes": 908408,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-metadata-short2-20261101/topology_report.json",
+    "source_sha256": "3b97a324be87d91c60d1501a7bcba2eab03ec95e7ace96f53baac411ca298345",
+    "export_sha256": "3b97a324be87d91c60d1501a7bcba2eab03ec95e7ace96f53baac411ca298345",
+    "bytes": 910953,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-native-structure-short8-20261101/topology_report.json",
+    "source_sha256": "fb499c2f80b800f32d2d4b6756d827d3a1528bca2ff867da0caf1b5ef8053704",
+    "export_sha256": "fb499c2f80b800f32d2d4b6756d827d3a1528bca2ff867da0caf1b5ef8053704",
+    "bytes": 920961,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-phase-read-short6-20261101/topology_report.json",
+    "source_sha256": "61a4a4dd6549dbf5b6b4c2dfe178d9e0d46802bf77a8434ac1937f562a99ef4d",
+    "export_sha256": "61a4a4dd6549dbf5b6b4c2dfe178d9e0d46802bf77a8434ac1937f562a99ef4d",
+    "bytes": 911119,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-phase-timing-short7-20261101/topology_report.json",
+    "source_sha256": "290f40a7cc901aaa646ef7f15ba17765a8d2811d3f42b0b4e90fc67bb7aa22fa",
+    "export_sha256": "290f40a7cc901aaa646ef7f15ba17765a8d2811d3f42b0b4e90fc67bb7aa22fa",
+    "bytes": 921824,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-readscope-short1-20261101/topology_report.json",
+    "source_sha256": "b241724d0c2fc94d2eae49935fd4d0a06a17f9b254cb32e5dc3a09b0f21c5834",
+    "export_sha256": "b241724d0c2fc94d2eae49935fd4d0a06a17f9b254cb32e5dc3a09b0f21c5834",
+    "bytes": 910887,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-sourcebundle-short3-20261101/topology_report.json",
+    "source_sha256": "e0a3c9f8ee1ba5408c8f3bee8e81561a01117d3551f6a668944c6126f78d9e84",
+    "export_sha256": "e0a3c9f8ee1ba5408c8f3bee8e81561a01117d3551f6a668944c6126f78d9e84",
+    "bytes": 910890,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/sunday-summary-short4-20261101/topology_report.json",
+    "source_sha256": "632e186f4171740cc4f3e0cdc4be04350088e52e61995da458694d66dc17f728",
+    "export_sha256": "632e186f4171740cc4f3e0cdc4be04350088e52e61995da458694d66dc17f728",
+    "bytes": 911104,
     "redactions": []
   }
 ]

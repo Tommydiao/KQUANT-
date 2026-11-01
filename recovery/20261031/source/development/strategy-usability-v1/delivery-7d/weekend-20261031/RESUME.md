@@ -1,5 +1,41 @@
 # Weekend Execution Resume
 
+## Latest: November 1, 2026
+
+Read `SUNDAY_PERFORMANCE_CLOSEOUT_20261101.md` first. The October31 short6
+figures below are historical, not the current candidate result.
+
+- Latest isolated run: `sunday-native-structure-short8-20261101`, 240.203s,
+  492/492 background reads, 100 pending restored with original deadlines,
+  no owned children left. This was NOT a 3600s acceptance run.
+- Last enqueue-to-result P95 is 9.031s: still FAIL against 2s. Admission queue
+  dominates (last-point P95 8.516s); compute queue P95 is zero. Do not replace
+  the original gate with shorter CPU/preparation-only timings.
+- Latest full affected regression: 129 passed (16.70s). Native structural
+  reuse has 24,768 differential comparisons against the selected parent
+  validator; current time, closure and scope checks remain live.
+- Immutable minute/source metadata, phase-local read-only connections and
+  file checks are shared only within validated preparation phases. End-phase
+  identity/content checks precede publication. No policy/TTL changes.
+- Fixed missing enqueue origin being reported as zero. Short7 first-point
+  latency is not acceptance evidence; short8 contains the corrected metric.
+- Latest TEST_ONLY revisions: S0 2180/2200, S1 2178/2200. Remaining42 are
+  two AAPL missing native-price-basis positions and40 injected conflict
+  positions. These are not real-market or timely-first-evaluation counts.
+- Nine latest HTTP failures have exact request/process/injection associations:
+  six CONNECT failures to killed backend and three replacement cold snapshots.
+  Historical failures lacking raw evidence remain unresolved; no OS root-cause
+  claim is inferred from time overlap. Browser signal_delivery_accepted=false.
+- Bounded baseline `evidence/baseline-20261101T081227Z.json`: no listeners,
+  manifests match. No production start or business-store changes. All test
+  sessions finished. Real API remains NOT_RUN; user postponed key setup.
+- Next: reduce admission-side repeated work using measured phases, preserve
+  CAS/WAIT_INPUT/time bounds. Require two same-version passing shorts before
+  a new matching hour; none has qualified yet. Do not repeat unchanged hours.
+
+The Git handoff stays in `recovery/20261031` and is updated in place. It contains
+code and selected sanitized evidence, not business databases or credentials.
+
 Read this pointer before older October20/25 resume sections. The old seven-day
 FAIL and deadline remain immutable. This is separate Oct31-Nov1 repair work.
 

@@ -5,7 +5,7 @@ import json
 import sqlite3
 
 from kquant import options_one_minute as common
-from kquant.bounded_sqlite import read_connection
+from generation_reads import read_connection
 from kquant.options_opening_trend_reference import ROOT, source_review
 from kquant.options_minute_admission import POLICY_HASH
 from prepared_minutes import partition, MinutePreparation, PreparedDecision, decision_key
@@ -74,8 +74,9 @@ def _method_uncached(proof, *, now, root):
         if (proof.get("semantics") != "CLOSED_SNAPSHOT_ADOPTION" or proof.get("status") != "ACCEPTED"
                 or proof.get("method") != LOCAL_METHOD):
             return None
-        path = (root / proof["acceptance_path"]).resolve()
-        if not path.is_relative_to(root.resolve()):
+        from method_snapshot import resolve_path
+        path = resolve_path(root / proof["acceptance_path"])
+        if not path.is_relative_to(resolve_path(root)):
             return None
         raw = path.read_bytes()
         from hashlib import sha256

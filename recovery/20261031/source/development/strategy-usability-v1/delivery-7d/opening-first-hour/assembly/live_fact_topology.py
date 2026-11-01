@@ -372,7 +372,10 @@ def first_timings(events, point):
             "availability_record_seconds", "history_snapshot_batch_seconds", "enqueue_to_commit_seconds",
             "prepare_files_before_seconds", "prepare_facts_before_seconds", "prepare_checkpoint_seconds",
             "prepare_reference_fallback_seconds", "prepare_aggregate_seconds", "prepare_files_after_seconds",
-            "prepare_facts_after_seconds", "prepare_identity_seconds")
+            "prepare_facts_after_seconds", "prepare_identity_seconds",
+            "admission_queue_seconds", "compute_queue_seconds", "generation_preparation_cpu_seconds",
+            "generation_validation_cpu_seconds", "commit_fence_wait_seconds", "commit_validation_seconds",
+            "commit_journal_seconds", "commit_batch_cpu_seconds", "enqueue_to_durable_commit_seconds")
     return {key: {"n": len(values), "p95_seconds": percentile(values)}
             for key in keys for values in [[e.get("runtime_timing", {}).get(key)
                 for e in first.values() if e.get("runtime_timing", {}).get(key) is not None]]}
@@ -643,6 +646,24 @@ def backend(cfg, offset, connection):
     lane._checkpoint_inputs = gated_inputs
     lane.history.load = slow_history
     profiles = {}
+    admission_profile = None
+    if cfg.get('admission_profile'):
+        if cfg.get('profile'):
+            raise ValueError('DIAGNOSTIC_PROFILE_REQUIRES_OTHER_PROFILERS_DISABLED')
+        import cProfile
+        admission_profile = cProfile.Profile()
+        original_preparation = lane._prepare_generation
+        def diagnostic_prepare(key, *args, **kwargs):
+            if key[-1] != 11:
+                return original_preparation(key, *args, **kwargs)
+            # Diagnostic activation only, not exclusive thread CPU attribution.
+            # Other interpreter activity can appear in this profile.
+            admission_profile.enable()
+            try:
+                return original_preparation(key, *args, **kwargs)
+            finally:
+                admission_profile.disable()
+        lane._prepare_generation = diagnostic_prepare
     if cfg.get("profile"):
         def profiled(name, function):
             def call(*args, **kwargs):
@@ -831,6 +852,13 @@ def backend(cfg, offset, connection):
         for name, rows in profiles.items():
             write(out / f"TEST_ONLY-{os.getpid()}-{name}.json", {"test_only": True,
                 "segments": rows, "p95_seconds": percentile([row["seconds"] for row in rows])})
+        if admission_profile is not None:
+            import io
+            import pstats
+            stream = io.StringIO()
+            pstats.Stats(admission_profile, stream=stream).strip_dirs().sort_stats('cumulative').print_stats(90)
+            safe(out / f'TEST_ONLY-admission-profile-{os.getpid()}.txt').write_text(
+                stream.getvalue(), encoding='utf-8')
         event_log.close()
         projection_log.close()
 
@@ -1390,6 +1418,11 @@ def main():
             and report['tested_sources_unchanged'] and report['tested_frontend_unchanged']
             and degraded_observation and degraded_observation.get('live_http') == 200
             and browser_report and not browser_report.get('problems'))
+        report['admission_diagnostic_profile'] = bool(cfg.get('admission_profile'))
+        if report['admission_diagnostic_profile']:
+            report['performance_pass'] = False
+            report['observation_assembly_pass'] = False
+            report['full_acceptance'] = False
         report['observation_acceptance_boundary'] = ('ASSEMBLY_AND_SAFE_DEGRADED_ONLY_NOT_MARKET_OR_PERFORMANCE'
             if args.observation_safe_hour else None)
         write(out / "topology_report.json", report)

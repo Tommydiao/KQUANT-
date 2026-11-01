@@ -32,10 +32,12 @@ def activate(*, verify=False):
     mapping = {'kquant.'+name:path for name,path in inherited.selected_overrides().items()}
     mapping['kquant_crypto.gateway'] = FIRST/'gateway_candidate.py'
     for name, file in {
+        'options_minute_admission':'first_hour_minute_admission.py',
         'options_minute_decisions':'first_hour_minute_decisions.py',
         'options_opening_trend_runtime':'first_hour_runtime.py',
         'options_opening_trend_store':'first_hour_store.py',
         'options_opening_trend_current':'first_hour_current.py',
+        'options_opening_trend_summary':'first_hour_summary.py',
         'options_opening_trend_pipeline':'first_hour_pipeline.py',
         'options_intraday_reference':'first_hour_reference.py',
         'status_worker':'first_hour_status_worker.py',

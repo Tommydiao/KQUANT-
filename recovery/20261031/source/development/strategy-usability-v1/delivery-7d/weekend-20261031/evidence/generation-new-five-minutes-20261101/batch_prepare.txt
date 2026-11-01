@@ -1,0 +1,58 @@
+         222340 function calls (206075 primitive calls) in 0.255 seconds
+
+   Ordered by: cumulative time
+   List reduced from 296 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.258    0.258 profile_generation.py:106(prepare_batch)
+        8    0.001    0.000    0.229    0.029 first_hour_runtime.py:426(_prepare_generation)
+        8    0.001    0.000    0.125    0.016 first_hour_runtime.py:301(_checkpoint_inputs)
+        8    0.005    0.001    0.078    0.010 first_hour_minute_decisions.py:141(resolve)
+        8    0.000    0.000    0.040    0.005 first_hour.py:52(prepare_inputs)
+       16    0.000    0.000    0.035    0.002 first_hour_minute_decisions.py:245(read_with_token)
+      890    0.008    0.000    0.027    0.000 options_minute_admission.py:12(classify)
+        8    0.000    0.000    0.026    0.003 first_hour_minute_decisions.py:210(append_many)
+        8    0.006    0.001    0.026    0.003 options_opening_trend.py:42(complete_minutes)
+       16    0.001    0.000    0.024    0.002 prepared_generation.py:52(source_files)
+  528/522    0.000    0.000    0.024    0.000 {built-in method builtins.next}
+     1285    0.002    0.000    0.024    0.000 prepared_minutes.py:134(prepare)
+      694    0.001    0.000    0.023    0.000 options_one_minute.py:78(digest)
+9245/1333    0.011    0.000    0.021    0.000 prepared_minutes.py:29(freeze)
+       18    0.000    0.000    0.020    0.001 pathlib.py:1228(resolve)
+      798    0.001    0.000    0.020    0.000 options_one_minute.py:74(canonical)
+      836    0.002    0.000    0.020    0.000 __init__.py:183(dumps)
+     7945    0.010    0.000    0.019    0.000 options_one_minute.py:82(timestamp)
+        2    0.000    0.000    0.018    0.009 first_hour_runtime.py:353(_input_batch)
+  181/179    0.000    0.000    0.018    0.000 method_snapshot.py:32(checked)
+      836    0.002    0.000    0.017    0.000 encoder.py:183(encode)
+        8    0.000    0.000    0.016    0.002 prepared_generation.py:191(build)
+       42    0.016    0.000    0.016    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+       12    0.000    0.000    0.015    0.001 method_snapshot.py:56(<lambda>)
+      816    0.015    0.000    0.015    0.000 encoder.py:205(iterencode)
+5951/1621    0.003    0.000    0.015    0.000 prepared_minutes.py:33(<genexpr>)
+        8    0.001    0.000    0.015    0.002 prepared_minutes.py:192(partition)
+       18    0.000    0.000    0.014    0.001 <frozen ntpath>:705(realpath)
+    44/42    0.000    0.000    0.013    0.000 contextlib.py:141(__exit__)
+       36    0.013    0.000    0.013    0.000 {built-in method nt._getfinalpathname}
+       69    0.000    0.000    0.013    0.000 method_snapshot.py:52(resolve_path)
+    64853    0.013    0.000    0.013    0.000 {built-in method builtins.isinstance}
+       16    0.000    0.000    0.012    0.001 first_hour_minute_decisions.py:235(read_rows)
+       34    0.000    0.000    0.012    0.000 pathlib.py:1015(read_bytes)
+        2    0.000    0.000    0.012    0.006 method_snapshot.py:59(calculation_scope)
+       37    0.000    0.000    0.012    0.000 pathlib.py:1005(open)
+       37    0.011    0.000    0.012    0.000 {built-in method _io.open}
+       40    0.001    0.000    0.011    0.000 prepared_minutes.py:177(__init__)
+    44/41    0.000    0.000    0.011    0.000 contextlib.py:132(__enter__)
+      890    0.001    0.000    0.011    0.000 {built-in method builtins.all}
+        8    0.001    0.000    0.010    0.001 options_opening_momentum.py:56(price_aggregate)
+      692    0.001    0.000    0.009    0.000 pathlib.py:551(drive)
+       40    0.002    0.000    0.009    0.000 prepared_generation.py:16(rows_token)
+      445    0.003    0.000    0.009    0.000 first_hour_minute_decisions.py:28(_local_candidate)
+     4450    0.003    0.000    0.009    0.000 options_minute_admission.py:29(<genexpr>)
+       16    0.000    0.000    0.009    0.001 prepared_generation.py:39(price_fact_token)
+        1    0.000    0.000    0.009    0.009 first_hour_runtime.py:597(_source_reviews)
+        8    0.000    0.000    0.009    0.001 first_hour_minute_decisions.py:231(read)
+      371    0.001    0.000    0.008    0.000 pathlib.py:407(_load_parts)
+        8    0.000    0.000    0.008    0.001 options_intraday_comparison.py:13(independent_reference)
+
+

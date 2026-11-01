@@ -1,0 +1,58 @@
+         54080 function calls (48500 primitive calls) in 0.299 seconds
+
+   Ordered by: cumulative time
+   List reduced from 162 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       10    0.000    0.000    0.298    0.030 profile_generation.py:110(<lambda>)
+       10    0.001    0.000    0.298    0.030 test_generation_handoff.py:107(validate)
+       10    0.001    0.000    0.246    0.025 first_hour_runtime.py:499(_validate_generation)
+       80    0.000    0.000    0.100    0.001 pathlib.py:1228(resolve)
+       60    0.093    0.002    0.093    0.002 {method 'execute' of 'sqlite3.Connection' objects}
+   120/60    0.000    0.000    0.071    0.001 {built-in method builtins.next}
+       60    0.000    0.000    0.070    0.001 generation_reads.py:33(read_connection)
+       60    0.001    0.000    0.070    0.001 bounded_sqlite.py:8(read_connection)
+       80    0.001    0.000    0.070    0.001 <frozen ntpath>:705(realpath)
+      160    0.064    0.000    0.064    0.000 {built-in method nt._getfinalpathname}
+    60/30    0.000    0.000    0.064    0.002 contextlib.py:132(__enter__)
+       10    0.000    0.000    0.061    0.006 first_hour_minute_decisions.py:235(read_rows)
+       10    0.000    0.000    0.051    0.005 prepared_generation.py:33(price_fact_token)
+       10    0.000    0.000    0.043    0.004 first_hour_runtime.py:405(_method_state)
+       10    0.000    0.000    0.042    0.004 first_hour_minute_decisions.py:58(_method)
+    30/10    0.000    0.000    0.040    0.004 method_snapshot.py:32(checked)
+       10    0.000    0.000    0.040    0.004 first_hour_minute_decisions.py:63(<lambda>)
+       10    0.000    0.000    0.040    0.004 first_hour_minute_decisions.py:66(_method_uncached)
+       10    0.000    0.000    0.033    0.003 first_hour_runtime.py:592(_source_reviews)
+       10    0.000    0.000    0.033    0.003 options_opening_trend_reference.py:116(load_reviews)
+       10    0.000    0.000    0.033    0.003 first_hour_runtime.py:389(_read_versions)
+       20    0.000    0.000    0.032    0.002 method_snapshot.py:52(resolve_path)
+       20    0.000    0.000    0.030    0.002 method_snapshot.py:56(<lambda>)
+      100    0.000    0.000    0.029    0.000 pathlib.py:835(stat)
+      100    0.026    0.000    0.029    0.000 {built-in method nt.stat}
+       70    0.000    0.000    0.025    0.000 pathlib.py:1005(open)
+       70    0.023    0.000    0.025    0.000 {built-in method _io.open}
+       60    0.000    0.000    0.025    0.000 pathlib.py:1015(read_bytes)
+       10    0.002    0.000    0.025    0.002 prepared_generation.py:164(check)
+       50    0.000    0.000    0.023    0.000 prepared_generation.py:26(file_token)
+       10    0.000    0.000    0.018    0.002 first_hour.py:20(policies)
+ 5740/410    0.008    0.000    0.017    0.000 copy.py:118(deepcopy)
+   170/80    0.002    0.000    0.015    0.000 copy.py:217(_deepcopy_dict)
+       30    0.014    0.000    0.015    0.000 {built-in method _sqlite3.connect}
+       30    0.003    0.000    0.010    0.000 prepared_generation.py:16(rows_token)
+      410    0.001    0.000    0.008    0.000 pathlib.py:437(__str__)
+      250    0.000    0.000    0.008    0.000 pathlib.py:447(__fspath__)
+       20    0.000    0.000    0.007    0.000 options_opening_momentum.py:26(load_policy)
+      330    0.001    0.000    0.007    0.000 pathlib.py:551(drive)
+       10    0.000    0.000    0.007    0.001 options_intraday_comparison.py:26(load_policy)
+    60/30    0.000    0.000    0.006    0.000 contextlib.py:141(__exit__)
+      210    0.001    0.000    0.006    0.000 pathlib.py:407(_load_parts)
+       30    0.006    0.000    0.006    0.000 {method 'close' of 'sqlite3.Connection' objects}
+     2300    0.005    0.000    0.005    0.000 {method 'update' of '_hashlib.HASH' objects}
+       10    0.000    0.000    0.005    0.001 pathlib.py:1022(read_text)
+       20    0.000    0.000    0.005    0.000 __init__.py:299(loads)
+       20    0.000    0.000    0.004    0.000 decoder.py:333(decode)
+       20    0.004    0.000    0.004    0.000 decoder.py:344(raw_decode)
+      210    0.002    0.000    0.004    0.000 pathlib.py:387(_parse_path)
+       60    0.000    0.000    0.003    0.000 options_one_minute.py:78(digest)
+
+

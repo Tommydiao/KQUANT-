@@ -159,6 +159,41 @@ def test_prepared_content_is_deeply_immutable(tmp_path):
         validate(lane, generation)
 
 
+def test_timing_preserves_end_to_end_and_separates_actual_commit(tmp_path):
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, _):
+        lane.timings[key] = {'enqueue_monotonic': time.monotonic()}
+        dispatch(lane, key, job)
+        until(lambda: any('runtime_timing' in event for event in lane.hub.events))
+        timing = next(event['runtime_timing'] for event in lane.hub.events if 'runtime_timing' in event)
+        for field in ('admission_queue_seconds','compute_queue_seconds',
+                      'generation_preparation_cpu_seconds','generation_validation_cpu_seconds',
+                      'commit_fence_wait_seconds','commit_validation_seconds','commit_journal_seconds',
+                      'commit_batch_cpu_seconds','enqueue_to_durable_commit_seconds'):
+            assert timing[field] >= 0
+        assert timing['enqueue_to_durable_commit_seconds'] <= timing['enqueue_to_commit_seconds']
+        assert abs(timing['commit_batch_seconds']-sum(timing[field] for field in
+            ('commit_fence_wait_seconds','commit_validation_seconds','commit_journal_seconds'))) < 1e-6
+
+
+def test_missing_enqueue_time_is_not_a_zero_latency_sample(tmp_path):
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, _):
+        dispatch(lane, key, job)
+        until(lambda: any('runtime_timing' in event for event in lane.hub.events))
+        timing = next(event['runtime_timing'] for event in lane.hub.events if 'runtime_timing' in event)
+        assert timing['enqueue_to_durable_commit_seconds'] is None
+        assert timing['enqueue_to_commit_seconds'] is None
+        assert timing['admission_queue_seconds'] is None
+
+
+def test_real_enqueue_adds_timestamp_to_existing_diagnostic_entry(tmp_path):
+    with actual_lane(tmp_path) as (lane, _, _, key, job, bars, _):
+        lane.timings[key] = {'input_batch_read_seconds': 0.1}
+        lane.enqueue(job[0], job[1], bars, job[3], job[4])
+        original = lane.timings[key]['enqueue_monotonic']
+        lane.enqueue(job[0], job[1], bars, job[3], job[4])
+        assert lane.timings[key]['enqueue_monotonic'] == original
+
+
 def test_actual_lane_binds_fact_root_once_but_rejects_environment_change(tmp_path, monkeypatch):
     from kquant import options_price_action_source as actions
     calls = []
@@ -230,11 +265,97 @@ def test_source_paths_deduplicate_before_os_resolution_without_caching_bytes(tmp
     monkeypatch.setattr(Path, 'resolve', observed)
     values = [{'source_path': proof.name, 'acceptance_path': proof.name} for _ in range(55)]
     first = source_files(tmp_path, values, extra=(proof, proof))
-    assert len(calls) == 3  # root, explicit file, repeated named file.
+    assert len(calls) == 2  # root and named file; explicit bound path stays logical.
     assert first == ((original(proof), sha256(b'AAAA').hexdigest()),)
     proof.write_bytes(b'BBBB')
     assert source_files(tmp_path, values)[0][1] == sha256(b'BBBB').hexdigest()
     assert source_files(tmp_path, {'source_path': '../outside-proof'}) == ()
+
+
+def test_scoped_file_tokens_recheck_bytes_before_return(tmp_path, monkeypatch):
+    import prepared_generation as module
+    from method_snapshot import SourceSnapshotChanged
+    proof = tmp_path/'TEST_ONLY-scope-proof'
+    proof.write_bytes(b'AAAA')
+    calls = []
+    original = module.file_token
+    def observed(path):
+        calls.append(path)
+        return original(path)
+    monkeypatch.setattr(module, 'file_token', observed)
+    with calculation_scope():
+        for _ in range(8):
+            assert module.scoped_file_token(proof) == sha256(b'AAAA').hexdigest()
+    assert len(calls) == 2  # One preparation and one original-byte exit check.
+    with pytest.raises(SourceSnapshotChanged, match='METHOD_CHANGED'):
+        with calculation_scope():
+            module.scoped_file_token(proof)
+            proof.write_bytes(b'BBBB')
+            module.scoped_file_token(proof)
+    assert module.scoped_file_token(proof) == sha256(b'BBBB').hexdigest()
+
+
+@pytest.mark.parametrize('phase', ['admission', 'precommit'])
+def test_scope_byte_change_cannot_escape_to_durable_completion(tmp_path, monkeypatch, phase):
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, _):
+        source = tmp_path/'TEST_ONLY-changing-source'
+        source.write_bytes(b'AAAA')
+        job[4]['source_path'] = source.name
+        calls = []
+        target = '_prepare_generation' if phase == 'admission' else '_validate_generation'
+        original = getattr(lane, target)
+        def changed(*args, **kwargs):
+            value = original(*args, **kwargs)
+            calls.append(True)
+            if len(calls) == (1 if phase == 'admission' else 2):
+                source.write_bytes(b'BBBB')
+            return value
+        monkeypatch.setattr(lane, target, changed)
+        dispatch(lane, key, job)
+        until(lambda: len(results(lane.path)) == 4)
+        if phase == 'precommit':
+            assert all(row['runtime_inputs']['input_generation'] >= 2 for row in results(lane.path))
+        assert source.read_bytes() == b'BBBB'
+        assert len(calls) >= (2 if phase == 'admission' else 4)
+
+
+def test_phase_database_identity_check_precedes_journal_commit(tmp_path, monkeypatch):
+    import generation_reads
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, _):
+        calls, calculations, finish_counts = [], [], []
+        fail_next = [False]
+        original_identity = generation_reads.identity
+        original_validate, original_calculate = lane._validate_generation, lane._calculate
+        original_finish = journal.finish_many
+        def validate_once(*args, **kwargs):
+            value = original_validate(*args, **kwargs)
+            calls.append(True)
+            if len(calls) == 2:
+                fail_next[0] = True
+            return value
+        def identity_once(path):
+            if fail_next[0]:
+                fail_next[0] = False
+                return ('TEST_ONLY', 'changed')
+            return original_identity(path)
+        def calculate(*args, **kwargs):
+            calculations.append(True)
+            return original_calculate(*args, **kwargs)
+        def finish(*args, **kwargs):
+            finish_counts.append(len(calculations))
+            return original_finish(*args, **kwargs)
+        monkeypatch.setattr(lane, '_validate_generation', validate_once)
+        monkeypatch.setattr(lane, '_calculate', calculate)
+        monkeypatch.setattr(generation_reads, 'identity', identity_once)
+        monkeypatch.setattr(journal, 'finish_many', finish)
+        dispatch(lane, key, job)
+        until(lambda: lane.state.get('error') == 'ValueError')
+        assert results(lane.path) == [] and finish_counts == []
+        # Identity failures do not automatically adopt another database. A new
+        # explicit source notification re-arms the unchanged TEST_ONLY store.
+        assert lane.source_facts_ready('AI', job[1])
+        until(lambda: len(results(lane.path)) == 4)
+        assert finish_counts and min(finish_counts) >= 2
 
 
 def test_legacy_lane_without_generation_commits_both_directions(tmp_path, monkeypatch):

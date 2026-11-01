@@ -44,8 +44,16 @@ def checked(key, validate):
 def observed_source_paths():
     """Exact files used by this bounded preparation, including their actual root."""
     from pathlib import Path
-    return tuple((Path(key[1]) / key[2]).resolve() for key in (_active.get() or {})
+    keys = tuple(_active.get() or {})
+    return tuple(resolve_path(Path(key[1]) / key[2]) for key in keys
                  if key[0] == 'source-file')
+
+
+def resolve_path(path):
+    """Deduplicate OS traversal only within a scope that rechecks before exit."""
+    from pathlib import Path
+    path = Path(path).absolute()
+    return Path(checked(('resolved-path', str(path)), lambda: str(path.resolve())))
 
 
 @contextmanager
