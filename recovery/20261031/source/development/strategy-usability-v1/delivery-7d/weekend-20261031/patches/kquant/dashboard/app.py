@@ -954,7 +954,8 @@ def create_app(
         if not request.headers.get('X-KQUANT-WORKSPACE-USER') and not session_auth.session_from_request(request):
             raise HTTPException(status_code=401,detail='LOCAL_LOGIN_REQUIRED')
         identity=payload.get('evaluation_id')
-        if payload.get('role')!='ASTRA' or not isinstance(identity,str) or not 1<=len(identity)<=128:
+        role=payload.get('role')
+        if role not in {'SOL','ASTRA'} or not isinstance(identity,str) or not 1<=len(identity)<=128:
             raise HTTPException(status_code=422,detail='INVALID_RESEARCH_REVIEW_REQUEST')
         now=research_clock() if research_clock else datetime.now(UTC)
         try:
@@ -967,12 +968,15 @@ def create_app(
             if original and original.get('reference_collection_owner') == 'S0':
                 parent_id=original.get('parent_evaluation_id')
                 original=detail(parent_id,research_store or roles['opening_research']) if parent_id else None
+            from ..options_research_availability import current_allowed
+            if original and not current_allowed(original):
+                raise HTTPException(status_code=409,detail='LATE_OR_UNVERIFIED_TIMELINESS')
             event=captured_event(original,original.get('current_eligibility',{}),
                                  versions=version_identity(ai_config)) if original else None
             if not event:
                 raise HTTPException(status_code=409,detail='CURRENT_REFERENCE_RESEARCH_REQUIRED')
-            outcome=TaskStore(roles['signal_copilot'],initialize=False).enqueue(event,role='ASTRA',now=now)
-            return {'state':outcome,'role':'ASTRA','model':'gpt-6-astra','evaluation_id':identity,'paid_call':False,'qualified_signal':False}
+            outcome=TaskStore(roles['signal_copilot'],initialize=False).enqueue(event,role=role,now=now)
+            return {'state':outcome,'role':role,'model':'gpt-6-astra' if role=='ASTRA' else 'gpt-6.1-sol','evaluation_id':identity,'paid_call':False,'qualified_signal':False}
         except HTTPException:
             raise
         except (OSError,sqlite3.Error,ValueError,KeyError):

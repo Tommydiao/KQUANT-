@@ -25,9 +25,19 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
     report.window_heading_verified = true;
     await card.locator('summary').filter({hasText:/AI evidence review|AI证据复核/}).click();
     const aiText=await card.innerText();
-    if (!aiText.includes('PRIVATE_KEY_SETUP_POSTPONED')) throw Error('AI_UNAVAILABLE_STATE_NOT_RENDERED');
-    if (!/Not verified|尚未核验/.test(aiText)) throw Error('RETURNED_MODEL_NOT_EXPLICITLY_UNKNOWN');
-    report.ai_unavailable_nonblocking=true;
+    if (config.ai_replay) {
+      if (!aiText.includes('gpt-6.1-sol') || !/saved real API result|已保存真实API结果/.test(aiText)) throw Error('REAL_API_REPLAY_PROVENANCE_MISSING');
+      if (!/0.0088058/.test(aiText)) throw Error('REAL_API_COST_MISSING');
+      const evidence=card.locator('summary').filter({hasText:/Closed-bar prices|闭合价格/});
+      await evidence.click();
+      if (!/open/.test(await card.innerText()) || !/close/.test(await card.innerText())) throw Error('EVIDENCE_METRICS_MISSING');
+      report.saved_real_api_display=true;
+      report.not_this_market_analysis=true;
+    } else {
+      if (!aiText.includes('TEST_ONLY_MODEL_UNAVAILABLE')) throw Error('AI_UNAVAILABLE_STATE_NOT_RENDERED');
+      if (!/Not verified|尚未核验/.test(aiText)) throw Error('RETURNED_MODEL_NOT_EXPLICITLY_UNKNOWN');
+      report.ai_unavailable_nonblocking=true;
+    }
     if (!report.initial.includes(config.contract)) throw Error('SPECIFIC_REFERENCE_NOT_RENDERED');
     if (!report.initial.includes('S0:') || !report.initial.includes('S1:')) throw Error('COMPARISON_NOT_RENDERED');
     if (await page.locator('.ops-trend-signal').count()) throw Error('UNAUTHORIZED_QUALIFIED_CARD');
@@ -37,7 +47,7 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
     await page.waitForFunction(target=>/Historical reference quote|历史参考报价/.test(
       document.querySelector(`[aria-label="${target}"]`)?.textContent ?? ''),config.target,{timeout:5000});
     if (/Original deadline expired|原期限已过/.test(await card.innerText())) throw Error('BBO_AGE_CONFUSED_WITH_FORMATION_DEADLINE');
-    if (!await card.getByRole('button',{name:/Astra/}).isDisabled()) throw Error('STALE_BBO_ASTRA_ENABLED');
+    if (await card.getByRole('button',{name:/Sol/}).isDisabled()) throw Error('TECHNICAL_REVIEW_BLOCKED_BY_OLD_BBO');
     report.bbo_age_separate_from_original_deadline=true;
     fs.writeFileSync(config.control, JSON.stringify({advance_seconds:301}));
     await page.clock.fastForward(297000);
@@ -49,6 +59,8 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
     if (await page.locator('.ops-trend-signal').count()) throw Error('EXPIRED_QUALIFIED_CARD');
     report.page_delivery = true;
     report.original_deadline_expiry = true;
+    await card.locator('summary').filter({hasText:/AI evidence review|AI证据复核/}).click();
+    if (!await card.getByRole('button',{name:/Sol/}).isDisabled()) throw Error('EXPIRED_REVIEW_ENABLED');
     report.layouts=[];
     for (const width of [1440,2560]) for (const language of ['zh','en']) for (const theme of ['dark','light']) {
       await page.setViewportSize({width,height:1000});
@@ -60,7 +72,7 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
       await card.waitFor({state:'visible',timeout:20000});
       await card.locator('summary').filter({hasText:/AI evidence review|AI证据复核/}).click();
       const text=await card.innerText();
-      if (!text.includes('PRIVATE_KEY_SETUP_POSTPONED') || !text.includes(config.contract)) throw Error('STATE_LOST_ON_LAYOUT');
+      if (!text.includes(config.ai_replay ? 'gpt-6.1-sol' : 'TEST_ONLY_MODEL_UNAVAILABLE') || !text.includes(config.contract)) throw Error('STATE_LOST_ON_LAYOUT');
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
       const boxes=await card.locator('th,td,p,small,strong').evaluateAll(nodes=>nodes.filter(n=>
         n.clientWidth>0 && n.scrollWidth>n.clientWidth+2).map(n=>({tag:n.tagName,text:n.textContent})));

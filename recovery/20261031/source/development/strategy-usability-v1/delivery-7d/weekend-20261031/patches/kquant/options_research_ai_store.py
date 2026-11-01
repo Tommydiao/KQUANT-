@@ -8,7 +8,7 @@ import sqlite3
 from time import monotonic
 
 from . import options_one_minute as common
-from .options_research_ai_evidence import MODELS,evidence_packet
+from .options_research_ai_evidence import MODELS,evidence_packet,economic_identity,technical_identity,evidence_catalog
 
 
 def version_material(event):
@@ -68,6 +68,7 @@ class TaskStore:
         if common.timestamp(event['deadline_at'])<=now:
             return 'EXPIRED'
         event=deepcopy(event)
+        candidate_id=economic_identity(event)
         identity,material=self.identity(event,role)
         stamp=now.isoformat()
         payload=common.canonical({'captured':event,'result':None,'schema':'OPENING_AI_TASK_V1',
@@ -76,18 +77,29 @@ class TaskStore:
             db.execute('BEGIN IMMEDIATE')
             if db.execute('SELECT 1 FROM llm_work_queue WHERE work_id=?',(identity,)).fetchone():
                 return 'IDEMPOTENT'
+            if role=='SOL' and event.get('_ai_trigger_mode')=='TECHNICAL_FIRST_AUTO_V1':
+                prior=db.execute("""SELECT q.work_id,a.payload_json FROM llm_work_queue q
+                    JOIN ai_assessments a ON a.assessment_id=q.work_id
+                    WHERE q.candidate_id=? AND q.role='SOL'
+                    AND q.purpose='OPENING_READ_ONLY_RESEARCH' LIMIT 1""",(candidate_id,)).fetchone()
+                if prior:
+                    captured=json.loads(prior['payload_json'])['captured']
+                    changed=technical_identity(captured)!=technical_identity(event)
+                    if changed:
+                        db.execute("UPDATE llm_work_queue SET state='REJECTED',deferred_reason='INPUT_REVISED_MANUAL_REVIEW_REQUIRED',updated_at=? WHERE candidate_id=? AND role='SOL' AND purpose='OPENING_READ_ONLY_RESEARCH' AND state='QUEUED'",(stamp,candidate_id))
+                    return 'MANUAL_REVIEW_REQUIRED' if changed else 'ECONOMIC_EVENT_ALREADY_REVIEWED'
             if role=='ASTRA':
                 # The queue and budget share this existing database. One immediate
                 # transaction prevents two generations from both claiming upgrade.
-                if db.execute("SELECT 1 FROM llm_work_queue WHERE candidate_id=? AND role='ASTRA' AND purpose='OPENING_READ_ONLY_RESEARCH' LIMIT 1",(event['event_id'],)).fetchone():
+                if db.execute("SELECT 1 FROM llm_work_queue WHERE candidate_id=? AND role='ASTRA' AND purpose='OPENING_READ_ONLY_RESEARCH' LIMIT 1",(candidate_id,)).fetchone():
                     return 'ASTRA_EVENT_LIMIT'
-                if db.execute("SELECT 1 FROM llm_budget_reservations WHERE candidate_id=? AND role='ASTRA' AND state!='RELEASED_NO_REQUEST' LIMIT 1",(event['event_id'],)).fetchone():
+                if db.execute("SELECT 1 FROM llm_budget_reservations WHERE candidate_id=? AND role='ASTRA' AND state!='RELEASED_NO_REQUEST' LIMIT 1",(candidate_id,)).fetchone():
                     return 'ASTRA_EVENT_LIMIT'
-            db.execute("UPDATE llm_work_queue SET state='REJECTED',deferred_reason='INPUT_REVISED',updated_at=? WHERE candidate_id=? AND role=? AND purpose='OPENING_READ_ONLY_RESEARCH' AND state='QUEUED'",(stamp,event['event_id'],role))
+            db.execute("UPDATE llm_work_queue SET state='REJECTED',deferred_reason='INPUT_REVISED',updated_at=? WHERE candidate_id=? AND role=? AND purpose='OPENING_READ_ONLY_RESEARCH' AND state='QUEUED'",(stamp,candidate_id,role))
             db.execute('INSERT INTO ai_assessments VALUES (?,?,?,?,?,?,?)',
                 (identity,event['event_id'],material,MODELS[role],'RESEARCH_AI_QUEUED',payload,stamp))
             db.execute("INSERT INTO llm_work_queue VALUES (?,?,?,?,?,?,'QUEUED',NULL,?,NULL,NULL,?)",
-                (identity,role,event['event_id'],'OPENING_READ_ONLY_RESEARCH','',0,stamp,stamp))
+                (identity,role,candidate_id,'OPENING_READ_ONLY_RESEARCH','',0,stamp,stamp))
         return 'QUEUED'
 
     def claim(self,*,now,versions=None):
@@ -187,14 +199,20 @@ def summaries(path,events):
         result=value.get('result') or {}
         review_state=('COMPLETE' if result.get('state')=='COMPLETED' else 'UNAVAILABLE') if result else 'AI_PENDING'
         if queue_state in {'DEFERRED','REJECTED'} or (result.get('state')=='COMPLETED'
-                and result.get('delivery_state')!='CURRENT_RESEARCH_REVIEW'):
+                and result.get('delivery_state') not in {'CURRENT_RESEARCH_REVIEW','CURRENT_TECHNICAL_REVIEW'}):
             review_state='STALE'
         by_model[identity,model]={'model':model,'state':result.get('state',state),'review_state':review_state,
             'queue_state':queue_state,'deferred_reason':deferred_reason,'delivery_state':result.get('delivery_state'),
             'assessment':result.get('assessment'),'actual_cost_usd':result.get('actual_cost_usd'),
+            'evidence_catalog':(result.get('replay_evidence_catalog', []) if result.get('replay_provenance')
+                else evidence_catalog(value['captured'])),
+            'replay_provenance':result.get('replay_provenance'),
+            'review_scope':result.get('review_scope'),
+            'market_recheck_state':result.get('market_recheck_state'),
             'error_code':result.get('error_code'),'source_refs':result.get('source_refs'),
             'deadline_at':value['captured'].get('deadline_at'),'input_revision':value['captured'].get('input_revision'),
             'evaluation_id':value['captured'].get('evaluation_id'),
+            'technical_identity':technical_identity(value['captured']),
             'versions':value.get('versions',version_material(value['captured'])),
             'requested_model':result.get('requested_model'),'returned_model':result.get('actual_model'),
             'actual_model':result.get('actual_model'),'elapsed_seconds':result.get('elapsed_seconds'),
@@ -222,6 +240,9 @@ def attach(rows,*,path=None):
             summary=values.get(event['event_id'])
             if summary:
                 event['ai_review']={**summary,'display_state':'SAME_EVALUATION' if summary.get('evaluation_id')==event.get('evaluation_id') else 'PRIOR_EVALUATION'}
+                current={**event,'input_revision':event.get('runtime_inputs',{}).get('input_generation') or event.get('evaluation_id')}
+                if summary.get('technical_identity')!=technical_identity(current):
+                    event['ai_review'].update(review_state='STALE',display_state='INPUT_REVISED')
     except (OSError,sqlite3.Error,ValueError,KeyError):
         for row in rows:
             row['ai_review']={'state':'UNAVAILABLE','qualified_signal':False}

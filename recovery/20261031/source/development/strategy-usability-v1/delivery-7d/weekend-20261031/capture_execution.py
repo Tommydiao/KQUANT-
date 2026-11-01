@@ -43,7 +43,8 @@ def main():
     topologies=[]
     evidence_root=ROOT/'source/evidence/new-machine-20261008'
     reports=[*evidence_root.glob('weekend-*-20261031*/topology_report.json'),
-             *evidence_root.glob('sunday-*-20261101/topology_report.json')]
+             *evidence_root.glob('sunday-*-20261101/topology_report.json'),
+             *evidence_root.glob('iteration-*-20261101/topology_report.json')]
     for path in sorted(reports):
         report=json.loads(path.read_text())
         topologies.append(dict(path=str(path),sha256=digest(path),
@@ -51,6 +52,7 @@ def main():
             admission_diagnostic_profile=report.get('admission_diagnostic_profile'),
             tested_sources_unchanged=report.get('tested_sources_unchanged'),
             performance_pass=report.get('performance_pass'),
+            limited_research_performance_pass=report.get('limited_research_performance_pass'),
             child_processes_alive=report.get('child_processes_alive'),
             queue_p95=[p.get('segments',{}).get('enqueue_to_commit_seconds',{}).get('p95_seconds')
                 for p in report.get('checkpoints',[])],

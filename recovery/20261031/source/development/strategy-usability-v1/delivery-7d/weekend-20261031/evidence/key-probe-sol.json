@@ -1,0 +1,10 @@
+{
+  "state": "ACCESSIBLE",
+  "model": "gpt-6.1-sol",
+  "returned_model": "gpt-6.1-sol",
+  "http_status": 200,
+  "request_id": "c2635f51-ce1b-44f1-af2a-cbb19bcd79b1",
+  "paid_call": false,
+  "credential_version": "2339bb864f0c8ed9c8f0a04f06bd41c19fa253b921aebf7fcd09061feb201e0d",
+  "checked_at": "2026-11-01T08:56:39.221768+00:00"
+}

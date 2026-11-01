@@ -366,7 +366,7 @@ def first_timings(events, point):
     for event in events:
         if event.get("research_strategy") == "opening_momentum" and event.get("bar_end") == point:
             first.setdefault(event["symbol"], event)
-    keys = ("input_batch_read_seconds", "input_read_seconds", "cross_day_reference_seconds",
+    keys = ("input_batch_read_seconds", "input_batch_decision_seconds", "input_read_seconds", "cross_day_reference_seconds",
             "canonical_resolution_seconds", "generation_preparation_seconds",
             "generation_validation_seconds", "calculation_seconds", "commit_batch_seconds",
             "availability_record_seconds", "history_snapshot_batch_seconds", "enqueue_to_commit_seconds",
@@ -968,6 +968,27 @@ def checkpoint_record(path, cfg, slot, events):
                 complete=sum(v['state'] in {'NO_TRIGGER', 'NUMERIC_PASS'} for v in latest.values()),
                 states=dict(Counter(v['state'] for v in latest.values())),
                 unexplained_missing=sorted(expected-set(latest)))
+            # These exceptions are explicit scenario inputs, never inferred from failures.
+            expected_incomplete = ({('AAPL', r) for r in ('CALL', 'PUT')}
+                if variant == 'S1' or slot >= 3 else set())
+            expected_reason = 'SOURCE_CONFLICT' if slot >= 3 else 'INTRADAY_NATIVE_PRICE_BASIS_UNVERIFIED'
+            unexpected = [dict(symbol=k[0], right=k[1], state=v['state'], reasons=v.get('reasons'))
+                for k, v in latest.items()
+                if (k not in expected_incomplete and v['state'] not in {'NO_TRIGGER', 'NUMERIC_PASS'})
+                or (k in expected_incomplete and (v['state'] != 'INCOMPLETE' or expected_reason not in v.get('reasons', [])))]
+            first_full = {}
+            for event in events:
+                if event.get('research_strategy') != 'opening_momentum' or event.get('bar_end') != point.isoformat():
+                    continue
+                for committed in event.get('committed_evaluations', []):
+                    key = event['symbol'], committed.get('right')
+                    if (committed.get('variant') == variant and key in expected - expected_incomplete
+                            and committed.get('state') in {'NO_TRIGGER', 'NUMERIC_PASS'}):
+                        first_full.setdefault(key, event.get('runtime_timing', {}).get('enqueue_to_commit_seconds'))
+            values = [v for v in first_full.values() if v is not None]
+            variants[variant].update(expected_legal_full=len(expected - expected_incomplete),
+                unexpected_results=unexpected, first_full_timing_positions=len(values),
+                first_full_enqueue_to_commit_p95_seconds=percentile(values))
     matching = {e["symbol"] for e in events if e.get("research_strategy") == "opening_momentum" and e.get("bar_end") == point.isoformat()}
     return {"checkpoint": point.isoformat(), "variants": variants, "registered_directions": 222,
             "identity_excluded": 222 - len(expected), "evaluated_directions": len(observed),
@@ -1283,7 +1304,9 @@ def main():
             while True:
                 packet = command(backend_pipe, "stats")
                 record = checkpoint_record(research, cfg, slot, packet["events"])
-                if (not record["unexplained_missing"] and record["first_timing_symbols"] == record["expected_timing_symbols"]) or monotonic() >= until:
+                complete = all(not v['unexpected_results'] and
+                    v['first_full_timing_positions'] == v['expected_legal_full'] for v in record['variants'].values())
+                if (not record["unexplained_missing"] and record["first_timing_symbols"] == record["expected_timing_symbols"] and complete) or monotonic() >= until:
                     break
                 sleep(.05)
             record["source_and_enqueue_seconds"] = admission["source_and_enqueue_seconds"]
@@ -1300,6 +1323,9 @@ def main():
                 errors.append({"code": "CHECKPOINT_MISSING", "slot": slot})
             if record["first_timing_symbols"] != record["expected_timing_symbols"]:
                 errors.append({"code": "CHECKPOINT_TIMING_INCOMPLETE", "slot": slot})
+            if not complete:
+                errors.append({'code': 'LEGAL_INPUT_OR_FIRST_FULL_TIMING_INCOMPLETE', 'slot': slot,
+                    'variants': record['variants']})
             if slot == 1:
                 manual = manual_http(base, cfg, gateway_pipe)
                 write(out / "TEST_ONLY-manual-http.json", manual)
@@ -1419,6 +1445,17 @@ def main():
             and degraded_observation and degraded_observation.get('live_http') == 200
             and browser_report and not browser_report.get('problems'))
         report['admission_diagnostic_profile'] = bool(cfg.get('admission_profile'))
+        report['limited_research_performance_target_seconds'] = 10
+        report['limited_research_performance_pass'] = bool(len(checkpoints) == 11 and not args.profile and
+            not report['admission_diagnostic_profile'] and all(
+                p['first_timing_symbols'] == p['expected_timing_symbols'] and all(
+                    not v['unexpected_results'] and v['first_full_timing_positions'] == v['expected_legal_full'] and
+                    v['first_full_enqueue_to_commit_p95_seconds'] is not None and
+                    v['first_full_enqueue_to_commit_p95_seconds'] <= 10 for v in p['variants'].values())
+                for p in checkpoints))
+        report['limited_research_performance_measurement'] = 'FIRST_FULL_PER_LEGAL_DIRECTION_POSITION_FROM_ORIGINAL_ENQUEUE'
+        report['limited_research_publication_approved'] = False
+        report['excellent_performance_target_unchanged'] = True
         if report['admission_diagnostic_profile']:
             report['performance_pass'] = False
             report['observation_assembly_pass'] = False

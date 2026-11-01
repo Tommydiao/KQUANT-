@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-11-01T08:55:22.466663+00:00",
+  "scope": "TEST_ONLY_BUSINESS_REAL_API_COST",
+  "natural_signal": false,
+  "production_start": false,
+  "role": "SOL",
+  "case": "math",
+  "paid_call": false,
+  "result": null,
+  "probe": {
+    "state": "MISSING_LOCAL_KEY",
+    "model": "gpt-6.1-sol",
+    "paid_call": false,
+    "checked_at": "2026-11-01T08:55:22.466663+00:00"
+  },
+  "state": "MODEL_ACCESS_NOT_VERIFIED"
+}

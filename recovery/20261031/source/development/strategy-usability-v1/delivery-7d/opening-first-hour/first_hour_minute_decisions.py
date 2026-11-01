@@ -16,6 +16,8 @@ from datetime import date, timedelta
 KIND = "CANONICAL_MINUTE_DECISION_V1"
 WRITE_BOUND = 500
 _decision_preparation = MinutePreparation(factory=PreparedDecision)
+from minute_resolution_plan import ResolutionPreparation
+_resolution_preparation = ResolutionPreparation()
 LOCAL_METHOD = {"version": "LOCAL_CLOSED_SNAPSHOT_V1", "period": "1m",
     "adjustment": "NoAdjust", "session": "regular", "selection": "LATEST_ELIGIBLE_POST_BOUNDARY_PULL",
     "interface": "QuoteContext.candlesticks", "clock_state": "VERIFIED_BOUND",
@@ -138,11 +140,43 @@ def accepted(decision, rows, *, symbol, start, now, root=None):
         return None
 
 
+def _select_version(eligible_pairs, reviewed):
+    versions = [row for _, row in eligible_pairs]
+    selected = None
+    if reviewed["semantics"] == "DOCUMENTED_PROVIDER_REVISION":
+        ordered = [(_semantic_version(row, reviewed), row) for row in versions]
+        if all(sequence is not None for sequence, _ in ordered):
+            maximum = max(sequence for sequence, _ in ordered)
+            best = [row for sequence, row in ordered if sequence == maximum]
+            if len({tuple(row[k] for k in ("open", "high", "low", "close")) for row in best}) == 1:
+                selected = max(best, key=lambda r: common.timestamp(r["received_at"]))
+    elif reviewed["semantics"] == "CLOSED_SNAPSHOT_ADOPTION":
+        candidates = [row for row in versions if _local_candidate(row, reviewed)]
+        if candidates:
+            selected = max(candidates, key=lambda r: common.timestamp(r["received_at"]))
+            selected_at = common.timestamp(selected["received_at"])
+            selected_prices = tuple(selected[k] for k in ("open", "high", "low", "close"))
+            if any(common.timestamp(row["received_at"]) >= selected_at
+                   and tuple(row[k] for k in ("open", "high", "low", "close")) != selected_prices
+                   for row in versions):
+                selected = None
+    elif reviewed["semantics"] == "PROVIDER_CONFIRMED_BAR":
+        if len({tuple(row[k] for k in ("open", "high", "low", "close")) for row in versions}) == 1:
+            selected = next((r for r in versions if r.get("sdk_evidence", {}).get("provider_confirmed") is True), None)
+    return next((identity for identity, row in eligible_pairs if row is selected), None)
+
+
 def resolve(path, rows, *, symbol, session, now, proof, root=ROOT, include_existing=False):
     """Production producer, selecting a whole version under a proved method."""
     reviewed = _method(proof, now=now, root=root)
     if not reviewed:
         return read(path, symbol=symbol, session=session, now=now) if include_existing else []
+    previous, values = _plan(path, rows, symbol=symbol, session=session, now=now, reviewed=reviewed)
+    added = append_many(path, values)
+    return previous + added if include_existing else added
+
+
+def _plan(path, rows, *, symbol, session, now, reviewed):
     opening, closing = session_bounds_utc(date.fromisoformat(session))
     classified = partition(rows, symbol=symbol, opening=opening, until=closing, now=now)
     grouped = {}
@@ -155,35 +189,13 @@ def resolve(path, rows, *, symbol, session, now, proof, root=ROOT, include_exist
                      for d in previous}
     for start, raw_pairs in grouped.items():
         eligible_pairs = [(identity, row) for identity, row in raw_pairs if identity in classified['eligible']]
-        versions = [row for _, row in eligible_pairs]
-        if not versions:
+        if not eligible_pairs:
             continue
-        selected = None
-        if reviewed["semantics"] == "DOCUMENTED_PROVIDER_REVISION":
-            ordered = [(_semantic_version(row, reviewed), row) for row in versions]
-            if all(sequence is not None for sequence, _ in ordered):
-                maximum = max(sequence for sequence, _ in ordered)
-                best = [row for sequence, row in ordered if sequence == maximum]
-                if len({tuple(row[k] for k in ("open", "high", "low", "close")) for row in best}) == 1:
-                    selected = max(best, key=lambda r: common.timestamp(r["received_at"]))
-        elif reviewed["semantics"] == "CLOSED_SNAPSHOT_ADOPTION":
-            candidates = [row for row in versions if _local_candidate(row, reviewed)]
-            if candidates:
-                selected = max(candidates, key=lambda r: common.timestamp(r["received_at"]))
-                selected_at = common.timestamp(selected["received_at"])
-                selected_prices = tuple(selected[k] for k in ("open", "high", "low", "close"))
-                # Re-running the producer cannot re-legitimize a superseded pull.
-                # A later legal contradiction needs new post-boundary evidence.
-                if any(common.timestamp(row["received_at"]) >= selected_at
-                       and tuple(row[k] for k in ("open", "high", "low", "close")) != selected_prices
-                       for row in versions):
-                    selected = None
-        elif reviewed["semantics"] == "PROVIDER_CONFIRMED_BAR":
-            if len({tuple(row[k] for k in ("open", "high", "low", "close")) for row in versions}) == 1:
-                selected = next((r for r in versions if r.get("sdk_evidence", {}).get("provider_confirmed") is True), None)
-        if selected is None:
+        selected_id = _resolution_preparation.select(raw_pairs, eligible_pairs,
+            reviewed_identity, (POLICY_HASH, _select_version, _local_candidate, _semantic_version),
+            lambda: _select_version(eligible_pairs, reviewed))
+        if selected_id is None:
             continue
-        selected_id = next(identity for identity, row in eligible_pairs if row is selected)
         version_ids = sorted(identity for identity, _ in eligible_pairs)
         raw_ids = sorted(identity for identity, _ in raw_pairs)
         unchanged = (selected_id, frozenset(version_ids), tuple(raw_ids), reviewed_identity)
@@ -199,8 +211,27 @@ def resolve(path, rows, *, symbol, session, now, proof, root=ROOT, include_exist
             source_semantics=reviewed, adoption_method=reviewed["semantics"], provider_permanently_final=False)
         values.append(value)
         previous_keys.add(unchanged)
-    added = append_many(path, values)
-    return previous + added if include_existing else added
+    return previous, values
+
+
+def resolve_batch(path, requests, *, proof, root=ROOT):
+    """Prepare outside the writer, then retain the original 500-row write cap.
+
+    False means no writes were made: callers must use the original per-symbol
+    path. This is one existing lane batch, not a new queue or authority cache.
+    """
+    if len(requests) > 8:
+        raise ValueError('CANONICAL_PREPARATION_BATCH_BOUND_EXCEEDED')
+    values = []
+    for rows, symbol, session, now in requests:
+        reviewed = _method(proof, now=now, root=root)
+        if reviewed:
+            _, planned = _plan(path, rows, symbol=symbol, session=session, now=now, reviewed=reviewed)
+            values.extend(planned)
+        if len(values) > WRITE_BOUND:
+            return False
+    append_many(path, values)
+    return True
 
 
 def append(path, decision):

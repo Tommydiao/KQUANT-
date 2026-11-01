@@ -1,0 +1,12 @@
+{
+  "test_only": true,
+  "production_writes": 0,
+  "run": "iteration-frozen-hour-20261101",
+  "at": "2026-10-22T13:42:00+00:00",
+  "state": "FAILED",
+  "error_type": "ValueError",
+  "error": "LIVE_CARD_BOUND_EXCEEDED",
+  "traceback": "Traceback (most recent call last):\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\weekend-20261031\\evidence\\probe_current_read.py\", line 41, in main\n    value = current_cards(path=root / 'TEST_ONLY-research.sqlite3', session=args.at[:10],\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\opening-first-hour\\first_hour_store.py\", line 459, in current_cards\n    return _window_result(_original_current_cards(*args, **kwargs), kwargs.get('policy'))\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\opening-first-hour\\first_hour_store.py\", line 274, in current_cards\n    raise ValueError(\"LIVE_CARD_BOUND_EXCEEDED\")\nValueError: LIVE_CARD_BOUND_EXCEEDED\n",
+  "seconds": 0.03601690009236336,
+  "source_sha256": "6bb2137a57e0022b4001999d8218db0c29dbbe020014b5917fdd1dcdb7f3ca20"
+}

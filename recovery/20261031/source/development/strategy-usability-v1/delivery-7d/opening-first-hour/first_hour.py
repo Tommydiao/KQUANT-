@@ -105,6 +105,7 @@ def evaluate_comparison_pair(**arguments):
         challenger = next(r for r in rows if r['variant'] == 'S1' and r['right'] == right)
         economic_id = common.digest([WINDOW_ID, arguments['scope_hash'], original['session'],
                                      original['symbol'], right, original['calculation_bar_end']])
+        original['economic_opportunity_id'] = economic_id
         challenger.update(parent_evaluation_id=original['evaluation_id'],
                           economic_opportunity_id=economic_id, research_strategy='opening_momentum',
                           reference_collection_owner='S0' if original['state'] == 'NUMERIC_PASS' else 'S1')
@@ -112,7 +113,9 @@ def evaluate_comparison_pair(**arguments):
             s0={k: original[k] for k in ('evaluation_id', 'policy_id', 'policy_hash', 'state', 'reasons')},
             s1=challenger, economic_opportunity_id=economic_id,
             cohort='PAIRED_POLICY_COMPARISON' if original['state'] in ('NO_TRIGGER', 'NUMERIC_PASS')
-            and challenger['state'] in ('NO_TRIGGER', 'NUMERIC_PASS') else 'INPUT_NOT_PAIRED',
+            and challenger['state'] in ('NO_TRIGGER', 'NUMERIC_PASS') else
+                'S1_INTRADAY_ONLY_DATA' if original['state']=='INCOMPLETE' and
+                challenger['state'] in ('NO_TRIGGER','NUMERIC_PASS') else 'INPUT_NOT_PAIRED',
             amplitude=challenger.get('amplitude'), qualified_signal=False,
             option_cost={'state': 'REFERENCE_CONTRACT_UNAVAILABLE', 'round_trip_cost_per_unit': None},
             outcome={'state': 'NOT_MEASURED', 'y60_pct': None})

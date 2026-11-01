@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="3" time="0.555" timestamp="2026-11-01T18:08:10.725935+08:00" hostname="PC-20260215FHYW"><testcase classname="test_live_card_revisions" name="test_many_live_revisions_are_one_current_position" time="0.172"><failure message="assert 0 == 1">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-2005/test_many_live_revisions_are_o0')
+
+    def test_many_live_revisions_are_one_current_position(tmp_path):
+        path = tmp_path/'TEST_ONLY.sqlite3'
+        args, rows = fixture(path, 250)
+        result = query(path, args)
+&gt;       assert result['evaluations_total'] == 1
+E       assert 0 == 1
+
+test_live_card_revisions.py:40: AssertionError</failure></testcase><testcase classname="test_live_card_revisions" name="test_latest_incomplete_does_not_resurrect_older_trigger" time="0.044" /><testcase classname="test_live_card_revisions" name="test_other_scope_cannot_hide_current_position" time="0.055"><failure message="assert 0 == 1">tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/pytest-of-Administrator/pytest-2005/test_other_scope_cannot_hide_c0')
+
+    def test_other_scope_cannot_hide_current_position(tmp_path):
+        path = tmp_path/'TEST_ONLY.sqlite3'
+        args, rows = fixture(path, 3)
+        row = deepcopy(rows[-1])
+        row.update(evaluation_id='TEST_ONLY_other_scope', scope_hash='OTHER', state='INCOMPLETE')
+        prepared = store.prepare_evaluations([row])
+        with closing(sqlite3.connect(path)) as db, db:
+            db.executemany('INSERT INTO evaluations VALUES (?,?,?,?,?,?,?,?)', prepared.values)
+        result = query(path, args)
+&gt;       assert result['evaluations_total'] == 1
+E       assert 0 == 1
+
+test_live_card_revisions.py:68: AssertionError</failure></testcase></testsuite></testsuites>

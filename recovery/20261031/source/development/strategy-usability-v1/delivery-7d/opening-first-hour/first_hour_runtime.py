@@ -340,7 +340,8 @@ class TrendLane:
             extra = {"root": self.source_root} if self.source_root is not None else {}
             # Admission is the sole producer. Compute checks exact durable tokens
             # before reusing the assembled immutable generation.
-            if produce_decisions:
+            produced = getattr(context, 'decisions_produced_until', {}).get(key)
+            if produce_decisions and not (produced and produced[0] <= now < produced[1]):
                 resolve(self.path, native[2], symbol=symbol, session=day.isoformat(),
                         now=now, proof=method, **extra)
             self.timings.setdefault(key, {})["canonical_resolution_seconds"] = monotonic() - resolution_started
@@ -351,7 +352,7 @@ class TrendLane:
         return native, decisions
 
     @contextmanager
-    def _input_batch(self, enabled=True, *, entries=None):
+    def _input_batch(self, enabled=True, *, entries=None, reviews=None):
         if not enabled:
             yield
             return
@@ -365,6 +366,7 @@ class TrendLane:
             # Close the SQL budget before hashing source files or writing decisions.
             # These captured versions are scoped only to this input generation.
             self.input_read_context.versions = captured
+            self.input_read_context.decisions_produced_until = {}
             elapsed = monotonic() - started
             for key, _ in entries:
                 self.timings.setdefault(key, {})["input_batch_read_seconds"] = elapsed
@@ -372,9 +374,31 @@ class TrendLane:
                 from method_snapshot import calculation_scope
                 from generation_reads import read_scope
                 with calculation_scope(), read_scope(phase_checked=True):
+                    method = reviews.get('canonical_resolution_method') if reviews is not None else None
+                    if method and all(len(rows) <= 2000 for rows in captured.values()):
+                        from first_hour_minute_decisions import resolve_batch
+                        from prepared_generation import next_boundary, method_authority
+                        from kquant.options_opening_trend_reference import ROOT
+                        root = self.source_root or ROOT
+                        at = self.clock()
+                        started = monotonic()
+                        native = {key: [self.minute_preparation.prepare(row[0]) for row in captured[key]]
+                                  for key, _ in entries}
+                        requests = [(native[key], job[0], job[1].isoformat(), at) for key, job in entries]
+                        if resolve_batch(self.path, requests, proof=method, root=root):
+                            authority = method_authority(method, root)
+                            for key, job in entries:
+                                opening, closing = session_bounds_utc(job[1])
+                                deadline = min(opening+timedelta(minutes=(key[-1]+1)*5),
+                                               opening+timedelta(minutes=WINDOW_END_MINUTES), closing)
+                                self.input_read_context.decisions_produced_until[key] = (at, next_boundary(
+                                    (native[key], method, authority), at, deadline))
+                        for key, _ in entries:
+                            self.timings.setdefault(key, {})['input_batch_decision_seconds'] = monotonic()-started
                     yield
             finally:
                 self.input_read_context.versions = None
+                self.input_read_context.decisions_produced_until = {}
                 self.state['immutable_minute_preparation'] = self.minute_preparation.snapshot()
             return
         # Reuse a connection, not an input snapshot or a previous generation.
@@ -531,7 +555,7 @@ class TrendLane:
                 reviews = self._source_reviews()
                 policy_pair = policies()
                 entries, generations = [], []
-                with self._input_batch(entries=batch):
+                with self._input_batch(entries=batch, reviews=reviews):
                     for key, job in batch:
                         try:
                             started = monotonic()
@@ -795,6 +819,13 @@ class TrendLane:
                 self.hub.publish({"type": "options_one_minute_progress", "research_strategy": strategy,
                                   "symbol": symbol, "bar_end": (opening + timedelta(minutes=key[-1] * 5)).isoformat(),
                                   "at": now.isoformat(), "qualified_signal": False,
+                                  "input_generation": getattr(result_lease, 'generation', None),
+                                  "committed_evaluations": [
+                                      {name: value.get(name) for name in ('evaluation_id', 'policy_id', 'variant',
+                                          'right', 'state', 'original_enqueued_at', 'timeliness_policy')}
+                                      for row in results for value in
+                                      ([row, row['strategy_comparison']['s1']]
+                                          if row.get('strategy_comparison') else [row])],
                                   "runtime_timing": {**{name: value for name, value in self.timings.get(key, {}).items()
                                       if name.endswith("_seconds")}, "commit_batch_seconds": commit_seconds,
                                       **commit_phases,
@@ -898,8 +929,12 @@ class TrendLane:
             result["computed_at"] = self.clock().isoformat()
             comparison = result.get("strategy_comparison")
             if comparison:
+                result['timeliness_policy'] = 'ORIGINAL_DURABLE_ENQUEUE_30S_V1'
+                result['original_enqueued_at'] = getattr(journal_id, 'original_enqueued_at', None)
                 comparison["s1"]["runtime_inputs"] = dict(result["runtime_inputs"])
                 comparison["s1"]["computed_at"] = result["computed_at"]
+                comparison['s1']['timeliness_policy'] = result['timeliness_policy']
+                comparison['s1']['original_enqueued_at'] = result['original_enqueued_at']
                 comparison["s1"]["evaluation_id"] = common.digest([
                     comparison["s1"]["evaluation_id"], result["runtime_inputs"].get("input_fingerprint")])
             if journal_id and result["state"] == "NUMERIC_PASS":

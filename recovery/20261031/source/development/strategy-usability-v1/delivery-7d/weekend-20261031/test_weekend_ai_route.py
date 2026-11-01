@@ -199,10 +199,15 @@ def test_authenticated_missing_reference_owner_does_not_fallback_to_child(route_
     assert h['jobs']()==[]
 
 
-def test_authenticated_route_does_not_accept_sol_or_automatic_role(route_case):
+def test_authenticated_manual_sol_and_unknown_role(route_case):
     h=route_case
     h['login']()
     response=h['client'].post('/api/options/opening-trend/ai-review',json={
         'role':'SOL','evaluation_id':h['parent']['evaluation_id']})
+    assert response.status_code==200,response.text
+    assert response.json()['state']=='QUEUED'
+    assert response.json()['role']=='SOL'
+    response=h['client'].post('/api/options/opening-trend/ai-review',json={
+        'role':'AUTOMATIC','evaluation_id':h['parent']['evaluation_id']})
     assert response.status_code==422,response.text
-    assert h['jobs']()==[]
+    assert len(h['jobs']())==1

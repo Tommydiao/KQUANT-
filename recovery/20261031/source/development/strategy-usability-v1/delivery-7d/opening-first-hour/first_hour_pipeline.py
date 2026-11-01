@@ -438,6 +438,19 @@ class QualificationLane:
                             self.next_claim_at = monotonic() + .5
                             break
                         evaluation_id = job["evaluation"]["evaluation_id"]
+                        from kquant.options_research_availability import attach, current_allowed, TIMELINESS_POLICY
+                        if job['evaluation'].get('timeliness_policy') == TIMELINESS_POLICY:
+                            from kquant.bounded_sqlite import read_connection
+                            with read_connection(self.path, seconds=.2) as db:
+                                attach(db, [job['evaluation']])
+                            if not current_allowed(job['evaluation']):
+                                late = job['evaluation']['research_timeliness']['state'] == 'LATE'
+                                revision = ({'state':'WITHDRAWN', 'checked_at':self.clock().isoformat(),
+                                    'reasons':['LATE_RESEARCH_HISTORY_ONLY'], 'qualified_signal':False} if late else None)
+                                self._settle(job, now=self.clock(), progress=job['progress'],
+                                    finished=late, retry_seconds=1, revision=revision)
+                                self.next_claim_at = monotonic() + .5
+                                break
                         if self.clock_guard.fault:
                             revision = {"state": "WITHDRAWN", "checked_at": self.clock().isoformat(),
                                         "reasons": ["CLOCK_DISCONTINUITY"], "clock_health": self.state["clock_health"]}

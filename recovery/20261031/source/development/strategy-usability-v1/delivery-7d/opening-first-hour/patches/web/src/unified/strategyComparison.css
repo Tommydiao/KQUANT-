@@ -1,0 +1,9 @@
+.strategy-comparison > div { min-width: 0; }
+.strategy-comparison small { display: block; margin-top: 4px; line-height: 1.5; overflow-wrap: anywhere; }
+.strategy-comparison th, .strategy-comparison td { text-align: left; vertical-align: top; }
+.strategy-comparison details { grid-column: 1 / -1; }
+.strategy-comparison .ops-row-actions { grid-column: 1 / -1; }
+.strategy-comparison dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 16px; margin: 12px 0; }
+.strategy-comparison dl > div { min-width: 0; }
+.strategy-comparison dt { font-size: 12px; opacity: .75; overflow-wrap: anywhere; }
+.strategy-comparison dd { margin: 4px 0 0; overflow-wrap: anywhere; }

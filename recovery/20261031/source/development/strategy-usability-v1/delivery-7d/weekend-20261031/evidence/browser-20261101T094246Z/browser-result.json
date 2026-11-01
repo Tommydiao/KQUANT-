@@ -1,0 +1,83 @@
+{
+  "test_only": true,
+  "natural_signal": false,
+  "errors": [],
+  "api_failures": [],
+  "page_errors": [],
+  "initial": "TEST · CALL\n\n研究候选，非合格买入提示\n\n仅S1日内输入齐全；S0不是否决\n10/02 10:25 ET · 10/02 10:30 ET\nS0: 输入不完整 · S1: 技术触发\n条件\tS0\tS1\nQ\t未知\t通过\nM\t未知\t通过\n昨收方向\t未知\t不需要\n前序突破\t未知\t通过\n当日开盘方向\t未知\t通过\n\n振幅 / 实体: 510 / 490 bps\n\n同槽历史 / ATR支持数: 0 / 0\nRESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY\n具体参考合约\n\nTEST261006C155000.US\n\n2026-10-06 · 155 · CALL · DTE 4\nbid / ask: 1 / 1.01 · USD\n10/02 10:25 ET · 接收年龄≤3秒；源时间另验\n每张权利金 / 价差金额: 未知 / 未知\nGreeks接收时间: 10/02 10:25 ET\n固定入场区间 / 结构线: 154.9–156.15 / 149.9\n仅Delta价差等效正股变化: 0.019\n完整往返成本: 未知\n局部成本近似，非目标价或盈亏预测\nAMOUNT_BASIS_UNVERIFIED · FEES_OR_SLIPPAGE_UNKNOWN\n\n60分钟正股观察: 尚未测量\n\n正股路径标签，不是期权收益或自动退出\nAI证据复核 · gpt-6.1-sol\n版本与输入方法\n查看依据\n按S0登记独立交易",
+  "window_heading_verified": true,
+  "saved_real_api_display": true,
+  "not_this_market_analysis": true,
+  "bbo_age_separate_from_original_deadline": true,
+  "expired": "TEST · CALL\n\n研究候选，非合格买入提示\n\n仅S1日内输入齐全；S0不是否决\n10/02 10:25 ET · 原期限已过\n\n连接或快照不可用，当前资格未知\n\nS0: 输入不完整 · S1: 技术触发\n条件\tS0\tS1\nQ\t未知\t通过\nM\t未知\t通过\n昨收方向\t未知\t不需要\n前序突破\t未知\t通过\n当日开盘方向\t未知\t通过\n\n振幅 / 实体: 510 / 490 bps\n\n同槽历史 / ATR支持数: 0 / 0\nRESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY\n具体参考合约\n\nTEST261006C155000.US\n\n2026-10-06 · 155 · CALL · DTE 4\nbid / ask: 1 / 1.01 · USD\n10/02 10:25 ET · 历史参考报价，非当前资格\n每张权利金 / 价差金额: 未知 / 未知\nGreeks接收时间: 10/02 10:25 ET\n固定入场区间 / 结构线: 154.9–156.15 / 149.9\n仅Delta价差等效正股变化: 未知\n完整往返成本: 未知\n局部成本近似，非目标价或盈亏预测\nAMOUNT_BASIS_UNVERIFIED · FEES_OR_SLIPPAGE_UNKNOWN\n\n60分钟正股观察: 尚未测量\n\n正股路径标签，不是期权收益或自动退出\nAI证据复核 · gpt-6.1-sol\n版本与输入方法\n查看依据\n按S0登记独立交易",
+  "page_delivery": true,
+  "original_deadline_expiry": true,
+  "layouts": [
+    {
+      "width": 1440,
+      "language": "zh",
+      "theme": "dark",
+      "screenshot": "weekend-1440-zh-dark.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 1440,
+      "language": "zh",
+      "theme": "light",
+      "screenshot": "weekend-1440-zh-light.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 1440,
+      "language": "en",
+      "theme": "dark",
+      "screenshot": "weekend-1440-en-dark.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 1440,
+      "language": "en",
+      "theme": "light",
+      "screenshot": "weekend-1440-en-light.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 2560,
+      "language": "zh",
+      "theme": "dark",
+      "screenshot": "weekend-2560-zh-dark.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 2560,
+      "language": "zh",
+      "theme": "light",
+      "screenshot": "weekend-2560-zh-light.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 2560,
+      "language": "en",
+      "theme": "dark",
+      "screenshot": "weekend-2560-en-dark.png",
+      "overflow": false,
+      "text_overflow": []
+    },
+    {
+      "width": 2560,
+      "language": "en",
+      "theme": "light",
+      "screenshot": "weekend-2560-en-light.png",
+      "overflow": false,
+      "text_overflow": []
+    }
+  ],
+  "disconnect_visible": true,
+  "reconnect_preserves_expiry": true
+}

@@ -15,11 +15,11 @@ export function StrategyComparisonCard({ row, now, connected, actions }: { row: 
   const cost = pair.option_cost ?? {};
   const s1 = pair.s1 ?? {};
   const ai = s1.ai_review ?? row.ai_review;
-  const requestAstra = async () => {
+  const requestReview = async (role: "SOL" | "ASTRA") => {
     setAiRequest("PENDING");
     try {
       const response = await fetch("/api/options/opening-trend/ai-review", { method: "POST", credentials: "same-origin",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role: "ASTRA", evaluation_id: s1.state === "NUMERIC_PASS" ? s1.evaluation_id : row.evaluation_id }) });
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role, evaluation_id: s1.state === "NUMERIC_PASS" ? s1.evaluation_id : row.evaluation_id }) });
       const result = await response.json();
       setAiRequest(response.ok ? result.state : result.detail ?? "UNAVAILABLE");
     } catch { setAiRequest("UNAVAILABLE"); }
@@ -39,20 +39,36 @@ export function StrategyComparisonCard({ row, now, connected, actions }: { row: 
   };
   const state = (value: string) => labels[value] ?? value;
   const expired = Number.isFinite(Date.parse(s1.deadline_at)) && now >= Date.parse(s1.deadline_at);
+  const timeliness = row.research_timeliness ?? s1.research_timeliness;
+  const historyOnly = Boolean(timeliness && timeliness.state !== "TIMELY");
   const quoteAge = now - Date.parse(contract?.snapshot?.bbo_received_at ?? "");
-  const quoteFresh = connected && !expired && !withdrawn && Number.isFinite(quoteAge) && quoteAge >= 0 && quoteAge <= 3000;
+  const quoteFresh = connected && !expired && !withdrawn && !historyOnly && Number.isFinite(quoteAge) && quoteAge >= 0 && quoteAge <= 3000;
   const costAge = now - Date.parse(cost.quote_received_at ?? "");
   const amountFresh = quoteFresh && Number.isFinite(costAge) && costAge >= 0 && costAge <= 3000;
   const keys = [...new Set([...Object.keys(pair.s0?.conditions ?? {}), ...Object.keys(s1.conditions ?? {})])];
   const conditionNames: Record<string, string> = { previous_close_direction: c("昨收方向", "Previous-close direction"),
     daily_direction: c("S0方向合并条件", "S0 combined direction"), session_direction: c("当日开盘方向", "Session direction"),
     momentum: "M", close_position: "Q", prior_breakout: c("前序突破", "Prior breakout") };
-  return <article className="ops-signal-item ops-trend-observation strategy-comparison" aria-label={`${row.symbol} ${row.right} S0 S1`}>
+  const evidenceNames: Record<string, string> = { bar_evidence: c("闭合价格", "Closed-bar prices"),
+    factor_evidence: c("规则指标", "Rule metrics"), amplitude: c("价格幅度", "Price amplitude"),
+    reference_contract: c("参考合约", "Reference contract"), option_cost: c("成本依据", "Cost evidence"),
+    event_coverage: c("事件覆盖", "Event coverage") };
+  const evidenceName = (ref: string) => {
+    const entry = (ai?.evidence_catalog ?? []).find((item: Json) => item.name === ref || item.hash === ref);
+    return entry ? evidenceNames[entry.name] ?? entry.name : c("引用待核验", "Unverified reference");
+  };
+  const reviewDisabled = !connected || expired || withdrawn || historyOnly || aiRequest === "PENDING" ||
+    (s1.state !== "NUMERIC_PASS" && pair.s0?.state !== "NUMERIC_PASS");
+  return <article className="ops-signal-item ops-trend-observation strategy-comparison" aria-label={`${row.symbol} ${row.right} S0 S1`}
+    data-event-id={row.economic_opportunity_id ?? row.event_id} data-evaluation-id={row.evaluation_id}
+    data-reference-contract={contract?.contract_id ?? ""} data-original-deadline={s1.deadline_at ?? row.deadline_at}
+    data-timeliness={timeliness?.state ?? "LEGACY_UNMEASURED"}>
     <div className="ops-signal-identity"><strong>{row.symbol} · {row.right}</strong>
       <p>{c("研究候选，非合格买入提示", "Research observation, not a qualified entry")}</p>
       <small>{pair.cohort === "PAIRED_POLICY_COMPARISON" ? c("共同可比输入", "Paired comparable inputs") : pair.cohort === "S1_INTRADAY_ONLY_DATA" ? c("仅S1日内输入齐全；S0不是否决", "S1 intraday inputs complete; S0 is not a rejection") : c("输入仍有缺口", "Input gaps remain")}</small>
       <small>{formatUiTime(row.calculation_bar_end, language)} · {expired ? c("原期限已过", "Original deadline expired") : formatUiTime(s1.deadline_at, language)}</small>
       {withdrawn ? <small>{c("参考资格已失效", "Reference eligibility invalidated")}: {referenceEligibility.state}</small> : null}
+      {historyOnly ? <small>{timeliness.state === "LATE" ? c("迟到研究记录，不是当前机会", "Late research record, not a current opportunity") : c("及时性尚未核验", "Timeliness not verified")}</small> : null}
       {!connected ? <p className="ops-warning">{c("连接或快照不可用，当前资格未知", "Connection or snapshot unavailable; current eligibility unknown")}</p> : null}
     </div>
     <div className="ops-signal-why"><strong>S0: {state(pair.s0?.state)} · S1: {state(s1.state)}</strong>
@@ -80,21 +96,28 @@ export function StrategyComparisonCard({ row, now, connected, actions }: { row: 
       {ai ? <><p>{ai.review_state ?? ai.state}</p>
         <small>{c("请求模型", "Requested model")}: {ai.requested_model ?? ai.model ?? c("未知", "Unknown")}</small>
         <small>{c("实际返回模型", "Returned model")}: {ai.actual_model ?? c("尚未核验", "Not verified")}</small>
-        <p>{!connected || expired || !quoteFresh || ai.display_state !== "SAME_EVALUATION" || ai.delivery_state !== "CURRENT_RESEARCH_REVIEW"
+        <p>{ai.replay_provenance ? c("隔离展示：已保存真实API结果，非本次市场分析", "Isolated display: saved real API result, not this market analysis") : !connected || expired || historyOnly || ai.display_state !== "SAME_EVALUATION" || !["CURRENT_RESEARCH_REVIEW", "CURRENT_TECHNICAL_REVIEW"].includes(ai.delivery_state)
           ? c("历史或待复核分析，当前资格以行情和规则结果为准", "Historical or pending review; current market and rule checks govern eligibility")
-          : c("研究证据复核，非买入批准", "Research evidence review, not entry approval")}</p>
-        {ai.assessment ? <><p>{c("支持证据", "Supporting evidence")}: {(ai.assessment.support_refs ?? []).join(" · ") || c("无", "None")}</p>
-          <p>{c("反对证据", "Opposing evidence")}: {(ai.assessment.opposing_refs ?? []).join(" · ") || c("无", "None")}</p>
+          : c("技术证据解释当前有效；合约与报价独立核验，非买入批准", "Technical evidence review current; contract and quote checks are separate, not entry approval")}</p>
+        {ai.assessment ? <><p>{c("支持证据", "Supporting evidence")}: {(ai.assessment.support_refs ?? []).map(evidenceName).join(" · ") || c("无", "None")}</p>
+          <p>{c("反对证据", "Opposing evidence")}: {(ai.assessment.opposing_refs ?? []).map(evidenceName).join(" · ") || c("无", "None")}</p>
           <p>{c("缺失资料", "Missing inputs")}: {(ai.assessment.missing_inputs ?? []).join(" · ") || c("未列出", "Not listed")}</p>
           <p>{c("复核状态", "Review status")}: {(ai.assessment.review_reasons ?? []).join(" · ") || ai.delivery_state}</p></> : null}
+        {(ai.evidence_catalog ?? []).map((entry: Json) => <details key={entry.name}>
+          <summary>{evidenceNames[entry.name] ?? entry.name} · {formatUiTime(entry.observed_at, language)}</summary>
+          <small>{entry.hash}</small>
+          <dl>{Object.entries(entry.metrics ?? {}).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value == null ? c("未知", "Unknown") : String(value)}</dd></div>)}</dl>
+        </details>)}
         <small>{c("本次API估算费用", "Estimated API cost")}: {ai.actual_cost_usd != null ? `$${ai.actual_cost_usd}` : c("未知或尚未调用", "Unknown or not called")}</small>
         <small>{c("任务耗时", "Task latency")}: {num(ai.elapsed_seconds)} s</small>
         {ai.versions ? <small>{ai.versions.prompt_version} · {ai.versions.tools_version}</small> : null}
         {ai.error_code ? <small>{ai.error_code}</small> : null}
       </> : <p>{c("尚无AI分析，研究计算照常显示", "No AI assessment yet; research calculations remain available")}</p>}
+      <button className="quiet-button" title={c("用Sol复核当前技术证据", "Review current technical evidence with Sol")}
+        disabled={reviewDisabled} onClick={() => requestReview("SOL")}><BrainCircuit size={16} />{c("Sol复核", "Sol review")}</button>
       <button className="quiet-button" title={c("使用Astra复核当前研究证据", "Review current research evidence with Astra")}
-        disabled={!connected || expired || withdrawn || !quoteFresh || aiRequest === "PENDING" || (s1.state !== "NUMERIC_PASS" && pair.s0?.state !== "NUMERIC_PASS")}
-        onClick={requestAstra}><BrainCircuit size={16} />{c("Astra复核", "Astra review")}</button>
+        disabled={reviewDisabled}
+        onClick={() => requestReview("ASTRA")}><BrainCircuit size={16} />{c("Astra深审", "Astra deep review")}</button>
       {aiRequest ? <small role="status">{aiRequest}</small> : null}
     </details>
     <details style={{ overflowWrap: "anywhere" }}><summary>{c("版本与输入方法", "Versions and input method")}</summary><p>S0 {pair.s0?.policy_hash}</p><p>S1 {s1.policy_hash}</p><p>{s1.data_method_id}</p></details>

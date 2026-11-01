@@ -14,6 +14,38 @@ from .options_llm_credentials import credential_path
 from .options_research_ai import ResponsesResearchClient,approved,version_identity
 from .options_research_ai_lane import review_delivery
 from .options_research_ai_store import TaskStore
+from .options_research_ai_evidence import technical_identity
+
+
+def deliver_review(result,captured,current,*,now):
+    from .options_research_availability import current_allowed
+    if current and not current_allowed(current):
+        return {**result,'delivery_state':'LATE_OR_UNVERIFIED_TIMELINESS',
+            'current_opportunity':False,'qualified_signal':False,'bbo_freshness_extended':False}
+    if captured.get('_ai_trigger_mode')!='TECHNICAL_FIRST_AUTO_V1' and captured.get('reference_contract'):
+        return review_delivery(result,captured,current,now=now)
+    view={**result,'qualified_signal':False,'current_opportunity':False,
+        'review_scope':'TECHNICAL_EVIDENCE_ONLY','bbo_freshness_extended':False}
+    if result.get('state')!='COMPLETED':
+        return {**view,'delivery_state':'MODEL_UNAVAILABLE'}
+    if not current or current.get('event_id')!=captured.get('event_id'):
+        return {**view,'delivery_state':'EVENT_UNAVAILABLE'}
+    if current.get('withdrawn') or current.get('state')!='NUMERIC_PASS':
+        return {**view,'delivery_state':'WITHDRAWN'}
+    if technical_identity(captured)!=technical_identity(current):
+        return {**view,'delivery_state':'INPUT_REVISED'}
+    if now>=common.timestamp(captured['deadline_at']):
+        return {**view,'delivery_state':'EXPIRED'}
+    reference=current.get('reference_contract') or {}
+    if not reference:
+        market_state='REFERENCE_CONTRACT_NOT_AVAILABLE'
+    elif not (reference.get('snapshot') or {}).get('bbo_received_at'):
+        market_state='QUOTE_UNVERIFIED'
+    else:
+        market_state=review_delivery(result,captured,current,now=now)['delivery_state']
+    return {**view,'delivery_state':'CURRENT_TECHNICAL_REVIEW',
+        'contract_review_state':'NOT_REFRESHED_BY_AI',
+        'market_recheck_state':market_state}
 
 
 def supported_policy_ids():
@@ -27,24 +59,26 @@ def supported_policy_ids():
     return legacy|{policy['policy_id'] for policy in policies().values()}
 
 
-def captured_event(original,revision,*,policy_ids=None,versions=None):
+def captured_event(original,revision,*,policy_ids=None,versions=None,automatic=False):
     if (original.get('policy_id') not in (supported_policy_ids() if policy_ids is None else policy_ids)
-            or original.get('state')!='NUMERIC_PASS' or not revision.get('reference_contract')):
+            or original.get('state')!='NUMERIC_PASS'):
         return None
     # A shared S0 reference is already reviewed through its owning evaluation.
     # Rendering it in the S1 comparison must not enqueue another paid task.
     if original.get('reference_collection_owner')=='S0' and original.get('parent_evaluation_id'):
         return None
     event=deepcopy(original)
-    event.update(reference_contract=revision['reference_contract'],option_cost=revision.get('option_cost'),
+    event.update(reference_contract=revision.get('reference_contract'),option_cost=revision.get('option_cost'),
         event_coverage=revision.get('event_coverage') or revision.get('event_decision'),
         input_revision=original.get('runtime_inputs',{}).get('input_generation') or original['evaluation_id'],
-        qualification_revision=revision['revision'],
+        qualification_revision=revision.get('revision'),
         withdrawn=revision.get('state') in {'WITHDRAWN','EXPIRED'})
     if event['withdrawn']:
         return None
     if versions is not None:
         event['_ai_versions']=deepcopy(versions)
+    if automatic:
+        event['_ai_trigger_mode']='TECHNICAL_FIRST_AUTO_V1'
     return event
 
 
@@ -82,9 +116,13 @@ class ResearchAIWorker:
             if not row:
                 return None
             value=json.loads(row[0])
+            if value.get('timeliness_policy'):
+                from .options_research_availability import attach
+                attach(db,[value])
             row=db.execute('SELECT revision_id,payload_json FROM revisions WHERE evaluation_id=? ORDER BY revision_id DESC LIMIT 1',(event['evaluation_id'],)).fetchone()
             revision={**json.loads(row[1]),'revision':row[0]} if row else {}
-        current=captured_event(value,revision,policy_ids=self.policy_ids,versions=event.get('_ai_versions'))
+        current=captured_event(value,revision,policy_ids=self.policy_ids,versions=event.get('_ai_versions'),
+            automatic=event.get('_ai_trigger_mode')=='TECHNICAL_FIRST_AUTO_V1')
         if current is None:
             return {**value,'withdrawn':True}
         # Reuse only a price check actually produced by the qualification lane.
@@ -147,7 +185,7 @@ class ResearchAIWorker:
                             result={'state':'FAILED','error_code':type(exc).__name__}
                         try:
                             current=self.current(job['event'])
-                            result=review_delivery(result,job['event'],current,now=self.clock())
+                            result=deliver_review(result,job['event'],current,now=self.clock())
                             if result.get('state')=='COMPLETED' and current and current.get('withdrawn'):
                                 result.update(delivery_state='WITHDRAWN',current_opportunity=False,qualified_signal=False)
                         except (OSError,sqlite3.Error,ValueError,KeyError,TypeError):
@@ -188,7 +226,7 @@ class ResearchAIWorker:
                         revision={**json.loads(raw_revision),'revision':identity}
                         original=json.loads(raw_original)
                         if original.get('policy_id') in self.policy_ids:
-                            event=captured_event(original,revision,policy_ids=self.policy_ids,versions=versions)
+                            event=captured_event(original,revision,policy_ids=self.policy_ids,versions=versions,automatic=True)
                             if event:
                                 tasks.enqueue(event,now=self.clock())
                         self.save_cursor(identity)

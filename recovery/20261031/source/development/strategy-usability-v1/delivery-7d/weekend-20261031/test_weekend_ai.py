@@ -67,6 +67,26 @@ def test_tool_roundtrip_encrypted_continuity_no_reasoning_log(tmp_path):
     assert not client.assess(event,test_only=True)['paid_call']
 
 
+def test_last_round_finalizes_without_increasing_round_budget(tmp_path):
+    config,receipt,event,now,path=fixture(tmp_path)
+    requests=[]
+    def transport(req):
+        requests.append(req)
+        response=output(req,tool=req['tool_choice']!='none')
+        for item in response['output']:
+            if item.get('type')=='function_call':
+                item['call_id']='call_TEST_ONLY_'+str(len(requests))
+        return response
+    client=ai.ResponsesResearchClient(config=config,receipt=receipt,budget_path=path,
+        transport=transport,key_loader=lambda:None,clock=lambda:now)
+    result=client.assess(event,test_only=True)
+    assert result['state']=='COMPLETED',result
+    assert len(requests)==config['max_requests_per_task']==3
+    assert requests[-1]['tool_choice']=='none'
+    assert len(result['tools'])==2
+    assert result['qualified_signal'] is False
+
+
 def test_dpapi_missing_never_uses_unknown_environment(tmp_path):
     with patch.object(credentials,'credential_path',return_value=tmp_path/'absent'),patch.dict(
             'os.environ',{'OPENAI_API_KEY':'TEST_ONLY_do_not_use'}):

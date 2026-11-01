@@ -1,0 +1,12 @@
+{
+  "test_only": true,
+  "production_writes": 0,
+  "run": "iteration-frozen-hour-20261101",
+  "at": "2026-10-22T13:42:00+00:00",
+  "state": "RETURNED",
+  "total": 99,
+  "displayed": 3,
+  "diagnostics": null,
+  "seconds": 0.05567730008624494,
+  "source_sha256": "1c77b56efcadec4b072bdd36ca49446faab132dacc7cb41651d8ceac811a2e7f"
+}

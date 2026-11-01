@@ -20,9 +20,10 @@ BATCH_BOUND = 64
 
 class InputLease(str):
     """A checkpoint identity plus the immutable input generation being computed."""
-    def __new__(cls, job_id, generation, fingerprint):
+    def __new__(cls, job_id, generation, fingerprint, original_enqueued_at=None):
         value = super().__new__(cls, job_id)
         value.generation, value.fingerprint = generation, fingerprint
+        value.original_enqueued_at = original_enqueued_at
         return value
 
 
@@ -192,7 +193,7 @@ def ready_many(path, entries, *, return_leases=False):
             # supersede it; begin/finish still use the durable generation CAS.
             accepted = (old[0] == 'READY' or return_leases and old[0] == 'LEASED') and now < deadline
             previous = json.loads(old[1])
-            results[index] = (InputLease(ids[index], previous['input_generation'], fingerprint)
+            results[index] = (InputLease(ids[index], previous['input_generation'], fingerprint, previous.get('original_enqueued_at'))
                               if accepted and return_leases else accepted)
             continue
         needed.append((index, key, job, now, ids[index], payload, deadline))
@@ -218,10 +219,14 @@ def _ready(db, key, job, now, job_id, payload, deadline, *, return_lease=False):
     changed = payload["input_fingerprint"] != previous.get("input_fingerprint")
     if old and not changed and state != "EXPIRED":
         accepted = old[0] == 'READY' or return_lease and old[0] == 'LEASED'
-        return (InputLease(job_id, previous['input_generation'], payload['input_fingerprint'])
+        return (InputLease(job_id, previous['input_generation'], payload['input_fingerprint'], previous.get('original_enqueued_at'))
                 if return_lease and accepted else accepted)
     payload["input_generation"] = previous.get("input_generation", 0) + int(changed)
     payload["completed_generation"] = previous.get("completed_generation", 0)
+    # Manifest registration is not input admission. Never reset an admitted
+    # origin on retries/revisions, or invent one for older persisted generations.
+    payload['original_enqueued_at'] = (previous.get('original_enqueued_at')
+        if previous.get('input_generation', 0) else now.isoformat())
     payload["deadline_at"] = deadline.isoformat()
     payload['input_received']=bool(job[2])
     payload['minute_input_count']=len(job[2])
@@ -231,7 +236,7 @@ def _ready(db, key, job, now, job_id, payload, deadline, *, return_lease=False):
         ON CONFLICT(job_id) DO UPDATE SET state=excluded.state,payload_json=excluded.payload_json,
             lease_owner=NULL,lease_until=NULL""",
         (job_id, day.isoformat(), symbol, str(key[-1]), now.isoformat(), deadline.isoformat(), state, common.canonical(payload)))
-    return (InputLease(job_id, payload['input_generation'], payload['input_fingerprint'])
+    return (InputLease(job_id, payload['input_generation'], payload['input_fingerprint'], payload.get('original_enqueued_at'))
             if return_lease and state == 'READY' else state == 'READY')
 
 
@@ -252,7 +257,7 @@ def begin(path, key, job, now, *, fingerprint=None):
         if payload["input_fingerprint"] != fingerprint:
             return None
         db.execute("UPDATE two_hour_jobs SET state='LEASED',attempts=attempts+1 WHERE job_id=?", (job_id,))
-    return InputLease(job_id, payload["input_generation"], fingerprint)
+    return InputLease(job_id, payload["input_generation"], fingerprint, payload.get('original_enqueued_at'))
 
 
 def begin_many(path, entries):
@@ -277,7 +282,7 @@ def begin_many(path, entries):
                 leases.append(None)
                 continue
             db.execute("UPDATE two_hour_jobs SET state='LEASED',attempts=attempts+1 WHERE job_id=?", (job_id,))
-            leases.append(InputLease(job_id, payload["input_generation"], fingerprint))
+            leases.append(InputLease(job_id, payload["input_generation"], fingerprint, payload.get('original_enqueued_at')))
     return leases
 
 

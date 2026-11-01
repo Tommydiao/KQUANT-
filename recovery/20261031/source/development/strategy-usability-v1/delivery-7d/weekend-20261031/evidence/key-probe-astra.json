@@ -1,0 +1,10 @@
+{
+  "state": "ACCESSIBLE",
+  "model": "gpt-6-astra",
+  "returned_model": "gpt-6-astra",
+  "http_status": 200,
+  "request_id": "de1473dc-5f26-4c5a-9e57-35eecbfefb9e",
+  "paid_call": false,
+  "credential_version": "2339bb864f0c8ed9c8f0a04f06bd41c19fa253b921aebf7fcd09061feb201e0d",
+  "checked_at": "2026-11-01T08:58:08.676789+00:00"
+}

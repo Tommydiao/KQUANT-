@@ -15,7 +15,15 @@ from kquant.options_research_ai import ResponsesResearchClient,approved
 ROOT=BASE.parents[2]
 
 
-def execute(role,case,execute=False):
+def failed_remote_probe(prior, version):
+    # Missing local decryption never contacted the provider; a loader fix may retry.
+    return (prior.get('credential_version')==version
+        and prior.get('state') not in {'ACCESSIBLE','MISSING_LOCAL_KEY'})
+
+
+def execute(role,case,execute=False,input_revision=1):
+    if type(input_revision) is not int or not 1 <= input_revision <= 5:
+        raise ValueError('CAPABILITY_REVISION_OUT_OF_BOUNDS')
     now=datetime.now(UTC)
     config=json.loads((HERE/'config/research_ai.json').read_text())
     receipt=json.loads((HERE/'config/owner_weekend_api.json').read_text())
@@ -23,7 +31,7 @@ def execute(role,case,execute=False):
     evidence.mkdir(exist_ok=True)
     result={'checked_at':now.isoformat(),'scope':'TEST_ONLY_BUSINESS_REAL_API_COST',
         'natural_signal':False,'production_start':False,'role':role,'case':case,
-        'paid_call':False,'result':None}
+        'paid_call':False,'result':None,'input_revision':input_revision}
     path=credential_path()
     if not approved(config,receipt,now=now,test_only=True):
         result['state']='AUTHORIZATION_EXPIRED_OR_INVALID'
@@ -47,10 +55,10 @@ def execute(role,case,execute=False):
             gate=evidence/('key-probe-'+role.lower()+'.json')
             prior=json.loads(gate.read_text()) if gate.is_file() else {}
             client=ResponsesResearchClient(config=config,receipt=receipt,budget_path=store)
-            if prior.get('credential_version')==version and prior.get('state')!='ACCESSIBLE':
+            if failed_remote_probe(prior,version):
                 result['state']='UNCHANGED_CREDENTIAL_PREVIOUS_PROBE_FAILED_NO_RETRY'
             else:
-                probe=prior if prior.get('credential_version')==version else client.probe(role)
+                probe=prior if prior.get('credential_version')==version and prior.get('state')=='ACCESSIBLE' else client.probe(role)
                 if probe is not prior:
                     probe.update(credential_version=version,checked_at=now.isoformat())
                     gate.write_text(json.dumps(probe,indent=2)+'\n')
@@ -59,7 +67,7 @@ def execute(role,case,execute=False):
                     result['state']='MODEL_ACCESS_NOT_VERIFIED'
                 else:
                     event=dict(event_id='TEST_ONLY_WEEKEND_'+role+'_'+case,
-                        input_revision=1,session='TEST_ONLY',state='NUMERIC_PASS',
+                        input_revision=input_revision,session='TEST_ONLY',state='NUMERIC_PASS',
                         bar_evidence=dict(open=10,high=12,low=9,close=11),
                         option_cost={'state':'UNKNOWN','cost':None},deadline_at=config['valid_until'])
                     result['result']=client.assess(event,role=role,test_only=True,
@@ -77,5 +85,6 @@ if __name__=='__main__':
     parser.add_argument('--role',choices=['SOL','ASTRA'],default='SOL')
     parser.add_argument('--case',choices=['minimal','math'],default='math')
     parser.add_argument('--execute',action='store_true')
+    parser.add_argument('--input-revision',type=int,default=1,choices=range(1,6))
     args=parser.parse_args()
-    execute(args.role,args.case,args.execute)
+    execute(args.role,args.case,args.execute,args.input_revision)

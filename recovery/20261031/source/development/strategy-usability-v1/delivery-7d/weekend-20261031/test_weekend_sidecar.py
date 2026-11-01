@@ -235,7 +235,7 @@ def test_actual_worker_constructs_captures_versions_and_restores_without_duplica
         worker=h.start()
         wait_for(lambda:len(h.published)==1)
         assert h.calls[0][0]['_ai_versions']==ai.version_identity(h.config)
-        assert h.published[0]['delivery_state']=='CURRENT_RESEARCH_REVIEW'
+        assert h.published[0]['delivery_state']=='CURRENT_TECHNICAL_REVIEW'
         assert not h.published[0]['qualified_signal']
         assert worker.thread.is_alive()
         result=store.summaries(h.copilot,h.events)[h.events[0]['event_id']]
@@ -274,10 +274,15 @@ def test_actual_worker_nonblocking_rechecks_revision_expiry_model_and_authority(
             h.save_config()
         h.release.set()
         wait_for(lambda:len(h.published)==1)
-        expected={'revision':'WITHDRAWN','expiry':'EXPIRED','quote_age':'QUOTE_STALE',
+        expected={'revision':'WITHDRAWN','expiry':'EXPIRED','quote_age':'CURRENT_TECHNICAL_REVIEW',
             'model_error':'MODEL_UNAVAILABLE','permission_expiry':'AUTHORIZATION_EXPIRED_OR_CHANGED',
             'receipt_revoked':'AUTHORIZATION_EXPIRED_OR_CHANGED'}[fault]
         assert h.published[0]['delivery_state']==expected,worker.state
+        if fault=='quote_age':
+            with closing(sqlite3.connect(h.copilot)) as db:
+                result=json.loads(db.execute('SELECT payload_json FROM ai_assessments').fetchone()[0])['result']
+            assert result['market_recheck_state']=='QUOTE_STALE'
+            assert result['current_opportunity'] is False
         assert len(h.calls)==1
         with closing(sqlite3.connect(h.research)) as db:
             original=json.loads(db.execute('SELECT payload_json FROM evaluations').fetchone()[0])

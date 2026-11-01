@@ -1,0 +1,64 @@
+{
+  "test_only": true,
+  "production_writes": 0,
+  "run": "iteration-frozen-hour-20261101",
+  "at": "2026-10-22T13:42:00+00:00",
+  "state": "RETURNED",
+  "total": 99,
+  "displayed": 3,
+  "diagnostics": {
+    "source_watermark": {
+      "evaluation_rowid": 2302,
+      "revision_id": 1498
+    },
+    "as_of": "2026-10-22T13:42:00+00:00",
+    "window_seconds": 300,
+    "original_deadlines_preserved": true,
+    "input_generations": [
+      "2",
+      "3"
+    ],
+    "sql_seconds": 0.0470000000204891,
+    "json_projection_seconds": 0.0,
+    "sql_returned_rows": 8,
+    "eligible_rows": 99,
+    "materialization": "VISIBLE_RESEARCH_SUBSET",
+    "lock_wait_seconds": null,
+    "ai_summary_seconds": 0.0
+  },
+  "seconds": 0.07166080013848841,
+  "selection_query_plan": [
+    [
+      3,
+      0,
+      91,
+      "SEARCH e USING INTEGER PRIMARY KEY (rowid=?)"
+    ],
+    [
+      7,
+      0,
+      0,
+      "LIST SUBQUERY 1"
+    ],
+    [
+      15,
+      7,
+      49,
+      "SEARCH live USING INDEX trend_current_time (policy_hash=? AND session=? AND <expr>>? AND <expr><?)"
+    ],
+    [
+      34,
+      7,
+      0,
+      "USE TEMP B-TREE FOR GROUP BY"
+    ],
+    [
+      74,
+      7,
+      0,
+      "CREATE BLOOM FILTER"
+    ]
+  ],
+  "selection_sql_sha256": "8988b4ada69e8a095d0193b6d637419f11f07d8351adfe704122972520f8d070",
+  "source_sha256": "1c77b56efcadec4b072bdd36ca49446faab132dacc7cb41651d8ceac811a2e7f"
+}

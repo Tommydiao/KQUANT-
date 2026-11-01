@@ -1,5 +1,6 @@
 """Real compiled UI/API/Gateway; explicit isolated TCP-thread short test, not hour."""
 from datetime import datetime, timezone, timedelta
+from contextlib import contextmanager
 import hashlib
 import json
 from pathlib import Path
@@ -8,6 +9,8 @@ import sys
 import time
 import os
 import importlib.util
+import socket
+from threading import Thread
 
 WEEKEND=Path(__file__).resolve().parent
 FIRST=WEEKEND.parent/'opening-first-hour'
@@ -27,14 +30,39 @@ HERE = FIRST
 ROOT = HERE.parents[4]
 BASE = ROOT/'source/development/workspace'
 sys.path[:0] = [str(BASE/'tests'), str(BASE/'crypto')]
-from test_positive_contract_tcp import tcp_server
 from kquant.config import KquantConfig
 from kquant.dashboard.app import create_app
 from kquant.security import generate_password_hash
 from kquant_crypto.gateway import create_gateway_app
 
 
+@contextmanager
+def tcp_server(app, *, lifespan='on'):
+    """Same loop as dashboard/__main__.py; retain the old 2s/5s shutdown bounds."""
+    import uvicorn
+    sock=socket.socket()
+    sock.bind(('127.0.0.1',0))
+    port=sock.getsockname()[1]
+    server=uvicorn.Server(uvicorn.Config(app,log_level='error',lifespan=lifespan,
+        loop='asyncio:SelectorEventLoop' if sys.platform=='win32' else 'auto',
+        timeout_graceful_shutdown=2))
+    thread=Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True)
+    thread.start()
+    try:
+        until=time.monotonic()+5
+        while not server.started and thread.is_alive() and time.monotonic()<until:
+            time.sleep(.01)
+        assert server.started, 'TEST_ONLY_TCP_START_FAILED'
+        yield f'http://127.0.0.1:{port}'
+    finally:
+        server.should_exit=True
+        thread.join(5)
+        sock.close()
+        assert not thread.is_alive(), 'TEST_ONLY_TCP_STOP_FAILED'
+
+
 def main():
+    replay = '--saved-real-ai' in sys.argv
     out = WEEKEND/'evidence'/('browser-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
     out.mkdir(parents=True)
     path = out/'TEST_ONLY-research.sqlite3'
@@ -49,6 +77,7 @@ def main():
     report = dict(test_only=True, synthetic_transport=True, natural_signal=False,
         production_writes=0, sdk_calls=0, supervisor_assembly=False,
         process_topology='real API and Gateway TCP threads; separate headless browser',
+        server_event_loop='asyncio:SelectorEventLoop' if sys.platform=='win32' else 'auto',
         window_id=policies()['S0']['window_id'], policy_hashes={k:v['policy_hash'] for k,v in policies().items()},
         selection_stages=stages, frontend_hashes={str(p.relative_to(dist)): hashlib.sha256(p.read_bytes()).hexdigest()
                                                 for p in dist.rglob('*') if p.is_file()})
@@ -80,12 +109,31 @@ def main():
         tasks.enqueue(captured,now=args['now'])
         job=tasks.claim(now=args['now'])
         assert job
-        # Real key is deliberately postponed. This is an actual unavailable state,
-        # not a synthetic successful model response or a paid capability pass.
+        # Explicit injected failure or saved real API replay; never a new paid call.
         unavailable=dict(state='MISSING_LOCAL_KEY',delivery_state='MODEL_UNAVAILABLE',
             requested_model='gpt-6.1-sol',actual_model=None,actual_cost_usd=None,
-            error_code='PRIVATE_KEY_SETUP_POSTPONED',paid_call=False,
+            error_code='TEST_ONLY_MODEL_UNAVAILABLE',paid_call=False,
             versions=version_identity(ai_config),qualified_signal=False)
+        if replay:
+            from kquant.options_research_ai_evidence import evidence_packet, evidence_catalog
+            source=WEEKEND/'evidence/real-sol-math-20261101T085741558838Z.json'
+            actual=json.loads(source.read_text(encoding='utf-8'))['result']
+            original=None
+            for revision in range(1,6):
+                event=dict(event_id='TEST_ONLY_WEEKEND_SOL_math',input_revision=revision,
+                    session='TEST_ONLY',state='NUMERIC_PASS',bar_evidence=dict(open=10,high=12,low=9,close=11),
+                    option_cost={'state':'UNKNOWN','cost':None},deadline_at=ai_config['valid_until'])
+                if common.digest(evidence_packet(event))==actual['input_hash']:
+                    original=event
+                    break
+            assert original is not None, 'SAVED_REAL_INPUT_IDENTITY_MISMATCH'
+            unavailable={**actual,'delivery_state':'TEST_ONLY_SAVED_REAL_API_REPLAY',
+                'current_opportunity':False,'qualified_signal':False,
+                'replay_evidence_catalog':evidence_catalog(original),
+                'replay_provenance':dict(source_file=source.name,
+                    source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+                    original_event_id=original['event_id'],original_input_hash=actual['input_hash'],
+                    original_paid_call=True,new_paid_call=False,not_this_market_event=True)}
         tasks.finish(job,unavailable,now=args['now'])
         report['ai_state']=unavailable
         app = create_app(config=KquantConfig(db_path=out/'TEST_ONLY-main.sqlite3', outputs_dir=out/'outputs'),
@@ -121,6 +169,7 @@ def main():
                 with tcp_server(gateway) as url:
                     config = dict(out=str(out), url=url, target='TEST CALL S0 S1',
                         control=str(control), contract=transport.contract_id, test_clock=clock().isoformat(),
+                        ai_replay=replay,
                         playwright_module=r'C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules\playwright',
                         browser_executable=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe')
                     config_path = out/'browser-config.json'

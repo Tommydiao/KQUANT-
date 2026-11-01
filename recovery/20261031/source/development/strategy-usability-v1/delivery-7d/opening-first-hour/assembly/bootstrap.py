@@ -38,6 +38,8 @@ def activate(*, verify=False):
         'options_opening_trend_store':'first_hour_store.py',
         'options_opening_trend_current':'first_hour_current.py',
         'options_opening_trend_summary':'first_hour_summary.py',
+        'options_opening_trend_coverage':'first_hour_coverage.py',
+        'options_opening_trend_projection':'first_hour_projection.py',
         'options_opening_trend_pipeline':'first_hour_pipeline.py',
         'options_intraday_reference':'first_hour_reference.py',
         'status_worker':'first_hour_status_worker.py',

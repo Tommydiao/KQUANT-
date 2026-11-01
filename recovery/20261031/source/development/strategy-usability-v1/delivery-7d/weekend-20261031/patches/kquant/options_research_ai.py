@@ -12,7 +12,7 @@ import requests
 from . import options_api_budget as budget
 from . import options_one_minute as common
 from .options_llm_credentials import api_key
-from .options_research_ai_evidence import MODELS,evidence_packet
+from .options_research_ai_evidence import MODELS,evidence_packet,economic_identity
 
 ENDPOINT = 'https://api.openai.com/v1'
 PROMPT_VERSION = 'READ_ONLY_EVIDENCE_REVIEW_20261031_V1'
@@ -176,7 +176,7 @@ class ResponsesResearchClient:
             total=config['initial_capability_total_usd']
         reservation=budget.reserve_api_budget(scan_id=execution_id,
             worst_case_usd=str(worst),daily_limit_usd=config['daily_limit_usd'],
-            timezone=config['budget_timezone'],approved=True,role=role,candidate_id=event['event_id'],
+            timezone=config['budget_timezone'],approved=True,role=role,candidate_id=economic_identity(event),
             purpose='INITIAL_CAPABILITY_TEST_ONLY' if test_only else 'OPENING_READ_ONLY_RESEARCH',
             approval_id=approval_id,approval_total_usd=total,
             task_limit_usd=config['task_limit_usd'],
@@ -217,6 +217,9 @@ class ResponsesResearchClient:
                 if not test_only and self.clock()>=common.timestamp(event['deadline_at']):
                     raise ValueError('ORIGINAL_DEADLINE_EXCEEDED')
                 request['max_output_tokens']=remaining
+                # Reserve the last bounded round for a result, not another tool.
+                if round_number > 0 and round_number == config['max_requests_per_task']-1:
+                    request['tool_choice']='none'
                 if len(json.dumps(request,ensure_ascii=True).encode())+1024>config['maximum_input_token_bound']:
                     raise ValueError('INPUT_TOKEN_BOUND_EXCEEDED')
                 budget.mark_api_request_sent(reservation['reservation_id'],store_path=self.budget_path)

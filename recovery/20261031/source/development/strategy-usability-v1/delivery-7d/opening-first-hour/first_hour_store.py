@@ -106,6 +106,15 @@ def persist_in_transaction(c, rows):
             c.execute("UPDATE qualification_jobs SET state='WITHDRAWN',lease_until=NULL,lease_token=NULL WHERE evaluation_id=?",
                       (evaluation_id,))
     c.executemany("INSERT OR IGNORE INTO evaluations VALUES (?,?,?,?,?,?,?,?)", prepared.values)
+    # Same-transaction research notification; option selection is not an AI gate.
+    for row in rows:
+        if (row['state'] == 'NUMERIC_PASS' and row.get('deadline_at')
+                and not c.execute('SELECT 1 FROM revisions WHERE evaluation_id=? LIMIT 1',
+                                  (row['evaluation_id'],)).fetchone()):
+            append_revision_in_transaction(c, row['evaluation_id'], {
+                'checked_at': row.get('computed_at', row['evaluated_at']), 'state': 'PENDING',
+                'stage': 'TECHNICAL_RESEARCH_READY', 'reasons': ['CONTRACT_NOT_YET_EVALUATED'],
+                'qualified_signal': False})
     c.executemany("""INSERT OR IGNORE INTO qualification_jobs
           (evaluation_id,deadline_at,state,next_at,progress_json,updated_at) VALUES (?,?,'READY',?,'{}',?)""",
           [(r["evaluation_id"], r["deadline_at"], r["evaluated_at"], r["evaluated_at"])
@@ -168,7 +177,11 @@ def append_revision_in_transaction(c, evaluation_id, revision):
     previous = c.execute("SELECT revision_id,payload_json FROM revisions WHERE evaluation_id=? ORDER BY revision_id DESC LIMIT 1",
                          (evaluation_id,)).fetchone()
     old = json.loads(previous[1]) if previous else None
-    if old and (stamp <= common.timestamp(old["checked_at"]) or old["state"] in {"WITHDRAWN", "EXPIRED"}):
+    initial_handoff = bool(old and old.get('stage') == 'TECHNICAL_RESEARCH_READY'
+        and revision.get('stage') != 'TECHNICAL_RESEARCH_READY')
+    if old and (stamp < common.timestamp(old["checked_at"])
+            or (stamp == common.timestamp(old['checked_at']) and not initial_handoff)
+            or old["state"] in {"WITHDRAWN", "EXPIRED"}):
         return {**old, "revision": previous[0]}
     value = dict(revision)
     if value["state"] not in {"PENDING", "QUALIFIED", "WITHDRAWN", "EXPIRED"}:
@@ -235,14 +248,24 @@ def current_cards(*, path=STORE, session, scope_hash, now, policy):
     approval = approval_status(policy, scope_hash)
     paths = tuple("$." + name for name in sorted(DETAIL_FIELDS))
     query_started=monotonic()
-    where_sql = """e.policy_hash=? AND e.session=?
-        AND julianday(e.evaluated_at)>=julianday(?) AND julianday(e.evaluated_at)<=julianday(?) AND (
+    # Bound by the indexed live interval, then select the latest committed input.
+    # Filtering NUMERIC_PASS first would resurrect an older superseded result.
+    where_sql = """e.rowid IN (
+        SELECT MAX(live.rowid) FROM evaluations live
+        WHERE live.policy_hash=? AND live.session=?
+        AND julianday(live.evaluated_at)>=julianday(?)
+        AND julianday(live.evaluated_at)<=julianday(?)
+        AND json_extract(live.payload_json,'$.scope_hash')=?
+        GROUP BY live.symbol,live.right_name,
+            COALESCE(json_extract(live.payload_json,'$.calculation_bar_end'),
+                     json_extract(live.payload_json,'$.bar_end')))
+        AND (
             (e.state='NUMERIC_PASS' AND json_extract(e.payload_json,'$.deadline_at')>?) OR
             (json_extract(e.payload_json,'$.strategy_comparison.s1.state')='NUMERIC_PASS'
              AND json_extract(e.payload_json,'$.strategy_comparison.s1.deadline_at')>?))"""
     parameters = (policy["policy_hash"], session,
         (now - timedelta(seconds=policy["signal_deadline_seconds"])).isoformat(),
-        now.isoformat(), now.isoformat(), now.isoformat())
+        now.isoformat(), scope_hash, now.isoformat(), now.isoformat())
     research_metadata = None
     selected_ids = None
     # A live original deadline implies evaluation within this policy window.
@@ -278,15 +301,21 @@ def current_cards(*, path=STORE, session, scope_hash, now, policy):
             (*paths, *row_parameters)).fetchall()
         watermark={"evaluation_rowid":db.execute('SELECT max(rowid) FROM evaluations').fetchone()[0],
             "revision_id":db.execute('SELECT max(revision_id) FROM revisions').fetchone()[0]}
+        decoded = [json.loads(row[0]) for row in rows]
+        from kquant.options_research_availability import attach, current_allowed
+        attach(db, decoded)
     sql_seconds=monotonic()-query_started
     if len(rows) > 222:
         raise ValueError("LIVE_CARD_BOUND_EXCEEDED")
     result = {"session": session, "scope_hash": scope_hash, "approvals": approval,
         "candidates": [], "evaluations": [], "as_of": now.isoformat(), "read_only": True}
     projection_started=monotonic()
-    for raw, revision_id, revision_raw, claimed, child_id, child_raw in rows:
-        row = json.loads(raw)
+    excluded_timeliness = 0
+    for row, (_, revision_id, revision_raw, claimed, child_id, child_raw) in zip(decoded, rows):
         if row.get("scope_hash") != scope_hash:
+            continue
+        if not current_allowed(row):
+            excluded_timeliness += 1
             continue
         if revision_raw:
             row["current_eligibility"] = {**json.loads(revision_raw), "revision": revision_id}
@@ -311,6 +340,7 @@ def current_cards(*, path=STORE, session, scope_hash, now, policy):
     while result["evaluations"] and len(common.canonical(result["evaluations"]).encode("utf-8")) > 32768:
         result["evaluations"].pop()
     result["evaluations_deferred"] = len(result["evaluations"]) < result["evaluations_total"]
+    result['timeliness_excluded_from_current_subset'] = excluded_timeliness
     generations = ({str(row[7]) for row in research_metadata} if research_metadata is not None else
         {str(row.get('runtime_inputs', {}).get('input_generation')) for row in observations})
     result['current_projection']={"source_watermark":watermark,"as_of":now.isoformat(),
@@ -401,6 +431,10 @@ def status(*, session: str | None = None, path: Path = STORE, now: datetime | No
                         and now < common.timestamp(candidate["deadline_at"])):
                     candidate["current_eligibility"] = current
                     result["candidates"].append(candidate)
+        from kquant.options_research_availability import attach, current_allowed
+        attach(c, items)
+        attach(c, result['candidates'])
+        result['candidates'] = [row for row in result['candidates'] if current_allowed(row)]
     for item in items:
         if item["evaluation_id"] in revisions:
             item["current_eligibility"] = revisions[item["evaluation_id"]]

@@ -1,5 +1,127 @@
 # Weekend Execution Resume
 
+## Current result: November 1, 2026, 11:30 UTC
+
+Hour2 is FINISHED, not in progress. Tool session85880 has exited and all test
+children are cleaned. Read `evidence/iteration-result-20261101.json` and
+`ITERATION_EXECUTION_20261101.md`.3600.813s,5495/5495 background reads,100 pending
+restored with original deadlines; source/build match both prior shorts.
+11 first-full P95:7.625,5.016,5.390,5.813,7.094,6.359,7.375,7.000,9.422,
+10.969,11.016 seconds. Last two exceed10s. Limited and excellent performance
+both FAIL; do not request release or repeat an unchanged hour.
+
+9 transport failures have exact declared-crash request/process links (6 ordinary,
+3 in-flight across replacement ready). Browser separately records4407 explicitly
+unmounted legacy-endpoint responses, no other reported browser problem; these
+are not successful business requests. No qualified-to-page latency sample.
+2200 positions/variant accounted; known AAPL gaps/conflicts remain.
+
+Additional bounded admission profile finished and cleaned:
+`iteration-hour2-admission-profile-20261101` is diagnostic, not an acceptance run.
+Last actual-hour admission queue P959.687s, compute queue1.125s, commit batch0.437s.
+The profile includes other interpreter activity, so it is not proof that SQLite,
+the network, or one function alone caused the remaining latency.
+
+Next bounded work: reduce repeated late-window admission preparation within the
+existing8-job batch, retain content/generation/CAS checks; converge the3 runtime
+test-bootstrap imports before the next actual-entry candidate/hour. Unified
+202-module map (41 changed) is a draft, not deployable. Agentresearch_review_v2
+and real windows still pending. No automatic continuation after this session.
+Latestbaseline11:29:52UTC: no8001/8020/8193/8194 listener, accepted manifests match.
+No production restart, businessDB write, new SDK connection or new paid call.
+
+## Current run: November 1, 2026, 10:22 UTC
+
+`iteration-query-fixed-hour2-20261101` is the new matching3600s attempt on8193/8194.
+It is IN_PROGRESS, not PASS. Do not change frozen code/builds while it runs.
+Read its actual report/processes before continuing; session ID85880 is only a
+current-session tool handle, not a persistent service scheduler.
+
+The previous `iteration-frozen-hour-20261101` failed and was stopped early:
+600.031s,643/814 background queries successful,171 failures. Exact read-only
+reproduction identified LIVE_CARD_BOUND_EXCEEDED: current selection counted
+input revisions as separate live positions. See evidence/ITERATION_HOUR_ABORT_20261101.md.
+After cleanup, fixed latest-position selection within the existing indexed live
+range, retaining222 bound and300ms budget. Same failed TEST_ONLY DB now reads
+normally; no business DB copy/write or schema change.
+
+Added committed evaluation identity/state to existing progress and first-full
+latency accounting.162 affected engine tests pass. New short4/short5 have matching
+source/build hashes:483/483 and503/503 reads,100 original-deadline pending restored,
+last first-full P95 7.734s/8.922s. Both pass10s limited gate;2s still FAIL.
+All2200 positions per variant accounted; known AAPL gaps/conflicts remain explicit.
+Actual compiled browser replay rerun passed at evidence/browser-20261101T102049Z.
+Real saved BTDR replay again gives S0 INCOMPLETE, S1 CALL NO_TRIGGER / PUT NUMERIC_PASS;
+this is retrospective, not a new market signal, and no option quote is fabricated.
+
+## November iteration in progress: November 1, 2026
+
+Read `ITERATION_EXECUTION_20261101.md` and `config/iteration_delivery.json` first.
+The Nov2-Nov13 ten-workday iteration is separate from the permanent seven-day
+FAIL. Final evidence due Nov14 01:00 Asia/Shanghai; no new production approval.
+
+Implemented technical-first durable AI notification, economic-event automatic
+dedup, manual Sol/Astra review, readable evidence, and original-durable-enqueue
+30s timeliness for the new research version. Old strategy behavior is preserved.
+43 AI regressions and159 engine regressions pass. Both frontend builds complete.
+Actual browser saved-real-Sol replay and injected-unavailable scenarios pass;
+the replay is explicitly not the current market event or a new paid call.
+
+First integration short:505/505 reads,100 pending restored,9 exact injected
+HTTP associations, last P95 8.532s. Limited10s passes; excellent2s remains FAIL.
+Final same-source shorts/hour are pending subsequent evidence; do not assume
+the old hour or this pre-final short proves the new candidate.
+
+Dedicated key and real Sol/Astra capability succeeded on Nov1. Older missing-key
+paragraphs below are historical. Production remains stopped/unaccepted for this
+candidate. No business database changes, no new API charges, no permission renewal.
+V2 question/verification/tracking Agent and real November windows are not done.
+
+## Real LLM capability completed: November 1, 2026, 08:58 UTC
+
+Read `LLM_REAL_CAPABILITY_CLOSEOUT_20261101.md` first for A-line. User saved the
+dedicated local DPAPI key; never request or export it. Fixed inherited PowerShell
+module-path loading and last-round finalization in the isolated weekend overlay.
+40 affected tests pass. Real Sol and Astra math/tool/structured-output tasks now
+COMPLETED; initial Sol REQUEST_ROUND_LIMIT failure remains in evidence.
+Total known usage-priced cost of these three tasks: USD0.0606224 (not invoice).
+All three reservations settled; no automatic production paid scope or startup.
+Current isolated authority expires 2026-11-01T16:00:00Z; do not extend it silently.
+Performance/short/hour and original seven-day FAIL gates remain unchanged.
+
+## LLM activation requested: November 1, 2026
+
+Read `LLM_ACTIVATION_STATUS_20261101.md` for the latest A-line state. Dedicated
+DPAPI preflight still reports missing; user received the private configuration
+command. 37 client/sidecar/auth tests passed, but real API remains NOT_RUN.
+No production change or paid call. Existing isolated USD5 aggregate / USD1 task
+authorization expires at 2026-11-01T16:00:00Z; recheck before execution.
+
+## Latest continuation: November 1, 2026, 08:46 UTC
+
+Read `SUNDAY_BATCH_PREPARATION_CLOSEOUT_20261101.md` before the historical
+short8 section below. User is staying on this computer; no migration work.
+
+- Three isolated changes: immutable native-selection reuse, immutable coverage
+  grading in the existing projection, and one bounded canonical write per
+  existing eight-task input batch. No strategy, timeout, rate or thread increase.
+- Latest affected regression: 156 passed, 16.60s, in
+  `evidence/decision-batch-full-20261101.xml`.
+- Latest actual-process short11: 240.234s, 499/499 background reads, 100 pending
+  restored without deadline changes, source/build unchanged during test,
+  no owned children left. Last enqueue-to-result P95 8.438s: performance FAIL.
+- Nine HTTP failures: six exact killed-backend CONNECT associations and three
+  exact replacement cold-snapshot associations. Old historical unknown causes
+  remain unknown. Browser signal_delivery_accepted=false; no page-chain PASS.
+- No two passing same-version shorts; no new 3600s run or publication request.
+- Baseline `evidence/baseline-20261101T084640Z.json`: no listeners, original
+  manifest hashes match. No production restore, business DB writes or API calls.
+- Next: isolate residual admission preparation/read/hash cost per eight-task
+  batch before another change. Retain source freshness, generation/CAS, conflict,
+  clock and WAIT_INPUT checks. Do not repeat an unchanged failed expensive run.
+- All test sessions finished. Resume is saved, not a background-coding promise.
+  These latest changes are local and not yet part of Git commit 4b88225.
+
 ## Latest: November 1, 2026
 
 Read `SUNDAY_PERFORMANCE_CLOSEOUT_20261101.md` first. The October31 short6

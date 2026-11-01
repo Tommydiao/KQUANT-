@@ -1,6 +1,6 @@
 # KQUANT
 
-> **Current S0/S1 development handoff (2026-10-31):** start at
+> **Current S0/S1 development handoff (2026-11-01):** start at
 > [`recovery/20261031/START_HERE.md`](recovery/20261031/START_HERE.md).
 > This contains the current recovery workspace, 11-checkpoint candidate and new-machine instructions.
 > It is a code handoff, not a production release or business-database backup. The original seven-day

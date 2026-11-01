@@ -1,5 +1,20 @@
 # Fixed Seven-Day Delivery: Resume Existing Work
 
+## November1 Iteration Implementation Supersedes Current-State Notes Below
+
+Read `weekend-20261031/ITERATION_EXECUTION_20261101.md`, its latest RESUME section,
+and `evidence/iteration-result-20261101.json` first. The Nov2-Nov13 iteration is
+separate; the old seven-day verdict remains FAIL. Key setup and real Sol/Astra
+capability now succeeded; older missing-key/zero-call notes are historical.
+Technical-first AI, shared economic-event dedup,30s original-admission availability,
+and current-card revision selection are implemented. Actual browser saved-real
+response replay passes, not a natural signal. Two matching shorts pass the10s
+limited gate, but matching3600s hour ends with last two points10.969/11.016s:
+limited performance FAIL.5495/5495 reads,100 original-deadline pending restored,
+children cleared. No accepted payload or business database changed.
+Production8001/8020 absent in11:29UTC metadata sample. Actual release-entry
+consolidation,Agentv2,accurate acceptance and real windows remain unfinished.
+
 ## October31 Weekend Work Supersedes Current-State Notes Below
 
 Read `weekend-20261031/RESUME.md` and its single

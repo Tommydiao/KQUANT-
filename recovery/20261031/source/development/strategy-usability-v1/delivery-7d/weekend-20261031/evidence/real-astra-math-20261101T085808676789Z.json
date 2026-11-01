@@ -1,0 +1,302 @@
+{
+  "checked_at": "2026-11-01T08:58:08.676789+00:00",
+  "scope": "TEST_ONLY_BUSINESS_REAL_API_COST",
+  "natural_signal": false,
+  "production_start": false,
+  "role": "ASTRA",
+  "case": "math",
+  "paid_call": true,
+  "result": {
+    "state": "COMPLETED",
+    "input_hash": "edba4ee6f469cb71d056b82d020b711f7d4efedb7b1867c99cdc87eee23dcd80",
+    "requested_model": "gpt-6-astra",
+    "test_only": true,
+    "task_id": "opening-ai:79a549b6ff4bce193ee1674242c5d31f1e894a75e5ed51e99cfc468bd88c4e2e",
+    "versions": {
+      "prompt_version": "READ_ONLY_EVIDENCE_REVIEW_20261031_V1",
+      "tools_version": "LOCAL_MATH_AND_SNAPSHOTS_20261031_V1",
+      "config_hash": "5db66e0119d818c8d006cc9de9d2811de362f2e5a3092a961608a2ac3dfd67a0"
+    },
+    "endpoint": "https://api.openai.com/v1/responses",
+    "processing_tier": "default",
+    "capability_simple": false,
+    "last_http_status": 200,
+    "last_request_id": "req_104023a6ebb740bc98d9978bff90962b",
+    "retry_after_seconds": null,
+    "assessment": {
+      "support_refs": [
+        "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865"
+      ],
+      "opposing_refs": [],
+      "missing_inputs": [
+        "cost",
+        "verified_depth_units",
+        "bbo_source_time",
+        "fees",
+        "slippage",
+        "contract_multiplier",
+        "quote_currency",
+        "standard"
+      ],
+      "review_reasons": [
+        "READ_ONLY_RESEARCH",
+        "MATH_SUPPORT",
+        "SOURCE_LIMITATIONS",
+        "COSTS_UNKNOWN",
+        "QUALIFICATION_REVIEW_REQUIRED",
+        "UNVERIFIED_REFERENCE_CONTRACT",
+        "INSUFFICIENT_INPUTS"
+      ]
+    },
+    "review_status": "REVALIDATION_REQUIRED",
+    "review_envelope": {
+      "event_id": "TEST_ONLY_WEEKEND_ASTRA_math",
+      "input_generation": null,
+      "input_fingerprint": "edba4ee6f469cb71d056b82d020b711f7d4efedb7b1867c99cdc87eee23dcd80",
+      "review_state": "REVALIDATION_REQUIRED",
+      "supporting_evidence": [
+        "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865"
+      ],
+      "opposing_evidence": [],
+      "unresolved_questions": [
+        "cost",
+        "verified_depth_units",
+        "bbo_source_time",
+        "fees",
+        "slippage",
+        "contract_multiplier",
+        "quote_currency",
+        "standard"
+      ],
+      "evidence_refs": {
+        "bar_evidence": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865",
+        "factor_evidence": "95c2c0f0cdd7f95da43a440dd3647fc8417f7e62fa559265f1d0d1180c4cd248",
+        "amplitude": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "reference_contract": "c3865099ef1afd29e8bfd55ad692fc7dc3afd33d6c24551e2e6a351070d40ee3",
+        "option_cost": "6a1e21a4f7250773edeca7e59f74dea705babdbcbf6808b6beec3d1bf23787b4",
+        "event_coverage": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "escalation_reason": null,
+      "reviewed_at": "2026-11-01T08:58:21.973302+00:00",
+      "valid_until": "2026-11-01T16:00:00+00:00",
+      "qualified_signal": false,
+      "bbo_freshness_extended": false
+    },
+    "reviewed_at": "2026-11-01T08:58:21.973302+00:00",
+    "valid_until": "2026-11-01T16:00:00+00:00",
+    "budget": {
+      "status": "SETTLED",
+      "reservation_id": "lbr_7808a6972e5334f6d6230efa",
+      "actual_cost_usd": "0.0454175",
+      "reservation_retained": false
+    },
+    "paid_call": true,
+    "actual_model": "gpt-6-astra",
+    "responses": [
+      {
+        "response_id": "resp_0d67c28a7f392c65016ae6ff26434c87d282bdc3e98177e423",
+        "request_id": "req_6a5ba0ee840e46098808222061491711",
+        "model": "gpt-6-astra",
+        "usage": {
+          "input_tokens": 1217,
+          "input_tokens_details": {
+            "cache_write_tokens": 1084,
+            "cached_tokens": 0
+          },
+          "output_tokens": 15,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1232
+        },
+        "status": "completed",
+        "service_tier": "default",
+        "round": 1,
+        "elapsed_seconds": 1.577999999979511
+      },
+      {
+        "response_id": "resp_0d67c28a7f392c65016ae6ff27cb0087d2a3534c83dd2028e6",
+        "request_id": "req_4f7a0bb8781b47ed8907fac0eff6bbe8",
+        "model": "gpt-6-astra",
+        "usage": {
+          "input_tokens": 1406,
+          "input_tokens_details": {
+            "cache_write_tokens": 189,
+            "cached_tokens": 1214
+          },
+          "output_tokens": 16,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1422
+        },
+        "status": "completed",
+        "service_tier": "default",
+        "round": 2,
+        "elapsed_seconds": 3.3119999999180436
+      },
+      {
+        "response_id": "resp_0d67c28a7f392c65016ae6ff29937087d28b821a7663fffa76",
+        "request_id": "req_104023a6ebb740bc98d9978bff90962b",
+        "model": "gpt-6-astra",
+        "usage": {
+          "input_tokens": 2298,
+          "input_tokens_details": {
+            "cache_write_tokens": 892,
+            "cached_tokens": 1331
+          },
+          "output_tokens": 243,
+          "output_tokens_details": {
+            "reasoning_tokens": 64
+          },
+          "total_tokens": 2541
+        },
+        "status": "completed",
+        "service_tier": "default",
+        "round": 3,
+        "elapsed_seconds": 8.311999999918044
+      }
+    ],
+    "tools": [
+      {
+        "tool": "compute_price_components",
+        "read_only": true,
+        "payload": {
+          "state": "COMPUTED",
+          "M": 0.3333333333333333,
+          "Q": 0.6666666666666666,
+          "source_ref": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865"
+        },
+        "result_hash": "102af5d3066284cf5a3d2978a95daa02cc0a1010099249321b329213ec5c3a3e",
+        "call_id": "call_vt5b7UEusUKyYg1n8ECNrb6e"
+      },
+      {
+        "tool": "read_event_evidence",
+        "read_only": true,
+        "payload": {
+          "event_id": "TEST_ONLY_WEEKEND_ASTRA_math",
+          "evaluation_id": null,
+          "symbol": null,
+          "right": null,
+          "session": "TEST_ONLY",
+          "calculation_bar_end": null,
+          "deadline_at": "2026-11-01T16:00:00Z",
+          "state": "NUMERIC_PASS",
+          "structure_line": null,
+          "input_revision": 1,
+          "variant": null,
+          "policy_id": null,
+          "policy_hash": null,
+          "bar_evidence": {
+            "open": 10,
+            "high": 12,
+            "low": 9,
+            "close": 11,
+            "volume": null,
+            "start": null,
+            "end": null,
+            "bar_start": null,
+            "bar_end": null,
+            "source_hash": null,
+            "open_at": null,
+            "available_at": null
+          },
+          "factor_evidence": {
+            "state": null,
+            "momentum": null,
+            "close_position": null,
+            "day_open": null,
+            "previous_close": null,
+            "price": null,
+            "prior_boundary": null,
+            "checks": null
+          },
+          "runtime_inputs": null,
+          "reference_contract": {
+            "contract_id": null,
+            "symbol": null,
+            "underlying": null,
+            "right": null,
+            "expiry_date": null,
+            "strike": null,
+            "strike_price": null,
+            "dte": null,
+            "delta": null,
+            "bid": null,
+            "ask": null,
+            "quote_currency": null,
+            "contract_multiplier": null,
+            "standard": null,
+            "deliverable": null,
+            "asset_type": null,
+            "state": null,
+            "snapshot": null
+          },
+          "option_cost": {
+            "state": "UNKNOWN",
+            "cost": null,
+            "currency": null,
+            "multiplier": null,
+            "premium_per_unit": null,
+            "premium_per_contract": null,
+            "round_trip_cost_per_unit": null,
+            "round_trip_cost_per_contract": null,
+            "spread_pct": null,
+            "spread": null,
+            "fees": null,
+            "slippage": null,
+            "basis": null,
+            "reference_price": null,
+            "premium_cash_reference": null,
+            "spread_cash_reference": null,
+            "spread_equivalent_underlying_move": null,
+            "cost_equivalent_underlying_move": null,
+            "spread_pct_ask": null,
+            "spread_pct_mid": null,
+            "quote_received_at": null,
+            "source_freshness": null,
+            "interpretation": null
+          },
+          "amplitude": null,
+          "event_coverage": null,
+          "source_refs": {
+            "bar_evidence": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865",
+            "factor_evidence": "95c2c0f0cdd7f95da43a440dd3647fc8417f7e62fa559265f1d0d1180c4cd248",
+            "amplitude": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "reference_contract": "c3865099ef1afd29e8bfd55ad692fc7dc3afd33d6c24551e2e6a351070d40ee3",
+            "option_cost": "6a1e21a4f7250773edeca7e59f74dea705babdbcbf6808b6beec3d1bf23787b4",
+            "event_coverage": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+          },
+          "research_only": true,
+          "qualified_signal": false
+        },
+        "result_hash": "edba4ee6f469cb71d056b82d020b711f7d4efedb7b1867c99cdc87eee23dcd80",
+        "call_id": "call_XkgKnctt7wtFO2jwZMKsvaeS"
+      }
+    ],
+    "elapsed_seconds": 8.311999999918044,
+    "qualified_signal": false,
+    "actual_cost_usd": "0.0454175",
+    "cost_basis": "PROVIDER_USAGE_AND_DOCUMENTED_TOKEN_RATES_NOT_INVOICE",
+    "source_refs": {
+      "bar_evidence": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865",
+      "factor_evidence": "95c2c0f0cdd7f95da43a440dd3647fc8417f7e62fa559265f1d0d1180c4cd248",
+      "amplitude": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "reference_contract": "c3865099ef1afd29e8bfd55ad692fc7dc3afd33d6c24551e2e6a351070d40ee3",
+      "option_cost": "6a1e21a4f7250773edeca7e59f74dea705babdbcbf6808b6beec3d1bf23787b4",
+      "event_coverage": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "deadline_at": "2026-11-01T16:00:00Z"
+  },
+  "input_revision": 1,
+  "probe": {
+    "state": "ACCESSIBLE",
+    "model": "gpt-6-astra",
+    "returned_model": "gpt-6-astra",
+    "http_status": 200,
+    "request_id": "de1473dc-5f26-4c5a-9e57-35eecbfefb9e",
+    "paid_call": false,
+    "checked_at": "2026-11-01T08:58:08.676789+00:00"
+  },
+  "state": "COMPLETED"
+}

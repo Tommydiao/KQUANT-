@@ -4,6 +4,16 @@ from . import options_one_minute as common
 MODELS={'SOL':'gpt-6.1-sol','ASTRA':'gpt-6-astra'}
 
 
+def economic_identity(event):
+    return event.get('economic_opportunity_id') or event['event_id']
+
+
+def technical_identity(event):
+    """Native research identity excludes later quotes, contracts and cost refreshes."""
+    return common.digest([event.get('evaluation_id'), event.get('runtime_inputs'),
+        event.get('input_revision'), event.get('bar_evidence'), event.get('policy_hash')])
+
+
 def fields(value,names):
     if not isinstance(value,dict):
         return None
@@ -57,3 +67,17 @@ def evidence_packet(event):
     packet['research_only']=True
     packet['qualified_signal']=False
     return packet
+
+
+def evidence_catalog(event):
+    packet=evidence_packet(event)
+    catalog=[]
+    for name,identity in packet['source_refs'].items():
+        value=packet.get(name) or {}
+        metrics={k:v for k,v in value.items() if v is None or isinstance(v,(str,int,float,bool))}
+        catalog.append(dict(name=name,hash=identity,
+            observed_at=value.get('observed_at') or value.get('available_at') or
+                value.get('quote_received_at') or packet.get('calculation_bar_end'),
+            timestamp_basis='FIELD_TIME_OR_CALCULATION_CHECKPOINT_NOT_NEW_RECEIPT',
+            metrics=dict(list(metrics.items())[:10])))
+    return catalog

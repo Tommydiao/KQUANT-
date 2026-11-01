@@ -1,0 +1,543 @@
+{
+  "amplitude": {
+    "atr_support": 0,
+    "auxiliary_reasons": [
+      "COMPARABLE_SAME_SLOT_RANGES_UNAVAILABLE",
+      "PRIOR_ATR_UNAVAILABLE"
+    ],
+    "body_bps": 490.00000000000057,
+    "range_bps": 509.99999999999943,
+    "range_vs_prior_atr": null,
+    "range_vs_same_slot_median": null,
+    "role": "DIAGNOSTIC_ONLY",
+    "same_slot_support": 0
+  },
+  "bar_evidence": {
+    "available_at": "2026-10-02T14:25:00+00:00",
+    "close": 154.9,
+    "high": 155,
+    "low": 149.9,
+    "open": 150,
+    "open_at": "2026-10-02T14:20:00+00:00",
+    "source_hashes": [
+      "4d5688093950b333a3d7dd08a6b07c9259c52753214ee89fcfb365e19c2be80c",
+      "8c508dd4dc9b8205af91b618ab4123f5e3283c77b2fd3f6b6d6607da5b2a5473",
+      "3c686bd005970f6ecda4b0af9835b9ffca3bab84314f9106143fe0ca45d14c0f",
+      "8b5b86518851953a75d03336c1bd41b8251c0baa828482d2e58d6a421ac42769",
+      "4d390a3d08f83e7a5f7fe5111d33ae347db49df3f93a4882baa7bde51119ad0e"
+    ]
+  },
+  "calculation_bar_end": "2026-10-02T14:25:00+00:00",
+  "conditions": {
+    "close_position": "PASS",
+    "momentum": "PASS",
+    "previous_close_direction": "NOT_REQUIRED",
+    "prior_breakout": "PASS",
+    "session_direction": "PASS"
+  },
+  "confirmation_at": "2026-10-02T14:25:00+00:00",
+  "data_method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+  "deadline_at": "2026-10-02T14:30:00+00:00",
+  "economic_opportunity_id": "6721031d7ac18222aafeb20478cc2cc8b7187037d01e46b597f74f3e74c3d16f",
+  "entry_range": [
+    154.9,
+    156.15
+  ],
+  "evaluated_at": "2026-10-02T14:25:01+00:00",
+  "evaluation_id": "d3fe45ba22cb65eba2c84fc1ccb94f5ef87e2664750790ccb9554ab72f22cd63",
+  "event_id": "1570b97592ef2dc1cf919616b9769fb20c860899658b740788dfa60eea40ce7b",
+  "factor_evidence": {
+    "checks": {
+      "close_position": true,
+      "momentum": true,
+      "prior_breakout": true,
+      "session_direction": true
+    },
+    "close_position": 0.9803921568627462,
+    "day_open": 100,
+    "momentum": 0.9607843137254923,
+    "previous_close": null,
+    "price": 154.9,
+    "prior_boundary": 150,
+    "reference": {
+      "raw_quote": {
+        "currency": "USD",
+        "currency_evidence": {
+          "currency": "USD",
+          "provider_symbol": "TEST.US",
+          "received_at": "2026-10-02T13:30:00+00:00",
+          "source": "LONGBRIDGE_SECURITY_STATIC_INFO",
+          "source_hash": "d8c79d85d6b9195d40c7c8549dd1db25b129161161e499fd5fb283c9b8673bee",
+          "symbol": "TEST"
+        },
+        "symbol": "TEST"
+      },
+      "reference_blockers": [
+        "NATIVE_CANDLESTICK_UNIT_EVIDENCE_MISSING"
+      ]
+    },
+    "state": "FULL_INTRADAY_RESEARCH"
+  },
+  "initial_r": 5.0,
+  "input_checks": {
+    "current_minutes": {
+      "expected_minutes": 55,
+      "missing_slots": [],
+      "state": "COMPLETE",
+      "valid_minutes": 55
+    },
+    "intraday": {
+      "checks": {
+        "identity_currency": "PASS",
+        "known_intraday_risk": "PASS",
+        "native_price_basis": "PASS",
+        "same_session": "PASS",
+        "session_open": "PASS"
+      },
+      "currency_source_hash": "d8c79d85d6b9195d40c7c8549dd1db25b129161161e499fd5fb283c9b8673bee",
+      "method_id": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+      "minute_hashes": [
+        "c901956a95f6ee79da20411c49e4ebe9962781df74423b61b4e05791b842d487",
+        "83beba5fbe5887235de31ab643d10d92542caba05d89d99d7b12c43cc6efaa7c",
+        "ded3cefdff6c9a778bb9cf2a5d7e5fb88630b2926e1f92023d2bfe0fc27092e2",
+        "ccd579b7b10c60d566696a1c66d5ae4a684873515d4af8ffd1b5a0026cfc6c2b",
+        "5adde77de91040dd5d25d50d1ff8d3e3cb9532d6f9517cfc77916c4c799ffb73",
+        "97271388ec4bd7687111c5474ee0842832981a08dd48a35ecb02bd8ed0b96d58",
+        "12fe59ed45c310f05747886b4e4d3509cc6e47dde1ab0b612b345b5b3a3907e4",
+        "35c5b9c1e20a48c93d3dc8142cc21cc6a54df35c7bc38e87aacca109374a6467",
+        "bae404700522ae212b19a75ff490883bc1e2ce6633bfcb2fd7bd1d6445cacdb2",
+        "cba2ed89d927f26cf807d62ed976c343138b0f0df92063dbf494fb3216c7153a",
+        "355272a3d49a27d29b5b88e9d8d4da8ff81598d6650f2700c72e52c71f47ebc9",
+        "9fa9725ece47035390e52d7c5be578fb7377dd4441e6745629a0e29bbfd36fa0",
+        "67a6528504915e347c509422fd94c3834b28b4f6fae3be0aa2df4b4b21a74f69",
+        "7fe674cd4bf9e736d1a855873f8b96c1a179e5e499002a343fe4e8bd3d5f81bd",
+        "544fa947ab7fc97bae66831ccc9b27e615c8e0b7ee2d1ed0d1cc2772d6e5532e",
+        "781104177c0f2e6aac9700c4589d51d26ef253bedadbcabc557f9da07b6fb803",
+        "3d309798984975d7b82950e25eb0cb32cdbb99bc9bcc0bf50b1c26ac16db9804",
+        "dc8869f96e5c3921e61de898b1f7d989230ad52e42b8adae39f946f84deebf8e",
+        "d22dea0fea4bd0136fb29d6d3f4cb19d3a5bcd5d6fd3727910a9ce88988b16a5",
+        "f37d47a208b5bf18d72b0cf3cd3aafb078f34155e277670f9909b40dde4878f4",
+        "7b615dbcccda41104a8a46829a6efc30484255de85ff2cbe83d889835727a296",
+        "1cd309c6e80eaea5869a80f1c760726c40ef8229e7e3c1bf7f57dbcfa895849b",
+        "31d29db9276f3d7ffaad715d241352ab888ba5095dd8c53ac984ce52024a6826",
+        "d7475c16dbbcb0804ea57af0890291fce2318d4295b09c21f0360da99c9247c0",
+        "ba88a37d6b0a96a6ade06e0716a65e64a0812351fe95fe5b8d99947d55f79051",
+        "2c0adc53bc12aa5eb9460a81973c8a303e2a2ee1d5391db4ebeded8267ed9638",
+        "6942bee78f751dfc8b824620f247494e1418676a2e69d6e84be9c855df3366a6",
+        "e7fe2b397b70510fbb81a613a2485eef984801b026162f4649852cc7d276f7a9",
+        "afc7eec81c54059e672407e2cc3f0b6568d89806d8e29a6c417cd6b10f43621b",
+        "3d066f3a5e5f9c8a76374033ca9316e9efb1d2e915cf032e0afe657b7d8a8307",
+        "57b340560e104fd040ecd64e3b8ec247d656156e7ed096e6b3d8b2a507944bbd",
+        "c312ee751040fcb5b2f84ca580cffe10f9fc2e78df5ab5312c2341840bdb7adc",
+        "329d3808f3090cdac5018df568a6fcf94c96799c39c5b5a08d1e3d1ba4f8cd28",
+        "4409396818ab033c57db4e1a235e906816e3c97e7507d5152081d9d53db6b0d7",
+        "9e241e551614b95aae5e03260d55bddfc4eca7e065f3cc06e31555614f1d1d0d",
+        "762a5ea9e35b25664cce4a54bc8b1ef07677293571a37eda03f5cc3b89b71d54",
+        "007e1135dbf5678b9313a18abbbbd4894e651360a90f9734abc3117e30535a55",
+        "4401f09da2a2786d85041e0d48c6f30ad432c073aec830c04795a74ecf661126",
+        "eb2827f69fe540413ee066b8cccac25185e9b7c2cee6c88b48dde7592f388c8c",
+        "41ee714332d7d8b671b99755d51b1641f55ce06809a6ad31f58f270ed7305a28",
+        "45bb3495bf1832a2f8e7706e10612458de10895523141d1924abd788bce0018b",
+        "0a7328d7dab630fe8863d76153fbf1e6b384c79d24270702008fdee17f7d5ebc",
+        "d4ccd7e480259db409edeee37ecaf51a22987773705ad417898cf03b48fb62f3",
+        "39669ffc12fe44deb329a3324a866ced763c32bf998df32c8d23a347c8a47a04",
+        "47bf640c5e48e81835826abfe13511ed91819d44a8e9688c24015524b5603cbb",
+        "ab8bb6d35e850f95d95fb642e7784a3bbd32c45ee7b06cc1847f786bd9f8fe46",
+        "e673a14c0821670a83f9acaa55174d230344ca51f456f1a7345d900f26d1ca48",
+        "ecbbb6b2ada4ca35b2e917e691a0e96eae391ea507fa2c893b5b22105b26c690",
+        "04970943fdef4e57404456034552defb5ede002f5034f23366c603500b6de2bc",
+        "592b19efecccc8d55e9494785af2b3a1783cd8ffe45ba56d2862b987497d9949",
+        "4d5688093950b333a3d7dd08a6b07c9259c52753214ee89fcfb365e19c2be80c",
+        "8c508dd4dc9b8205af91b618ab4123f5e3283c77b2fd3f6b6d6607da5b2a5473",
+        "3c686bd005970f6ecda4b0af9835b9ffca3bab84314f9106143fe0ca45d14c0f",
+        "8b5b86518851953a75d03336c1bd41b8251c0baa828482d2e58d6a421ac42769",
+        "4d390a3d08f83e7a5f7fe5111d33ae347db49df3f93a4882baa7bde51119ad0e"
+      ],
+      "previous_close": "NOT_REQUIRED",
+      "reasons": [],
+      "state": "VERIFIED",
+      "strict_cross_day_reference": "NOT_CLAIMED"
+    }
+  },
+  "input_snapshot_hash": "a324c257b8d93c859a66a8ff5f828d0670e682128dda528eee1dd98577229b0b",
+  "launch_state": "UNDEPLOYED_RESEARCH_ADAPTER",
+  "original_deadline_at": "2026-10-02T14:30:00+00:00",
+  "parent_evaluation_id": "c949e5c004ffdf3307448ed450a7228befa77aa0e3f76561836f61ff613f345e",
+  "planned_exit_at": "2026-10-02T17:30:00+00:00",
+  "policy_hash": "9fe383b069b7623429be471b2f9b78aa85c6b8b1f68bf1d480ab90451d3e19f4",
+  "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+  "policy_snapshot": {
+    "automatic_paper_enabled": false,
+    "bar_minutes": 5,
+    "bedtime_exit": "01:30",
+    "bedtime_reminder": "01:15",
+    "bedtime_timezone": "Asia/Shanghai",
+    "breakout_end_minutes": [
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55
+    ],
+    "checkpoint_minutes": [
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55
+    ],
+    "close_position_min": 0.75,
+    "contracts": {
+      "delta_abs_max": 0.6,
+      "delta_abs_min": 0.45,
+      "delta_abs_target": 0.525,
+      "greeks_age_seconds": 60,
+      "minimum_ask_size": 1,
+      "minimum_bid_size": 1,
+      "quote_age_seconds": 3,
+      "spread_mid_max": 0.08,
+      "standard_only": true
+    },
+    "entry_window_minutes": 60,
+    "event_ordinary_coverage_gap_action": "WARN_NOT_CLEAR",
+    "event_policy_id": "EVENT-RISK-OPENING-TREND-GRADED-V2",
+    "event_snapshot_max_age_seconds": 900,
+    "expiry_comparison": {
+      "extended": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "short": [
+        2,
+        3
+      ]
+    },
+    "history_sessions": 20,
+    "holding_max_minutes": 240,
+    "holding_review_minutes": 60,
+    "inherited_policy_hash": "9fcbe3bf87f5509bfda4ef31e4cd7956dd2be2bfcc25a9a2472123a61111b261",
+    "last_confirmation_minutes": 55,
+    "llm_required": false,
+    "max_chase_r_fraction": 0.25,
+    "momentum_min": 0.5,
+    "paper_enabled": false,
+    "parent_policy_hash": "fa6c0eda83925d68716ccc8fdce45ed1cbe78fc4f3f90ee47cec24c6641a0c43",
+    "participation_min": 1.5,
+    "planned_exit_minutes_before_close": 30,
+    "policy_hash": "9fe383b069b7623429be471b2f9b78aa85c6b8b1f68bf1d480ab90451d3e19f4",
+    "policy_id": "STRAT-INTRADAY-MOMENTUM-S1-RESEARCH-V1-FIRST-HOUR-V1",
+    "premium_loss_review_fraction": 0.2,
+    "price_adjustment": "NoAdjust",
+    "qualified_publication_enabled": false,
+    "real_orders_enabled": false,
+    "require_previous_close_direction": false,
+    "research_expiry_group": "extended",
+    "research_only": true,
+    "selected_expiry_group": null,
+    "signal_deadline_seconds": 300,
+    "status": "RESEARCH_ONLY_PENDING_O_SETUP",
+    "version": "1.0.0-research",
+    "volume_role": "AUXILIARY_ONLY",
+    "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1"
+  },
+  "qualified_signal": false,
+  "reasons": [
+    "RESEARCH_CANDIDATE_NOT_QUALIFIED_ENTRY"
+  ],
+  "reference_collection_owner": "S1",
+  "research_only": true,
+  "research_strategy": "opening_momentum",
+  "right": "CALL",
+  "scope_hash": "scope",
+  "session": "2026-10-02",
+  "source_method_version": "SAME_SESSION_NATIVE_PRICE_RESEARCH_V1",
+  "state": "NUMERIC_PASS",
+  "structure_line": 149.9,
+  "symbol": "TEST",
+  "variant": "S1",
+  "wind_down_at": "2026-10-02T17:15:00+00:00",
+  "window_id": "OPENING_FIRST_HOUR_RESEARCH_V1",
+  "current_eligibility": {
+    "approval": {
+      "qualified_signal_pipeline_enabled": false
+    },
+    "checked_at": "2026-10-02T14:25:01+00:00",
+    "computed_at": "2026-10-02T14:25:01+00:00",
+    "contract_id": "TEST261006C155000.US",
+    "contract_locked": false,
+    "current_trend": {
+      "bar_end": "2026-10-02T14:25:00+00:00",
+      "checked_at": "2026-10-02T14:25:01+00:00",
+      "factors": {
+        "day_open": 100,
+        "previous_close": null,
+        "trend_bar": {
+          "available_at": "2026-10-02T14:25:00+00:00",
+          "close": 154.9,
+          "high": 155,
+          "low": 149.9,
+          "open": 150,
+          "open_at": "2026-10-02T14:20:00+00:00",
+          "source_hashes": [
+            "4d5688093950b333a3d7dd08a6b07c9259c52753214ee89fcfb365e19c2be80c",
+            "8c508dd4dc9b8205af91b618ab4123f5e3283c77b2fd3f6b6d6607da5b2a5473",
+            "3c686bd005970f6ecda4b0af9835b9ffca3bab84314f9106143fe0ca45d14c0f",
+            "8b5b86518851953a75d03336c1bd41b8251c0baa828482d2e58d6a421ac42769",
+            "4d390a3d08f83e7a5f7fe5111d33ae347db49df3f93a4882baa7bde51119ad0e"
+          ]
+        }
+      },
+      "minute_evidence_hashes": [
+        "c901956a95f6ee79da20411c49e4ebe9962781df74423b61b4e05791b842d487",
+        "83beba5fbe5887235de31ab643d10d92542caba05d89d99d7b12c43cc6efaa7c",
+        "ded3cefdff6c9a778bb9cf2a5d7e5fb88630b2926e1f92023d2bfe0fc27092e2",
+        "ccd579b7b10c60d566696a1c66d5ae4a684873515d4af8ffd1b5a0026cfc6c2b",
+        "5adde77de91040dd5d25d50d1ff8d3e3cb9532d6f9517cfc77916c4c799ffb73",
+        "97271388ec4bd7687111c5474ee0842832981a08dd48a35ecb02bd8ed0b96d58",
+        "12fe59ed45c310f05747886b4e4d3509cc6e47dde1ab0b612b345b5b3a3907e4",
+        "35c5b9c1e20a48c93d3dc8142cc21cc6a54df35c7bc38e87aacca109374a6467",
+        "bae404700522ae212b19a75ff490883bc1e2ce6633bfcb2fd7bd1d6445cacdb2",
+        "cba2ed89d927f26cf807d62ed976c343138b0f0df92063dbf494fb3216c7153a",
+        "355272a3d49a27d29b5b88e9d8d4da8ff81598d6650f2700c72e52c71f47ebc9",
+        "9fa9725ece47035390e52d7c5be578fb7377dd4441e6745629a0e29bbfd36fa0",
+        "67a6528504915e347c509422fd94c3834b28b4f6fae3be0aa2df4b4b21a74f69",
+        "7fe674cd4bf9e736d1a855873f8b96c1a179e5e499002a343fe4e8bd3d5f81bd",
+        "544fa947ab7fc97bae66831ccc9b27e615c8e0b7ee2d1ed0d1cc2772d6e5532e",
+        "781104177c0f2e6aac9700c4589d51d26ef253bedadbcabc557f9da07b6fb803",
+        "3d309798984975d7b82950e25eb0cb32cdbb99bc9bcc0bf50b1c26ac16db9804",
+        "dc8869f96e5c3921e61de898b1f7d989230ad52e42b8adae39f946f84deebf8e",
+        "d22dea0fea4bd0136fb29d6d3f4cb19d3a5bcd5d6fd3727910a9ce88988b16a5",
+        "f37d47a208b5bf18d72b0cf3cd3aafb078f34155e277670f9909b40dde4878f4",
+        "7b615dbcccda41104a8a46829a6efc30484255de85ff2cbe83d889835727a296",
+        "1cd309c6e80eaea5869a80f1c760726c40ef8229e7e3c1bf7f57dbcfa895849b",
+        "31d29db9276f3d7ffaad715d241352ab888ba5095dd8c53ac984ce52024a6826",
+        "d7475c16dbbcb0804ea57af0890291fce2318d4295b09c21f0360da99c9247c0",
+        "ba88a37d6b0a96a6ade06e0716a65e64a0812351fe95fe5b8d99947d55f79051",
+        "2c0adc53bc12aa5eb9460a81973c8a303e2a2ee1d5391db4ebeded8267ed9638",
+        "6942bee78f751dfc8b824620f247494e1418676a2e69d6e84be9c855df3366a6",
+        "e7fe2b397b70510fbb81a613a2485eef984801b026162f4649852cc7d276f7a9",
+        "afc7eec81c54059e672407e2cc3f0b6568d89806d8e29a6c417cd6b10f43621b",
+        "3d066f3a5e5f9c8a76374033ca9316e9efb1d2e915cf032e0afe657b7d8a8307",
+        "57b340560e104fd040ecd64e3b8ec247d656156e7ed096e6b3d8b2a507944bbd",
+        "c312ee751040fcb5b2f84ca580cffe10f9fc2e78df5ab5312c2341840bdb7adc",
+        "329d3808f3090cdac5018df568a6fcf94c96799c39c5b5a08d1e3d1ba4f8cd28",
+        "4409396818ab033c57db4e1a235e906816e3c97e7507d5152081d9d53db6b0d7",
+        "9e241e551614b95aae5e03260d55bddfc4eca7e065f3cc06e31555614f1d1d0d",
+        "762a5ea9e35b25664cce4a54bc8b1ef07677293571a37eda03f5cc3b89b71d54",
+        "007e1135dbf5678b9313a18abbbbd4894e651360a90f9734abc3117e30535a55",
+        "4401f09da2a2786d85041e0d48c6f30ad432c073aec830c04795a74ecf661126",
+        "eb2827f69fe540413ee066b8cccac25185e9b7c2cee6c88b48dde7592f388c8c",
+        "41ee714332d7d8b671b99755d51b1641f55ce06809a6ad31f58f270ed7305a28",
+        "45bb3495bf1832a2f8e7706e10612458de10895523141d1924abd788bce0018b",
+        "0a7328d7dab630fe8863d76153fbf1e6b384c79d24270702008fdee17f7d5ebc",
+        "d4ccd7e480259db409edeee37ecaf51a22987773705ad417898cf03b48fb62f3",
+        "39669ffc12fe44deb329a3324a866ced763c32bf998df32c8d23a347c8a47a04",
+        "47bf640c5e48e81835826abfe13511ed91819d44a8e9688c24015524b5603cbb",
+        "ab8bb6d35e850f95d95fb642e7784a3bbd32c45ee7b06cc1847f786bd9f8fe46",
+        "e673a14c0821670a83f9acaa55174d230344ca51f456f1a7345d900f26d1ca48",
+        "ecbbb6b2ada4ca35b2e917e691a0e96eae391ea507fa2c893b5b22105b26c690",
+        "04970943fdef4e57404456034552defb5ede002f5034f23366c603500b6de2bc",
+        "592b19efecccc8d55e9494785af2b3a1783cd8ffe45ba56d2862b987497d9949",
+        "4d5688093950b333a3d7dd08a6b07c9259c52753214ee89fcfb365e19c2be80c",
+        "8c508dd4dc9b8205af91b618ab4123f5e3283c77b2fd3f6b6d6607da5b2a5473",
+        "3c686bd005970f6ecda4b0af9835b9ffca3bab84314f9106143fe0ca45d14c0f",
+        "8b5b86518851953a75d03336c1bd41b8251c0baa828482d2e58d6a421ac42769",
+        "4d390a3d08f83e7a5f7fe5111d33ae347db49df3f93a4882baa7bde51119ad0e"
+      ],
+      "policy_hash": "9fe383b069b7623429be471b2f9b78aa85c6b8b1f68bf1d480ab90451d3e19f4",
+      "reasons": [],
+      "scope_hash": "scope",
+      "session": "2026-10-02",
+      "state": "VALID",
+      "symbol": "TEST",
+      "valid_until": "2026-10-02T14:26:00+00:00"
+    },
+    "deadline_at": "2026-10-02T14:30:00+00:00",
+    "evaluation_id": "d3fe45ba22cb65eba2c84fc1ccb94f5ef87e2664750790ccb9554ab72f22cd63",
+    "event_decision": {
+      "decision": "WARN"
+    },
+    "event_id": "1570b97592ef2dc1cf919616b9769fb20c860899658b740788dfa60eea40ce7b",
+    "expiry_comparison": {
+      "checked_at": "2026-10-02T14:25:01+00:00",
+      "conflicting_snapshot_contracts": [],
+      "groups": {
+        "extended": {
+          "checked_at": "2026-10-02T14:25:01+00:00",
+          "paper_enabled": false,
+          "real_orders_enabled": false,
+          "rejected": [
+            {
+              "contract_id": "TEST261006C155000.US",
+              "reasons": [
+                "STANDARD_CONTRACT_NOT_VERIFIED",
+                "MULTIPLIER_NOT_VERIFIED",
+                "CONTRACT_TRADING_STATUS_NOT_VALID",
+                "DEPTH_NOT_AVAILABLE",
+                "CONTRACT_QUANTITY_UNIT_UNVERIFIED",
+                "BID_SIZE_INSUFFICIENT",
+                "ASK_SIZE_INSUFFICIENT"
+              ]
+            }
+          ],
+          "selected": null,
+          "status": "BLOCKED",
+          "strict_fill_eligible": false
+        },
+        "short": {
+          "checked_at": "2026-10-02T14:25:01+00:00",
+          "paper_enabled": false,
+          "real_orders_enabled": false,
+          "rejected": [
+            {
+              "contract_id": "TEST261006C155000.US",
+              "reasons": [
+                "NO_MATCHING_CALENDAR_DTE",
+                "STANDARD_CONTRACT_NOT_VERIFIED",
+                "MULTIPLIER_NOT_VERIFIED",
+                "CONTRACT_TRADING_STATUS_NOT_VALID",
+                "DEPTH_NOT_AVAILABLE",
+                "CONTRACT_QUANTITY_UNIT_UNVERIFIED",
+                "BID_SIZE_INSUFFICIENT",
+                "ASK_SIZE_INSUFFICIENT"
+              ]
+            }
+          ],
+          "selected": null,
+          "status": "BLOCKED",
+          "strict_fill_eligible": false
+        }
+      },
+      "option_return": null,
+      "overlapping_selected_contracts": [],
+      "qualified_signal": false,
+      "research_only": true,
+      "return_status": "REAL_SAME_CONTRACT_HISTORY_REQUIRED",
+      "selected_expiry_group": null,
+      "unique_selected_contracts": []
+    },
+    "option_cost": {
+      "cost_equivalent_underlying_move": null,
+      "currency": "USD",
+      "interpretation": "DELTA_LOCAL_FRICTION_EQUIVALENT_NOT_TARGET",
+      "premium_cash_reference": null,
+      "quote_received_at": "2026-10-02T14:25:01+00:00",
+      "reasons": [
+        "AMOUNT_BASIS_UNVERIFIED",
+        "FEES_OR_SLIPPAGE_UNKNOWN"
+      ],
+      "receipt_age_seconds": 0.0,
+      "role": "DIAGNOSTIC_ONLY",
+      "round_trip_cost_per_unit": null,
+      "source_freshness": "UNVERIFIED",
+      "spread": 0.010000000000000009,
+      "spread_cash_reference": null,
+      "spread_equivalent_underlying_move": 0.019047619047619063,
+      "spread_pct_ask": 0.00990099009900991,
+      "spread_pct_mid": 0.009950248756218916,
+      "state": "PARTIAL"
+    },
+    "policy_hash": "9fe383b069b7623429be471b2f9b78aa85c6b8b1f68bf1d480ab90451d3e19f4",
+    "qualified_signal": false,
+    "reasons": [
+      "FIRST_HOUR_RESEARCH_NOT_QUALIFIED_ENTRY"
+    ],
+    "reference_contract": {
+      "ask": 1.01,
+      "bid": 1,
+      "contract_id": "TEST261006C155000.US",
+      "delta": 0.525,
+      "dte": 4,
+      "expiry_date": "2026-10-06",
+      "inspected_at": "2026-10-02T14:25:01+00:00",
+      "quote_currency": "USD",
+      "reference_only": true,
+      "right": "CALL",
+      "snapshot": {
+        "bbo_received_at": "2026-10-02T14:25:01+00:00",
+        "calc_received_at": "2026-10-02T14:25:01+00:00"
+      },
+      "strike": 155,
+      "underlying": "TEST"
+    },
+    "reference_contract_status": "UNVERIFIED_REFERENCE",
+    "research_only": true,
+    "scope_hash": "scope",
+    "state": "PENDING",
+    "underlying_quote": {
+      "last": 154.9,
+      "received_at": "2026-10-02T14:25:01+00:00"
+    },
+    "valid_until": "2026-10-02T14:25:01+00:00",
+    "revision": 2
+  },
+  "ai_review": {
+    "state": "UNAVAILABLE",
+    "qualified_signal": false
+  },
+  "reference_contract": {
+    "ask": 1.01,
+    "bid": 1,
+    "contract_id": "TEST261006C155000.US",
+    "delta": 0.525,
+    "dte": 4,
+    "expiry_date": "2026-10-06",
+    "inspected_at": "2026-10-02T14:25:01+00:00",
+    "quote_currency": "USD",
+    "reference_only": true,
+    "right": "CALL",
+    "snapshot": {
+      "bbo_received_at": "2026-10-02T14:25:01+00:00",
+      "calc_received_at": "2026-10-02T14:25:01+00:00"
+    },
+    "strike": 155,
+    "underlying": "TEST"
+  },
+  "option_cost": {
+    "cost_equivalent_underlying_move": null,
+    "currency": "USD",
+    "interpretation": "DELTA_LOCAL_FRICTION_EQUIVALENT_NOT_TARGET",
+    "premium_cash_reference": null,
+    "quote_received_at": "2026-10-02T14:25:01+00:00",
+    "reasons": [
+      "AMOUNT_BASIS_UNVERIFIED",
+      "FEES_OR_SLIPPAGE_UNKNOWN"
+    ],
+    "receipt_age_seconds": 0.0,
+    "role": "DIAGNOSTIC_ONLY",
+    "round_trip_cost_per_unit": null,
+    "source_freshness": "UNVERIFIED",
+    "spread": 0.010000000000000009,
+    "spread_cash_reference": null,
+    "spread_equivalent_underlying_move": 0.019047619047619063,
+    "spread_pct_ask": 0.00990099009900991,
+    "spread_pct_mid": 0.009950248756218916,
+    "state": "PARTIAL"
+  },
+  "event_coverage": {
+    "decision": "WARN"
+  },
+  "input_revision": "d3fe45ba22cb65eba2c84fc1ccb94f5ef87e2664750790ccb9554ab72f22cd63",
+  "qualification_revision": 2,
+  "withdrawn": false,
+  "_ai_versions": {
+    "prompt_version": "READ_ONLY_EVIDENCE_REVIEW_20261031_V1",
+    "tools_version": "LOCAL_MATH_AND_SNAPSHOTS_20261031_V1",
+    "config_hash": "5db66e0119d818c8d006cc9de9d2811de362f2e5a3092a961608a2ac3dfd67a0"
+  }
+}

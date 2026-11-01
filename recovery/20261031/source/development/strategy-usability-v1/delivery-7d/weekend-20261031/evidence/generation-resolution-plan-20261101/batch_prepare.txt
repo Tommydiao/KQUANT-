@@ -1,0 +1,58 @@
+         172466 function calls (156201 primitive calls) in 0.210 seconds
+
+   Ordered by: cumulative time
+   List reduced from 308 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.211    0.211 profile_generation.py:106(prepare_batch)
+        8    0.001    0.000    0.180    0.023 first_hour_runtime.py:426(_prepare_generation)
+        8    0.001    0.000    0.097    0.012 first_hour_runtime.py:301(_checkpoint_inputs)
+        8    0.002    0.000    0.053    0.007 first_hour_minute_decisions.py:169(resolve)
+       16    0.000    0.000    0.027    0.002 first_hour_minute_decisions.py:251(read_with_token)
+        8    0.000    0.000    0.027    0.003 first_hour_minute_decisions.py:216(append_many)
+        8    0.000    0.000    0.025    0.003 first_hour.py:52(prepare_inputs)
+  128/122    0.000    0.000    0.024    0.000 {built-in method builtins.next}
+     1285    0.002    0.000    0.024    0.000 prepared_minutes.py:141(prepare)
+      694    0.001    0.000    0.022    0.000 options_one_minute.py:78(digest)
+       16    0.000    0.000    0.021    0.001 prepared_generation.py:52(source_files)
+        2    0.000    0.000    0.019    0.010 first_hour_runtime.py:353(_input_batch)
+      798    0.001    0.000    0.019    0.000 options_one_minute.py:74(canonical)
+       18    0.000    0.000    0.019    0.001 pathlib.py:1228(resolve)
+      836    0.002    0.000    0.019    0.000 __init__.py:183(dumps)
+9245/1333    0.010    0.000    0.019    0.000 prepared_minutes.py:29(freeze)
+      836    0.002    0.000    0.017    0.000 encoder.py:183(encode)
+        8    0.000    0.000    0.015    0.002 prepared_generation.py:191(build)
+  181/179    0.000    0.000    0.015    0.000 method_snapshot.py:32(checked)
+       42    0.015    0.000    0.015    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+      816    0.014    0.000    0.014    0.000 encoder.py:205(iterencode)
+    44/42    0.000    0.000    0.014    0.000 contextlib.py:141(__exit__)
+5951/1621    0.002    0.000    0.014    0.000 prepared_minutes.py:33(<genexpr>)
+       12    0.000    0.000    0.014    0.001 method_snapshot.py:56(<lambda>)
+       18    0.000    0.000    0.013    0.001 <frozen ntpath>:705(realpath)
+        2    0.000    0.000    0.013    0.006 method_snapshot.py:59(calculation_scope)
+       36    0.012    0.000    0.012    0.000 {built-in method nt._getfinalpathname}
+        8    0.004    0.001    0.012    0.002 options_opening_trend.py:42(complete_minutes)
+       34    0.000    0.000    0.012    0.000 pathlib.py:1015(read_bytes)
+       37    0.000    0.000    0.011    0.000 pathlib.py:1005(open)
+       37    0.010    0.000    0.011    0.000 {built-in method _io.open}
+    44/41    0.000    0.000    0.011    0.000 contextlib.py:132(__enter__)
+       40    0.001    0.000    0.011    0.000 prepared_minutes.py:88(__init__)
+       69    0.000    0.000    0.011    0.000 method_snapshot.py:52(resolve_path)
+       16    0.000    0.000    0.010    0.001 first_hour_minute_decisions.py:241(read_rows)
+        8    0.001    0.000    0.010    0.001 options_opening_momentum.py:56(price_aggregate)
+    54022    0.010    0.000    0.010    0.000 {built-in method builtins.isinstance}
+        8    0.000    0.000    0.009    0.001 options_intraday_comparison.py:13(independent_reference)
+        8    0.000    0.000    0.009    0.001 options_price_reference.py:11(build)
+        1    0.000    0.000    0.009    0.009 first_hour_runtime.py:597(_source_reviews)
+        8    0.009    0.001    0.009    0.001 {method 'executemany' of 'sqlite3.Connection' objects}
+       16    0.000    0.000    0.009    0.001 prepared_generation.py:39(price_fact_token)
+      692    0.001    0.000    0.008    0.000 pathlib.py:551(drive)
+        8    0.000    0.000    0.008    0.001 first_hour_minute_decisions.py:237(read)
+       40    0.002    0.000    0.008    0.000 prepared_generation.py:16(rows_token)
+       40    0.000    0.000    0.008    0.000 prepared_minutes.py:184(__init__)
+       24    0.000    0.000    0.008    0.000 prepared_generation.py:36(<lambda>)
+      371    0.001    0.000    0.008    0.000 pathlib.py:407(_load_parts)
+       24    0.000    0.000    0.008    0.000 prepared_generation.py:26(file_token)
+        8    0.007    0.001    0.007    0.001 {method '__exit__' of 'sqlite3.Connection' objects}
+
+

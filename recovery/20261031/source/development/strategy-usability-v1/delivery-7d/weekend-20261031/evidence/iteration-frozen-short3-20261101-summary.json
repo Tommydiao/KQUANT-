@@ -1,0 +1,1755 @@
+{
+  "run": "iteration-frozen-short3-20261101",
+  "test_only": true,
+  "original_verdict_unchanged": true,
+  "os_network_root_claimed": false,
+  "source_sha256": {
+    "topology_report.json": "2062afd68d82a5021f7549e3b67aff6c10ccec438e508141a1b57ce987edec96",
+    "TEST_ONLY-topology.json": "6e9dd6bbe7b9e8554671a1a96b93cee82caadfab5f8ade5dfd596dd0ef0ce2f0",
+    "TEST_ONLY-gateway-transport.json": "ab4b736260c58af50323394ff5fb6d95e59ff86e29d76331abed8e6ebb4a24e3",
+    "TEST_ONLY-projection-errors-30184.jsonl": "eda9a4a302308b586cf0a26038c4c12ee6db8d3491eba3401952d422f4b81d02",
+    "TEST_ONLY-projection-errors-36436.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "TEST_ONLY-http-0.jsonl": "f1fc9b4f263d538fedcb9cae2c59bf26dc418a9f7bea1d750feb61af8c4e5f24",
+    "TEST_ONLY-http-1.jsonl": "280644cd228244c5eeb34f4be820137a8baaf5255b82508f8365ca0dcaa5c53c",
+    "TEST_ONLY-http-2.jsonl": "e2a30d03f3f51a686e9c0894247a34c8f37d8babe1b182959072825432ab7738"
+  },
+  "errors": [],
+  "background": {
+    "records": 502,
+    "success": 502,
+    "failure": 0,
+    "deadline": 0
+  },
+  "source_unchanged": true,
+  "children_alive": [],
+  "performance_pass": false,
+  "browser_classification": {
+    "TEST_ONLY_UNMOUNTED": 378
+  },
+  "browser_problems": [],
+  "http_attempts": 564,
+  "http_failure_count": 9,
+  "findings": {
+    "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET": 3,
+    "UNATTRIBUTED": 3,
+    "EXACT_REPLACEMENT_COLD_SNAPSHOT": 3
+  },
+  "failures": [
+    {
+      "request_id": "TEST_ONLY-10612-0-2",
+      "forwarded_request_id": "de7dc1cf6c6f465c81bb16df3ba76bd4",
+      "path": "/api/stocks/health/live",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 38796,
+      "killed_pid": 36436,
+      "backend_port": 8193
+    },
+    {
+      "request_id": "TEST_ONLY-10612-0-3",
+      "forwarded_request_id": "973c4912d4e14b379b5cbc0aeff51b0a",
+      "path": "/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "UNATTRIBUTED"
+    },
+    {
+      "request_id": "TEST_ONLY-10612-0-4",
+      "forwarded_request_id": "c2b60c3c491946818ee576ccce4d1190",
+      "path": "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503,
+      "error_code": "TREND_STATUS_UNAVAILABLE",
+      "stage": null,
+      "finding": "EXACT_REPLACEMENT_COLD_SNAPSHOT",
+      "replacement_pid": 30184,
+      "snapshot_fresh_seconds": 1.875
+    },
+    {
+      "request_id": "TEST_ONLY-10612-1-2",
+      "forwarded_request_id": "de7dc1cf6c6f465c81bb16df3ba76bd4",
+      "path": "/api/stocks/health/live",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 38796,
+      "killed_pid": 36436,
+      "backend_port": 8193
+    },
+    {
+      "request_id": "TEST_ONLY-10612-1-3",
+      "forwarded_request_id": "973c4912d4e14b379b5cbc0aeff51b0a",
+      "path": "/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "UNATTRIBUTED"
+    },
+    {
+      "request_id": "TEST_ONLY-10612-1-4",
+      "forwarded_request_id": "c2b60c3c491946818ee576ccce4d1190",
+      "path": "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503,
+      "error_code": "TREND_STATUS_UNAVAILABLE",
+      "stage": null,
+      "finding": "EXACT_REPLACEMENT_COLD_SNAPSHOT",
+      "replacement_pid": 30184,
+      "snapshot_fresh_seconds": 1.875
+    },
+    {
+      "request_id": "TEST_ONLY-10612-2-2",
+      "forwarded_request_id": "de7dc1cf6c6f465c81bb16df3ba76bd4",
+      "path": "/api/stocks/health/live",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "EXACT_CONNECT_TRACE_TO_DECLARED_CRASH_TARGET",
+      "trace_count": 3,
+      "gateway_pid": 38796,
+      "killed_pid": 36436,
+      "backend_port": 8193
+    },
+    {
+      "request_id": "TEST_ONLY-10612-2-3",
+      "forwarded_request_id": "973c4912d4e14b379b5cbc0aeff51b0a",
+      "path": "/api/options/opening-trend/current?research_strategy=opening_momentum",
+      "status": 503,
+      "error_code": "UPSTREAM_TIMEOUT",
+      "stage": "CONNECT",
+      "finding": "UNATTRIBUTED"
+    },
+    {
+      "request_id": "TEST_ONLY-10612-2-4",
+      "forwarded_request_id": "c2b60c3c491946818ee576ccce4d1190",
+      "path": "/api/options/one-minute/status?research_strategy=opening_momentum&compact=true",
+      "status": 503,
+      "error_code": "TREND_STATUS_UNAVAILABLE",
+      "stage": null,
+      "finding": "EXACT_REPLACEMENT_COLD_SNAPSHOT",
+      "replacement_pid": 30184,
+      "snapshot_fresh_seconds": 1.875
+    }
+  ],
+  "checkpoints": [
+    {
+      "at": "2026-10-22T13:35:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 400,
+          "complete": 200,
+          "states": {
+            "NUMERIC_PASS": 100,
+            "NO_TRIGGER": 100
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 434,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.14099999982863665
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.859999999869615
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.281999999890104
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.8600000001024455
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.10999999986961484
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0625
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.8439999998081475
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:40:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 200,
+          "states": {
+            "NUMERIC_PASS": 100,
+            "NO_TRIGGER": 100
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.18799999984912574
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 3.9379999998491257
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 2.9379999998491257
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.7340000001713634
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.078125
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 3.9219999997876585
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:45:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "INCOMPLETE": 2,
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "INCOMPLETE": 2,
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06199999991804361
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15600000019185245
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2029999999795109
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.922000000020489
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.141000000061467
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.5619999999180436
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1410000000614673
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.07800000021234155
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.922000000020489
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:50:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04600000008940697
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2190000000409782
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.594000000040978
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.25
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.5630000000819564
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15600000019185245
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 4.594000000040978
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T13:55:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2660000000614673
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.3130000000819564
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09300000010989606
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.483999999938533
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.014999999897554517
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.233999999938533
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.8129999998491257
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2660000000614673
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2190000000409782
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.468000000109896
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:00:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06199999991804361
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.25
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04699999978765845
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.26599999982863665
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.109999999869615
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 4.5
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.25
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23499999986961484
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000008195639
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 5.0939999998081475
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:05:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.23499999986961484
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06199999991804361
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.04699999978765845
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.34399999980814755
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.281999999890104
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 5.452999999979511
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.8430000001098961
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2970000000204891
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2339999999385327
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.15625
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.265999999828637
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:10:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.031999999890103936
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.1869999999180436
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.28100000019185245
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.0
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 5.547000000020489
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.26599999982863665
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2029999999795109
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.125
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 6.0
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:15:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.2339999999385327
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.31200000015087426
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06199999991804361
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03100000019185245
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.4220000000204891
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 8.140000000130385
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 7.672000000020489
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.6870000001508743
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.35999999986961484
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 8.140000000130385
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:20:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06300000008195639
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.34300000010989606
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0779999999795109
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.4059999999590218
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.8899999998975545
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 7.1560000001918525
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.4690000000409782
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.35900000017136335
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.09399999980814755
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.109375
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 7.8899999998975545
+        }
+      }
+    },
+    {
+      "at": "2026-10-22T14:25:00+00:00",
+      "variants": {
+        "S0": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        },
+        "S1": {
+          "expected_direction_positions": 200,
+          "observed_direction_positions": 200,
+          "raw_records": 200,
+          "complete": 198,
+          "states": {
+            "NUMERIC_PASS": 99,
+            "NO_TRIGGER": 99,
+            "INCOMPLETE": 2
+          },
+          "unexplained_missing": []
+        }
+      },
+      "segments": {
+        "input_batch_read_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0470000000204891
+        },
+        "input_batch_decision_seconds": {
+          "n": 100,
+          "p95_seconds": 0.35999999986961484
+        },
+        "input_read_seconds": {
+          "n": 0,
+          "p95_seconds": null
+        },
+        "cross_day_reference_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "canonical_resolution_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "generation_preparation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.06299999984912574
+        },
+        "generation_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.10900000017136335
+        },
+        "calculation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "commit_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.6560000001918525
+        },
+        "availability_record_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "history_snapshot_batch_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01500000013038516
+        },
+        "enqueue_to_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 9.702999999979511
+        },
+        "prepare_files_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015999999828636646
+        },
+        "prepare_facts_before_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_checkpoint_seconds": {
+          "n": 100,
+          "p95_seconds": 0.030999999959021807
+        },
+        "prepare_reference_fallback_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_aggregate_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_files_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "prepare_facts_after_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "prepare_identity_seconds": {
+          "n": 100,
+          "p95_seconds": 0.01600000006146729
+        },
+        "admission_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 9.187999999849126
+        },
+        "compute_queue_seconds": {
+          "n": 100,
+          "p95_seconds": 0.75
+        },
+        "generation_preparation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.03125
+        },
+        "generation_validation_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.015625
+        },
+        "commit_fence_wait_seconds": {
+          "n": 100,
+          "p95_seconds": 0.0
+        },
+        "commit_validation_seconds": {
+          "n": 100,
+          "p95_seconds": 0.375
+        },
+        "commit_journal_seconds": {
+          "n": 100,
+          "p95_seconds": 0.40600000019185245
+        },
+        "commit_batch_cpu_seconds": {
+          "n": 100,
+          "p95_seconds": 0.140625
+        },
+        "enqueue_to_durable_commit_seconds": {
+          "n": 100,
+          "p95_seconds": 9.687999999849126
+        }
+      }
+    }
+  ]
+}

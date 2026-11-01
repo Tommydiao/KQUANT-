@@ -1,0 +1,267 @@
+{
+  "checked_at": "2026-11-01T08:56:39.221768+00:00",
+  "scope": "TEST_ONLY_BUSINESS_REAL_API_COST",
+  "natural_signal": false,
+  "production_start": false,
+  "role": "SOL",
+  "case": "math",
+  "paid_call": true,
+  "result": {
+    "state": "FAILED",
+    "input_hash": "73a530105c939bd92846bec57da7ebac8109f66da6e09b80c92b768a0f94e47c",
+    "requested_model": "gpt-6.1-sol",
+    "test_only": true,
+    "task_id": "opening-ai:d6ff74227e1ec022f2f23aaaa6d462a1c0322aa1cdac286fe9a241a2b8ab290c",
+    "versions": {
+      "prompt_version": "READ_ONLY_EVIDENCE_REVIEW_20261031_V1",
+      "tools_version": "LOCAL_MATH_AND_SNAPSHOTS_20261031_V1",
+      "config_hash": "5db66e0119d818c8d006cc9de9d2811de362f2e5a3092a961608a2ac3dfd67a0"
+    },
+    "endpoint": "https://api.openai.com/v1/responses",
+    "processing_tier": "default",
+    "capability_simple": false,
+    "last_http_status": 200,
+    "last_request_id": "req_e07f737d64e7491a90b13d60672f9bf8",
+    "retry_after_seconds": null,
+    "error_code": "REQUEST_ROUND_LIMIT",
+    "budget": {
+      "status": "SETTLED",
+      "reservation_id": "lbr_028d7b4426451ad88e4d5485",
+      "actual_cost_usd": "0.0063991",
+      "reservation_retained": false
+    },
+    "paid_call": true,
+    "actual_model": "gpt-6.1-sol",
+    "responses": [
+      {
+        "response_id": "resp_098e142a51d7be49016ae6fecea7a887d2ae572c5a48cd8dd3",
+        "request_id": "req_717697fbc1154f398c8988d3c64302f9",
+        "model": "gpt-6.1-sol",
+        "usage": {
+          "input_tokens": 1216,
+          "input_tokens_details": {
+            "cache_write_tokens": 1083,
+            "cached_tokens": 0
+          },
+          "output_tokens": 15,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1231
+        },
+        "status": "completed",
+        "service_tier": "default",
+        "round": 1,
+        "elapsed_seconds": 4.4689999998081475
+      },
+      {
+        "response_id": "resp_098e142a51d7be49016ae6fed1cac487d2b423ca1c6173a62a",
+        "request_id": "req_e21b613c54f2467cbf6f825501e2312c",
+        "model": "gpt-6.1-sol",
+        "usage": {
+          "input_tokens": 1401,
+          "input_tokens_details": {
+            "cache_write_tokens": 185,
+            "cached_tokens": 1213
+          },
+          "output_tokens": 16,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1417
+        },
+        "status": "completed",
+        "service_tier": "default",
+        "round": 2,
+        "elapsed_seconds": 7.7189999998081475
+      },
+      {
+        "response_id": "resp_098e142a51d7be49016ae6fed5d77087d2a0370f84d73f5a51",
+        "request_id": "req_e07f737d64e7491a90b13d60672f9bf8",
+        "model": "gpt-6.1-sol",
+        "usage": {
+          "input_tokens": 2293,
+          "input_tokens_details": {
+            "cache_write_tokens": 892,
+            "cached_tokens": 1398
+          },
+          "output_tokens": 15,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2308
+        },
+        "status": "completed",
+        "service_tier": "default",
+        "round": 3,
+        "elapsed_seconds": 10.672000000020489
+      }
+    ],
+    "tools": [
+      {
+        "tool": "compute_price_components",
+        "read_only": true,
+        "payload": {
+          "state": "COMPUTED",
+          "M": 0.3333333333333333,
+          "Q": 0.6666666666666666,
+          "source_ref": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865"
+        },
+        "result_hash": "102af5d3066284cf5a3d2978a95daa02cc0a1010099249321b329213ec5c3a3e",
+        "call_id": "call_sAMBUZdsMMWUGVyqGCSUSFSa"
+      },
+      {
+        "tool": "read_event_evidence",
+        "read_only": true,
+        "payload": {
+          "event_id": "TEST_ONLY_WEEKEND_SOL_math",
+          "evaluation_id": null,
+          "symbol": null,
+          "right": null,
+          "session": "TEST_ONLY",
+          "calculation_bar_end": null,
+          "deadline_at": "2026-11-01T16:00:00Z",
+          "state": "NUMERIC_PASS",
+          "structure_line": null,
+          "input_revision": 1,
+          "variant": null,
+          "policy_id": null,
+          "policy_hash": null,
+          "bar_evidence": {
+            "open": 10,
+            "high": 12,
+            "low": 9,
+            "close": 11,
+            "volume": null,
+            "start": null,
+            "end": null,
+            "bar_start": null,
+            "bar_end": null,
+            "source_hash": null,
+            "open_at": null,
+            "available_at": null
+          },
+          "factor_evidence": {
+            "state": null,
+            "momentum": null,
+            "close_position": null,
+            "day_open": null,
+            "previous_close": null,
+            "price": null,
+            "prior_boundary": null,
+            "checks": null
+          },
+          "runtime_inputs": null,
+          "reference_contract": {
+            "contract_id": null,
+            "symbol": null,
+            "underlying": null,
+            "right": null,
+            "expiry_date": null,
+            "strike": null,
+            "strike_price": null,
+            "dte": null,
+            "delta": null,
+            "bid": null,
+            "ask": null,
+            "quote_currency": null,
+            "contract_multiplier": null,
+            "standard": null,
+            "deliverable": null,
+            "asset_type": null,
+            "state": null,
+            "snapshot": null
+          },
+          "option_cost": {
+            "state": "UNKNOWN",
+            "cost": null,
+            "currency": null,
+            "multiplier": null,
+            "premium_per_unit": null,
+            "premium_per_contract": null,
+            "round_trip_cost_per_unit": null,
+            "round_trip_cost_per_contract": null,
+            "spread_pct": null,
+            "spread": null,
+            "fees": null,
+            "slippage": null,
+            "basis": null,
+            "reference_price": null,
+            "premium_cash_reference": null,
+            "spread_cash_reference": null,
+            "spread_equivalent_underlying_move": null,
+            "cost_equivalent_underlying_move": null,
+            "spread_pct_ask": null,
+            "spread_pct_mid": null,
+            "quote_received_at": null,
+            "source_freshness": null,
+            "interpretation": null
+          },
+          "amplitude": null,
+          "event_coverage": null,
+          "source_refs": {
+            "bar_evidence": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865",
+            "factor_evidence": "95c2c0f0cdd7f95da43a440dd3647fc8417f7e62fa559265f1d0d1180c4cd248",
+            "amplitude": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "reference_contract": "c3865099ef1afd29e8bfd55ad692fc7dc3afd33d6c24551e2e6a351070d40ee3",
+            "option_cost": "6a1e21a4f7250773edeca7e59f74dea705babdbcbf6808b6beec3d1bf23787b4",
+            "event_coverage": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+          },
+          "research_only": true,
+          "qualified_signal": false
+        },
+        "result_hash": "73a530105c939bd92846bec57da7ebac8109f66da6e09b80c92b768a0f94e47c",
+        "call_id": "call_I3zKdGkSwKq7VcGr2Ecik6AO"
+      },
+      {
+        "tool": "read_contract_snapshot",
+        "read_only": true,
+        "payload": {
+          "contract_id": null,
+          "symbol": null,
+          "underlying": null,
+          "right": null,
+          "expiry_date": null,
+          "strike": null,
+          "strike_price": null,
+          "dte": null,
+          "delta": null,
+          "bid": null,
+          "ask": null,
+          "quote_currency": null,
+          "contract_multiplier": null,
+          "standard": null,
+          "deliverable": null,
+          "asset_type": null,
+          "state": null,
+          "snapshot": null
+        },
+        "result_hash": "c3865099ef1afd29e8bfd55ad692fc7dc3afd33d6c24551e2e6a351070d40ee3",
+        "call_id": "call_liAqlPlkUONGais6raN37Cs1"
+      }
+    ],
+    "elapsed_seconds": 10.687999999849126,
+    "qualified_signal": false,
+    "actual_cost_usd": "0.0063991",
+    "cost_basis": "PROVIDER_USAGE_AND_DOCUMENTED_TOKEN_RATES_NOT_INVOICE",
+    "source_refs": {
+      "bar_evidence": "c4273c661038ae1a777c0659d48e1deac39605b74e9db5cfe1de58f48710d865",
+      "factor_evidence": "95c2c0f0cdd7f95da43a440dd3647fc8417f7e62fa559265f1d0d1180c4cd248",
+      "amplitude": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "reference_contract": "c3865099ef1afd29e8bfd55ad692fc7dc3afd33d6c24551e2e6a351070d40ee3",
+      "option_cost": "6a1e21a4f7250773edeca7e59f74dea705babdbcbf6808b6beec3d1bf23787b4",
+      "event_coverage": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "deadline_at": "2026-11-01T16:00:00Z"
+  },
+  "probe": {
+    "state": "ACCESSIBLE",
+    "model": "gpt-6.1-sol",
+    "returned_model": "gpt-6.1-sol",
+    "http_status": 200,
+    "request_id": "c2635f51-ce1b-44f1-af2a-cbb19bcd79b1",
+    "paid_call": false,
+    "checked_at": "2026-11-01T08:56:39.221768+00:00"
+  },
+  "state": "FAILED"
+}

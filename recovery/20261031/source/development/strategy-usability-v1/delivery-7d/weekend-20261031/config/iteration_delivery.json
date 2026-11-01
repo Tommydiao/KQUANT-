@@ -1,0 +1,26 @@
+{
+  "schema": "KQUANT_RESEARCH_DELIVERY_202611_V1",
+  "status": "DEVELOPMENT_ONLY_NOT_RELEASE_ACCEPTANCE",
+  "start_date": "2026-11-02",
+  "first_delivery_date": "2026-11-06",
+  "second_delivery_date": "2026-11-13",
+  "final_evidence_due": "2026-11-14T01:00:00+08:00",
+  "historical_seven_day_verdict": "FAIL_UNCHANGED",
+  "registered_objects": 111,
+  "applicable_objects": 100,
+  "unresolved_objects": 11,
+  "checkpoints": 11,
+  "applicable_positions_per_variant": 2200,
+  "excellent_queue_p95_seconds": 2,
+  "limited_queue_p95_seconds": 10,
+  "late_after_seconds": 30,
+  "page_delivery_p95_seconds": 5,
+  "source": "DIRECT_USER_IMPLEMENTATION_REQUEST",
+  "launch_approved": false,
+  "production_ai_approved": false,
+  "production_ai_budget_proposal": {
+    "daily_shared_usd": "5.00",
+    "complete_task_shared_usd": "1.00",
+    "valid_until": "2026-11-14T01:00:00+08:00"
+  }
+}
