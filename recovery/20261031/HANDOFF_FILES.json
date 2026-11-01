@@ -568,9 +568,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/RESUME.md",
-    "source_sha256": "98c9502d27be7d90cf2e580f15363c76bd26cd37e2668bc9cf251b3fb3ba0c3a",
-    "export_sha256": "98c9502d27be7d90cf2e580f15363c76bd26cd37e2668bc9cf251b3fb3ba0c3a",
-    "bytes": 56412,
+    "source_sha256": "fbd2e8bf1256f7f8e91b790f84e5f330c67b626b8e67ae7ced5808b6bf4fecb9",
+    "export_sha256": "fbd2e8bf1256f7f8e91b790f84e5f330c67b626b8e67ae7ced5808b6bf4fecb9",
+    "bytes": 57164,
     "redactions": []
   },
   {
@@ -3944,9 +3944,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour.py",
-    "source_sha256": "2e411ce1d288d2f1e71e767537bbb9d890586f749e731367cbf3873437eff6d1",
-    "export_sha256": "2e411ce1d288d2f1e71e767537bbb9d890586f749e731367cbf3873437eff6d1",
-    "bytes": 6808,
+    "source_sha256": "4e4fd323c550440ff2e279da5ccadbe9a8b553325d53e30ea6756ad2b57d2dc2",
+    "export_sha256": "4e4fd323c550440ff2e279da5ccadbe9a8b553325d53e30ea6756ad2b57d2dc2",
+    "bytes": 6944,
     "redactions": []
   },
   {
@@ -3958,9 +3958,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_coverage.py",
-    "source_sha256": "589501a7a4e5b5afce36611ff9507475c57a71fe89207299003aebfef0b182a4",
-    "export_sha256": "589501a7a4e5b5afce36611ff9507475c57a71fe89207299003aebfef0b182a4",
-    "bytes": 1929,
+    "source_sha256": "1646d6e90cf58ca8df0aefc3e85368ef236177fac9b793a83148f9d3e6adce72",
+    "export_sha256": "1646d6e90cf58ca8df0aefc3e85368ef236177fac9b793a83148f9d3e6adce72",
+    "bytes": 1620,
     "redactions": []
   },
   {
@@ -3986,9 +3986,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_minute_admission.py",
-    "source_sha256": "720f2abda8eb2341f12bd1fe3a25f6c809a0018caafa2ad399634be1565ad624",
-    "export_sha256": "720f2abda8eb2341f12bd1fe3a25f6c809a0018caafa2ad399634be1565ad624",
-    "bytes": 2576,
+    "source_sha256": "66b39db3b0d93b0c69c5ff3a946e1b90f0c86659d274b55841dc36fc424fbe15",
+    "export_sha256": "66b39db3b0d93b0c69c5ff3a946e1b90f0c86659d274b55841dc36fc424fbe15",
+    "bytes": 2272,
     "redactions": []
   },
   {
@@ -4014,9 +4014,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_projection.py",
-    "source_sha256": "89356f980a1b2279d2e7cff476084b027cb4feb6028b9697473e0edf301f60bb",
-    "export_sha256": "89356f980a1b2279d2e7cff476084b027cb4feb6028b9697473e0edf301f60bb",
-    "bytes": 1098,
+    "source_sha256": "5b85f406f865dae4c9cdca8664cb9d6153980ada7f8855ce065bd270fdbaafbb",
+    "export_sha256": "5b85f406f865dae4c9cdca8664cb9d6153980ada7f8855ce065bd270fdbaafbb",
+    "bytes": 785,
     "redactions": []
   },
   {
@@ -4028,9 +4028,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_runtime.py",
-    "source_sha256": "fa56ddb4166d061e4d6406219dac55cfb33e1db9edd34ef4482fc3935278cb55",
-    "export_sha256": "fa56ddb4166d061e4d6406219dac55cfb33e1db9edd34ef4482fc3935278cb55",
-    "bytes": 58075,
+    "source_sha256": "426f5a256188ef51f946f4e4511a0bb4b3f2e212e16907d0d021ebefe9b8c7dd",
+    "export_sha256": "426f5a256188ef51f946f4e4511a0bb4b3f2e212e16907d0d021ebefe9b8c7dd",
+    "bytes": 58895,
     "redactions": []
   },
   {
@@ -4098,9 +4098,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/prepared_minutes.py",
-    "source_sha256": "540957b8d6a8d81e8ade88dae622bd615e5ea006d442292ccb0750b4526ca245",
-    "export_sha256": "540957b8d6a8d81e8ade88dae622bd615e5ea006d442292ccb0750b4526ca245",
-    "bytes": 7954,
+    "source_sha256": "d03f206e30a59840e91f91ba59fa7f0a4ad771af1052586eb5bcf5a29d115efa",
+    "export_sha256": "d03f206e30a59840e91f91ba59fa7f0a4ad771af1052586eb5bcf5a29d115efa",
+    "bytes": 9284,
     "redactions": []
   },
   {
@@ -4203,9 +4203,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_generation_handoff.py",
-    "source_sha256": "81acb7a1005d1327fa3411a599b3b9595cae8d44713302af7f2dc52beb35a9a7",
-    "export_sha256": "81acb7a1005d1327fa3411a599b3b9595cae8d44713302af7f2dc52beb35a9a7",
-    "bytes": 28729,
+    "source_sha256": "2edcc16925cda0c4f4b83f7f8f96c8451cb1c4c65f8f8110f677206c5a8017d5",
+    "export_sha256": "2edcc16925cda0c4f4b83f7f8f96c8451cb1c4c65f8f8110f677206c5a8017d5",
+    "bytes": 30482,
     "redactions": []
   },
   {
@@ -4251,6 +4251,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_price_block_preparation.py",
+    "source_sha256": "d9c6def154b30df87ede5cda8801f8f4f5d6473fb3ec4869e00f1218dab5ca5f",
+    "export_sha256": "d9c6def154b30df87ede5cda8801f8f4f5d6473fb3ec4869e00f1218dab5ca5f",
+    "bytes": 2982,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_published_status_snapshot.py",
     "source_sha256": "89e8b1fe10b3f442cd48e67527719fadd800c52b3ecced830f4d896c9f8d3cd2",
     "export_sha256": "89e8b1fe10b3f442cd48e67527719fadd800c52b3ecced830f4d896c9f8d3cd2",
@@ -4269,6 +4276,13 @@
     "source_sha256": "dc9966ff749361a68888e8d5f6ca7bacc759eea11b4b1096fa671462ca7a146a",
     "export_sha256": "dc9966ff749361a68888e8d5f6ca7bacc759eea11b4b1096fa671462ca7a146a",
     "bytes": 11502,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_runtime_parent_binding.py",
+    "source_sha256": "180a9d5e33f64508b4f57dae7492f3b658b7c45687697648ad87a477cce84489",
+    "export_sha256": "180a9d5e33f64508b4f57dae7492f3b658b7c45687697648ad87a477cce84489",
+    "bytes": 1040,
     "redactions": []
   },
   {
@@ -4294,9 +4308,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/assembly/bootstrap.py",
-    "source_sha256": "d14e651a33b7180934d695d7b9e99fcedb33255d4bdae566ecc39af3a4167d68",
-    "export_sha256": "d14e651a33b7180934d695d7b9e99fcedb33255d4bdae566ecc39af3a4167d68",
-    "bytes": 2903,
+    "source_sha256": "cec896352f67b71654c603b29ade8592a61a0bb4abd151287c65186f1032054f",
+    "export_sha256": "cec896352f67b71654c603b29ade8592a61a0bb4abd151287c65186f1032054f",
+    "bytes": 3335,
     "redactions": []
   },
   {
@@ -4560,23 +4574,23 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/build/unified/unified.html",
-    "source_sha256": "6e6b8aad5b814bb5c71ca26c852a6d4b10aadc601fa8d60f5b0a2be537edc916",
-    "export_sha256": "6e6b8aad5b814bb5c71ca26c852a6d4b10aadc601fa8d60f5b0a2be537edc916",
+    "source_sha256": "b5fb524155aa172cee75b2962fef3716492f2fca2718f81cf2f6de37693aa837",
+    "export_sha256": "b5fb524155aa172cee75b2962fef3716492f2fca2718f81cf2f6de37693aa837",
     "bytes": 592,
     "redactions": []
   },
   {
-    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/build/unified/assets/unified-DUhsNmfg.css",
-    "source_sha256": "26a11c0fa3483d78cc25bddf16e8b1c11079ecb68e251a5f58fab04b9206a40d",
-    "export_sha256": "26a11c0fa3483d78cc25bddf16e8b1c11079ecb68e251a5f58fab04b9206a40d",
-    "bytes": 90039,
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/build/unified/assets/unified-CTz34J_M.js",
+    "source_sha256": "20cb6f4930c2c8d3d1d0a12271702f6dc70bffb06bbc91675ff286e9da5db29d",
+    "export_sha256": "20cb6f4930c2c8d3d1d0a12271702f6dc70bffb06bbc91675ff286e9da5db29d",
+    "bytes": 797779,
     "redactions": []
   },
   {
-    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/build/unified/assets/unified-DstE19Z_.js",
-    "source_sha256": "057bcf756b8e2dfab83ff1774cee35c8d941abeaf36dcadc97d4f8282860eb78",
-    "export_sha256": "057bcf756b8e2dfab83ff1774cee35c8d941abeaf36dcadc97d4f8282860eb78",
-    "bytes": 794874,
+    "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/build/unified/assets/unified-d9I-NO0P.css",
+    "source_sha256": "5925c981396c39136bc4bd77266ffec12b66bc20ca7d9d03d458c0921df8b380",
+    "export_sha256": "5925c981396c39136bc4bd77266ffec12b66bc20ca7d9d03d458c0921df8b380",
+    "bytes": 90267,
     "redactions": []
   },
   {
@@ -4630,9 +4644,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/patches/web/src/unified/StrategyComparisonCard.tsx",
-    "source_sha256": "8beebeabc699d10d6dc35cecef66faf5019e37b57de2ed415b5194c21c80d1e5",
-    "export_sha256": "8beebeabc699d10d6dc35cecef66faf5019e37b57de2ed415b5194c21c80d1e5",
-    "bytes": 13180,
+    "source_sha256": "b0904a00f48f644c06b80e8205ac73dcc6d433f899e4ee488d0bfa780cef8203",
+    "export_sha256": "b0904a00f48f644c06b80e8205ac73dcc6d433f899e4ee488d0bfa780cef8203",
+    "bytes": 16607,
     "redactions": []
   },
   {
@@ -4644,9 +4658,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/patches/web/src/unified/strategyComparison.css",
-    "source_sha256": "248d4e177ec81d2a3761d32dc37c6f3ee43aff829155024fab112b1b06a7f1f7",
-    "export_sha256": "248d4e177ec81d2a3761d32dc37c6f3ee43aff829155024fab112b1b06a7f1f7",
-    "bytes": 698,
+    "source_sha256": "d8c8fc22cf5f15cc33dd89d0032e8e60ed3158d86069db9a5d9b3a73d9bd24f5",
+    "export_sha256": "d8c8fc22cf5f15cc33dd89d0032e8e60ed3158d86069db9a5d9b3a73d9bd24f5",
+    "bytes": 954,
     "redactions": []
   },
   {
@@ -4965,6 +4979,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/AGENT_ITERATION_EXECUTION_20261101.md",
+    "source_sha256": "2db30d8b295c5194961b35b2aa1d6b2ca38a1fe0db35cc7bfc9647b339c3b634",
+    "export_sha256": "2db30d8b295c5194961b35b2aa1d6b2ca38a1fe0db35cc7bfc9647b339c3b634",
+    "bytes": 7935,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/B_WORKSTREAM.md",
     "source_sha256": "c81b25989209de5b443feec0079224338e586956a432e68a34a930c0a691af72",
     "export_sha256": "c81b25989209de5b443feec0079224338e586956a432e68a34a930c0a691af72",
@@ -4973,9 +4994,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/EXECUTION_EVIDENCE.json",
-    "source_sha256": "24e5fa68b7c9a2b228efaabe1f94a15794914d32d3da01afc1b06b3762f94e28",
-    "export_sha256": "24e5fa68b7c9a2b228efaabe1f94a15794914d32d3da01afc1b06b3762f94e28",
-    "bytes": 294314,
+    "source_sha256": "d3940c4f1581ce026895efe54095c5365a3354981dbab94c56f8dd3d10fc2046",
+    "export_sha256": "d3940c4f1581ce026895efe54095c5365a3354981dbab94c56f8dd3d10fc2046",
+    "bytes": 316078,
     "redactions": []
   },
   {
@@ -5008,9 +5029,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/RESUME.md",
-    "source_sha256": "fb0243adcb76a5c1fbfd74b9a6f26e62980664fdcab30dace6ea18d854ae4d9d",
-    "export_sha256": "fb0243adcb76a5c1fbfd74b9a6f26e62980664fdcab30dace6ea18d854ae4d9d",
-    "bytes": 17279,
+    "source_sha256": "a3295328f611e7bfd7cffff7f2c9116ef763fa8bcd9ce4f6ba50ab1f68a134c6",
+    "export_sha256": "a3295328f611e7bfd7cffff7f2c9116ef763fa8bcd9ce4f6ba50ab1f68a134c6",
+    "bytes": 21004,
     "redactions": []
   },
   {
@@ -5057,16 +5078,16 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/browser_short.cjs",
-    "source_sha256": "d4faad77cc41916858bd55ba5c5a32ef30ebf7f2cf1a700427854b6302c42280",
-    "export_sha256": "d4faad77cc41916858bd55ba5c5a32ef30ebf7f2cf1a700427854b6302c42280",
-    "bytes": 7146,
+    "source_sha256": "adb99fc7301b32f22d5eda4e72ba8bbd06cb8e19759db230c1a551e180c0b0e3",
+    "export_sha256": "adb99fc7301b32f22d5eda4e72ba8bbd06cb8e19759db230c1a551e180c0b0e3",
+    "bytes": 8177,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/browser_short.py",
-    "source_sha256": "3b4b1d75491b44e1b53b9d606057a39a843381ea0c51af88d7999810bc718e17",
-    "export_sha256": "3b4b1d75491b44e1b53b9d606057a39a843381ea0c51af88d7999810bc718e17",
-    "bytes": 10629,
+    "source_sha256": "2e9395a32be4b7b6da2f84738fb0753662cbba2c2d07361e00bc4c431aa1d2ba",
+    "export_sha256": "2e9395a32be4b7b6da2f84738fb0753662cbba2c2d07361e00bc4c431aa1d2ba",
+    "bytes": 13062,
     "redactions": []
   },
   {
@@ -5078,9 +5099,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/capture_execution.py",
-    "source_sha256": "cf968c18c7850a7c043b10be3f9b8e18c1477b09f4623b7aacf3ec816fe3a364",
-    "export_sha256": "cf968c18c7850a7c043b10be3f9b8e18c1477b09f4623b7aacf3ec816fe3a364",
-    "bytes": 4593,
+    "source_sha256": "6559a30cd3be4837b42412b30abcf8d754a6369890866cf5f1fc00186d355357",
+    "export_sha256": "6559a30cd3be4837b42412b30abcf8d754a6369890866cf5f1fc00186d355357",
+    "bytes": 4668,
     "redactions": []
   },
   {
@@ -5123,6 +5144,13 @@
     "source_sha256": "911ac545150591c5910d6fb56964010d4ee72107c49f76c12963604f06765e1b",
     "export_sha256": "911ac545150591c5910d6fb56964010d4ee72107c49f76c12963604f06765e1b",
     "bytes": 376,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/test_agent_research_v2.py",
+    "source_sha256": "7cf18b94892cdfdff449170bce804b544302f75eded28388cd962e1cdc4f06c0",
+    "export_sha256": "7cf18b94892cdfdff449170bce804b544302f75eded28388cd962e1cdc4f06c0",
+    "bytes": 8244,
     "redactions": []
   },
   {
@@ -5399,6 +5427,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/config/agent_iteration.json",
+    "source_sha256": "524ad9797df94216f3d2a09eff78e3d9945d645a9f88e777a77cd705a6724b0f",
+    "export_sha256": "524ad9797df94216f3d2a09eff78e3d9945d645a9f88e777a77cd705a6724b0f",
+    "bytes": 1467,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/config/iteration_delivery.json",
     "source_sha256": "9da8e22b9859e0fa961da6fbeef8a3e23644440d85722b36b958f5a71bfff4ab",
     "export_sha256": "9da8e22b9859e0fa961da6fbeef8a3e23644440d85722b36b958f5a71bfff4ab",
@@ -5420,6 +5455,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/ITERATION_FOLLOWUP_20261101.md",
+    "source_sha256": "d731fb793bec52926c42973b372377f441276da24eb5c68bfd7662a0f2a37738",
+    "export_sha256": "d731fb793bec52926c42973b372377f441276da24eb5c68bfd7662a0f2a37738",
+    "bytes": 1969,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/ITERATION_HOUR_ABORT_20261101.md",
     "source_sha256": "c486db2ec5be544c272406a116474f0cafe65d13dd23b60e7a8d7b8c5b25e76f",
     "export_sha256": "c486db2ec5be544c272406a116474f0cafe65d13dd23b60e7a8d7b8c5b25e76f",
@@ -5431,6 +5473,83 @@
     "source_sha256": "49ed272f0b477becaa4948e39b3e246b3fd8bd1b4dd03b9e5c1fc399557fa7e7",
     "export_sha256": "49ed272f0b477becaa4948e39b3e246b3fd8bd1b4dd03b9e5c1fc399557fa7e7",
     "bytes": 6102,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-admission-short7-20261101-adjudication.json",
+    "source_sha256": "905041122b8bb9588e85b7309f46e17510fd4e7d38db06503c7102b3053f9d7c",
+    "export_sha256": "905041122b8bb9588e85b7309f46e17510fd4e7d38db06503c7102b3053f9d7c",
+    "bytes": 6418,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-admission-short7-20261101-summary-v2.json",
+    "source_sha256": "46065c6517019f3401883c54c6a6c11cf01fc050d60a5a4ae1167b9fcbc23f96",
+    "export_sha256": "46065c6517019f3401883c54c6a6c11cf01fc050d60a5a4ae1167b9fcbc23f96",
+    "bytes": 63460,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-development-candidate-7a75d4a6c3d157e3.json",
+    "source_sha256": "b2386819eee53dc5a7f8b3e328b1d6729b92b847af7a7af0860bd0137a4ffd46",
+    "export_sha256": "b2386819eee53dc5a7f8b3e328b1d6729b92b847af7a7af0860bd0137a4ffd46",
+    "bytes": 69774,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-iteration-engine-20261101.xml",
+    "source_sha256": "79ee527c481b82abfd50974addcdb78d3d3237872cbb9bb522b0353d85529e85",
+    "export_sha256": "79ee527c481b82abfd50974addcdb78d3d3237872cbb9bb522b0353d85529e85",
+    "bytes": 13645,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-iteration-engine-correct-loader-20261101.xml",
+    "source_sha256": "9f381afd9c1ec183fcbf5bb21d058818ac878f70f2afa45ffdb53c7aa8a6fc69",
+    "export_sha256": "9f381afd9c1ec183fcbf5bb21d058818ac878f70f2afa45ffdb53c7aa8a6fc69",
+    "bytes": 21960,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-iteration-result-20261101.json",
+    "source_sha256": "8cd5d6649fee2c902e2e445aac2258c8cf9bb9a68619661056b986e86aa49467",
+    "export_sha256": "8cd5d6649fee2c902e2e445aac2258c8cf9bb9a68619661056b986e86aa49467",
+    "bytes": 32418,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-materialized-imports-20261101.json",
+    "source_sha256": "4b3b4e8f81a816b313303916d7b10fdcaf6d06e646cba837b89a2bf6feea7541",
+    "export_sha256": "4b3b4e8f81a816b313303916d7b10fdcaf6d06e646cba837b89a2bf6feea7541",
+    "bytes": 339,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-source-map-20261101.json",
+    "source_sha256": "8e2e20e3afddc8e501885cba20886e0552fa434866b3930c0a0c743c9bd82bec",
+    "export_sha256": "8e2e20e3afddc8e501885cba20886e0552fa434866b3930c0a0c743c9bd82bec",
+    "bytes": 64796,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-v2-20261101.xml",
+    "source_sha256": "e0e11514da9bfb12a7d503f704f17aad3f293e550b0c2c69065cbc176a078ae5",
+    "export_sha256": "e0e11514da9bfb12a7d503f704f17aad3f293e550b0c2c69065cbc176a078ae5",
+    "bytes": 7796,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-v2-final-20261101.xml",
+    "source_sha256": "3192aa40c0addc8aa0787ac8b6a1ac74baa78a3e71da728ccf4ef99fa918aa8b",
+    "export_sha256": "3192aa40c0addc8aa0787ac8b6a1ac74baa78a3e71da728ccf4ef99fa918aa8b",
+    "bytes": 8045,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-v2-store-20261101.xml",
+    "source_sha256": "b021cab5f0ce79fe4db9f6399f83e35020e89e07c40e3b62abae4f149da0eec1",
+    "export_sha256": "b021cab5f0ce79fe4db9f6399f83e35020e89e07c40e3b62abae4f149da0eec1",
+    "bytes": 8045,
     "redactions": []
   },
   {
@@ -5511,6 +5630,20 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T121718Z.json",
+    "source_sha256": "d90e08295a8e48c86e8ea7fb9368dbf755cbe9f95d82568c512f8a8ba3ee0ace",
+    "export_sha256": "d90e08295a8e48c86e8ea7fb9368dbf755cbe9f95d82568c512f8a8ba3ee0ace",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T124721Z.json",
+    "source_sha256": "bbe0c05b887f9d20da897e37a53efaabfb7c9543baa4f30300e1a04fecdaa6d7",
+    "export_sha256": "bbe0c05b887f9d20da897e37a53efaabfb7c9543baa4f30300e1a04fecdaa6d7",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/benchmark_summary.py",
     "source_sha256": "86b9bd91f45ffa80b4d6624df97d90409047e356e0e8a2aefc29ba6dfa24f2c5",
     "export_sha256": "86b9bd91f45ffa80b4d6624df97d90409047e356e0e8a2aefc29ba6dfa24f2c5",
@@ -5522,6 +5655,20 @@
     "source_sha256": "5fdb026ff1a4af9bc1cc47e154a5bfeaf4d0bd043d90387984d45f31581f32a0",
     "export_sha256": "5fdb026ff1a4af9bc1cc47e154a5bfeaf4d0bd043d90387984d45f31581f32a0",
     "bytes": 11186,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/capture_agent_candidate.py",
+    "source_sha256": "d6394c59b6ec56bb94130c87119eb57f460898c9a4a5be9ea6276a232b0a5fd2",
+    "export_sha256": "d6394c59b6ec56bb94130c87119eb57f460898c9a4a5be9ea6276a232b0a5fd2",
+    "bytes": 3095,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/capture_agent_result.py",
+    "source_sha256": "6848966ee0b881efcaa329171db8cbbb9415140742686ee8461b8b570d00471c",
+    "export_sha256": "6848966ee0b881efcaa329171db8cbbb9415140742686ee8461b8b570d00471c",
+    "bytes": 4152,
     "redactions": []
   },
   {
@@ -5603,9 +5750,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/inventory_release_inputs.py",
-    "source_sha256": "14d30d4fe3cad2d7590011cfa094fdda3f6097403467d516a79629c9adcffe47",
-    "export_sha256": "14d30d4fe3cad2d7590011cfa094fdda3f6097403467d516a79629c9adcffe47",
-    "bytes": 4265,
+    "source_sha256": "23bee50ecfaee3beda66cb792d8150054af98e1f738aed7f809bc9c6366c492b",
+    "export_sha256": "23bee50ecfaee3beda66cb792d8150054af98e1f738aed7f809bc9c6366c492b",
+    "bytes": 4416,
     "redactions": []
   },
   {
@@ -5718,6 +5865,48 @@
     "source_sha256": "6a3cb200ac3ab4d86bf7e8802229f1b835b5955a9ecc6a019ad13d1ad42e3dbe",
     "export_sha256": "6a3cb200ac3ab4d86bf7e8802229f1b835b5955a9ecc6a019ad13d1ad42e3dbe",
     "bytes": 610,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/iteration-materialized-parent-imports-20261101.json",
+    "source_sha256": "be7455d80fb5c738e36b6b2843f872e7c3a12ca9ffe11a52d7bc91638f23be75",
+    "export_sha256": "be7455d80fb5c738e36b6b2843f872e7c3a12ca9ffe11a52d7bc91638f23be75",
+    "bytes": 302,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/iteration-parent-block-short6-20261101-adjudication.json",
+    "source_sha256": "2de4ccd4c9f9a99fc314e607f00d55e2088ad15cfc0934b761435bb73df5149d",
+    "export_sha256": "2de4ccd4c9f9a99fc314e607f00d55e2088ad15cfc0934b761435bb73df5149d",
+    "bytes": 6377,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/iteration-parent-block-short6-20261101-summary-v2.json",
+    "source_sha256": "82234ccae9e415437f6874c27727c84bafa2d1163a341a78012ee5001d532490",
+    "export_sha256": "82234ccae9e415437f6874c27727c84bafa2d1163a341a78012ee5001d532490",
+    "bytes": 63479,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/iteration-parent-bound-source-map-20261101.json",
+    "source_sha256": "78b566d56ad254f0e206aade031fce02a4043f7e645b31cef1798e06b5066a31",
+    "export_sha256": "78b566d56ad254f0e206aade031fce02a4043f7e645b31cef1798e06b5066a31",
+    "bytes": 64108,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/iteration-parent-price-block-20261101.xml",
+    "source_sha256": "0fa4ebe9646c8d90cefbfe33359748872bb167716dde0d6e9a9e072a9530e504",
+    "export_sha256": "0fa4ebe9646c8d90cefbfe33359748872bb167716dde0d6e9a9e072a9530e504",
+    "bytes": 21824,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/iteration-price-block-20261101.xml",
+    "source_sha256": "fbfee45d54d98f5285d89e53947d783ed068d9dfb6c8b3c24bfbbc191e7df114",
+    "export_sha256": "fbfee45d54d98f5285d89e53947d783ed068d9dfb6c8b3c24bfbbc191e7df114",
+    "bytes": 21268,
     "redactions": []
   },
   {
@@ -6218,6 +6407,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/verify_materialized_parents.py",
+    "source_sha256": "490f7dc418ed97284e6e063a81c6fbd9a8a44d3482b7e2ac00752e86dd908349",
+    "export_sha256": "490f7dc418ed97284e6e063a81c6fbd9a8a44d3482b7e2ac00752e86dd908349",
+    "bytes": 2856,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/weekend-handoff-short2-20261031-analysis.json",
     "source_sha256": "5072d2aa218f793fbdfa9fecab54ab7e80dd972e6d15afe54fa0dac2ffb9ffc8",
     "export_sha256": "5072d2aa218f793fbdfa9fecab54ab7e80dd972e6d15afe54fa0dac2ffb9ffc8",
@@ -6453,6 +6649,160 @@
     "source_sha256": "0f9852749a8986effb0f0c3c2d20a07acc507050702e824074a758d1d608f95b",
     "export_sha256": "0f9852749a8986effb0f0c3c2d20a07acc507050702e824074a758d1d608f95b",
     "bytes": 25695,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122441Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+    "export_sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+    "bytes": 22800,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122441Z/clock-control.json",
+    "source_sha256": "64696a60e05da95d3f738376ce531e61fcca251360350a4e56467a2b3f4eb98c",
+    "export_sha256": "64696a60e05da95d3f738376ce531e61fcca251360350a4e56467a2b3f4eb98c",
+    "bytes": 21,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+    "export_sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+    "bytes": 22800,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/browser-result.json",
+    "source_sha256": "80bf64753dc616b49a9695ed3ff350cfe872d6f26d1674db036438241ea3c043",
+    "export_sha256": "80bf64753dc616b49a9695ed3ff350cfe872d6f26d1674db036438241ea3c043",
+    "bytes": 4816,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/clock-control.json",
+    "source_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "export_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "bytes": 23,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/report.json",
+    "source_sha256": "50c7fba2e970bc4f3623d3a6c1d63f1d6a60762f021efc3c65cb24bfd469a74d",
+    "export_sha256": "50c7fba2e970bc4f3623d3a6c1d63f1d6a60762f021efc3c65cb24bfd469a74d",
+    "bytes": 24065,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "export_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "bytes": 22850,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/browser-result.json",
+    "source_sha256": "2c4db0a6588381c6c7ef0b8f85b6981a6b830d6ecc8cdb27a1e99b08b2a2d039",
+    "export_sha256": "2c4db0a6588381c6c7ef0b8f85b6981a6b830d6ecc8cdb27a1e99b08b2a2d039",
+    "bytes": 2811,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/clock-control.json",
+    "source_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "export_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "bytes": 23,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/report.json",
+    "source_sha256": "d24f0e7bb275caa4be873183d665a58dad59946c93fc00b3de10c328ad2874b3",
+    "export_sha256": "d24f0e7bb275caa4be873183d665a58dad59946c93fc00b3de10c328ad2874b3",
+    "bytes": 24048,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "export_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "bytes": 22850,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/browser-result.json",
+    "source_sha256": "eead5cb50745d08f1756f3101cab9ceb40d8e6b9007d7023f00ceb67be481dd1",
+    "export_sha256": "eead5cb50745d08f1756f3101cab9ceb40d8e6b9007d7023f00ceb67be481dd1",
+    "bytes": 3040,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/clock-control.json",
+    "source_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "export_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "bytes": 23,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/report.json",
+    "source_sha256": "bc8ad56f5679f04748f75f79340824f2d80f908653eaad6b4d0fb8d6abdbca01",
+    "export_sha256": "bc8ad56f5679f04748f75f79340824f2d80f908653eaad6b4d0fb8d6abdbca01",
+    "bytes": 24064,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "export_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "bytes": 22850,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/browser-result.json",
+    "source_sha256": "eead5cb50745d08f1756f3101cab9ceb40d8e6b9007d7023f00ceb67be481dd1",
+    "export_sha256": "eead5cb50745d08f1756f3101cab9ceb40d8e6b9007d7023f00ceb67be481dd1",
+    "bytes": 3040,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/clock-control.json",
+    "source_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "export_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "bytes": 23,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/report.json",
+    "source_sha256": "dfec8e6fc8877b3e85e0e81dd554674f0dce783fdcd5e26e68c033e49db28c55",
+    "export_sha256": "dfec8e6fc8877b3e85e0e81dd554674f0dce783fdcd5e26e68c033e49db28c55",
+    "bytes": 24065,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "export_sha256": "52ff808fcf3683e804a0b2f866f322b9d39aad705e91e1eb4d0f1e85ad2c8bea",
+    "bytes": 22850,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/browser-result.json",
+    "source_sha256": "2b6fba6542c695d3b556ef9f20032755f628687c5ba22d27c040605aaccc7486",
+    "export_sha256": "2b6fba6542c695d3b556ef9f20032755f628687c5ba22d27c040605aaccc7486",
+    "bytes": 5215,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/clock-control.json",
+    "source_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "export_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "bytes": 23,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/report.json",
+    "source_sha256": "902ca850bb7f460b47eaae378ee62fa7dacef3a7da0a684f4667055bdad7f85a",
+    "export_sha256": "902ca850bb7f460b47eaae378ee62fa7dacef3a7da0a684f4667055bdad7f85a",
+    "bytes": 24048,
     "redactions": []
   },
   {
@@ -6806,6 +7156,13 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/agent_task_contract.py",
+    "source_sha256": "dd3fa6270742ed088c94ec9bba944194b9a485192d969ef403f63d7b8c3a8f94",
+    "export_sha256": "dd3fa6270742ed088c94ec9bba944194b9a485192d969ef403f63d7b8c3a8f94",
+    "bytes": 2459,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/options_api_budget.py",
     "source_sha256": "f753cc16c6e4b072ad93af9d666bfa70ceb328ccf466ad4a2ab58081262f74f2",
     "export_sha256": "f753cc16c6e4b072ad93af9d666bfa70ceb328ccf466ad4a2ab58081262f74f2",
@@ -6856,23 +7213,23 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/options_research_ai.py",
-    "source_sha256": "9bebe40cda55c9e13cd4c38f1a3ce57185e05882361e4cf1ffdec0e89e940919",
-    "export_sha256": "9bebe40cda55c9e13cd4c38f1a3ce57185e05882361e4cf1ffdec0e89e940919",
-    "bytes": 21139,
+    "source_sha256": "cbd5a84963d755cc2753aea093c4cffe6c0c84bf1691e8f969bc4bedc790f65c",
+    "export_sha256": "cbd5a84963d755cc2753aea093c4cffe6c0c84bf1691e8f969bc4bedc790f65c",
+    "bytes": 24873,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/options_research_ai_evidence.py",
-    "source_sha256": "91ae52cf30cb129a934ff1acc5e4bf94ce7ac92c1f7dda3ebaf67025b2cfa832",
-    "export_sha256": "91ae52cf30cb129a934ff1acc5e4bf94ce7ac92c1f7dda3ebaf67025b2cfa832",
-    "bytes": 4759,
+    "source_sha256": "3316fc0e6ee8e86f217495259517a44b1675bee745162f170fcf5675dc1bbce5",
+    "export_sha256": "3316fc0e6ee8e86f217495259517a44b1675bee745162f170fcf5675dc1bbce5",
+    "bytes": 6987,
     "redactions": []
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/options_research_ai_store.py",
-    "source_sha256": "76bb73ae3da0dd01211925869aef08efe0e0f0ecbdc663b8688c0f30d2b19055",
-    "export_sha256": "76bb73ae3da0dd01211925869aef08efe0e0f0ecbdc663b8688c0f30d2b19055",
-    "bytes": 15474,
+    "source_sha256": "25e626f1d70d9fee6daf92ced337b5156a21be046f5ce0db920704fb9fef6653",
+    "export_sha256": "25e626f1d70d9fee6daf92ced337b5156a21be046f5ce0db920704fb9fef6653",
+    "bytes": 17375,
     "redactions": []
   },
   {
@@ -6887,6 +7244,13 @@
     "source_sha256": "63ff2504debb624d3897577a6afe45e2b6fdb9b718d26e8061c32a790b9da309",
     "export_sha256": "63ff2504debb624d3897577a6afe45e2b6fdb9b718d26e8061c32a790b9da309",
     "bytes": 3764,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/research_review_v2.py",
+    "source_sha256": "5762f49364751f51afeb1f87faa6f955f7f0533cd71207b844e36c6cbfd4a20c",
+    "export_sha256": "5762f49364751f51afeb1f87faa6f955f7f0533cd71207b844e36c6cbfd4a20c",
+    "bytes": 4955,
     "redactions": []
   },
   {
@@ -10502,6 +10866,13 @@
     "redactions": []
   },
   {
+    "path": "source/evidence/new-machine-20261008/iteration-parent-block-short6-20261101/topology_report.json",
+    "source_sha256": "d92be9d0dd4f09c7a7c45e33750120ce2902bc9e4007f0e89e8081f1bb8f7f74",
+    "export_sha256": "d92be9d0dd4f09c7a7c45e33750120ce2902bc9e4007f0e89e8081f1bb8f7f74",
+    "bytes": 991697,
+    "redactions": []
+  },
+  {
     "path": "source/evidence/new-machine-20261008/iteration-query-fixed-hour2-20261101/topology_report.json",
     "source_sha256": "0ccbf4ad78ab0b4dd2ac1a44eb016b86b4822b26c7ba6464b6c346a8a62207e1",
     "export_sha256": "0ccbf4ad78ab0b4dd2ac1a44eb016b86b4822b26c7ba6464b6c346a8a62207e1",
@@ -10527,6 +10898,13 @@
     "source_sha256": "fbef11678745b5a58eea3494a811381b5c72290e826b0cf43b97206edf9eb0a7",
     "export_sha256": "fbef11678745b5a58eea3494a811381b5c72290e826b0cf43b97206edf9eb0a7",
     "bytes": 985080,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/agent-admission-short7-20261101/topology_report.json",
+    "source_sha256": "4dadcbd1cda5a1a675e1608cd7cb8f4f1947d1f03cf7b642eeca5c1b9f76b6ee",
+    "export_sha256": "4dadcbd1cda5a1a675e1608cd7cb8f4f1947d1f03cf7b642eeca5c1b9f76b6ee",
+    "bytes": 988691,
     "redactions": []
   }
 ]

@@ -9,6 +9,7 @@ from time import monotonic
 
 from . import options_one_minute as common
 from .options_research_ai_evidence import MODELS,evidence_packet,economic_identity,technical_identity,evidence_catalog
+from .agent_task_contract import task_record
 
 
 def version_material(event):
@@ -16,8 +17,12 @@ def version_material(event):
     versions=event.get('_ai_versions')
     if versions is None:
         return None
-    if (not isinstance(versions,dict) or set(versions)!={'prompt_version','tools_version','config_hash'}
+    base_keys = {'prompt_version', 'tools_version', 'config_hash'}
+    if (not isinstance(versions,dict) or set(versions) not in (base_keys, base_keys | {'review_schema', 'budget_domain'})
             or any(not isinstance(v,str) or not v for v in versions.values())):
+        raise ValueError('AI_VERSION_MATERIAL_INVALID')
+    if 'review_schema' in versions and (versions['review_schema'] != 'research_review_v2'
+                                       or versions['budget_domain'] != 'research'):
         raise ValueError('AI_VERSION_MATERIAL_INVALID')
     return versions
 
@@ -72,7 +77,10 @@ class TaskStore:
         identity,material=self.identity(event,role)
         stamp=now.isoformat()
         payload=common.canonical({'captured':event,'result':None,'schema':'OPENING_AI_TASK_V1',
-            'scan_id':reservation_identity(event,role),'versions':version_material(event)})
+            'scan_id':reservation_identity(event,role),'versions':version_material(event),
+            'task_record':task_record(event, {'state':'QUEUED', 'task_id':identity,
+                'versions':version_material(event), 'requested_model':MODELS[role]}, domain='research',
+                started_at=stamp, finished_at=None)})
         with self.connection() as db,db:
             db.execute('BEGIN IMMEDIATE')
             if db.execute('SELECT 1 FROM llm_work_queue WHERE work_id=?',(identity,)).fetchone():
@@ -127,8 +135,14 @@ class TaskStore:
     def finish(self,job,result,*,now):
         with self.connection() as db,db:
             db.execute('BEGIN IMMEDIATE')
-            if not db.execute("SELECT 1 FROM llm_work_queue WHERE work_id=? AND state='LEASED'",(job['work_id'],)).fetchone():
+            lease = db.execute("SELECT enqueued_at,leased_at FROM llm_work_queue WHERE work_id=? AND state='LEASED'",(job['work_id'],)).fetchone()
+            if not lease:
                 return False
+            result = dict(result)
+            if not result.get('task_record'):
+                result['task_record'] = task_record(job['event'], {**result, 'task_id':job['work_id']},
+                    domain='research', started_at=lease['leased_at'] or lease['enqueued_at'],
+                    finished_at=now.isoformat())
             db.execute('UPDATE ai_assessments SET state=?,payload_json=?,created_at=? WHERE assessment_id=?',
                 ('RESEARCH_AI_'+result.get('state','FAILED'),common.canonical({'schema':'OPENING_AI_TASK_V1',
                     'captured':job['event'],'result':result,'scan_id':job.get('scan_id',reservation_identity(job['event'],job['role'])),
@@ -201,11 +215,22 @@ def summaries(path,events):
         if queue_state in {'DEFERRED','REJECTED'} or (result.get('state')=='COMPLETED'
                 and result.get('delivery_state') not in {'CURRENT_RESEARCH_REVIEW','CURRENT_TECHNICAL_REVIEW'}):
             review_state='STALE'
+        catalog = (result.get('replay_evidence_catalog', []) if result.get('replay_provenance')
+                   else evidence_catalog(value['captured'], extended=bool(result.get('research_review_v2'))))
+        if result.get('research_review_v2') and not result.get('replay_provenance'):
+            for tool in result.get('tools', [])[:6]:
+                payload = tool.get('payload') or {}
+                catalog.append(dict(name=tool.get('tool'), hash=tool.get('result_hash'),
+                    observed_at=payload.get('known_at'), timestamp_basis='TOOL_RESULT_NOT_NEW_MARKET_RECEIPT',
+                    metrics={key:item for key,item in list(payload.items())[:10]
+                             if item is None or isinstance(item, (str, int, float, bool))}))
         by_model[identity,model]={'model':model,'state':result.get('state',state),'review_state':review_state,
             'queue_state':queue_state,'deferred_reason':deferred_reason,'delivery_state':result.get('delivery_state'),
             'assessment':result.get('assessment'),'actual_cost_usd':result.get('actual_cost_usd'),
-            'evidence_catalog':(result.get('replay_evidence_catalog', []) if result.get('replay_provenance')
-                else evidence_catalog(value['captured'])),
+            'research_review_v2':result.get('research_review_v2'),
+            'task_record':result.get('task_record') or {**value.get('task_record', {}),
+                'state':queue_state, 'stop_reason':deferred_reason},
+            'evidence_catalog':catalog,
             'replay_provenance':result.get('replay_provenance'),
             'review_scope':result.get('review_scope'),
             'market_recheck_state':result.get('market_recheck_state'),
@@ -218,7 +243,8 @@ def summaries(path,events):
             'actual_model':result.get('actual_model'),'elapsed_seconds':result.get('elapsed_seconds'),
             'responses':response_metadata(result),'endpoint':result.get('endpoint'),
             'reviewed_at':result.get('reviewed_at'),'valid_until':result.get('valid_until',value['captured'].get('deadline_at')),
-            'input_hash':common.digest(evidence_packet(value['captured'])),'created_at':created,'qualified_signal':False}
+            'input_hash':common.digest(evidence_packet(value['captured'], extended=bool(result.get('research_review_v2')))),
+            'created_at':created,'qualified_signal':False}
     for (identity,model),value in by_model.items():
         if identity not in output or model==MODELS['SOL']:
             output[identity]=value

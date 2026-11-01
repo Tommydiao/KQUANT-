@@ -7,6 +7,9 @@ from kquant import options_opening_momentum as s0
 from kquant import options_intraday_comparison as s1
 from kquant import options_opening_trend as trend
 from kquant.market_clock import is_trading_day, session_bounds_utc
+from prepared_minutes import PriceBlockPreparation
+
+_price_blocks = PriceBlockPreparation()
 
 WINDOW_ID = "OPENING_FIRST_HOUR_RESEARCH_V1"
 OFFSETS = tuple(range(5, 60, 5))
@@ -56,7 +59,8 @@ def prepare_inputs(*, symbol, bars, opening, checkpoint, now, source_decisions=N
     rows, missing = trend.complete_minutes(bars, symbol=symbol, opening=opening,
         until=checkpoint, now=now, diagnostics=checks, price_only=True,
         source_decisions=source_decisions)
-    return freeze((rows, missing, checks, s0.price_aggregate(rows) if not missing else []))
+    return freeze((rows, missing, checks,
+                   _price_blocks.aggregate(rows, s0.price_aggregate) if not missing else []))
 
 
 def _evaluate(*, _policy_pair=None, _minute_inputs=None, **arguments):

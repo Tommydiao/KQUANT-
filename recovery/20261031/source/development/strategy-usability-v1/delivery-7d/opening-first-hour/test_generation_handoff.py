@@ -167,6 +167,7 @@ def test_timing_preserves_end_to_end_and_separates_actual_commit(tmp_path):
         timing = next(event['runtime_timing'] for event in lane.hub.events if 'runtime_timing' in event)
         for field in ('admission_queue_seconds','compute_queue_seconds',
                       'generation_preparation_cpu_seconds','generation_validation_cpu_seconds',
+                      'admission_journal_wait_seconds','admission_journal_seconds',
                       'commit_fence_wait_seconds','commit_validation_seconds','commit_journal_seconds',
                       'commit_batch_cpu_seconds','enqueue_to_durable_commit_seconds'):
             assert timing[field] >= 0
@@ -183,6 +184,41 @@ def test_missing_enqueue_time_is_not_a_zero_latency_sample(tmp_path):
         assert timing['enqueue_to_durable_commit_seconds'] is None
         assert timing['enqueue_to_commit_seconds'] is None
         assert timing['admission_queue_seconds'] is None
+
+
+def test_update_after_batch_read_coalesces_before_expensive_preparation(tmp_path, monkeypatch):
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, reviews):
+        read, release = threading.Event(), threading.Event()
+        original_batch, original_prepare = lane._input_batch, lane._prepare_generation
+        prepared_epochs = []
+        old_epoch = lane.input_epochs[job[:2]]
+        @contextmanager
+        def batch(*args, **kwargs):
+            with original_batch(*args, **kwargs):
+                if not read.is_set():
+                    read.set()
+                    assert release.wait(4)
+                yield
+        def prepare_latest(*args, **kwargs):
+            prepared_epochs.append(args[2])
+            return original_prepare(*args, **kwargs)
+        monkeypatch.setattr(lane, '_input_batch', batch)
+        monkeypatch.setattr(lane, '_prepare_generation', prepare_latest)
+        lane.timings[key] = {'enqueue_monotonic': time.monotonic()}
+        enqueued_at = lane.timings[key]['enqueue_monotonic']
+        dispatch(lane, key, job)
+        try:
+            assert read.wait(4)
+            reviews.write_text('{"test_only_revision":2}')
+            assert lane.source_facts_ready('AI', job[1])
+            assert lane.source_facts_ready('AI', job[1])
+        finally:
+            release.set()
+        until(lambda: len(results(lane.path)) == 4)
+        assert prepared_epochs == [old_epoch+2]
+        assert lane.state['admission_superseded_before_prepare'] == 1
+        assert lane.timings[key]['enqueue_monotonic'] == enqueued_at
+        assert len({row['runtime_inputs']['input_generation'] for row in results(lane.path)}) == 1
 
 
 def test_real_enqueue_adds_timestamp_to_existing_diagnostic_entry(tmp_path):

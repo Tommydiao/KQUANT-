@@ -130,6 +130,40 @@ class PreparedSources(FrozenDict):
         return self._evidence_metadata
 
 
+class PriceBlockPreparation:
+    """Reuse pure five-row aggregation only after the caller's live admission."""
+
+    def __init__(self, bound=2048):
+        if bound < 1:
+            raise ValueError('PRICE_BLOCK_CACHE_BOUND_INVALID')
+        self.bound = bound
+        self.entries = OrderedDict()
+        self.lock = Lock()
+
+    def aggregate(self, rows, aggregate):
+        result = []
+        for offset in range(0, len(rows) - 4, 5):
+            group = rows[offset:offset + 5]
+            # Mutable input and replacement algorithms never inherit a cached result.
+            if not all(isinstance(row, PreparedMinute) for row in group):
+                result.extend(aggregate(group))
+                continue
+            key = (aggregate, tuple(row.identity for row in group))
+            with self.lock:
+                cached = self.entries.get(key)
+                if cached is not None:
+                    self.entries.move_to_end(key)
+            if cached is None:
+                cached = freeze(aggregate(group))
+                with self.lock:
+                    self.entries[key] = cached
+                    self.entries.move_to_end(key)
+                    while len(self.entries) > self.bound:
+                        self.entries.popitem(last=False)
+            result.extend(cached)
+        return result
+
+
 class MinutePreparation:
     def __init__(self, bound=8192, factory=PreparedMinute):
         self.bound = bound

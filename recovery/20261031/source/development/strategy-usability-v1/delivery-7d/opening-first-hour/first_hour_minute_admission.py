@@ -1,15 +1,8 @@
 """Immutable native structure reuse; requested scope/time admission stays live."""
 from datetime import timedelta
-import importlib.util
 from pathlib import Path
 
-from assembly import bootstrap
-
-_path = bootstrap.inherited.selected_overrides().get('options_minute_admission',
-    bootstrap.BASE/'kquant/options_minute_admission.py')
-_spec = importlib.util.spec_from_file_location('kquant._native_admission_parent', _path)
-parent = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(parent)
+from kquant import _first_hour_parent_admission as parent
 POLICY, POLICY_HASH = parent.POLICY, parent.POLICY_HASH
 
 

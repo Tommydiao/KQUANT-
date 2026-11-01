@@ -1,14 +1,7 @@
 """Reuse immutable record grades without caching time-sensitive reconciliation."""
-import importlib.util
-
-from assembly import bootstrap
+from kquant import _first_hour_parent_coverage as parent
 from prepared_minutes import FrozenDict, freeze, _readonly
 
-_path = bootstrap.inherited.selected_overrides().get('options_opening_trend_coverage',
-    bootstrap.BASE/'kquant/options_opening_trend_coverage.py')
-_spec = importlib.util.spec_from_file_location('kquant._coverage_parent', _path)
-parent = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(parent)
 _factor_grade = parent.factor_grade
 _numeric = parent.complete_numeric_factor
 

@@ -1,14 +1,7 @@
 """Existing delta/watermark/rebuild contract with one grade per immutable row."""
-import importlib.util
-
-from assembly import bootstrap
+from kquant import _first_hour_parent_projection as parent
 from kquant.options_opening_trend_coverage import PreparedCoverageRow
 
-_path = bootstrap.inherited.selected_overrides().get('options_opening_trend_projection',
-    bootstrap.BASE/'kquant/options_opening_trend_projection.py')
-_spec = importlib.util.spec_from_file_location('kquant._projection_parent', _path)
-parent = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(parent)
 
 
 class ProjectionCache(parent.ProjectionCache):

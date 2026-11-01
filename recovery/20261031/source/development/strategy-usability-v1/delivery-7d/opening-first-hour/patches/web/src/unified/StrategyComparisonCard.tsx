@@ -52,7 +52,23 @@ export function StrategyComparisonCard({ row, now, connected, actions }: { row: 
   const evidenceNames: Record<string, string> = { bar_evidence: c("闭合价格", "Closed-bar prices"),
     factor_evidence: c("规则指标", "Rule metrics"), amplitude: c("价格幅度", "Price amplitude"),
     reference_contract: c("参考合约", "Reference contract"), option_cost: c("成本依据", "Cost evidence"),
-    event_coverage: c("事件覆盖", "Event coverage") };
+    event_coverage: c("事件覆盖", "Event coverage"), local_event_materials: c("当时可得事件资料", "As-of event evidence"),
+    saved_followup_path: c("已保存后续路径", "Saved follow-up path"), compute_price_components: c("程序价格计算", "Program price calculation"),
+    read_event_evidence: c("事件证据读取", "Event evidence read"), read_contract_snapshot: c("合约快照读取", "Contract snapshot read"),
+    read_cost_scenario: c("成本情景读取", "Cost scenario read"), read_local_event_materials: c("本地事件资料读取", "Local event evidence read"),
+    read_saved_followup_path: c("后续路径读取", "Follow-up path read") };
+  const reviewLabels: Record<string, string> = {
+    PRICE_STRUCTURE: c("价格结构", "Price structure"), DIRECTION_CONTRAST: c("方向差异", "Direction contrast"),
+    SOURCE_LIMITATION: c("来源限制", "Source limitation"), CONTRACT_LIMITATION: c("合约限制", "Contract limitation"),
+    COST_LIMITATION: c("成本限制", "Cost limitation"), EVENT_LIMITATION: c("事件限制", "Event limitation"),
+    PATH_OBSERVATION: c("路径观察", "Path observation"), INPUT_REVISION: c("输入修订", "Input revision"),
+    STRUCTURE_INVALID: c("结构失效", "Invalid structure"), EVENT_RISK_CHANGED: c("事件风险变化", "Event risk changed"),
+    QUOTE_EXPIRED: c("报价过时", "Stale quote"), ORIGINAL_DEADLINE: c("原期限届满", "Original deadline"),
+    AUTHORIZATION_EXPIRED: c("授权到期", "Authorization expired"), RECHECK_SOURCE: c("复核来源", "Recheck source"),
+    RECHECK_STRUCTURE: c("复核结构", "Recheck structure"), RECHECK_CONTRACT: c("复核合约", "Recheck contract"),
+    RECHECK_COST: c("复核成本", "Recheck cost"), RECHECK_EVENT: c("复核事件", "Recheck event"),
+    OBSERVE_SAVED_PATH: c("跟踪已保存路径", "Track saved path"),
+  };
   const evidenceName = (ref: string) => {
     const entry = (ai?.evidence_catalog ?? []).find((item: Json) => item.name === ref || item.hash === ref);
     return entry ? evidenceNames[entry.name] ?? entry.name : c("引用待核验", "Unverified reference");
@@ -96,14 +112,24 @@ export function StrategyComparisonCard({ row, now, connected, actions }: { row: 
       {ai ? <><p>{ai.review_state ?? ai.state}</p>
         <small>{c("请求模型", "Requested model")}: {ai.requested_model ?? ai.model ?? c("未知", "Unknown")}</small>
         <small>{c("实际返回模型", "Returned model")}: {ai.actual_model ?? c("尚未核验", "Not verified")}</small>
-        <p>{ai.replay_provenance ? c("隔离展示：已保存真实API结果，非本次市场分析", "Isolated display: saved real API result, not this market analysis") : !connected || expired || historyOnly || ai.display_state !== "SAME_EVALUATION" || !["CURRENT_RESEARCH_REVIEW", "CURRENT_TECHNICAL_REVIEW"].includes(ai.delivery_state)
+        <p>{ai.replay_provenance?.kind === "SYNTHETIC_AGENT_V2_TEST" ? c("隔离测试：合成模型传输，不是真实API或市场机会", "Isolated test: synthetic model transport, not a real API result or market opportunity") : ai.replay_provenance ? c("隔离展示：已保存真实API结果，非本次市场分析", "Isolated display: saved real API result, not this market analysis") : !connected || expired || historyOnly || ai.display_state !== "SAME_EVALUATION" || !["CURRENT_RESEARCH_REVIEW", "CURRENT_TECHNICAL_REVIEW"].includes(ai.delivery_state)
           ? c("历史或待复核分析，当前资格以行情和规则结果为准", "Historical or pending review; current market and rule checks govern eligibility")
           : c("技术证据解释当前有效；合约与报价独立核验，非买入批准", "Technical evidence review current; contract and quote checks are separate, not entry approval")}</p>
+        {ai.research_review_v2?.version === "research_review_v2" ? <section aria-label={c("研究问题与反证", "Research questions and counterevidence")} data-review-version="research_review_v2">
+          {(ai.research_review_v2.questions ?? []).map((question: Json) => <div key={question.id}>
+            <strong>{question.id} · {question.question}</strong>
+            {(ai.research_review_v2.findings ?? []).filter((finding: Json) => finding.question_id === question.id).map((finding: Json, index: number) =>
+              <p key={index}>{finding.stance === "SUPPORT" ? c("支持", "Support") : c("反证", "Counterevidence")} · {reviewLabels[finding.claim] ?? finding.claim}: {(finding.evidence_refs ?? []).map(evidenceName).join(" · ")}</p>)}
+            {(ai.research_review_v2.follow_up_items ?? []).filter((item: Json) => item.question_id === question.id).map((item: Json, index: number) =>
+              <small key={index}>{c("跟踪项", "Follow-up")}: {reviewLabels[item.check] ?? item.check} · {(item.evidence_refs ?? []).map(evidenceName).join(" · ")}</small>)}
+          </div>)}
+          <p>{c("失效条件", "Invalidation conditions")}: {(ai.research_review_v2.invalidation_conditions ?? []).map((code: string) => reviewLabels[code] ?? code).join(" · ") || c("未列出", "Not listed")}</p>
+        </section> : null}
         {ai.assessment ? <><p>{c("支持证据", "Supporting evidence")}: {(ai.assessment.support_refs ?? []).map(evidenceName).join(" · ") || c("无", "None")}</p>
           <p>{c("反对证据", "Opposing evidence")}: {(ai.assessment.opposing_refs ?? []).map(evidenceName).join(" · ") || c("无", "None")}</p>
           <p>{c("缺失资料", "Missing inputs")}: {(ai.assessment.missing_inputs ?? []).join(" · ") || c("未列出", "Not listed")}</p>
           <p>{c("复核状态", "Review status")}: {(ai.assessment.review_reasons ?? []).join(" · ") || ai.delivery_state}</p></> : null}
-        {(ai.evidence_catalog ?? []).map((entry: Json) => <details key={entry.name}>
+        {(ai.evidence_catalog ?? []).map((entry: Json, index: number) => <details key={`${entry.name}:${entry.hash}:${index}`}>
           <summary>{evidenceNames[entry.name] ?? entry.name} · {formatUiTime(entry.observed_at, language)}</summary>
           <small>{entry.hash}</small>
           <dl>{Object.entries(entry.metrics ?? {}).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value == null ? c("未知", "Unknown") : String(value)}</dd></div>)}</dl>

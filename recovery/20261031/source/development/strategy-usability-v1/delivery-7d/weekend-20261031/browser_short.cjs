@@ -25,7 +25,14 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
     report.window_heading_verified = true;
     await card.locator('summary').filter({hasText:/AI evidence review|AI证据复核/}).click();
     const aiText=await card.innerText();
-    if (config.ai_replay) {
+    if (config.agent_v2) {
+      await card.locator('[data-review-version="research_review_v2"]').waitFor({state:'visible'});
+      if (!/synthetic model transport|合成模型传输/.test(aiText)) throw Error('SYNTHETIC_MODEL_LABEL_MISSING');
+      if (!/Q1/.test(aiText) || !/Follow-up|跟踪项/.test(aiText)) throw Error('RESEARCH_V2_FIELDS_MISSING');
+      if (!aiText.includes('RESEARCH_AGENT_V2_20261101') || !aiText.includes('ASOF_LOCAL_TOOLS_V2')) throw Error('RESEARCH_V2_IDENTITY_MISMATCH');
+      report.synthetic_agent_v2_display=true;
+      report.real_api_call=false;
+    } else if (config.ai_replay) {
       if (!aiText.includes('gpt-6.1-sol') || !/saved real API result|已保存真实API结果/.test(aiText)) throw Error('REAL_API_REPLAY_PROVENANCE_MISSING');
       if (!/0.0088058/.test(aiText)) throw Error('REAL_API_COST_MISSING');
       const evidence=card.locator('summary').filter({hasText:/Closed-bar prices|闭合价格/});
@@ -62,7 +69,7 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
     await card.locator('summary').filter({hasText:/AI evidence review|AI证据复核/}).click();
     if (!await card.getByRole('button',{name:/Sol/}).isDisabled()) throw Error('EXPIRED_REVIEW_ENABLED');
     report.layouts=[];
-    for (const width of [1440,2560]) for (const language of ['zh','en']) for (const theme of ['dark','light']) {
+    for (const width of (config.agent_v2 ? [390,1440,2560] : [1440,2560])) for (const language of ['zh','en']) for (const theme of ['dark','light']) {
       await page.setViewportSize({width,height:1000});
       await page.evaluate(({language,theme})=>{
         localStorage.setItem('kquant-unified:language',language);
@@ -72,14 +79,18 @@ const report = { test_only: true, natural_signal: false, errors: [], api_failure
       await card.waitFor({state:'visible',timeout:20000});
       await card.locator('summary').filter({hasText:/AI evidence review|AI证据复核/}).click();
       const text=await card.innerText();
-      if (!text.includes(config.ai_replay ? 'gpt-6.1-sol' : 'TEST_ONLY_MODEL_UNAVAILABLE') || !text.includes(config.contract)) throw Error('STATE_LOST_ON_LAYOUT');
+      if (!text.includes(config.ai_replay || config.agent_v2 ? 'gpt-6.1-sol' : 'TEST_ONLY_MODEL_UNAVAILABLE') || !text.includes(config.contract)) throw Error('STATE_LOST_ON_LAYOUT');
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
       const boxes=await card.locator('th,td,p,small,strong').evaluateAll(nodes=>nodes.filter(n=>
         n.clientWidth>0 && n.scrollWidth>n.clientWidth+2).map(n=>({tag:n.tagName,text:n.textContent})));
-      if (overflow || boxes.length) throw Error('LAYOUT_OVERFLOW');
+      const clippedColumns=await card.locator('table th').evaluateAll(nodes=>nodes.filter(n=>{
+        const r=n.getBoundingClientRect(), parent=n.closest('.ops-signal-why').getBoundingClientRect();
+        return r.left<Math.max(0,parent.left)-1 || r.right>Math.min(innerWidth,parent.right)+1;
+      }).map(n=>n.textContent));
       const screenshot=`weekend-${width}-${language}-${theme}.png`;
       await page.screenshot({path:path.join(config.out,screenshot),fullPage:true});
-      report.layouts.push({width,language,theme,screenshot,overflow,text_overflow:boxes});
+      report.layouts.push({width,language,theme,screenshot,overflow,text_overflow:boxes,clipped_columns:clippedColumns});
+      if (overflow || boxes.length || clippedColumns.length) throw Error('LAYOUT_OVERFLOW');
     }
     await context.setOffline(true);
     await page.waitForFunction(target=>/Connection or snapshot unavailable|连接或快照不可用/.test(

@@ -27,7 +27,22 @@ def fields(value,names):
     return result
 
 
-def evidence_packet(event):
+def _asof_snapshot(value, *, asof, names, time_names, horizon=None):
+    if not isinstance(value, dict) or asof is None:
+        return {'state': 'UNAVAILABLE', 'reason': 'ASOF_OR_SNAPSHOT_MISSING'}
+    try:
+        known = next(value[name] for name in time_names if value.get(name))
+        if common.timestamp(known) > common.timestamp(asof):
+            return {'state': 'UNAVAILABLE', 'reason': 'FUTURE_EVIDENCE_EXCLUDED'}
+        if horizon and (not value.get(horizon) or common.timestamp(value[horizon]) > common.timestamp(asof)):
+            return {'state': 'UNAVAILABLE', 'reason': 'FOLLOWUP_NOT_YET_AVAILABLE'}
+    except (StopIteration, KeyError, ValueError, TypeError):
+        return {'state': 'UNAVAILABLE', 'reason': 'EVIDENCE_TIME_UNVERIFIED'}
+    return {'state': 'ASOF_SNAPSHOT', 'known_at': known, 'asof': asof,
+            'metrics': fields(value, names)}
+
+
+def evidence_packet(event, *, extended=False):
     packet=fields(event,('event_id','evaluation_id','symbol','right','session','calculation_bar_end',
         'deadline_at','state','structure_line','input_revision','variant','policy_id','policy_hash'))
     packet['bar_evidence']=fields(event.get('bar_evidence'),('open','high','low','close','volume',
@@ -64,19 +79,39 @@ def evidence_packet(event):
         packet['entry_range']=list(entry)
     packet['source_refs']={name:common.digest(packet[name]) for name in
         ('bar_evidence','factor_evidence','amplitude','reference_contract','option_cost','event_coverage') if name in packet}
+    if extended:
+        asof = event.get('_evidence_asof') or event.get('evaluated_at')
+        try:
+            asof = common.timestamp(asof).isoformat() if asof else None
+        except (ValueError, TypeError):
+            asof = None
+        packet['evidence_asof'] = asof
+        packet['local_event_materials'] = _asof_snapshot(event.get('event_coverage'), asof=asof,
+            names=('decision', 'state', 'observed_at', 'valid_until', 'source_hash', 'coverage_hash'),
+            time_names=('observed_at',))
+        if packet['local_event_materials']['state'] == 'UNAVAILABLE':
+            packet['event_coverage'] = dict(packet['local_event_materials'])
+            packet['source_refs']['event_coverage'] = common.digest(packet['event_coverage'])
+        packet['saved_followup_path'] = _asof_snapshot(event.get('outcome'), asof=asof,
+            names=('state', 'known_at', 'measured_at', 'reaction_at', 'horizon_end_at',
+                   'y60_pct', 'source_hash', 'basis'),
+            time_names=('known_at', 'measured_at'), horizon='horizon_end_at')
+        for name in ('local_event_materials', 'saved_followup_path'):
+            packet['source_refs'][name] = common.digest(packet[name])
     packet['research_only']=True
     packet['qualified_signal']=False
     return packet
 
 
-def evidence_catalog(event):
-    packet=evidence_packet(event)
+def evidence_catalog(event, *, extended=False):
+    packet=evidence_packet(event, extended=extended)
     catalog=[]
     for name,identity in packet['source_refs'].items():
         value=packet.get(name) or {}
-        metrics={k:v for k,v in value.items() if v is None or isinstance(v,(str,int,float,bool))}
+        metric_source = value.get('metrics', value)
+        metrics={k:v for k,v in metric_source.items() if v is None or isinstance(v,(str,int,float,bool))}
         catalog.append(dict(name=name,hash=identity,
-            observed_at=value.get('observed_at') or value.get('available_at') or
+            observed_at=value.get('known_at') or value.get('observed_at') or value.get('available_at') or
                 value.get('quote_received_at') or packet.get('calculation_bar_end'),
             timestamp_basis='FIELD_TIME_OR_CALCULATION_CHECKPOINT_NOT_NEW_RECEIPT',
             metrics=dict(list(metrics.items())[:10])))

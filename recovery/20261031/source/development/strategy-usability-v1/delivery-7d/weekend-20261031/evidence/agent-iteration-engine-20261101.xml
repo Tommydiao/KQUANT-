@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="16" failures="0" skipped="0" tests="16" time="1.481" timestamp="2026-11-01T20:34:16.465352+08:00" hostname="PC-20260215FHYW"><testcase classname="" name="test_coverage_preparation" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_coverage_preparation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_coverage_preparation.py:7: in &lt;module&gt;
+    import first_hour
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_decision_preparation" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_decision_preparation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_decision_preparation.py:3: in &lt;module&gt;
+    import first_hour_minute_decisions as decisions
+first_hour_minute_decisions.py:7: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_first_hour" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_first_hour.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_first_hour.py:3: in &lt;module&gt;
+    import first_hour as window
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_first_hour_approval" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_first_hour_approval.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_first_hour_approval.py:2: in &lt;module&gt;
+    from first_hour import policies
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_first_hour_journal" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_first_hour_journal.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_first_hour_journal.py:5: in &lt;module&gt;
+    import first_hour
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_first_hour_runtime" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_first_hour_runtime.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_first_hour_runtime.py:5: in &lt;module&gt;
+    from kquant import options_one_minute
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_first_hour_selection" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_first_hour_selection.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_first_hour_selection.py:5: in &lt;module&gt;
+    from kquant import options_opening_trend_jobs as jobs
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_generation_handoff" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_generation_handoff.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_generation_handoff.py:13: in &lt;module&gt;
+    import first_hour
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_input_commit_fence" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_input_commit_fence.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_input_commit_fence.py:13: in &lt;module&gt;
+    import first_hour_journal as journal
+first_hour_journal.py:7: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_live_card_revisions" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_live_card_revisions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_live_card_revisions.py:6: in &lt;module&gt;
+    import first_hour
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_native_structure" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_native_structure.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_native_structure.py:7: in &lt;module&gt;
+    from kquant import options_minute_admission as candidate
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_prepared_minutes" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_prepared_minutes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_prepared_minutes.py:6: in &lt;module&gt;
+    from prepared_minutes import MinutePreparation, partition
+prepared_minutes.py:7: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_price_block_preparation" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_price_block_preparation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_price_block_preparation.py:5: in &lt;module&gt;
+    from prepared_minutes import PreparedMinute, PriceBlockPreparation
+prepared_minutes.py:7: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_published_status_snapshot" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_published_status_snapshot.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_published_status_snapshot.py:5: in &lt;module&gt;
+    from kquant.status_snapshot import SnapshotUnavailable
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_research_timeliness" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_research_timeliness.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_research_timeliness.py:6: in &lt;module&gt;
+    import first_hour
+first_hour.py:5: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase><testcase classname="" name="test_resolution_preparation" time="0.000"><error message="collection failure">ImportError while importing test module 'E:\kquant 1007\KQUANT-Resume-Latest\source\development\strategy-usability-v1\delivery-7d\opening-first-hour\test_resolution_preparation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_resolution_preparation.py:10: in &lt;module&gt;
+    import first_hour_minute_decisions as decisions
+first_hour_minute_decisions.py:7: in &lt;module&gt;
+    from kquant import options_one_minute as common
+E   ModuleNotFoundError: No module named 'kquant'</error></testcase></testsuite></testsuites>

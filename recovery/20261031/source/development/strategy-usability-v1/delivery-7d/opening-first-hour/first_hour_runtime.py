@@ -557,6 +557,12 @@ class TrendLane:
                 entries, generations = [], []
                 with self._input_batch(entries=batch, reviews=reviews):
                     for key, job in batch:
+                        with self.lock:
+                            if self.input_epochs.get(job[:2], 0) != epochs[key]:
+                                self.state['admission_superseded_before_prepare'] = self.state.get(
+                                    'admission_superseded_before_prepare', 0)+1
+                                self._readmit_current(key, job)
+                                continue
                         try:
                             started = monotonic()
                             cpu_started = thread_time()
@@ -572,8 +578,15 @@ class TrendLane:
                             self._retry_admission([(key, job)], exc)
                 if not entries:
                     continue
+                ready_requested = monotonic()
                 with self._journal_guard():
+                    ready_acquired = monotonic()
                     admitted = journal.ready_many(self.path, entries, return_leases=True)
+                ready_finished = monotonic()
+                for key, _, _, _ in entries:
+                    self.timings.setdefault(key, {}).update(
+                        admission_journal_wait_seconds=ready_acquired-ready_requested,
+                        admission_journal_seconds=ready_finished-ready_acquired)
                 with self.lock:
                     for (key, job, _, _), generation, accepted in zip(entries, generations, admitted):
                         if accepted:

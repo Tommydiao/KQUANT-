@@ -1,0 +1,119 @@
+{
+  "started_at": "2026-11-01T12:17:12.914943+00:00",
+  "finished_at": "2026-11-01T12:17:18.431018+00:00",
+  "entry": {
+    "schema": "KQUANT_LOCAL_WORKSPACE_ENTRY_V1",
+    "candidate_id": "local-candidate-198444f784fb3ada",
+    "code_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+    "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+    "python_executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+    "python_base_root": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python312",
+    "frontend": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\web\\dist-unified",
+    "recovery_manifest": {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\recovery-manifest-shadow-accepted.json",
+      "sha256": "da4510e8d4bf52c7dfd0a177076a248bf9e221964d7f5212695e828fb062d28b"
+    },
+    "runtime_manifest": {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\release-manifest.json",
+      "sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9"
+    },
+    "production_accepted": false,
+    "shadow_runtime_accepted": true
+  },
+  "entry_sha256": "2336e5a56a10e13a220383e621ff9e03e7a864414ca0c0b097853b1bc4e47ab8",
+  "manifests": {
+    "runtime_manifest": {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\release-manifest.json",
+      "expected_sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9",
+      "actual_sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9"
+    },
+    "recovery_manifest": {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\strategy-usability-v1\\delivery-7d\\monday-signal-llm\\release\\local-candidate-198444f784fb3ada\\recovery-manifest-shadow-accepted.json",
+      "expected_sha256": "da4510e8d4bf52c7dfd0a177076a248bf9e221964d7f5212695e828fb062d28b",
+      "actual_sha256": "da4510e8d4bf52c7dfd0a177076a248bf9e221964d7f5212695e828fb062d28b"
+    }
+  },
+  "actual": {
+    "saved": {
+      "launcher_pid": 34668,
+      "launcher_identity": {
+        "pid": 34668,
+        "created_at": "2026-10-19T13:47:59.2293520Z",
+        "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      },
+      "run_session_id": "8f36daed-de2c-47b0-aed1-a97ffc434f52",
+      "system_boot": {
+        "state": "VERIFIED",
+        "started_at": "2026-10-14T13:15:47.9306040Z",
+        "source": "WIN32_OPERATING_SYSTEM"
+      },
+      "started_at": "20261019T134803640Z",
+      "checked_at": "2026-10-23T12:33:55.9814147+00:00",
+      "state": "STOPPED",
+      "exit_reason": "LAUNCHER_ERROR_CimException",
+      "failed_stage": "MAIN_LOOP",
+      "launches": [
+        {
+          "name": "stock-options-foundation",
+          "pid": 24520,
+          "identity": {
+            "pid": 24520,
+            "created_at": "2026-10-19T13:48:09.0776860Z",
+            "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+          },
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+          "arguments": "-m kquant.dashboard --host 127.0.0.1 --port 8001",
+          "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace",
+          "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261019T134803640Z.out.log",
+          "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\stock-options-foundation.20261019T134803640Z.err.log"
+        },
+        {
+          "name": "gateway-options-foundation",
+          "pid": 25032,
+          "identity": {
+            "pid": 25032,
+            "created_at": "2026-10-19T13:48:09.2803380Z",
+            "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe"
+          },
+          "executable": "E:\\kquant 1007\\KQUANT-Resume-Latest\\.venv\\Scripts\\python.exe",
+          "arguments": "-m kquant_crypto gateway",
+          "working_directory": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\development\\workspace\\crypto",
+          "stdout": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261019T134803640Z.out.log",
+          "stderr": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\logs\\gateway-options-foundation.20261019T134803640Z.err.log"
+        }
+      ],
+      "listeners": [],
+      "health_verified": false,
+      "recovery_count": 0,
+      "backend_release": "local-candidate-198444f784fb3ada",
+      "backend_manifest_sha256": "b9a7fe7f378a3b442517d9802ef336a83020638e9aeef39d103854c35cc45fe9",
+      "research_health_is_separate": true
+    },
+    "observed_at": "2026-11-01T12:17:18.3120575+00:00",
+    "listeners": [],
+    "original_pid_matches": []
+  },
+  "seven_day_verdict": "FAIL_PRESERVED",
+  "production_writes": 0,
+  "api_calls": 0,
+  "role_map": {
+    "schema": "KQUANT_NEW_EPOCH_RUNTIME_PATHS_V1",
+    "runtime_root": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime",
+    "epoch_id": "KQUANT-LOCAL-20261008-01",
+    "session": "2026-10-08",
+    "minute_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute-epoch-20261008\\one_minute.sqlite3",
+    "opening_research_path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute\\opening_trend_research.sqlite3",
+    "stores": {
+      "main": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\kquant_us.sqlite3",
+      "full_watch": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_full_watch\\full_watch.sqlite3",
+      "opening_research": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute\\opening_trend_research.sqlite3",
+      "signal_copilot": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_signal_copilot\\signal_copilot.sqlite3",
+      "minute": "E:\\kquant 1007\\KQUANT-Resume-Latest\\runtime\\work\\options_one_minute-epoch-20261008\\one_minute.sqlite3"
+    },
+    "data_scope_acceptance_sha256": "e51e6431f3a465ece2e0aeed2bf9e2b6e4547fc9090a0bd62d22e43641cd7a1d"
+  },
+  "limitations": [
+    "sequential metadata observations, not atomic snapshot",
+    "does not open business DBs"
+  ]
+}

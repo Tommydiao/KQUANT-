@@ -1,0 +1,9 @@
+{
+  "observed_at": "2026-11-01T11:49:52.670328+00:00",
+  "returncode": 0,
+  "stdout": "EXPLICIT_PARENT_IMPORTS_PASS\n",
+  "stderr": "",
+  "copied_python_files": 205,
+  "business_databases_opened": false,
+  "limitation": "Code-only cold imports, not Supervisor/Worker or release acceptance."
+}

@@ -63,6 +63,9 @@ def tcp_server(app, *, lifespan='on'):
 
 def main():
     replay = '--saved-real-ai' in sys.argv
+    agent_v2 = '--agent-v2' in sys.argv
+    if replay and agent_v2:
+        raise ValueError('CHOOSE_REAL_REPLAY_OR_SYNTHETIC_AGENT_TEST')
     out = WEEKEND/'evidence'/('browser-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
     out.mkdir(parents=True)
     path = out/'TEST_ONLY-research.sqlite3'
@@ -97,6 +100,11 @@ def main():
         from kquant.options_research_ai_worker import captured_event
         from kquant.options_research_ai import version_identity
         ai_config=json.loads((WEEKEND/'config/research_ai.json').read_text())
+        if agent_v2:
+            ai_config = dict(ai_config, review_schema='research_review_v2', budget_domain='research',
+                prompt_version='RESEARCH_AGENT_V2_20261101', tools_version='ASOF_LOCAL_TOOLS_V2',
+                authorization_total_usd='1',
+                valid_until=(args['now']+timedelta(seconds=300)).isoformat())
         patch.setattr(common,'ROOT',out)
         copilot=out/'work/options_signal_copilot/signal_copilot.sqlite3'
         initialize_copilot_store(copilot)
@@ -134,6 +142,33 @@ def main():
                     source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
                     original_event_id=original['event_id'],original_input_hash=actual['input_hash'],
                     original_paid_call=True,new_paid_call=False,not_this_market_event=True)}
+        if agent_v2:
+            from test_agent_research_v2 import review
+            from test_weekend_ai import output
+            from kquant.options_research_ai import ResponsesResearchClient, config_identity
+            from kquant.options_research_ai_evidence import evidence_catalog
+            synthetic_config = ai_config
+            synthetic_receipt = dict(gate='O-SETUP', status='APPROVED', approved_by='OWNER',
+                user_reply_id='TEST_ONLY_NOT_OWNER', approval_id='TEST_ONLY_V2_BROWSER',
+                config_hash=config_identity(synthetic_config), budget_domain='research',
+                approved_at=(args['now']-timedelta(seconds=1)).isoformat(),
+                valid_until=synthetic_config['valid_until'], capability_tests_allowed=True,
+                live_paid_research_allowed=False, task_limit_usd='1', authorization_total_usd='1')
+            calls = []
+            def synthetic_transport(request):
+                calls.append(request)
+                response = output(request, tool=len(calls)==1)
+                if len(calls)>1:
+                    response['output'][0]['content'][0]['text']=json.dumps(review())
+                return response
+            unavailable = ResponsesResearchClient(config=synthetic_config, receipt=synthetic_receipt,
+                budget_path=out/'TEST_ONLY-agent-budget.sqlite3', transport=synthetic_transport,
+                key_loader=lambda:None, clock=lambda:args['now']).assess(captured, test_only=True)
+            assert unavailable['state']=='COMPLETED', unavailable
+            unavailable.update(delivery_state='TEST_ONLY_SYNTHETIC_AGENT_REVIEW', current_opportunity=False,
+                replay_evidence_catalog=evidence_catalog(captured, extended=True),
+                replay_provenance=dict(kind='SYNTHETIC_AGENT_V2_TEST', original_paid_call=False,
+                                      new_paid_call=False, not_this_market_event=True))
         tasks.finish(job,unavailable,now=args['now'])
         report['ai_state']=unavailable
         app = create_app(config=KquantConfig(db_path=out/'TEST_ONLY-main.sqlite3', outputs_dir=out/'outputs'),
@@ -169,7 +204,7 @@ def main():
                 with tcp_server(gateway) as url:
                     config = dict(out=str(out), url=url, target='TEST CALL S0 S1',
                         control=str(control), contract=transport.contract_id, test_clock=clock().isoformat(),
-                        ai_replay=replay,
+                        ai_replay=replay, agent_v2=agent_v2,
                         playwright_module=r'C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules\playwright',
                         browser_executable=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe')
                     config_path = out/'browser-config.json'

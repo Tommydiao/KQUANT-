@@ -30,6 +30,13 @@ def activate(*, verify=False):
     if str(FIRST) not in sys.path:
         sys.path.insert(0, str(FIRST))
     mapping = {'kquant.'+name:path for name,path in inherited.selected_overrides().items()}
+    # Runtime imports named parents; only assembly selects their exact source.
+    for alias, name in {
+        '_first_hour_parent_admission': 'options_minute_admission',
+        '_first_hour_parent_coverage': 'options_opening_trend_coverage',
+        '_first_hour_parent_projection': 'options_opening_trend_projection',
+    }.items():
+        mapping['kquant.' + alias] = mapping.get('kquant.' + name, BASE/'kquant'/(name+'.py'))
     mapping['kquant_crypto.gateway'] = FIRST/'gateway_candidate.py'
     for name, file in {
         'options_minute_admission':'first_hour_minute_admission.py',

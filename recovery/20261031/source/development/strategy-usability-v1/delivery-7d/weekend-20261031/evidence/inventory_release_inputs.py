@@ -23,6 +23,10 @@ def proof(path):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output', default='iteration-unified-source-map-20261101.json')
+    args = parser.parse_args()
     projection = MONDAY / 'release/local-candidate-7896a20b9c18c711/deployment-projection.json'
     os.environ['KQUANT_TEST_FROZEN_PROJECTION'] = str(projection)
     os.environ['KQUANT_TEST_WEEKEND_OVERLAY'] = str(HERE)
@@ -82,7 +86,7 @@ def main():
         parent_projection=proof(projection), sources=sources, blockers=blockers,
         deployment_ready=False, accepted=False, business_database_opened=False,
         limitation='Static module selection and AST dependencies only; not an executable release manifest or approval.')
-    target = HERE / 'evidence/iteration-unified-source-map-20261101.json'
+    target = HERE / 'evidence' / args.output
     target.write_text(json.dumps(artifact, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(dict(path=str(target), sources=len(sources),
         changed=sum(row['differs_from_accepted'] for row in sources),

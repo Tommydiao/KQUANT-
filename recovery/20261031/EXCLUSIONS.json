@@ -248,6 +248,30 @@
     "reason": "runtime_dependency_cache_or_link"
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122441Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/work/",
+    "reason": "runtime_dependency_cache_or_link"
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/patches/kquant/__pycache__/",
     "reason": "runtime_dependency_cache_or_link"
   },
@@ -1037,6 +1061,298 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T102049Z/weekend-2560-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122441Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122441Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122441Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-agent-budget.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-main.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-main.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-1440-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-1440-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-1440-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-1440-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-2560-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-2560-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-2560-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-2560-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-390-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-390-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-390-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122456Z/weekend-390-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-agent-budget.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-main.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-main.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122813Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/TEST_ONLY-agent-budget.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122833Z/weekend-390-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/TEST_ONLY-agent-budget.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T122922Z/weekend-390-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/TEST_ONLY-agent-budget.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/TEST_ONLY-main.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/TEST_ONLY-research.sqlite3",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/TEST_ONLY-research.sqlite3-shm",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/TEST_ONLY-research.sqlite3-wal",
+    "reason": "database_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/browser-config.json",
+    "reason": "private_browser_configuration_not_read"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/first-hour-expired.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/first-hour-reference.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-1440-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-1440-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-1440-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-1440-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-2560-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-2560-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-2560-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-2560-zh-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-390-en-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-390-en-light.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-390-zh-dark.png",
+    "reason": "non_asset_image_not_privacy_reviewed"
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261101T123000Z/weekend-390-zh-light.png",
     "reason": "non_asset_image_not_privacy_reviewed"
   },
   {

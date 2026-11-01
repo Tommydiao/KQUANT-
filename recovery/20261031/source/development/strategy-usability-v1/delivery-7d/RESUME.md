@@ -1,5 +1,17 @@
 # Fixed Seven-Day Delivery: Resume Existing Work
 
+## November1 Phased Agent Work: Latest Pointer
+
+Read `weekend-20261031/AGENT_ITERATION_EXECUTION_20261101.md` and the FIRST section
+of its RESUME.md. Researchv2, as-of tools, task records and responsive card are
+implemented in isolation.61 AI/172 engine tests pass;12 browser layouts pass.
+Latest short7:488/488 reads,100 original-deadline pending restored, all children
+cleared, last first-full P9513.547s FAIL. No new matching hour or publication.
+Unified development inventory207 files is not a deployable accepted release.
+Experiment/engineering workflows and local order simulation remain incomplete.
+No paid API, SDK connection, production restart or business DB write this run.
+Seven-day FAIL and the Nov2-13/finalNov14 schedule are unchanged.
+
 ## November1 Iteration Implementation Supersedes Current-State Notes Below
 
 Read `weekend-20261031/ITERATION_EXECUTION_20261101.md`, its latest RESUME section,

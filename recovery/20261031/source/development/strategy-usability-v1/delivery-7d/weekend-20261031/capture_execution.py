@@ -44,7 +44,8 @@ def main():
     evidence_root=ROOT/'source/evidence/new-machine-20261008'
     reports=[*evidence_root.glob('weekend-*-20261031*/topology_report.json'),
              *evidence_root.glob('sunday-*-20261101/topology_report.json'),
-             *evidence_root.glob('iteration-*-20261101/topology_report.json')]
+             *evidence_root.glob('iteration-*-20261101/topology_report.json'),
+             *evidence_root.glob('agent-*-20261101/topology_report.json')]
     for path in sorted(reports):
         report=json.loads(path.read_text())
         topologies.append(dict(path=str(path),sha256=digest(path),

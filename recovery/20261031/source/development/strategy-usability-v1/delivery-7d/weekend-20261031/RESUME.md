@@ -1,5 +1,62 @@
 # Weekend Execution Resume
 
+## Agent iteration implemented in isolation, November1,12:44UTC evidence
+
+Read `AGENT_ITERATION_EXECUTION_20261101.md` first. New research_review_v2,
+five capability domains, task traces in the existing outbox, as-of local evidence
+tools and Signals evidence display are implemented.61 AI and172 engine tests pass.
+Both builds complete. Actual TCP/browser TEST_ONLY v2 replay passes12 layouts;
+the390px hidden-S1-column failure is fixed with a card-scoped CSS override.
+All prior failures remain recorded. No new paid call or production change.
+
+Short7 `agent-admission-short7-20261101` FINISHED240.281s,488/488 reads,
+100 pending restored without deadline changes, errors[], children_alive[].
+Nine transport failures have exact declared-crash links:6 connects,3 replacement
+cold snapshots.378 separate browser responses are explicitly unmounted test
+endpoints, not successful business requests. Final first-full P9513.547s remains
+FAIL against10s. Admission queue P9511.875s dominates, journal wait~0.02s.
+Both variants account for2200 positions; injected AAPL exceptions remain.
+No new matching hour: this version has not passed two short gates.
+
+New unified DEVELOPMENT inventory `agent-development-7a75d4a6c3d157e3` binds207
+Python files (46 differences), both builds, frontend and disabled-budget config.
+Code-only cold imports pass without test bootstrap dependencies. This is NOT an
+executable release/recovery manifest, OWNER approval or production deployment.
+Original accepted198444f784fb3ada remains untouched. New budgets are null/disabled.
+Experiment/engineering candidate workflows and local order simulation remain
+UNIMPLEMENTED; capability declarations are not functional acceptance.
+
+Next: reduce measured admission re-preparation in existing8-job batches while
+preserving bytes/generation/CAS/WAIT_INPUT/original enqueue. Continue stage2 tool
+quality/as-of data binding independently. Do not repeat an unchanged hour or
+enable paid calls, publication or trading. Save measured work/resume evidence;
+there is no background coding executor after this session.
+
+Older sections below are chronological evidence, not the current state.
+
+## Follow-up completed, performance still FAIL: November 1, 2026
+
+Isolated source changes after hour2: pure five-minute aggregation now reuses
+bounded immutable blocks after live admission; three runtime adapters import
+explicit named parent modules instead of the TEST_ONLY assembly loader.
+171 affected tests pass. Code-only cold import of the205 mapped files passes
+with test bootstrap imports forbidden; this is not actual-entry acceptance.
+See evidence/iteration-parent-bound-source-map-20261101.json and
+evidence/iteration-materialized-parent-imports-20261101.json.
+Short6 `iteration-parent-block-short6-20261101` finished240.156s, errors[],
+507/507 background reads,9 exact declared-crash transport failures. Final-point
+first-full P95 is14.750s, admission queue13.312s. Both variants account for2200
+positions; known AAPL exceptions remain. No new matching hour was started:
+this source has not passed the limited10s short gate. Pure aggregation reuse
+is equivalence-tested but has NOT demonstrated whole-lane performance gain.
+Read evidence/iteration-parent-block-short6-20261101-summary-v2.json and
+evidence/iteration-parent-block-short6-20261101-adjudication.json.
+Next: measure repeated admission/epoch invalidation and durable-ready batching
+under the same8-task bound; retain real-content/CAS checks. Do not repeat an
+unchanged hour. Parent mapping is now explicit but a production release and
+actual-entry constructor acceptance remain pending. No production restart or paid call.
+Hour2 below remains the last completed hour and its performance verdict FAIL.
+
 ## Current result: November 1, 2026, 11:30 UTC
 
 Hour2 is FINISHED, not in progress. Tool session85880 has exited and all test
