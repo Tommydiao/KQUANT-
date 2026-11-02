@@ -568,9 +568,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/RESUME.md",
-    "source_sha256": "dfb556e161510e9ff967ac1f6a9052f4b6531cedfe041c9d0e98fc3c132a5fa7",
-    "export_sha256": "dfb556e161510e9ff967ac1f6a9052f4b6531cedfe041c9d0e98fc3c132a5fa7",
-    "bytes": 57864,
+    "source_sha256": "ed266f427589a159f43526fca81c321c240507be8ab639fc4a498a9b497c62bc",
+    "export_sha256": "ed266f427589a159f43526fca81c321c240507be8ab639fc4a498a9b497c62bc",
+    "bytes": 58456,
     "redactions": []
   },
   {
@@ -4028,9 +4028,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/first_hour_runtime.py",
-    "source_sha256": "cae8c217f58a28c750e891717684c49a65e0485c02dc17b85624007909230e63",
-    "export_sha256": "cae8c217f58a28c750e891717684c49a65e0485c02dc17b85624007909230e63",
-    "bytes": 59145,
+    "source_sha256": "eb4a28568f4568b2402b4704cb04aad4d4b076cc6d321d7a3b7c688e651bd304",
+    "export_sha256": "eb4a28568f4568b2402b4704cb04aad4d4b076cc6d321d7a3b7c688e651bd304",
+    "bytes": 60370,
     "redactions": []
   },
   {
@@ -4091,9 +4091,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/prepared_generation.py",
-    "source_sha256": "e15b70e5a71d99758531f9392ff0269b38aa5156a2206f8d6bc7081ea5e0e5b9",
-    "export_sha256": "e15b70e5a71d99758531f9392ff0269b38aa5156a2206f8d6bc7081ea5e0e5b9",
-    "bytes": 8912,
+    "source_sha256": "082c6473b6e5b055b3a7292ca69deb502ef540d9ee9143ea84d206f3d9e5c2ab",
+    "export_sha256": "082c6473b6e5b055b3a7292ca69deb502ef540d9ee9143ea84d206f3d9e5c2ab",
+    "bytes": 9148,
     "redactions": []
   },
   {
@@ -4203,9 +4203,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_generation_handoff.py",
-    "source_sha256": "66cfaa8ae1618eab513e4540cfe4f9a5572bf048b82633b72181698c3b15e9c0",
-    "export_sha256": "66cfaa8ae1618eab513e4540cfe4f9a5572bf048b82633b72181698c3b15e9c0",
-    "bytes": 31605,
+    "source_sha256": "7dab2299471c88d8ac86ab182edb96ed941d369dd9e47e1b02cb6976d899f5ff",
+    "export_sha256": "7dab2299471c88d8ac86ab182edb96ed941d369dd9e47e1b02cb6976d899f5ff",
+    "bytes": 33615,
     "redactions": []
   },
   {
@@ -4266,9 +4266,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/opening-first-hour/test_research_timeliness.py",
-    "source_sha256": "ceea73aa492ec7fce1699a802d37a25979d5e6498223986359fc00a4220a7c6c",
-    "export_sha256": "ceea73aa492ec7fce1699a802d37a25979d5e6498223986359fc00a4220a7c6c",
-    "bytes": 4147,
+    "source_sha256": "d1b5e0c1be09686127e7525d32ce4cf629ab1cf405ce5e738002d2010badbdb9",
+    "export_sha256": "d1b5e0c1be09686127e7525d32ce4cf629ab1cf405ce5e738002d2010badbdb9",
+    "bytes": 4516,
     "redactions": []
   },
   {
@@ -5001,9 +5001,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/EXECUTION_EVIDENCE.json",
-    "source_sha256": "235ac6be485289e2862a40400a3b0b85ed3af8af0d98db6ae41dd8a5d7fec795",
-    "export_sha256": "235ac6be485289e2862a40400a3b0b85ed3af8af0d98db6ae41dd8a5d7fec795",
-    "bytes": 327431,
+    "source_sha256": "42217aafcee4ef02e5f5ea888b10824d18d8d5c683d13be28c85567455a4aff4",
+    "export_sha256": "42217aafcee4ef02e5f5ea888b10824d18d8d5c683d13be28c85567455a4aff4",
+    "bytes": 338559,
     "redactions": []
   },
   {
@@ -5036,9 +5036,16 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/RESUME.md",
-    "source_sha256": "dc05471770d85b011ab6c59c9d0bc6694de246ebbf14b5541d1146e2abb3fa4d",
-    "export_sha256": "dc05471770d85b011ab6c59c9d0bc6694de246ebbf14b5541d1146e2abb3fa4d",
-    "bytes": 23555,
+    "source_sha256": "e3f4114dcd17c5920be6868fb7235a139964f78ee3c3bb5e3ce6fb25b110f7a5",
+    "export_sha256": "e3f4114dcd17c5920be6868fb7235a139964f78ee3c3bb5e3ce6fb25b110f7a5",
+    "bytes": 25338,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/REVISION_TIMING_CLOSEOUT_20261102.md",
+    "source_sha256": "030a4db66627f8ad27144b6637d02f9eb3b5489b3c6685a6590488de60b7c5a3",
+    "export_sha256": "030a4db66627f8ad27144b6637d02f9eb3b5489b3c6685a6590488de60b7c5a3",
+    "bytes": 3363,
     "redactions": []
   },
   {
@@ -5106,9 +5113,9 @@
   },
   {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/capture_execution.py",
-    "source_sha256": "6559a30cd3be4837b42412b30abcf8d754a6369890866cf5f1fc00186d355357",
-    "export_sha256": "6559a30cd3be4837b42412b30abcf8d754a6369890866cf5f1fc00186d355357",
-    "bytes": 4668,
+    "source_sha256": "9cebaa651a9c2eb66804425be7a13e194c6c3152ddfc26d191e6589a835e7330",
+    "export_sha256": "9cebaa651a9c2eb66804425be7a13e194c6c3152ddfc26d191e6589a835e7330",
+    "bytes": 4743,
     "redactions": []
   },
   {
@@ -5623,6 +5630,27 @@
     "redactions": []
   },
   {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-revision-clock-short1-20261102-summary-v2.json",
+    "source_sha256": "b7fd38f4517f985c6f1eacf09769b1b2a7e2fe8fa3a2969dc1eb6d737048c027",
+    "export_sha256": "b7fd38f4517f985c6f1eacf09769b1b2a7e2fe8fa3a2969dc1eb6d737048c027",
+    "bytes": 54751,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-revision-generation-short2-20261102-admission-age.json",
+    "source_sha256": "369d0e867abd83729f617b68e372bee3f6419162e4a18e22e7ab8009f21ec7c5",
+    "export_sha256": "369d0e867abd83729f617b68e372bee3f6419162e4a18e22e7ab8009f21ec7c5",
+    "bytes": 10744,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-revision-generation-short2-20261102-summary-v2.json",
+    "source_sha256": "7853d1dca779783e032a104714ce037cb62b63d858e288afc1e55178db00c769",
+    "export_sha256": "7853d1dca779783e032a104714ce037cb62b63d858e288afc1e55178db00c769",
+    "bytes": 67520,
+    "redactions": []
+  },
+  {
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-source-map-20261101.json",
     "source_sha256": "8e2e20e3afddc8e501885cba20886e0552fa434866b3930c0a0c743c9bd82bec",
     "export_sha256": "8e2e20e3afddc8e501885cba20886e0552fa434866b3930c0a0c743c9bd82bec",
@@ -5662,6 +5690,13 @@
     "source_sha256": "02e3d473f31baa2574bfbb1b607b90f7ea841ef21afc37206b5c8d30e4ce19d4",
     "export_sha256": "02e3d473f31baa2574bfbb1b607b90f7ea841ef21afc37206b5c8d30e4ce19d4",
     "bytes": 6962,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/audit_admission_age.py",
+    "source_sha256": "20ada92a26683a42c8da56905b696bdbf0836e98b931caef75b8e0bcb1fb77cf",
+    "export_sha256": "20ada92a26683a42c8da56905b696bdbf0836e98b931caef75b8e0bcb1fb77cf",
+    "bytes": 2423,
     "redactions": []
   },
   {
@@ -5752,6 +5787,13 @@
     "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261101T142022Z.json",
     "source_sha256": "d370a7a1f2a2c37749a4ba3e24b85f0971b6469a7b5156c85c9f4430c7c4501d",
     "export_sha256": "d370a7a1f2a2c37749a4ba3e24b85f0971b6469a7b5156c85c9f4430c7c4501d",
+    "bytes": 6694,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/baseline-20261102T130053Z.json",
+    "source_sha256": "eff5d916f5dd64905c45d76a4f1d4381fc8f2d7854b7c29a5e43cb86e142b8b0",
+    "export_sha256": "eff5d916f5dd64905c45d76a4f1d4381fc8f2d7854b7c29a5e43cb86e142b8b0",
     "bytes": 6694,
     "redactions": []
   },
@@ -6299,6 +6341,27 @@
     "source_sha256": "e8e4960f1bf807db04aed8948e752c71f821702aa21489d1f591b85d5693aced",
     "export_sha256": "e8e4960f1bf807db04aed8948e752c71f821702aa21489d1f591b85d5693aced",
     "bytes": 5548,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/revision-generation-timing-20261102.xml",
+    "source_sha256": "b1fc45a657827244ee8d342b55effa9ee9bf8917cd023f01f20fd4983c1d7bc8",
+    "export_sha256": "b1fc45a657827244ee8d342b55effa9ee9bf8917cd023f01f20fd4983c1d7bc8",
+    "bytes": 22635,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/revision-timing-20261102.xml",
+    "source_sha256": "b48fd8494905b90862d1b1983bcee79fab4110b7ecf3d4b518a0335ce7109552",
+    "export_sha256": "b48fd8494905b90862d1b1983bcee79fab4110b7ecf3d4b518a0335ce7109552",
+    "bytes": 4793,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/revision-timing-full-20261102.xml",
+    "source_sha256": "7e0e852c1a86a4aa0a163fe9d9e7237e36d9ee2df47a9ad8a8a4610d7a8890b5",
+    "export_sha256": "7e0e852c1a86a4aa0a163fe9d9e7237e36d9ee2df47a9ad8a8a4610d7a8890b5",
+    "bytes": 22506,
     "redactions": []
   },
   {
@@ -6936,6 +6999,34 @@
     "source_sha256": "902ca850bb7f460b47eaae378ee62fa7dacef3a7da0a684f4667055bdad7f85a",
     "export_sha256": "902ca850bb7f460b47eaae378ee62fa7dacef3a7da0a684f4667055bdad7f85a",
     "bytes": 24048,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261102T132120Z/TEST_ONLY-ai-event.json",
+    "source_sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+    "export_sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+    "bytes": 22800,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261102T132120Z/browser-result.json",
+    "source_sha256": "fe740cdfc6596821736970b2e1c33e9d6bbed9cae52f0700729470283bbc78aa",
+    "export_sha256": "fe740cdfc6596821736970b2e1c33e9d6bbed9cae52f0700729470283bbc78aa",
+    "bytes": 4389,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261102T132120Z/clock-control.json",
+    "source_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "export_sha256": "9e58b91b254df7febbaddc8185dff00ee218bccb84a46d6bd772dc0bb71b0c6c",
+    "bytes": 23,
+    "redactions": []
+  },
+  {
+    "path": "source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/browser-20261102T132120Z/report.json",
+    "source_sha256": "1f355465d30b696d983cf3fbbde460504b6554db2a70c99a2e2bfb98de6f9425",
+    "export_sha256": "1f355465d30b696d983cf3fbbde460504b6554db2a70c99a2e2bfb98de6f9425",
+    "bytes": 25695,
     "redactions": []
   },
   {
@@ -11059,6 +11150,20 @@
     "source_sha256": "094305ba3f8898f2c2e23684bf0cc179417329e072afdc2ddbc1589d1dca5568",
     "export_sha256": "094305ba3f8898f2c2e23684bf0cc179417329e072afdc2ddbc1589d1dca5568",
     "bytes": 988076,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/agent-revision-clock-short1-20261102/topology_report.json",
+    "source_sha256": "6e89ed45c2d03f6ea6f1a23f1f1e37b2aa0b79c1ab140dd0e1da310a1adf4520",
+    "export_sha256": "6e89ed45c2d03f6ea6f1a23f1f1e37b2aa0b79c1ab140dd0e1da310a1adf4520",
+    "bytes": 990513,
+    "redactions": []
+  },
+  {
+    "path": "source/evidence/new-machine-20261008/agent-revision-generation-short2-20261102/topology_report.json",
+    "source_sha256": "9a0813822e8f68412e7c1ccf57cca6e08a345dc9e352bde429479c7c64ba84cd",
+    "export_sha256": "9a0813822e8f68412e7c1ccf57cca6e08a345dc9e352bde429479c7c64ba84cd",
+    "bytes": 991083,
     "redactions": []
   }
 ]

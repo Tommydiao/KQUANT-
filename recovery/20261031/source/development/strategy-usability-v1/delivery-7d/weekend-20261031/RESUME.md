@@ -1,5 +1,29 @@
 # Weekend Execution Resume
 
+## November2 follow-up: revision timing implemented, publication still blocked
+
+Read REVISION_TIMING_CLOSEOUT_20261102.md first. Baseline13:00:53UTC: no production
+or test listeners; accepted manifest matches. No production/DB/SDK/paid changes.
+Runtime now keeps original age AND active admission notification wait. Coalescing
+does not reset pending wait; immutable PreparedGeneration carries the new metrics
+through commit so a newer revision cannot overwrite an older generation's metrics.
+177 affected tests pass, including actual current_cards exclusion of late records.
+Short1 finished with468/469 reads,1PROCESS_DEADLINE and9 non-exempt HTTP failures;
+replacement snapshots still STALE after5s. Preserve this failure and request ID
+50b0681aad9c4918b0f46942de4c378d. Root cause inside query remains unproven.
+Short2 finished240.172s,482/482 reads,100pending restored,children[],errors[].
+Its last first-full P9516.640s still FAIL; active admission wait P957.766s versus
+original age14.547s across166 last-point committed attempts. These are distinct
+denominators from first-full metrics, not a replacement PASS or speed improvement.
+Saved-real-AI browser replay browser-20261102T132120Z passes8 desktop layouts,
+actual compiled page/reference display,disconnect/reconnect/expiry;no new API.
+This is separate TCP-thread TEST_ONLY topology, not hour Signal delivery or natural
+market evidence. No new hour because latest code has not passed two short gates.
+Next: profile repeated active admission preparation and cold query recovery; connect
+the existing positive browser/reference probe to the independent-process hour.
+Prior507e/Nov1 hour are historical identities, not this modified working tree.
+No executable release/renewal accepted; no claim of coding after session end.
+
 ## Completed follow-up: November1,14:15UTC
 
 Per-consumer source dependencies now preserve transitive cached proof files without

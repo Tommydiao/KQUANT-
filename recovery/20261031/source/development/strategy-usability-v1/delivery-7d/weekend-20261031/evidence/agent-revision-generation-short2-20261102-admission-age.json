@@ -1,0 +1,376 @@
+{
+  "test_only": true,
+  "run": "agent-revision-generation-short2-20261102",
+  "original_verdict_unchanged": true,
+  "report_sha256": "9a0813822e8f68412e7c1ccf57cca6e08a345dc9e352bde429479c7c64ba84cd",
+  "sources": {
+    "TEST_ONLY-progress-28268.jsonl": "eef4c04d1cf20ac6ee5e2aba4bde29aff72a7a30d3959d285371f75b0007993c",
+    "TEST_ONLY-progress-33740.jsonl": "4f38d39b7e7ebf22f792dbfb31d64baa230384e63497b626b52b0bd2f5568c44"
+  },
+  "checkpoints": [
+    {
+      "checkpoint": "2026-10-22T13:35:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 213,
+          "measured": 213,
+          "missing": 0,
+          "p95": 5.702999999979511,
+          "maximum": 10.297000000020489
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 213,
+          "measured": 213,
+          "missing": 0,
+          "p95": 5.702999999979511,
+          "maximum": 10.297000000020489
+        },
+        "active_admission_wait_seconds": {
+          "total": 213,
+          "measured": 213,
+          "missing": 0,
+          "p95": 2.780999999959022,
+          "maximum": 3.047000000020489
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 213,
+          "measured": 213,
+          "missing": 0,
+          "p95": 7.858999999938533,
+          "maximum": 10.375
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:40:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 4.297000000020489,
+          "maximum": 11.25
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 4.297000000020489,
+          "maximum": 11.25
+        },
+        "active_admission_wait_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 3.75,
+          "maximum": 3.9850000001024455
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 6.0310000001918525,
+          "maximum": 11.375
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:45:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.0,
+          "maximum": 6.1719999997876585
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.0,
+          "maximum": 6.1719999997876585
+        },
+        "active_admission_wait_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 3.780999999959022,
+          "maximum": 4.577999999979511
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.391000000061467,
+          "maximum": 6.577999999979511
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:50:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 6.0,
+          "maximum": 6.187999999849126
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 6.0,
+          "maximum": 6.187999999849126
+        },
+        "active_admission_wait_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 4.609999999869615,
+          "maximum": 4.875
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 6.952999999979511,
+          "maximum": 7.077999999979511
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T13:55:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.483999999938533,
+          "maximum": 7.0
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.483999999938533,
+          "maximum": 7.0
+        },
+        "active_admission_wait_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 4.5,
+          "maximum": 5.062000000150874
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 7.108999999938533,
+          "maximum": 7.265000000130385
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:00:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 7.280999999959022,
+          "maximum": 7.702999999979511
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 7.280999999959022,
+          "maximum": 7.702999999979511
+        },
+        "active_admission_wait_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 4.968000000109896,
+          "maximum": 5.077999999979511
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 8.030999999959022,
+          "maximum": 8.25
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:05:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 102,
+          "measured": 102,
+          "missing": 0,
+          "p95": 7.530999999959022,
+          "maximum": 8.077999999979511
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 102,
+          "measured": 102,
+          "missing": 0,
+          "p95": 7.530999999959022,
+          "maximum": 8.077999999979511
+        },
+        "active_admission_wait_seconds": {
+          "total": 102,
+          "measured": 102,
+          "missing": 0,
+          "p95": 5.5,
+          "maximum": 6.359000000171363
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 102,
+          "measured": 102,
+          "missing": 0,
+          "p95": 8.655999999959022,
+          "maximum": 8.937000000150874
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:10:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.780999999959022,
+          "maximum": 7.062000000150874
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 6.780999999959022,
+          "maximum": 7.062000000150874
+        },
+        "active_admission_wait_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 4.625,
+          "maximum": 4.719000000040978
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 100,
+          "measured": 100,
+          "missing": 0,
+          "p95": 7.405999999959022,
+          "maximum": 7.608999999938533
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:15:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 8.860000000102445,
+          "maximum": 9.187000000150874
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 8.860000000102445,
+          "maximum": 9.187000000150874
+        },
+        "active_admission_wait_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 6.890000000130385,
+          "maximum": 7.437000000150874
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 101,
+          "measured": 101,
+          "missing": 0,
+          "p95": 9.656000000191852,
+          "maximum": 9.875
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:20:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 150,
+          "measured": 150,
+          "missing": 0,
+          "p95": 13.719000000040978,
+          "maximum": 15.577999999979511
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 150,
+          "measured": 150,
+          "missing": 0,
+          "p95": 13.719000000040978,
+          "maximum": 15.577999999979511
+        },
+        "active_admission_wait_seconds": {
+          "total": 150,
+          "measured": 150,
+          "missing": 0,
+          "p95": 7.280999999959022,
+          "maximum": 7.530999999959022
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 150,
+          "measured": 150,
+          "missing": 0,
+          "p95": 15.515999999828637,
+          "maximum": 16.07799999997951
+        }
+      }
+    },
+    {
+      "checkpoint": "2026-10-22T14:25:00+00:00",
+      "metrics": {
+        "admission_queue_seconds": {
+          "total": 166,
+          "measured": 166,
+          "missing": 0,
+          "p95": 14.547000000020489,
+          "maximum": 15.077999999979511
+        },
+        "original_enqueue_age_at_preparation_seconds": {
+          "total": 166,
+          "measured": 166,
+          "missing": 0,
+          "p95": 14.547000000020489,
+          "maximum": 15.077999999979511
+        },
+        "active_admission_wait_seconds": {
+          "total": 166,
+          "measured": 166,
+          "missing": 0,
+          "p95": 7.766000000061467,
+          "maximum": 8.609000000171363
+        },
+        "enqueue_to_commit_seconds": {
+          "total": 166,
+          "measured": 166,
+          "missing": 0,
+          "p95": 16.515999999828637,
+          "maximum": 16.75
+        }
+      }
+    }
+  ],
+  "limitation": "Active wait excludes idle time before this notification; original age, deadlines and performance verdicts are retained."
+}

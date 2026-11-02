@@ -8,7 +8,11 @@
 3. 再读 [来源共享修复与匹配小时](source/development/strategy-usability-v1/delivery-7d/weekend-20261031/AGENT_CONSUMER_CLOSEOUT_20261101.md) 和 [机器可读裁决](source/development/strategy-usability-v1/delivery-7d/weekend-20261031/evidence/agent-consumer-result-20261101.json)。此前匹配小时保留原适用身份和FAIL。
 4. 用 [校验脚本](tools/verify_handoff.py) 验证文件，再继续隔离开发。
 
-## 当前事实
+## 11月2日最新事实
+
+先读 [本轮修订计时记录](source/development/strategy-usability-v1/delivery-7d/weekend-20261031/REVISION_TIMING_CLOSEOUT_20261102.md)。新增按不可变代次绑定的本次准入等待计时，旧原始年龄不变；177项受影响回归通过。最新短测482/482读取成功，但末点首次完整P9516.640秒，性能仍FAIL。前一轮468/469读取及5秒恢复STALE失败保留。保存的真实AI结果通过独立TCP页面回放，无新API调用；不是小时Signal验收。当前源码不同于11月1日候选，未发布、未恢复生产。
+
+## 11月1日历史基线
 
 | 项目 | 交接状态 |
 | --- | --- |

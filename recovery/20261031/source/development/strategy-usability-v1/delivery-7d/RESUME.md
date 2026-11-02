@@ -1,5 +1,15 @@
 # Fixed Seven-Day Delivery: Resume Existing Work
 
+## November2 Current Pointer
+
+Read weekend-20261031/REVISION_TIMING_CLOSEOUT_20261102.md and its RESUME first.
+Generation-bound active wait diagnostics and late-current-card tests implemented;
+177 tests pass. Latest short2:482/482 reads, last first-full P9516.640s FAIL.
+First short's PROCESS_DEADLINE and failed5s snapshot recovery remain failures.
+Saved real AI page replay passes in separate TEST_ONLY TCP topology, not matching
+hour or natural evidence. No new hour, publication, paid calls or service restore.
+Original seven-day FAIL and Nov2-13 schedule unchanged. Older notes follow.
+
 ## November1 Phased Agent Work: Latest Pointer
 
 LATEST14:15UTC: read weekend-20261031/AGENT_CONSUMER_CLOSEOUT_20261101.md

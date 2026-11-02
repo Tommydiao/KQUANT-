@@ -1,6 +1,6 @@
 {
   "schema": "WEEKEND_EXECUTION_EVIDENCE_INDEX_V1",
-  "captured_at": "2026-11-01T14:20:15.874599+00:00",
+  "captured_at": "2026-11-02T13:24:36.912947+00:00",
   "old_seven_day_verdict": "FAIL_UNCHANGED",
   "candidate_accepted": false,
   "production_started": false,
@@ -418,6 +418,30 @@
       "skipped": 0
     },
     {
+      "path": "evidence\\revision-generation-timing-20261102.xml",
+      "sha256": "b1fc45a657827244ee8d342b55effa9ee9bf8917cd023f01f20fd4983c1d7bc8",
+      "tests": 177,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\revision-timing-20261102.xml",
+      "sha256": "b48fd8494905b90862d1b1983bcee79fab4110b7ecf3d4b518a0335ce7109552",
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "evidence\\revision-timing-full-20261102.xml",
+      "sha256": "7e0e852c1a86a4aa0a163fe9d9e7237e36d9ee2df47a9ad8a8a4610d7a8890b5",
+      "tests": 176,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
       "path": "evidence\\sidecar-client-tests.xml",
       "sha256": "f329dbbbfa8c16af6b1f3e79822af75fb6f4d9ad9e01569d0da49456c69435c2",
       "tests": 30,
@@ -807,6 +831,185 @@
         "totals": {
           "records": 517,
           "success": 517,
+          "failure": 0,
+          "deadline": 0
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-clock-short1-20261102\\topology_report.json",
+      "sha256": "6e89ed45c2d03f6ea6f1a23f1f1e37b2aa0b79c1ab140dd0e1da310a1adf4520",
+      "duration_seconds": 240.2970000000205,
+      "errors": [
+        {
+          "code": "UNEXPLAINED_HTTP_FAILURES",
+          "count": 9
+        },
+        {
+          "code": "BACKGROUND_QUERY_FAILURES",
+          "failures": 1,
+          "complete": true
+        }
+      ],
+      "admission_diagnostic_profile": false,
+      "tested_sources_unchanged": true,
+      "performance_pass": false,
+      "limited_research_performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        8.062000000150874,
+        6.515000000130385,
+        7.094000000040978,
+        7.5780000002123415,
+        5.797000000020489,
+        7.734000000171363,
+        8.202999999979511,
+        7.5310000001918525,
+        8.452999999979511,
+        10.188000000081956,
+        17.155999999959022
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-clock-short1-20261102\\TEST_ONLY-query-transport-17960.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-clock-short1-20261102\\TEST_ONLY-query-transport-18616.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-clock-short1-20261102\\TEST_ONLY-query-transport-47040.jsonl"
+        ],
+        "processes": {
+          "17960": {
+            "records": 444,
+            "success": 443,
+            "failure": 1,
+            "deadline": 1,
+            "last_attempt": 444,
+            "last_denominator": {
+              "attempts": 444,
+              "successes": 443,
+              "failures": 1,
+              "deadlines": 1,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": [
+              {
+                "attempt_id": 437,
+                "request_id": "50b0681aad9c4918b0f46942de4c378d",
+                "observed_at": "2026-11-02T13:09:40.846303+00:00",
+                "outcome": "PROCESS_DEADLINE",
+                "stages_ms": {
+                  "spawn": 5.783,
+                  "import": 443.158,
+                  "query": null,
+                  "universe": null,
+                  "policy": null,
+                  "current_cards": null,
+                  "latest_status": null,
+                  "checkpoint_audit": null,
+                  "projection_delta": null,
+                  "qualification_stages": null,
+                  "clock": null,
+                  "encode": null,
+                  "ipc": null
+                },
+                "returncode": 1
+              }
+            ]
+          },
+          "18616": {
+            "records": 25,
+            "success": 25,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 25,
+            "last_denominator": {
+              "attempts": 25,
+              "successes": 25,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 469,
+          "success": 468,
+          "failure": 1,
+          "deadline": 1
+        }
+      }
+    },
+    {
+      "path": "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-generation-short2-20261102\\topology_report.json",
+      "sha256": "9a0813822e8f68412e7c1ccf57cca6e08a345dc9e352bde429479c7c64ba84cd",
+      "duration_seconds": 240.1720000000205,
+      "errors": [],
+      "admission_diagnostic_profile": false,
+      "tested_sources_unchanged": true,
+      "performance_pass": false,
+      "limited_research_performance_pass": false,
+      "child_processes_alive": [],
+      "queue_p95": [
+        7.858999999938533,
+        6.0310000001918525,
+        6.391000000061467,
+        6.952999999979511,
+        7.108999999938533,
+        8.030999999959022,
+        8.655999999959022,
+        7.405999999959022,
+        9.641000000061467,
+        15.515999999828637,
+        16.640000000130385
+      ],
+      "query_accounting": {
+        "test_only": true,
+        "available": true,
+        "files": [
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-generation-short2-20261102\\TEST_ONLY-query-transport-28268.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-generation-short2-20261102\\TEST_ONLY-query-transport-32032.jsonl",
+          "E:\\kquant 1007\\KQUANT-Resume-Latest\\source\\evidence\\new-machine-20261008\\agent-revision-generation-short2-20261102\\TEST_ONLY-query-transport-33740.jsonl"
+        ],
+        "processes": {
+          "28268": {
+            "records": 24,
+            "success": 24,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 24,
+            "last_denominator": {
+              "attempts": 24,
+              "successes": 24,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          },
+          "33740": {
+            "records": 458,
+            "success": 458,
+            "failure": 0,
+            "deadline": 0,
+            "last_attempt": 458,
+            "last_denominator": {
+              "attempts": 458,
+              "successes": 458,
+              "failures": 0,
+              "deadlines": 0,
+              "scope": "PARENT_PROCESS"
+            },
+            "errors": []
+          }
+        },
+        "complete": true,
+        "problems": [],
+        "totals": {
+          "records": 482,
+          "success": 482,
           "failure": 0,
           "deadline": 0
         }
@@ -6767,6 +6970,21 @@
       "bytes": 339
     },
     {
+      "path": "evidence\\agent-revision-clock-short1-20261102-summary-v2.json",
+      "sha256": "b7fd38f4517f985c6f1eacf09769b1b2a7e2fe8fa3a2969dc1eb6d737048c027",
+      "bytes": 54751
+    },
+    {
+      "path": "evidence\\agent-revision-generation-short2-20261102-admission-age.json",
+      "sha256": "369d0e867abd83729f617b68e372bee3f6419162e4a18e22e7ab8009f21ec7c5",
+      "bytes": 10744
+    },
+    {
+      "path": "evidence\\agent-revision-generation-short2-20261102-summary-v2.json",
+      "sha256": "7853d1dca779783e032a104714ce037cb62b63d858e288afc1e55178db00c769",
+      "bytes": 67520
+    },
+    {
       "path": "evidence\\agent-source-map-20261101.json",
       "sha256": "8e2e20e3afddc8e501885cba20886e0552fa434866b3930c0a0c743c9bd82bec",
       "bytes": 64796
@@ -6854,6 +7072,16 @@
     {
       "path": "evidence\\baseline-20261101T125216Z.json",
       "sha256": "58dcc2a6e2055274f7592036e4eac283d0c2441719cdc9401a82411c1b016aaf",
+      "bytes": 6694
+    },
+    {
+      "path": "evidence\\baseline-20261101T142022Z.json",
+      "sha256": "d370a7a1f2a2c37749a4ba3e24b85f0971b6469a7b5156c85c9f4430c7c4501d",
+      "bytes": 6694
+    },
+    {
+      "path": "evidence\\baseline-20261102T130053Z.json",
+      "sha256": "eff5d916f5dd64905c45d76a4f1d4381fc8f2d7854b7c29a5e43cb86e142b8b0",
       "bytes": 6694
     },
     {
@@ -7537,6 +7765,71 @@
       "bytes": 226157
     },
     {
+      "path": "evidence\\browser-20261102T132120Z\\browser-result.json",
+      "sha256": "fe740cdfc6596821736970b2e1c33e9d6bbed9cae52f0700729470283bbc78aa",
+      "bytes": 4389
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\first-hour-expired.png",
+      "sha256": "d9c784b3c2074e6f23cb4bffe917b0164d0bc1d9699d6c5ea259d7554fd76b89",
+      "bytes": 215613
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\first-hour-reference.png",
+      "sha256": "750695f191fbfa38c8077220227f15f0daf075f2f91ad6f01762b1c2e905f4e8",
+      "bytes": 273500
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\report.json",
+      "sha256": "1f355465d30b696d983cf3fbbde460504b6554db2a70c99a2e2bfb98de6f9425",
+      "bytes": 25695
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\TEST_ONLY-ai-event.json",
+      "sha256": "89a09eda31564cd06cec41da3753a1c901bc5508239c742143fb3cd7959c66b9",
+      "bytes": 22800
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-1440-en-dark.png",
+      "sha256": "19dc8720e7882c78f97feb37b7f254e84555ea9e71eaec4f18b5d5608a43dbb5",
+      "bytes": 307147
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-1440-en-light.png",
+      "sha256": "7062fb5043b95de674a04ad8d04fd77cb28fdc7cd048f47fd1d2264715f95fea",
+      "bytes": 306227
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-1440-zh-dark.png",
+      "sha256": "31fad814723e663c3dbbb39ca8582483deab59337d318a1c1139f4f3cd4e97a6",
+      "bytes": 261298
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-1440-zh-light.png",
+      "sha256": "29214e9f289b10897c1e9bd2914d431f53ad88d26974c0e7a3ec3c92671fc411",
+      "bytes": 262859
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-2560-en-dark.png",
+      "sha256": "b853c9e8338d826001aa0f20055af1144eebb7b4716ec28eb606e37e23cfbf44",
+      "bytes": 329423
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-2560-en-light.png",
+      "sha256": "6f632b5c17a80088d6e505f0ed493ad4d006b9444692d0164085e36aa555baa7",
+      "bytes": 318083
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-2560-zh-dark.png",
+      "sha256": "ca1b789fe50c9359356cc7ab023201a6687cabcd0d07fd5257b585816eb05abd",
+      "bytes": 273170
+    },
+    {
+      "path": "evidence\\browser-20261102T132120Z\\weekend-2560-zh-light.png",
+      "sha256": "8f7fb1b4f9793744947dbdcc1a87bf12726788e72bf6a251a7c682a3ba3cdce2",
+      "bytes": 274880
+    },
+    {
       "path": "evidence\\coverage-preparation-full-20261101.xml",
       "sha256": "6dba20c08ca7f8310e1f2541570358a4328b924c1b6d801f7dfbe5cd10e4c848",
       "bytes": 19300
@@ -8137,6 +8430,21 @@
       "bytes": 5548
     },
     {
+      "path": "evidence\\revision-generation-timing-20261102.xml",
+      "sha256": "b1fc45a657827244ee8d342b55effa9ee9bf8917cd023f01f20fd4983c1d7bc8",
+      "bytes": 22635
+    },
+    {
+      "path": "evidence\\revision-timing-20261102.xml",
+      "sha256": "b48fd8494905b90862d1b1983bcee79fab4110b7ecf3d4b518a0335ce7109552",
+      "bytes": 4793
+    },
+    {
+      "path": "evidence\\revision-timing-full-20261102.xml",
+      "sha256": "7e0e852c1a86a4aa0a163fe9d9e7237e36d9ee2df47a9ad8a8a4610d7a8890b5",
+      "bytes": 22506
+    },
+    {
       "path": "evidence\\saved-real-current-pair-20261101T101756Z.json",
       "sha256": "a00996881d24f6fc522cb199817a750c8f353559d9f2b5b36fb7222e19acd41a",
       "bytes": 142895
@@ -8472,7 +8780,7 @@
     "opening-first-hour\\first_hour_policy.py": "649e82ce77f1ad621af9b8b504305f3b73aa979d62e15aa0dc94d15e5898a3bb",
     "opening-first-hour\\first_hour_projection.py": "5b85f406f865dae4c9cdca8664cb9d6153980ada7f8855ce065bd270fdbaafbb",
     "opening-first-hour\\first_hour_reference.py": "729773ddc9d620be423289e7eb29ee8f55da74058d868360c37eb9a87a3a446c",
-    "opening-first-hour\\first_hour_runtime.py": "cae8c217f58a28c750e891717684c49a65e0485c02dc17b85624007909230e63",
+    "opening-first-hour\\first_hour_runtime.py": "eb4a28568f4568b2402b4704cb04aad4d4b076cc6d321d7a3b7c688e651bd304",
     "opening-first-hour\\first_hour_status_worker.py": "084d8c4f851754ea4e1f471762350dbc4520ec2e72678bd8e161dafb933f5c54",
     "opening-first-hour\\first_hour_store.py": "1c77b56efcadec4b072bdd36ca49446faab132dacc7cb41651d8ceac811a2e7f",
     "opening-first-hour\\first_hour_summary.py": "19505defa899ea31425a8f7b557c92dc7e0b19a31872d3d85bc4a47d6b16f04e",
@@ -8480,7 +8788,7 @@
     "opening-first-hour\\generation_reads.py": "9d86a2e276e944b295cce1435f611654380d75a9bdd120bfef8932a83c5e2d5a",
     "opening-first-hour\\method_snapshot.py": "14285106f73d417711975e2a136e169f6f34eb4b5a3151d1cdf22f0829dd5880",
     "opening-first-hour\\minute_resolution_plan.py": "e8f4e74da5c08c252db8601f766aca67418702af98b101e160c734e332ef2da5",
-    "opening-first-hour\\prepared_generation.py": "e15b70e5a71d99758531f9392ff0269b38aa5156a2206f8d6bc7081ea5e0e5b9",
+    "opening-first-hour\\prepared_generation.py": "082c6473b6e5b055b3a7292ca69deb502ef540d9ee9143ea84d206f3d9e5c2ab",
     "opening-first-hour\\prepared_minutes.py": "d03f206e30a59840e91f91ba59fa7f0a4ad771af1052586eb5bcf5a29d115efa",
     "opening-first-hour\\published_status_snapshot.py": "2d9d9299015d844df1215dbf7e63f66e8d7162d8b1a5424b3aadd517e85251c2",
     "opening-first-hour\\replay_saved.py": "22232762e3fb86974b84c87d981367908ffa9928792849f91d8859275a21cc62",
@@ -8495,7 +8803,7 @@
     "opening-first-hour\\test_first_hour_selection.py": "eed9e3f98ec2c1bcd2147d03b8d0a447a85a3992c21441466e64d2052f0258d0",
     "opening-first-hour\\test_first_hour_summary.py": "de24c93467f90bc1e87d519da111efd17b7d615d0e45d7bda24545b43ffdfec6",
     "opening-first-hour\\test_gateway_candidate.py": "6ccedc9bce37137c334d62323aa80aae5964372f34ce7d04c74c1e0f8f8d7a1e",
-    "opening-first-hour\\test_generation_handoff.py": "66cfaa8ae1618eab513e4540cfe4f9a5572bf048b82633b72181698c3b15e9c0",
+    "opening-first-hour\\test_generation_handoff.py": "7dab2299471c88d8ac86ab182edb96ed941d369dd9e47e1b02cb6976d899f5ff",
     "opening-first-hour\\test_generation_reads.py": "b0c0f30ce6fadf08cb52ee9e44ee6f6e18d4637b267519a8fa16a20db4eaad0c",
     "opening-first-hour\\test_input_commit_fence.py": "41488dd4da866f2750fe37e91665e8f73306dfca9711a7b81ccc043d2426cf29",
     "opening-first-hour\\test_live_card_revisions.py": "22fd656758bcc3cc9214f3f7af4ada074ced05e7664fc79fd6735dcaf0e19409",
@@ -8504,7 +8812,7 @@
     "opening-first-hour\\test_prepared_minutes.py": "05f4419ba2bcdf3b2e522a526c2873438746680fc8805a5c58c41712e97ec342",
     "opening-first-hour\\test_price_block_preparation.py": "d9c6def154b30df87ede5cda8801f8f4f5d6473fb3ec4869e00f1218dab5ca5f",
     "opening-first-hour\\test_published_status_snapshot.py": "89e8b1fe10b3f442cd48e67527719fadd800c52b3ecced830f4d896c9f8d3cd2",
-    "opening-first-hour\\test_research_timeliness.py": "ceea73aa492ec7fce1699a802d37a25979d5e6498223986359fc00a4220a7c6c",
+    "opening-first-hour\\test_research_timeliness.py": "d1b5e0c1be09686127e7525d32ce4cf629ab1cf405ce5e738002d2010badbdb9",
     "opening-first-hour\\test_resolution_preparation.py": "dc9966ff749361a68888e8d5f6ca7bacc759eea11b4b1096fa671462ca7a146a",
     "opening-first-hour\\test_runtime_parent_binding.py": "180a9d5e33f64508b4f57dae7492f3b658b7c45687697648ad87a477cce84489",
     "opening-first-hour\\test_source_preparation.py": "6a96fa8b9e4efeabd11011afdffd076c6731957dc315de930c4bf71ff27a1410",
@@ -8538,7 +8846,7 @@
     "weekend-20261031\\bootstrap.py": "0aedd2fc13a16220fdf1ec26ec9ced73cce759dd57238d27692ccda8539ab45a",
     "weekend-20261031\\browser_short.py": "2e9395a32be4b7b6da2f84738fb0753662cbba2c2d07361e00bc4c431aa1d2ba",
     "weekend-20261031\\capture_baseline.py": "478a5ccf11ee96f79c91eead846a906c17e6a356320112bf3a573528802a5b46",
-    "weekend-20261031\\capture_execution.py": "6559a30cd3be4837b42412b30abcf8d754a6369890866cf5f1fc00186d355357",
+    "weekend-20261031\\capture_execution.py": "9cebaa651a9c2eb66804425be7a13e194c6c3152ddfc26d191e6589a835e7330",
     "weekend-20261031\\http_attribution.py": "6e91d321bafd4250c7983255118a094ec03705ff71fbd40a69bd51e6264a5250",
     "weekend-20261031\\prepare_authorization.py": "947b3aa3b247e9e74728948e07792cf71abe5a6358be64e5da361e8208fabfe8",
     "weekend-20261031\\profile_generation.py": "e1db5ed62bc9d030d757aedcccb783f769eb047fd04fb3b1825d75cb9886214f",
@@ -8577,6 +8885,6 @@
     "weekend-20261031\\config\\owner_weekend_api.json": "e152442d6dde4faca77b973cc59e57e469ce9bf05b13a5bf2d40fa0d205913fd",
     "weekend-20261031\\config\\research_ai.json": "8ba472eadff15064d89f6b8c903fc03c473fe3f954a48c3b63cf300c92becb38"
   },
-  "source_identity": "a715d725ab9a98310f526fb128880aae24e140eb15b47c35d3043b1257b4eaec",
+  "source_identity": "df5b7688f724374e11faab6b1a1bda27a3bfa9ea20db28a5f50704df8247e8fc",
   "consistency": "Sequential file observations, not an atomic runtime or database snapshot."
 }

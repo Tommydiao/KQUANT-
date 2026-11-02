@@ -26,6 +26,29 @@ class TestOnlyTransport:
         return queue.Queue()
 
 
+def test_active_notification_clock_does_not_reset_original_or_coalesced_age(tmp_path, monkeypatch):
+    with actual_lane(tmp_path) as (lane, worker, now, key, job, bars, reviews):
+        import first_hour_runtime
+        with lane.lock, monkeypatch.context() as patch:
+            tick = [70.0]
+            patch.setattr(first_hour_runtime, 'monotonic', lambda: tick[0])
+            lane.timings[key] = {'enqueue_monotonic': 10.0}
+            lane._mark_admission_notification(key)
+            tick[0] = 72.0
+            lane._mark_admission_notification(key)
+            timing = lane.timings[key]
+            assert timing['admission_notification_monotonic'] == 70.0
+            assert timing['enqueue_monotonic'] == 10.0
+            # A dequeued batch owns its timestamp; a concurrent revision gets
+            # a separate pending timestamp without rewriting the batch's age.
+            captured = timing.pop('admission_notification_monotonic')
+            tick[0] = 74.0
+            lane._mark_admission_notification(key)
+            assert captured == 70.0
+            assert timing['admission_notification_monotonic'] == 74.0
+            assert timing['enqueue_monotonic'] == 10.0
+
+
 class TestOnlyHub:
     __test__ = False
 
@@ -157,6 +180,20 @@ def test_prepared_content_is_deeply_immutable(tmp_path):
         with pytest.raises(TypeError):
             generation.minute_inputs[2]['missing_slots'].clear()
         validate(lane, generation)
+
+
+def test_admission_metrics_are_bound_to_the_immutable_generation(tmp_path):
+    from types import SimpleNamespace
+    with actual_lane(tmp_path) as (lane, _, _, key, job, _, _):
+        generation = prepare(lane, key, job)
+        timing = {'active_admission_wait_seconds': 2.0,
+                  'original_enqueue_age_at_preparation_seconds': 72.0}
+        admitted = generation.admitted(SimpleNamespace(fingerprint=generation.fingerprint, generation=3), timing)
+        timing['active_admission_wait_seconds'] = 99.0
+        assert dict(admitted.admission_timing)['active_admission_wait_seconds'] == 2.0
+        assert dict(admitted.admission_timing)['original_enqueue_age_at_preparation_seconds'] == 72.0
+        assert admitted.fingerprint == generation.fingerprint
+        assert admitted.input_generation == 3
 
 
 def test_timing_preserves_end_to_end_and_separates_actual_commit(tmp_path):

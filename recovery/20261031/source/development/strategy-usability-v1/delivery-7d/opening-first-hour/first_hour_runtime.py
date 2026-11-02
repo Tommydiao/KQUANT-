@@ -139,6 +139,8 @@ class TrendLane:
                 if key in self.pending or key in self.incoming:
                     self.state["coalesced"] += 1
                 target = self.incoming if strategy == "opening_momentum" else self.pending
+                if strategy == 'opening_momentum':
+                    self._mark_admission_notification(key)
                 target[key] = self.latest_inputs[(symbol, day)]
                 self.checkpoints[key] = self.latest_inputs[(symbol, day)]
             self._wake_original_locked(symbol, day)
@@ -237,6 +239,7 @@ class TrendLane:
                         continue
                     job=self.latest_inputs[(row['symbol'],day)]
                     self.checkpoints.setdefault(key,job)
+                    self._mark_admission_notification(key)
                     self.incoming.setdefault(key,job)
                     self.timings.setdefault(key,{}).setdefault('enqueue_monotonic',monotonic())
                     self.clock_admitted.add(key)
@@ -293,6 +296,7 @@ class TrendLane:
                 self.prepared_generations.pop(key,None)
                 continue
             if key[0] == "opening_momentum" and (key in self.waiting or self.clock() < deadline):
+                self._mark_admission_notification(key)
                 self.incoming[key] = job or original
             elif self.clock() < deadline:
                 self.pending[key] = job or original
@@ -545,6 +549,12 @@ class TrendLane:
             reviews=reviews, policy_pair=policy_pair, method_state=self._method_state(reviews, now), scoped=True)
         self.state['generation_boundary_checks'] = self.state.get('generation_boundary_checks', 0)+1
 
+    def _mark_admission_notification(self, key):
+        # Called under the lane lock. Coalescing keeps the oldest pending
+        # notification; the original checkpoint clock is never restarted.
+        timing = self.timings.setdefault(key, {})
+        timing.setdefault('admission_notification_monotonic', monotonic())
+
     def _write_ready(self):
         import sqlite3
         while True:
@@ -553,6 +563,8 @@ class TrendLane:
                 if self.stopped:
                     return
                 batch = [self.incoming.popitem(last=False) for _ in range(min(LANE_BATCH_BOUND, len(self.incoming)))]
+                notified = {key: self.timings.get(key, {}).pop('admission_notification_monotonic', None)
+                            for key, _ in batch}
                 self.admitting.update(key for key, _ in batch)
                 epochs = {key: self.input_epochs.get(job[:2], 0) for key, job in batch}
             try:
@@ -574,6 +586,9 @@ class TrendLane:
                             timing = self.timings.setdefault(key, {})
                             timing['admission_queue_seconds'] = (started-timing['enqueue_monotonic']
                                 if 'enqueue_monotonic' in timing else None)
+                            timing['original_enqueue_age_at_preparation_seconds'] = timing['admission_queue_seconds']
+                            timing['active_admission_wait_seconds'] = (
+                                started-notified[key] if notified[key] is not None else None)
                             generation = self._prepare_generation(key, job, epochs[key], reviews, policy_pair)
                             timing['generation_preparation_seconds'] = monotonic()-started
                             timing['generation_preparation_cpu_seconds'] = thread_time()-cpu_started
@@ -598,7 +613,7 @@ class TrendLane:
                             if self.input_epochs.get(job[:2], 0) != generation.input_epoch:
                                 self._readmit_current(key, job)
                                 continue
-                            self.prepared_generations[key] = generation.admitted(accepted)
+                            self.prepared_generations[key] = generation.admitted(accepted, self.timings.get(key))
                             self.timings.setdefault(key, {})["durable_admission_monotonic"] = monotonic()
                             self.pending[key] = job
                             self.state["durable_queued"] = self.state.get("durable_queued", 0) + 1
@@ -620,6 +635,7 @@ class TrendLane:
                 opening, _ = session_bounds_utc(job[1])
                 if self.clock() < min(opening + timedelta(minutes=(key[-1] + 1) * 5),
                                       opening + timedelta(minutes=WINDOW_END_MINUTES)):
+                    self._mark_admission_notification(key)
                     self.incoming.setdefault(key, self.latest_inputs.get((job[0], job[1]), job))
                 else:
                     expired.append((key, job))
@@ -652,6 +668,7 @@ class TrendLane:
                                    opening+timedelta(minutes=WINDOW_END_MINUTES)):
                 self.prepared_generations.pop(key, None)
                 return
+            self._mark_admission_notification(key)
             self.incoming.setdefault(key, current)
             self.state['input_readmissions'] = self.state.get('input_readmissions', 0) + 1
             self.lock.notify_all()
@@ -846,6 +863,7 @@ class TrendLane:
                                           if row.get('strategy_comparison') else [row])],
                                   "runtime_timing": {**{name: value for name, value in self.timings.get(key, {}).items()
                                       if name.endswith("_seconds")}, "commit_batch_seconds": commit_seconds,
+                                      **dict(handoffs[key].admission_timing if handoffs.get(key) else ()),
                                       **commit_phases,
                                       "availability_record_seconds": availability_seconds,
                                       "history_snapshot_batch_seconds": history_snapshot_seconds,

@@ -162,11 +162,14 @@ class PreparedGeneration:
     deadline: object
     fingerprint: str
     input_generation: int | None = None
+    admission_timing: tuple = ()
 
-    def admitted(self, lease):
+    def admitted(self, lease, timing=None):
         if lease.fingerprint != self.fingerprint:
             raise GenerationChanged('ADMISSION_FINGERPRINT_CHANGED')
-        return replace(self, input_generation=lease.generation)
+        metrics = tuple((name, (timing or {}).get(name)) for name in (
+            'active_admission_wait_seconds', 'original_enqueue_age_at_preparation_seconds'))
+        return replace(self, input_generation=lease.generation, admission_timing=metrics)
 
     def check(self, *, now, epoch, clock_epoch, minute_token, decision_token,
               fact_token, reviews, policy_pair, method_state, scoped=False):

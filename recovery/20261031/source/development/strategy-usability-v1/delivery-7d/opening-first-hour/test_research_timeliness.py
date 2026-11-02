@@ -64,6 +64,12 @@ def test_actual_math_commit_notifies_before_contract_and_late_result_is_history(
     late = store.detail(child['evaluation_id'], path)
     assert late['research_timeliness']['state']=='LATE'
     assert not availability.current_allowed(late)
+    current = store.current_cards(path=path, session=args['opening'].date().isoformat(),
+        scope_hash=args['scope_hash'], now=args['now'] + timedelta(seconds=1),
+        policy=first_hour.load_policy())
+    assert current['evaluations'] == []
+    assert current['candidates'] == []
+    assert store.detail(child['evaluation_id'], path)['state'] == child['state']
     # A later observation cannot renew the immutable first availability.
     availability.record_many(path, rows, observed_at=args['now']+timedelta(seconds=5))
     assert store.detail(child['evaluation_id'], path)['research_timeliness']==late['research_timeliness']
